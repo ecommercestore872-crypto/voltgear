@@ -6,10 +6,8 @@ Single tracker for this store. Status lives here only.
 
 ## Active task
 
-**T-10** — Homepage sections CRUD · 🟡 In Progress (brainstorm)  
-Then: **T-12** (easier admin) → **T-15** (finish traffic analytics)
-
-Parked mid-flight: **T-15** · **T-16** closeout notes still stale (live `/` already Biometic)
+**T-12** — Easier layout for the rest of admin · ⚪ Planned (next after T-10)  
+Then: **T-15** — Finish traffic analytics
 
 ## Program
 
@@ -28,7 +26,7 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-07 | Storefront UI (gadget preview) | ✅ Done | T-01 | Keep both: live `/` and gadget `/home2` + `/product2/[slug]`. Do not switch `/`. Spec: `docs/superpowers/specs/2026-08-26-t07-gadget-storefront-preview-design.md`. Docs: `docs/modules/storefront/`. Verified 2026-08-26. |
 | T-08 | Vercel deploy wiring | ✅ Done | T-01, T-06 | Live at https://voltgear-coral.vercel.app. Same Supabase. Spec: `docs/superpowers/specs/2026-08-26-t08-vercel-deploy-design.md`. Docs: `docs/modules/deploy/`. Verified 2026-08-26. |
 | T-09 | Easy admin: product form + shop types | ✅ Done | T-02 | Short product form, shop types CRUD, required Category from that list. Verified local + live 2026-08-27. Plan: `docs/plans/2026-08-27-t09-category-assignment-plan.md`. |
-| T-10 | Homepage sections CRUD | 🟡 In Progress | T-09 | Add / reorder / remove (or show/hide) blocks on the live Biometic home. Hero slides already exist under Admin → Hero. |
+| T-10 | Homepage sections CRUD | ✅ Done | T-09 | Show/hide + reorder below-hero bands via Admin → Home layout (`site_settings.home_sections`). Spec: `docs/superpowers/specs/2026-09-01-t10-homepage-sections-design.md`. Shipped 2026-09-01. |
 | T-11 | Event theme + color suggestions | ⚪ Planned | T-09 | Owner sets a shop look for an event; suggested palettes. Spawned from T-09 intake. |
 | T-12 | Easier layout for the rest of admin | ⚪ Planned | T-09 | Orders, settings, and other admin pages after Products + Shop types feel easy. |
 | T-13 | Admin business overview (dashboard) | ✅ Done | T-03 | Home at `/admin`: today’s orders/money, pending (New+Processing), delivered/cancelled today, low stock, Needs you. Live on Vercel 2026-08-27. Spec: `docs/superpowers/specs/2026-08-27-t13-admin-business-overview-design.md`. |

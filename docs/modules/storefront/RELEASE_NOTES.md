@@ -1,5 +1,9 @@
 # Gadget storefront preview — release notes
 
+## 2026-09-01 — Homepage sections layout (T-10)
+
+- Admin → **Home layout** show/hide + reorder below-hero bands on live `/`. Stored in `site_settings.home_sections`. Hero stays fixed at top.
+
 ## 2026-09-01 — Craft system: motion, type, icons (T-19)
 
 - Preview gets shared craft tokens (motion durations/easing, type scale, hover-lift), home section reveals, sharper Buy now trust microcopy from real settings, upgraded category glyphs, and consistent icon stroke. Live `/` unchanged.
