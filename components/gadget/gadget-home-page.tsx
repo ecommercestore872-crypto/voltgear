@@ -24,6 +24,10 @@ import {
 } from "@/lib/gadget-creatives";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { gadgetShopTypeLinks, product2Href, products2Href } from "@/lib/gadget-preview";
+import {
+  enabledHomeSectionIds,
+  normalizeHomeSections,
+} from "@/lib/db/home-section-rules";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Page, Product, Testimonial } from "@/lib/types";
@@ -152,64 +156,95 @@ export async function GadgetHomePage() {
 
   const demoBanners = gadgetDemoHeroBanners(products2Href);
   const lifestyleImage = gadgetLifestyleFeatureImage(slides[0]?.imageUrl);
+  const layout = enabledHomeSectionIds(
+    normalizeHomeSections(settings?.homeSections ?? null)
+  );
+  const trustItems = trust.map(({ key, title, detail, icon }) => ({
+    key,
+    title,
+    detail,
+    icon,
+  }));
 
   return (
     <div className="bg-[var(--g-cream)] text-[var(--g-charcoal)]">
       <GadgetHeroSlider slides={slides} fallbackBanners={demoBanners} />
 
-      <GadgetReveal>
-        <GadgetTrustStrip
-          items={trust.map(({ key, title, detail, icon }) => ({ key, title, detail, icon }))}
-        />
-      </GadgetReveal>
-
-      <GadgetReveal delayMs={80}>
-        <GadgetNewArrivals
-          products={railProducts}
-          title="Best Sellers"
-          headingId="best-sellers-heading"
-        />
-      </GadgetReveal>
-
-      {featuredProduct ? (
-        <GadgetReveal delayMs={60}>
-          <GadgetFeaturedProduct product={featuredProduct} />
-        </GadgetReveal>
-      ) : null}
-
-      <GadgetReveal delayMs={50}>
-        <GadgetNewArrivals
-          products={bestOffers}
-          title="Best Offers"
-          viewAllHref={`${products2Href()}?sort=price-asc`}
-          headingId="best-offers-heading"
-        />
-      </GadgetReveal>
-
-      <GadgetReveal delayMs={40}>
-        <GadgetLifestyleShop
-          tiles={categoryCards.slice(0, 4)}
-          feature={{
-            imageUrl: lifestyleImage,
-            eyebrow: slides[0]?.subtitle || "Curated for you",
-            title: slides[0]?.title || "Rethinking everyday tech",
-            href: slides[0] ? product2Href(slides[0].product.slug) : products2Href(),
-            cta: "Shop now",
-          }}
-        />
-      </GadgetReveal>
-
-      <GadgetReveal delayMs={60}>
-        <GadgetShopCategories tiles={categoryCards} />
-      </GadgetReveal>
-
-      <GadgetReveal delayMs={80}>
-        <GadgetReviewsSlider reviews={testimonials} />
-      </GadgetReveal>
-
-      <GadgetReveal delayMs={100}>
-        <GadgetBlogSection posts={blogPosts} />
-      </GadgetReveal>
+      {layout.map((id, i) => {
+        const delayMs = 40 + i * 20;
+        switch (id) {
+          case "trust":
+            return trustItems.length ? (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetTrustStrip items={trustItems} />
+              </GadgetReveal>
+            ) : null;
+          case "bestsellers":
+            return (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetNewArrivals
+                  products={railProducts}
+                  title="Best Sellers"
+                  headingId="best-sellers-heading"
+                />
+              </GadgetReveal>
+            );
+          case "featured":
+            return featuredProduct ? (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetFeaturedProduct product={featuredProduct} />
+              </GadgetReveal>
+            ) : null;
+          case "offers":
+            return (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetNewArrivals
+                  products={bestOffers}
+                  title="Best Offers"
+                  viewAllHref={`${products2Href()}?sort=price-asc`}
+                  headingId="best-offers-heading"
+                />
+              </GadgetReveal>
+            );
+          case "lifestyle":
+            return (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetLifestyleShop
+                  tiles={categoryCards.slice(0, 4)}
+                  feature={{
+                    imageUrl: lifestyleImage,
+                    eyebrow: slides[0]?.subtitle || "Curated for you",
+                    title: slides[0]?.title || "Rethinking everyday tech",
+                    href: slides[0]
+                      ? product2Href(slides[0].product.slug)
+                      : products2Href(),
+                    cta: "Shop now",
+                  }}
+                />
+              </GadgetReveal>
+            );
+          case "categories":
+            return (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetShopCategories tiles={categoryCards} />
+              </GadgetReveal>
+            );
+          case "reviews":
+            return (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetReviewsSlider reviews={testimonials} />
+              </GadgetReveal>
+            );
+          case "blog":
+            return (
+              <GadgetReveal key={id} delayMs={delayMs}>
+                <GadgetBlogSection posts={blogPosts} />
+              </GadgetReveal>
+            );
+          default:
+            return null;
+        }
+      })}
     </div>
   );
 }
