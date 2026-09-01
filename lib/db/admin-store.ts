@@ -17,6 +17,10 @@ import {
 } from "@/lib/db/publish";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
+import {
+  normalizeHomeSections,
+  type HomeSectionEntry,
+} from "@/lib/db/home-section-rules";
 import type { ShopType } from "@/lib/categories";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { Product, SiteSettings } from "@/lib/types";
@@ -683,6 +687,18 @@ export async function discardAdminSettingsDraft() {
   const { error } = await db().from("site_settings").update({ draft: null }).eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
   return { ok: true as const };
+}
+
+export async function saveAdminHomeSections(sections: HomeSectionEntry[]) {
+  const normalized = normalizeHomeSections(sections);
+  const { error } = await db()
+    .from("site_settings")
+    .update({ home_sections: normalized })
+    .eq("id", 1);
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  revalidatePath("/");
+  revalidatePath("/admin/home");
+  return { ok: true as const, sections: normalized };
 }
 
 type TestimonialDoc = {

@@ -126,6 +126,7 @@ export interface SiteSettings {
     endsAt?: string;
   };
   seo?: { title?: string; description?: string };
+  homeSections?: { id: string; enabled: boolean }[];
 }
 
 export type ContentBlock =

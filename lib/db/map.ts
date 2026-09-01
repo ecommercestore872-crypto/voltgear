@@ -9,6 +9,7 @@ import type {
   StockStatus,
   Testimonial,
 } from "@/lib/types";
+import { normalizeHomeSections } from "@/lib/db/home-section-rules";
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -133,6 +134,7 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     returnWindowDays: row.return_window_days != null ? num(row.return_window_days) : undefined,
     announcement: row.announcement as SiteSettings["announcement"],
     seo: row.seo as SiteSettings["seo"],
+    homeSections: normalizeHomeSections(row.home_sections),
   };
 }
 
