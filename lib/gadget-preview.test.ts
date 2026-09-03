@@ -25,7 +25,7 @@ describe("isGadgetPreviewPath", () => {
 
 describe("product2Href", () => {
   it("builds the preview product URL", () => {
-    assert.equal(product2Href("wireless-15w-pad"), "/product2/wireless-15w-pad");
+    assert.equal(product2Href("wireless-15w-pad"), "/product/wireless-15w-pad");
   });
 });
 

@@ -109,12 +109,12 @@ export function readGadgetPreviewSession(): boolean {
 }
 
 export function product2Href(slug: string): string {
-  return `/product2/${slug}`;
+  return `/product/${slug}`;
 }
 
 export function products2Href(categorySlug?: string): string {
-  if (categorySlug) return `/products2/${categorySlug}`;
-  return "/products2";
+  if (categorySlug) return `/products/${categorySlug}`;
+  return "/products";
 }
 
 export function gadgetShopTypeLinks(
