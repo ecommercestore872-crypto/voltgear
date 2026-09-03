@@ -3,6 +3,10 @@ export function isGadgetPreviewPath(pathname: string): boolean {
     pathname === "/" ||
     pathname === "/home2" ||
     pathname.startsWith("/home2/") ||
+    pathname === "/product" ||
+    pathname.startsWith("/product/") ||
+    pathname === "/products" ||
+    pathname.startsWith("/products/") ||
     pathname === "/product2" ||
     pathname.startsWith("/product2/") ||
     pathname === "/products2" ||
