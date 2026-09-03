@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Check } from "lucide-react";
 
 import { GadgetBuyBox } from "@/components/gadget/gadget-buy-box";
 import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
+import { GadgetProductTabs } from "@/components/gadget/gadget-product-tabs";
 import { ReviewsSection } from "@/components/product/product-info-sections";
 import { ProductViewTracker } from "@/components/product/product-view-tracker";
 import { applyGadgetStudioImages, applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
@@ -109,8 +109,6 @@ export default async function Product2Page({ params }: { params: { slug: string 
   const relatedProducts = related
     .filter((p) => p._id !== product._id && p.category === product.category)
     .slice(0, 4);
-  const specs = (product.specifications ?? []).filter((s) => s?.label?.trim() && s?.value?.trim());
-  const features = (product.features ?? []).filter(Boolean);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://voltgear.pk";
   const productImg = product.images?.[0] ? imageUrl(product.images[0], { w: 800 }) : undefined;
@@ -195,51 +193,9 @@ export default async function Product2Page({ params }: { params: { slug: string 
         <div className="mt-6">
           <GadgetBuyBox product={product} config={config} />
         </div>
-
-        {features.length ? (
-          <section className="mt-12 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:p-8">
-            <h2 className="gadget-display text-2xl font-semibold tracking-[-0.02em]">Why you’ll like it</h2>
-            <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-              {features.map((f) => (
-                <li
-                  key={f}
-                  className="flex items-start gap-2.5 rounded-xl bg-[var(--g-cream)] px-4 py-3 text-sm text-[var(--g-charcoal)]"
-                >
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--g-forest)]" aria-hidden />
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        {specs.length ? (
-          <section className="mt-8 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:p-8">
-            <h2 className="gadget-display text-2xl font-semibold tracking-[-0.02em]">Specifications</h2>
-            <dl className="mt-5 divide-y divide-[var(--g-line)] overflow-hidden rounded-xl border border-[var(--g-line)]">
-              {specs.map((s) => (
-                <div key={s.label} className="grid grid-cols-2 gap-4 bg-[var(--g-cream)]/40 px-4 py-3 text-sm">
-                  <dt className="font-semibold text-[var(--g-charcoal)]">{s.label}</dt>
-                  <dd className="text-[var(--g-taupe)]">{s.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        ) : null}
-
-        {product.inTheBox?.length ? (
-          <section className="mt-8 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:p-8">
-            <h2 className="gadget-display text-2xl font-semibold tracking-[-0.02em]">In the box</h2>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {product.inTheBox.map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm text-[var(--g-charcoal)]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--g-forest)]" aria-hidden />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+        <div className="mt-10">
+          <GadgetProductTabs product={product} />
+        </div>
 
         <div className="mt-12">
           <ReviewsSection

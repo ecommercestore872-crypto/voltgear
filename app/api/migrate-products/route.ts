@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAdminProduct, listAdminProducts, publishAdminProduct, editorDocument } from "@/lib/db/admin-store";
 
 function blocks(text: string) {
@@ -181,10 +181,19 @@ const ITEMS = [
   },
 ];
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const debug = req.nextUrl.searchParams.get("debug") === "1";
+  const products = await listAdminProducts();
+
+  if (debug) {
+    return NextResponse.json({
+      count: products.length,
+      products: products.map((p) => ({ slug: p.slug, name: p.name, _id: p._id })),
+    });
+  }
+
   const results: object[] = [];
   try {
-    const products = await listAdminProducts();
     for (const item of ITEMS) {
       const matchKey = item.match.toLowerCase();
       const product = products.find(
