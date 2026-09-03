@@ -78,7 +78,7 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
                   className={cn(
                     "w-full border-0 absolute z-0",
                     activeMedia.includes("instagram.com") || activeMedia.includes("tiktok.com")
-                      ? "h-[calc(100%+180px)] -top-[80px] pointer-events-auto"
+                      ? "h-[calc(100%+230px)] -top-[80px] pointer-events-auto"
                       : "h-full inset-0 pointer-events-auto"
                   )}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -98,30 +98,33 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
               )}
             </div>
 
-            {(!activeMedia || (tiktokUrl && instagramUrl)) && (
-              <div className="p-3 bg-neutral-950 flex justify-center gap-2 relative z-10 border-t border-white/10">
+            {Boolean(videoUrl || tiktokUrl || instagramUrl) && (
+              <div className="p-3 bg-neutral-950 flex flex-wrap justify-center gap-2 relative z-10 border-t border-white/10">
                 {tiktokUrl && (
                   <Button
-                    onClick={() => {
-                      const embed = videoEmbedSrc("tiktok", tiktokUrl);
-                      if (embed) setActiveMedia(embed);
-                      else window.open(tiktokUrl, "_blank");
-                    }}
-                    className="bg-black text-white hover:bg-neutral-800 text-xs font-bold px-3 py-1.5 h-auto rounded-lg flex items-center gap-1.5 border border-white/20 transition-all"
+                    onClick={() => window.open(tiktokUrl, "_blank")}
+                    className="bg-black text-white hover:bg-neutral-800 text-xs font-bold px-4 py-2 h-auto rounded-xl flex items-center gap-1.5 border border-white/20 transition-all flex-1"
                   >
-                    Watch on TikTok
+                    Open in TikTok
+                    <ExternalLink className="h-3 w-3 ml-1 opacity-70" />
                   </Button>
                 )}
                 {instagramUrl && (
                   <Button
-                    onClick={() => {
-                      const embed = videoEmbedSrc("instagram", instagramUrl);
-                      if (embed) setActiveMedia(embed);
-                      else window.open(instagramUrl, "_blank");
-                    }}
-                    className="bg-gradient-to-br flex-1 relative overflow-hidden from-pink-600 via-rose-600 to-purple-600 border-0 text-white font-bold tracking-tight text-xs rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    onClick={() => window.open(instagramUrl, "_blank")}
+                    className="bg-gradient-to-br flex-1 from-pink-600 via-rose-600 to-purple-600 border-0 text-white font-bold tracking-tight text-xs rounded-xl px-4 py-2 h-auto shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-1.5"
                   >
-                    Watch on Instagram
+                    Open in Instagram
+                    <ExternalLink className="h-3 w-3 ml-1 opacity-70" />
+                  </Button>
+                )}
+                {(!tiktokUrl && !instagramUrl && videoUrl) && (
+                  <Button
+                    onClick={() => window.open(videoUrl, "_blank")}
+                    className="bg-white text-black hover:bg-neutral-200 text-xs font-bold px-4 py-2 h-auto rounded-xl flex items-center justify-center gap-1.5 transition-all flex-1"
+                  >
+                    Open Original Source
+                    <ExternalLink className="h-3 w-3 ml-1 opacity-70" />
                   </Button>
                 )}
               </div>
