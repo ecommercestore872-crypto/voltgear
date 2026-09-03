@@ -871,6 +871,15 @@ export async function moderateReview(id: string, action: "approve" | "reject") {
   return { ok: true as const };
 }
 
+export async function deleteReview(id: string) {
+  // Remove from review_submissions (the queue)
+  const { error: subErr } = await db().from("review_submissions").delete().eq("id", id);
+  if (subErr) return { ok: false as const, error: subErr.message, status: 500 };
+  // Also remove from product_reviews if it was approved there
+  await db().from("product_reviews").delete().eq("submission_id", id).then(() => {});
+  return { ok: true as const };
+}
+
 export type DemoPurgeResult = {
   ok: true;
   empty: boolean;

@@ -83,7 +83,15 @@ export default async function Product2Page({ params }: { params: { slug: string 
 
   if (!product) notFound();
 
-  const mergedReviews = [...approvedReviews, ...(product.reviews ?? [])];
+  // Deduplicate: avoid showing the same review twice when it appears
+  // in both the Supabase product_reviews table and the legacy product.reviews array.
+  const seen = new Set<string>();
+  const mergedReviews = [...approvedReviews, ...(product.reviews ?? [])].filter((r) => {
+    const key = `${(r.name ?? "").toLowerCase().trim()}|${(r.comment ?? "").toLowerCase().trim()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   const productWithReviews: Product = mergedReviews.length
     ? {
         ...product,

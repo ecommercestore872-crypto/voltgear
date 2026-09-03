@@ -83,6 +83,20 @@ export function PromosManager() {
     }
   }
 
+  async function deletePromo(p: Promo) {
+    if (!confirm(`Delete code "${p.code}"? This cannot be undone.`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await adminFetch(`/api/admin/promos/${p.id}`, { method: "DELETE" });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -152,7 +166,7 @@ export function PromosManager() {
               <th className="px-3 py-2">Value</th>
               <th className="px-3 py-2">Uses</th>
               <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2" />
+              <th className="px-3 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -178,15 +192,26 @@ export function PromosManager() {
                   <td className="px-3 py-2">{p.usageCount}</td>
                   <td className="px-3 py-2">{p.active ? "Active" : "Off"}</td>
                   <td className="px-3 py-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={busy}
-                      onClick={() => void toggleActive(p)}
-                    >
-                      {p.active ? "Disable" : "Enable"}
-                    </Button>
+                    <div className="flex gap-1.5">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => void toggleActive(p)}
+                      >
+                        {p.active ? "Disable" : "Enable"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        disabled={busy}
+                        onClick={() => void deletePromo(p)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))

@@ -140,3 +140,15 @@ export async function countPriorOrdersForEmail(email: string): Promise<number> {
     return true;
   }).length;
 }
+
+export async function deletePromoCode(
+  id: string
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const { error } = await db().from("promo_codes").delete().eq("id", id);
+  if (error) {
+    console.error("[promo] delete", error.message);
+    return { ok: false, error: "Failed to delete code.", status: 500 };
+  }
+  return { ok: true };
+}
+

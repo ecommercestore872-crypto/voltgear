@@ -201,60 +201,60 @@ export function ReviewsSection({
       <SectionHeading eyebrow="Reviews" title="Customer Reviews" />
 
       {real.length ? (
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-          <div className="h-fit rounded-2xl border border-border/40 bg-card p-8 text-center shadow-lg shadow-black/5 ring-1 ring-black/5">
-            <p className="text-5xl font-black tracking-tighter">
+        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+          <div className="h-fit rounded-xl border border-border/40 bg-card p-5 text-center">
+            <p className="text-4xl font-black tracking-tighter">
               {(avg ?? rating ?? 0).toFixed(1)}
             </p>
-            <StarRating rating={avg ?? rating ?? 0} className="mt-3 justify-center text-amber-500" size={20} />
-            <p className="mt-2 text-sm font-medium text-muted-foreground">
+            <StarRating rating={avg ?? rating ?? 0} className="mt-2 justify-center text-amber-500" size={16} />
+            <p className="mt-1.5 text-xs font-medium text-muted-foreground">
               Based on {real.length} review{real.length === 1 ? "" : "s"}
             </p>
-            <div className="mt-6 space-y-2">
+            <div className="mt-4 space-y-1.5">
               {distribution.map((count, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm font-medium">
-                  <span className="w-4 text-right text-muted-foreground">{5 - i}</span>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted/60 shadow-inner">
+                <div key={i} className="flex items-center gap-2 text-xs font-medium">
+                  <span className="w-3 text-right text-muted-foreground">{5 - i}</span>
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted/60">
                     <div
-                      className="h-full rounded-full bg-amber-500 shadow-sm"
+                      className="h-full rounded-full bg-amber-500"
                       style={{ width: `${(count / real.length) * 100}%` }}
                     />
                   </div>
-                  <span className="w-4 text-left text-muted-foreground/70">{count}</span>
+                  <span className="w-3 text-left text-muted-foreground/70">{count}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <ul className="space-y-6">
+          <ul className="space-y-3">
             {real.map((review, i) => (
-              <li key={`${review.name}-${i}`} className="rounded-2xl border border-border/40 bg-card p-6 md:p-8 shadow-sm transition-shadow hover:shadow-md">
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/30 pb-4">
-                  <div className="flex flex-col gap-1.5 leading-none">
+              <li key={`${review.name}-${i}`} className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/30 pb-3">
+                  <div className="flex flex-col gap-1 leading-none">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-foreground text-base tracking-tight">{review.name}</span>
+                      <span className="font-semibold text-foreground text-sm tracking-tight">{review.name}</span>
                       {review.verified ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                          <BadgeCheck className="h-3 w-3" />
+                          <BadgeCheck className="h-2.5 w-2.5" />
                           Verified
                         </span>
                       ) : null}
                     </div>
                     {review.date && (
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="text-[11px] font-medium text-muted-foreground">
                         {new Date(review.date).toLocaleDateString("en-US", {
-                          month: "long",
+                          month: "short",
                           day: "numeric",
                           year: "numeric",
                         })}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 bg-muted/30 px-3 py-1.5 rounded-full">
-                    <StarRating rating={review.rating} size={14} className="text-amber-500" />
+                  <div className="flex items-center gap-2 bg-muted/30 px-2.5 py-1 rounded-full">
+                    <StarRating rating={review.rating} size={12} className="text-amber-500" />
                   </div>
                 </div>
-                <p className="mt-5 text-[15px] leading-relaxed text-foreground/80 font-medium">
+                <p className="mt-3 text-sm leading-relaxed text-foreground/80">
                   {review.comment}
                 </p>
                 {review.image && (
