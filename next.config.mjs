@@ -33,9 +33,9 @@ const nextConfig = {
     return [
       { source: "/home2", destination: "/", permanent: true },
       { source: "/home2/:path*", destination: "/", permanent: true },
-      { source: "/products", destination: "/products2", permanent: false },
-      { source: "/products/:category", destination: "/products2/:category", permanent: false },
-      { source: "/product/:slug", destination: "/product2/:slug", permanent: false },
+      { source: "/products2", destination: "/products", permanent: true },
+      { source: "/products2/:category", destination: "/products/:category", permanent: true },
+      { source: "/product2/:slug", destination: "/product/:slug", permanent: true },
     ];
   },
 };
