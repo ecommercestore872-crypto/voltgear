@@ -49,9 +49,11 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
           >
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-3 right-3 h-9 w-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition z-20 border border-white/20"
+              aria-label="Close video"
+              className="absolute top-3 right-3 h-11 w-11 rounded-full bg-white text-black shadow-2xl flex items-center justify-center hover:scale-105 active:scale-90 transition-all z-20"
+              style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.5)" }}
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6 stroke-[2.5]" />
             </button>
 
             <div className="p-4 bg-gradient-to-b from-black/80 to-transparent absolute top-0 inset-x-0 z-10 text-white space-y-0.5 pointer-events-none">
