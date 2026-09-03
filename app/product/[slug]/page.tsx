@@ -245,6 +245,7 @@ export default async function ProductPage({
          <div className="p-8 lg:p-12">
            <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-start">
              <div className="flex-1 w-full max-w-xl [&>section:first-child]:!mt-0 [&>section]:!mt-10">
+               <ProductVideoSection product={productWithReviews} />
                <DescriptionSection product={productWithReviews} />
                <KeyFeaturesSection product={productWithReviews} />
              </div>
