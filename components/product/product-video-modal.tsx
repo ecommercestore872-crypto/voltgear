@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Play, X, Video, Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import { videoEmbedSrc } from "@/lib/gadget-preview";
+import { videoEmbedSrc, videoKind } from "@/lib/gadget-preview";
 
 interface ProductVideoModalProps {
   videoUrl?: string;
@@ -17,8 +17,15 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
   const [isOpen, setIsOpen] = useState(false);
   const [activeMedia, setActiveMedia] = useState<string | null>(null);
 
+  function getSafeEmbed(url?: string): string | null {
+    if (!url) return null;
+    const kind = videoKind(url);
+    if (kind === "instagram" || kind === "tiktok") return videoEmbedSrc(kind, url);
+    return url;
+  }
+
   // Determine the default embed if opened
-  const defaultEmbed = videoUrl || (tiktokUrl ? videoEmbedSrc("tiktok", tiktokUrl) : null) || (instagramUrl ? videoEmbedSrc("instagram", instagramUrl) : null);
+  const defaultEmbed = getSafeEmbed(videoUrl) || getSafeEmbed(tiktokUrl) || getSafeEmbed(instagramUrl);
 
   if (!videoUrl && !tiktokUrl && !instagramUrl) {
     return null; /* Hide if no videos available */
