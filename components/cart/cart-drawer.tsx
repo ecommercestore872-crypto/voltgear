@@ -232,7 +232,7 @@ export function CartDrawer() {
             </SheetTitle>
           </SheetHeader>
 
-          <div className="gadget-custom-scroll flex-1 overflow-y-auto py-4 pr-1">
+          <div className="gadget-custom-scroll flex-1 overflow-y-auto overflow-x-hidden py-4 pr-1">
             {items.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-4 px-2 text-center">
                 <div
@@ -272,9 +272,9 @@ export function CartDrawer() {
               </div>
             ) : (
               <>
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {items.map((item) => (
-                    <li key={cartLineKey(item)} className="flex gap-4">
+                    <li key={cartLineKey(item)} className={cn("flex gap-4 p-3 rounded-2xl border", gadget ? "bg-[var(--g-white)] border-[var(--g-line)] shadow-sm" : "bg-card border-border")}>
                       {item.image ? (
                         <Image
                           src={item.image}
