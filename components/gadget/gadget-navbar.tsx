@@ -77,7 +77,7 @@ export function GadgetNavbar({
   const menu =
     open && mounted
       ? createPortal(
-          <div className="gadget-theme xl:hidden" role="presentation">
+          <div className="gadget-theme lg:hidden" role="presentation">
             <button
               type="button"
               className="fixed inset-0 z-[90] bg-black/40"
@@ -220,13 +220,13 @@ export function GadgetNavbar({
                 Nationwide support
               </span>
             )}
-            <span className="hidden h-3 w-px bg-white/20 xl:block" aria-hidden />
-            <span className="hidden items-center gap-1.5 text-white/80 xl:inline-flex">
+            <span className="hidden h-3 w-px bg-white/20 lg:block" aria-hidden />
+            <span className="hidden items-center gap-1.5 text-white/80 lg:inline-flex">
               <Truck className="h-3 w-3 text-[var(--g-sage)]" aria-hidden />
               Cash on delivery available
             </span>
           </div>
-          <div className="flex shrink-0 items-center gap-3 xl:gap-4">
+          <div className="flex shrink-0 items-center gap-3 lg:gap-4">
             <Link href="/track" aria-label="Track your order" className="transition hover:text-[var(--g-white)]">
               Track order
             </Link>
@@ -236,7 +236,7 @@ export function GadgetNavbar({
             <Link href="/contact" aria-label="Get customer support" className="transition hover:text-[var(--g-white)]">
               Help
             </Link>
-            <Link href="/blog" aria-label="Read our tech blog" className="hidden transition hover:text-[var(--g-white)] xl:inline">
+            <Link href="/blog" aria-label="Read our tech blog" className="hidden transition hover:text-[var(--g-white)] lg:inline">
               Blog
             </Link>
           </div>
@@ -271,7 +271,7 @@ export function GadgetNavbar({
             )}
           </Link>
 
-          <nav aria-label="Primary" className="hidden items-center gap-0.5 xl:flex">
+          <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
             <div
               className="relative"
               onMouseEnter={() => setShopOpen(true)}
@@ -366,7 +366,7 @@ export function GadgetNavbar({
             <Link
               href="/track"
               aria-label="Track order"
-              className="gadget-icon-btn hidden h-11 w-11 items-center justify-center rounded-full text-[var(--g-charcoal)] md:inline-flex lg:hidden xl:inline-flex"
+              className="gadget-icon-btn hidden h-11 w-11 items-center justify-center rounded-full text-[var(--g-charcoal)] lg:hidden"
               title="Track order"
             >
               <Package className="h-5 w-5" />
@@ -388,7 +388,7 @@ export function GadgetNavbar({
 
             <button
               type="button"
-              className="gadget-icon-btn flex h-11 w-11 items-center justify-center rounded-full xl:hidden"
+              className="gadget-icon-btn flex h-11 w-11 items-center justify-center rounded-full lg:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
