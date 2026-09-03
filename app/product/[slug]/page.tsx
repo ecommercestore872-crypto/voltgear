@@ -5,7 +5,6 @@ import { Check } from "lucide-react";
 
 import { GadgetBuyBox } from "@/components/gadget/gadget-buy-box";
 import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
-import { GadgetVideo } from "@/components/gadget/gadget-video";
 import { ProductVideoModal } from "@/components/product/product-video-modal";
 import { ReviewsSection } from "@/components/product/product-info-sections";
 import { ProductViewTracker } from "@/components/product/product-view-tracker";
@@ -195,8 +194,6 @@ export default async function Product2Page({ params }: { params: { slug: string 
         <div className="mt-6">
           <GadgetBuyBox product={product} config={config} />
         </div>
-
-        <GadgetVideo product={product} />
 
         {features.length ? (
           <section className="mt-12 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:p-8">
