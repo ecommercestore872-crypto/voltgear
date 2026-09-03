@@ -67,7 +67,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
       className="bg-[var(--g-cream-deep)] py-10 sm:py-14"
       aria-labelledby="featured-product-heading"
     >
-      <div className="mx-auto max-w-4xl px-4 lg:px-8">
+      <div className="mx-auto max-w-3xl px-4 lg:px-8">
         <p className="gadget-eyebrow">Featured</p>
         <h2
           id="featured-product-heading"
@@ -79,23 +79,25 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
           One standout product worth a closer look — clear price, ready to buy.
         </p>
 
-        <div className="mt-8 grid items-center gap-8 overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] lg:grid-cols-2 lg:gap-0">
+        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] lg:grid-cols-[5fr_7fr] lg:gap-0">
           <Link
             href={href}
             prefetch={false}
-            className="relative block min-h-[16rem] bg-[var(--g-cream)] sm:min-h-[20rem] lg:min-h-[22rem] lg:aspect-square"
+            className="flex relative min-h-[16rem] bg-[var(--g-cream)] sm:min-h-[20rem] lg:min-h-0 h-full"
           >
             {image ? (
-              <Image
-                src={image}
-                alt={product.name}
-                fill
-                quality={92}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-contain p-8 transition duration-500 hover:scale-[1.03] sm:p-12"
-              />
+               <div className="relative w-full h-full flex items-center justify-center p-8 sm:p-10 lg:p-8">
+                <Image
+                  src={image}
+                  alt={product.name}
+                  fill
+                  quality={92}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-contain transition duration-500 hover:scale-[1.03] p-4 lg:p-6"
+                />
+              </div>
             ) : (
-              <span className="flex h-full min-h-[18rem] items-center justify-center text-[var(--g-taupe)]">
+              <span className="flex w-full h-full min-h-[18rem] items-center justify-center text-[var(--g-taupe)]">
                 No image
               </span>
             )}
