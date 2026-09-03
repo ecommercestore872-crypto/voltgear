@@ -16,6 +16,7 @@ import {
 
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import { ProductGallery } from "@/components/product/product-gallery";
+import { ProductVideoModal } from "@/components/product/product-video-modal";
 import { useCart } from "@/components/cart/cart-provider";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
@@ -134,6 +135,15 @@ export function GadgetBuyBox({
               {product.shortDescription}
             </p>
           ) : null}
+
+          <div className="mt-5">
+            <ProductVideoModal
+              productName={product.name}
+              videoUrl={product.productVideo?.url}
+              tiktokUrl={product.tiktokUrl}
+              instagramUrl={product.instagramUrl}
+            />
+          </div>
 
           <div className="mt-5 flex flex-wrap items-end gap-3">
             <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] sm:text-4xl">

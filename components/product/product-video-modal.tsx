@@ -26,17 +26,17 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
 
   return (
     <>
-      <Button
+      <button
         type="button"
         onClick={() => {
           setActiveMedia(defaultEmbed);
           setIsOpen(true);
         }}
-        className="bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5"
+        className="group inline-flex h-10 w-fit items-center gap-2 rounded-full border-[1.5px] border-[var(--g-forest)] px-4 text-xs font-black uppercase tracking-wide text-[var(--g-forest)] transition hover:bg-[var(--g-forest)] hover:text-white"
       >
-        <Play className="h-3.5 w-3.5 fill-current" />
-        <span>Watch Demo Video (TikTok / Reels)</span>
-      </Button>
+        <Play className="h-3.5 w-3.5 fill-[var(--g-forest)] text-[var(--g-forest)] transition group-hover:fill-white group-hover:text-white" />
+        <span>Watch Demo Video</span>
+      </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
