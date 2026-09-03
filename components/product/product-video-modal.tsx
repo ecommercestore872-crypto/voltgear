@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Play, X, Video, Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { videoEmbedSrc, videoKind } from "@/lib/gadget-preview";
 
@@ -74,7 +75,12 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
               {activeMedia ? (
                 <iframe
                   src={activeMedia}
-                  className="w-full h-full border-0 absolute inset-0 z-0"
+                  className={cn(
+                    "w-full border-0 absolute z-0",
+                    activeMedia.includes("instagram.com") || activeMedia.includes("tiktok.com")
+                      ? "h-[calc(100%+180px)] -top-[80px] pointer-events-auto"
+                      : "h-full inset-0 pointer-events-auto"
+                  )}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   scrolling="no"
