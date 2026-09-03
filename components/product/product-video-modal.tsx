@@ -77,6 +77,7 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
                   className="w-full h-full border-0 absolute inset-0 z-0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  scrolling="no"
                 />
               ) : (
                 <div className="p-6 text-center space-y-3 text-white z-10">

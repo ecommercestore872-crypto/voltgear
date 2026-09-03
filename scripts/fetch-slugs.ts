@@ -1,19 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  "https://zeuhfqevqjkbzwdaxjuv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpldWhmcWV2cWprYnp3ZGF4anV2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODE3ODM2NiwiZXhwIjoyMTAzNzU0MzY2fQ.glySUIV1ArpjuDr8hVLVH-LXbSys6QBQFindTUwMNlc"
 );
 
 async function run() {
-  const { data, error } = await supabase.from("products").select("name, slug, draft");
+  const { data, error } = await supabase.from("products").select("name, slug");
   if (error) {
-    console.error(error);
+    console.error("Error fetching", error);
   } else {
     for (const p of data) {
-      console.log(`${p.slug} = ${p.name}`);
+      console.log(`${p.slug} ==== ${p.name}`);
     }
   }
 }
