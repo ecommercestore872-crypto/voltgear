@@ -101,14 +101,14 @@ export function GadgetArrivalCard({
       >
         <div className="absolute inset-x-2 top-2 z-10 flex items-center justify-between gap-1.5 pointer-events-none sm:inset-x-2.5 sm:top-2.5">
           {tag ? (
-            <span className="max-w-[70%] truncate rounded-full border border-[var(--g-amber)]/60 bg-white/90 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-[var(--g-amber-text)] shadow-xs backdrop-blur-md sm:text-[9.5px]">
+            <span className="max-w-[70%] truncate rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/95 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-[var(--g-charcoal)] shadow-sm backdrop-blur-md sm:text-[9.5px]">
               {tag}
             </span>
           ) : (
             <span />
           )}
           {off ? (
-            <span className="shrink-0 rounded-full bg-[var(--g-amber)] px-2.5 py-0.5 text-[9px] font-bold tracking-wide text-[var(--g-charcoal)] shadow-sm sm:text-[9.5px]">
+            <span className="shrink-0 rounded-full bg-[var(--g-forest)] px-2.5 py-0.5 text-[9px] font-bold tracking-wide text-[var(--g-white)] shadow-sm sm:text-[9.5px]">
               −{off}%
             </span>
           ) : null}
@@ -149,7 +149,7 @@ export function GadgetArrivalCard({
         </Link>
 
         <div className="mt-1 flex items-center gap-1.5 text-[12px] text-[var(--g-taupe)]">
-          <span className="flex items-center text-[var(--g-amber-text)]">★</span>
+          <span className="flex items-center text-amber-400">★</span>
           <span className="font-semibold text-[var(--g-charcoal)]">4.8</span>
           <span>(44)</span>
         </div>
@@ -158,56 +158,52 @@ export function GadgetArrivalCard({
           {statusLine(product)}
         </p>
 
-        <div className="mt-auto flex flex-col gap-2 pt-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0 flex-1 flex flex-col justify-end leading-tight overflow-hidden">
-              {priceWas ? (
-                <span className="block truncate text-[11px] font-semibold text-[var(--g-price-strike)] line-through sm:text-[11.5px]">
-                  {priceWas}
-                </span>
-              ) : (
-                <span className="block h-[14px]" aria-hidden />
-              )}
-              <span className="block truncate text-[1.05rem] sm:text-[1.15rem] font-extrabold tabular-nums text-emerald-700">
-                {priceNow}
+        <div className="mt-auto flex flex-col pt-3">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-[1.05rem] sm:text-[1.15rem] font-extrabold tabular-nums text-[var(--g-charcoal)]">
+              {priceNow}
+            </span>
+            {priceWas ? (
+              <span className="text-[11px] font-semibold text-[var(--g-price-strike)] line-through sm:text-[11.5px]">
+                {priceWas}
               </span>
-            </div>
-
-            <div className="shrink-0 flex items-center justify-end">
-              {stock.soldOut ? (
-                <Link
-                  href={href}
-                  className="inline-flex h-8 items-center gap-1 rounded-full bg-[var(--g-cream-deep)] px-2.5 text-[11px] font-semibold text-[var(--g-taupe)] sm:h-8.5 sm:px-3 sm:text-[11.5px]"
-                >
-                  View
-                  <ArrowUpRight className="h-3 w-3" aria-hidden />
-                </Link>
-              ) : (
-                <button
-                  ref={btnRef}
-                  type="button"
-                  onClick={handleBuy}
-                  title={`Add ${product.name} to cart`}
-                  aria-label={`Add ${product.name} to cart`}
-                  className="inline-flex min-h-[44px] min-w-[88px] items-center justify-center gap-1.5 rounded-full bg-[var(--g-amber)] px-4 text-[12px] font-bold text-[var(--g-charcoal)] shadow-sm transition duration-200 hover:bg-[var(--g-amber-hover)] hover:shadow-md active:scale-95 sm:min-h-[44px] sm:px-4.5 sm:text-[12.5px]"
-                >
-                  {added ? (
-                    <>
-                      <Check className="h-4 w-4 stroke-[2.5]" aria-hidden />
-                      <span>Added</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="h-4 w-4 stroke-[2.5]" aria-hidden />
-                      <span>Add</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+            ) : null}
           </div>
 
-          <p className="border-t border-[var(--g-line)] pt-2 text-[10.5px] font-semibold text-[#4A5568]">
+          <div className="mt-3">
+            {stock.soldOut ? (
+              <Link
+                href={href}
+                className="flex h-10 w-full items-center justify-center gap-1 rounded-full bg-[var(--g-cream-deep)] text-[12px] font-bold text-[var(--g-taupe)] transition hover:bg-[var(--g-line)]"
+              >
+                View Product
+                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+            ) : (
+              <button
+                ref={btnRef}
+                type="button"
+                onClick={handleBuy}
+                title={`Add ${product.name} to cart`}
+                aria-label={`Add ${product.name} to cart`}
+                className="flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[var(--g-forest)] text-[12px] font-bold text-[var(--g-white)] shadow-sm transition duration-200 hover:bg-[var(--g-forest-mid)] hover:shadow-md active:scale-95"
+              >
+                {added ? (
+                  <>
+                    <Check className="h-4 w-4 stroke-[2.5]" aria-hidden />
+                    <span>Added</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-4 w-4 stroke-[2.5]" aria-hidden />
+                    <span>Add to Cart</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
+          <p className="mt-3 border-t border-[var(--g-line)] pt-2 text-[10.5px] font-semibold text-[var(--g-taupe)]">
             Free delivery · COD available
           </p>
         </div>
