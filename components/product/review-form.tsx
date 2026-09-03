@@ -56,9 +56,9 @@ export function ReviewForm({ slug }: { slug: string }) {
 
   if (done) {
     return (
-      <div className="rounded-xl border bg-muted/40 p-5 text-sm">
-        <p className="font-semibold">Thanks for your review!</p>
-        <p className="mt-1 text-muted-foreground">
+      <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
+        <p className="font-semibold text-foreground">Thanks for your review!</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           It&rsquo;s been submitted for approval and will appear here shortly.
         </p>
       </div>
@@ -66,10 +66,16 @@ export function ReviewForm({ slug }: { slug: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-border/40 bg-card p-6 md:p-8 shadow-sm">
+    <form
+      onSubmit={onSubmit}
+      className="space-y-3.5 rounded-xl border border-border/40 bg-card px-4 py-4 shadow-sm sm:px-5"
+    >
+      {/* Heading */}
+      <p className="text-sm font-semibold text-foreground">Write a Review</p>
+
+      {/* Star rating */}
       <div>
-        <Label className="text-base font-bold">Your rating *</Label>
-        <div className="mt-2 flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
@@ -78,57 +84,60 @@ export function ReviewForm({ slug }: { slug: string }) {
               onClick={() => setRating(value)}
               onMouseEnter={() => setHover(value)}
               onMouseLeave={() => setHover(0)}
-              className="p-1"
+              className="p-0.5"
             >
               <Star
-                className={`h-6 w-6 transition-colors ${
+                className={`h-5 w-5 transition-colors ${
                   (hover || rating) >= value
                     ? "fill-amber-400 text-amber-400"
-                    : "text-muted-foreground/40"
+                    : "text-muted-foreground/30"
                 }`}
               />
             </button>
           ))}
+          {rating === 0 && (
+            <span className="ml-1.5 text-xs text-muted-foreground">tap to rate</span>
+          )}
         </div>
-        {rating === 0 && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            Tap a star to rate.
-          </p>
-        )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="review-name">Name *</Label>
-          <Input id="review-name" name="name" required autoComplete="name" />
+      {/* Name + Email */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label htmlFor="review-name" className="text-xs">Name *</Label>
+          <Input id="review-name" name="name" required autoComplete="name" className="h-8 text-sm" />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="review-email">Email *</Label>
+        <div className="space-y-1">
+          <Label htmlFor="review-email" className="text-xs">Email *</Label>
           <Input
             id="review-email"
             name="email"
             type="email"
             required
             autoComplete="email"
+            className="h-8 text-sm"
           />
         </div>
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="review-comment">Review *</Label>
+
+      {/* Comment */}
+      <div className="space-y-1">
+        <Label htmlFor="review-comment" className="text-xs">Review *</Label>
         <Textarea
           id="review-comment"
           name="comment"
-          rows={4}
+          rows={3}
           required
-          placeholder="What did you like or dislike about this product?"
+          placeholder="What did you think of this product?"
+          className="resize-none text-sm"
         />
       </div>
 
+      {/* Photo upload */}
       <div className="space-y-1.5">
-        <Label>Attach a photo (optional)</Label>
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary">
-          <Camera className="h-4 w-4" />
-          {photo ? photo.name : "Add a photo of the product"}
+        <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary">
+          <Camera className="h-3.5 w-3.5 shrink-0" />
+          {photo ? photo.name : "Attach a photo (optional)"}
           <input
             type="file"
             accept="image/*"
@@ -145,42 +154,34 @@ export function ReviewForm({ slug }: { slug: string }) {
           <img
             src={photoUrl}
             alt="Selected review photo"
-            className="mt-2 max-h-40 rounded-lg border object-cover"
+            className="h-16 w-16 rounded-md border object-cover"
           />
         )}
         {photo && (
           <button
             type="button"
-            onClick={() => {
-              setPhoto(null);
-              setPhotoUrl(null);
-            }}
+            onClick={() => { setPhoto(null); setPhotoUrl(null); }}
             className="text-xs text-muted-foreground underline"
           >
-            Remove photo
+            Remove
           </button>
         )}
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
 
-      <Button type="submit" disabled={submitting || rating === 0}>
-        {submitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Submitting…
-          </>
-        ) : (
-          <>
-            <Send className="mr-2 h-4 w-4" />
-            Submit review
-          </>
-        )}
-      </Button>
-      <p className="text-xs text-muted-foreground">
-        Reviews are checked before publishing. We&rsquo;ll verify your order to
-        mark you as a verified buyer.
-      </p>
+      <div className="flex items-center gap-3">
+        <Button type="submit" size="sm" disabled={submitting || rating === 0}>
+          {submitting ? (
+            <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Submitting…</>
+          ) : (
+            <><Send className="mr-1.5 h-3.5 w-3.5" />Submit</>
+          )}
+        </Button>
+        <p className="text-[11px] text-muted-foreground leading-snug">
+          Reviews are checked before publishing.
+        </p>
+      </div>
     </form>
   );
 }
