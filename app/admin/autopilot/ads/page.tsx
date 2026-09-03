@@ -2,15 +2,9 @@
 
 import React, { useState } from "react";
 import {
-  Sparkles,
   TrendingUp,
   Target,
-  DollarSign,
-  AlertTriangle,
   Flame,
-  HelpCircle,
-  ArrowUpRight,
-  ShieldCheck,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
