@@ -146,16 +146,16 @@ export function GadgetBuyBox({
           </div>
 
           <div className="mt-5 flex flex-wrap items-end gap-3">
-            <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] sm:text-4xl">
+            <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">
               {formatPrice(price)}
             </span>
             {compareAtPrice && compareAtPrice > price ? (
-              <span className="pb-1 text-lg text-[var(--g-taupe)] line-through">
+              <span className="pb-1 text-lg text-[var(--g-taupe)] dark:text-muted-foreground line-through">
                 {formatPrice(compareAtPrice)}
               </span>
             ) : null}
             {off ? (
-              <span className="mb-1 rounded-full bg-[var(--g-forest)] px-2.5 py-1 text-xs font-bold text-[var(--g-white)]">
+              <span className="mb-1 rounded-full bg-[var(--g-forest)] dark:bg-primary px-2.5 py-1 text-xs font-bold text-[var(--g-white)] dark:text-primary-foreground">
                 {off}% OFF
               </span>
             ) : null}
@@ -293,11 +293,11 @@ export function GadgetBuyBox({
 
       {/* Mobile sticky CTA — safe-area for iPhone home indicator */}
       {!outOfStock ? (
-        <div className="gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] bg-[var(--g-cream)]/95 px-3 pt-3 backdrop-blur-md lg:hidden">
+        <div className="gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] dark:border-border bg-[var(--g-cream)]/95 dark:bg-background/95 px-3 pt-3 backdrop-blur-md lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-[var(--g-charcoal)]">{formatPrice(price)}</p>
-              {off ? <p className="text-[11px] font-semibold text-[var(--g-forest)]">{off}% off</p> : null}
+              <p className="truncate text-sm font-bold text-[var(--g-charcoal)] dark:text-foreground">{formatPrice(price)}</p>
+              {off ? <p className="text-[11px] font-semibold text-[var(--g-forest)] dark:text-primary">{off}% off</p> : null}
             </div>
             <button
               type="button"
