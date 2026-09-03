@@ -1,15 +1,16 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { CatalogView } from "@/components/catalog/catalog-view";
-import { findShopType, shopTypeTitle, type ShopType } from "@/lib/categories";
-import {
-  fetchCatalog,
-  fetchCategoryCounts,
-  parseCatalogFilters,
-} from "@/lib/catalog";
-import type { BreadcrumbItem } from "@/components/catalog/catalog-breadcrumbs";
-import { fetchShopTypes } from "@/lib/db/store";
+import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
+import { FALLBACK_SHOP_TYPES, findShopType } from "@/lib/categories";
+import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
+import { products2Href } from "@/lib/gadget-preview";
+import { fetchAllProducts, fetchShopTypes } from "@/lib/db/store";
 import { isDemoSession } from "@/lib/demo";
+import { getSettings } from "@/lib/sanity/settings";
+import { normalizeSettings } from "@/lib/site-config";
+import { getStockState } from "@/lib/stock";
+import type { Product } from "@/lib/types";
 
 export const revalidate = 60;
 
@@ -17,66 +18,86 @@ export async function generateMetadata({
   params,
 }: {
   params: { category: string };
-}) {
-  const types = await fetchShopTypes().catch(() => [] as ShopType[]);
-  const info = shopTypeTitle(types, params.category);
-  if (!info) return {};
+}): Promise<Metadata> {
   return {
-    title: info.title,
-    description: info.description,
-    alternates: { canonical: `/products/${params.category}` },
+    title: params.category.replace(/-/g, " "),
   };
 }
 
-export default async function CategoryPage({
+function hasImage(p: Product) {
+  return Boolean(p.images?.[0] || p.cloudinaryImages?.[0]);
+}
+
+function sortProducts(list: Product[], sort: string) {
+  const sorted = [...list].sort((a, b) => {
+    if (sort === "price-asc") return a.price - b.price;
+    if (sort === "price-desc") return b.price - a.price;
+    return (
+      Number(!getStockState(a.stockStatus).soldOut) -
+        Number(!getStockState(b.stockStatus).soldOut) ||
+      Number(b.featured) - Number(a.featured)
+    );
+  });
+  return sorted;
+}
+
+export default async function Products2CategoryPage({
   params,
   searchParams,
 }: {
   params: { category: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: { q?: string; sort?: string };
 }) {
-  const types = await fetchShopTypes().catch(() => [] as ShopType[]);
-  const info = shopTypeTitle(types, params.category);
-  const cat = findShopType(types, params.category);
-  if (!cat || !info) notFound();
-
-  const filters = parseCatalogFilters(searchParams, cat.slug);
   const demo = isDemoSession();
-  const [result, categoryCounts] = await Promise.all([
-    fetchCatalog(filters, { includeDemo: demo }),
-    fetchCategoryCounts(demo),
-  ]);
+  let products: Product[] = [];
+  let shopTypes = FALLBACK_SHOP_TYPES;
+  const settings = await getSettings().catch(() => null);
+  const config = normalizeSettings(settings);
 
-  const rawParams: Record<string, string> = {};
-  if (filters.sort) rawParams.sort = filters.sort;
-  if (filters.availability && filters.availability !== "all")
-    rawParams.availability = filters.availability;
-  if (filters.minPrice != null) rawParams.minPrice = String(filters.minPrice);
-  if (filters.maxPrice != null) rawParams.maxPrice = String(filters.maxPrice);
+  try {
+    const [p, types] = await Promise.all([fetchAllProducts(demo), fetchShopTypes()]);
+    products = applyGadgetStudioImagesList(p);
+    shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
+  } catch {
+    products = [];
+  }
 
-  const breadcrumbs: BreadcrumbItem[] = [
-    { label: "Home", href: "/" },
-    { label: "Products", href: "/products" },
-    { label: info.title, current: true },
-  ];
+  const shop = findShopType(shopTypes, params.category);
+  if (!shop && !products.some((p) => p.category === params.category)) {
+    notFound();
+  }
+
+  const title = shop?.name || params.category.replace(/-/g, " ");
+  const description = shop?.description || "Curated picks in this category.";
+
+  const q = (searchParams.q || "").trim();
+  const qLower = q.toLowerCase();
+  const sort = searchParams.sort || "featured";
+
+  let list = products.filter((p) => p.category === params.category && hasImage(p));
+  if (qLower) {
+    list = list.filter(
+      (p) =>
+        p.name.toLowerCase().includes(qLower) ||
+        (p.shortDescription || "").toLowerCase().includes(qLower)
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-12 lg:px-8">
-      <CatalogView
-        result={result}
-        filters={filters}
-        basePath={`/products/${params.category}`}
-        rawParams={rawParams}
-        title={info.title}
-        subtitle={info.description}
-        breadcrumbs={breadcrumbs}
-        showCategoryPills
-        selectedCategory={params.category}
-        categoryCounts={categoryCounts}
-        shopTypes={types}
-        emptyMessage="No products in this category yet."
-        emptyActionHref="/products"
-      />
-    </div>
+    <GadgetShopCatalog
+      title={title}
+      description={description}
+      products={sortProducts(list, sort)}
+      shopTypes={shopTypes}
+      activeCategory={params.category}
+      query={q}
+      sort={sort}
+      config={config}
+      breadcrumbs={[
+        { label: "Home", href: "/" },
+        { label: "Shop", href: products2Href() },
+        { label: title },
+      ]}
+    />
   );
 }

@@ -1,63 +1,87 @@
-import { CatalogView } from "@/components/catalog/catalog-view";
+import type { Metadata } from "next";
+
+import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
+import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import {
-  fetchCatalog,
-  fetchCategoryCounts,
-  parseCatalogFilters,
-} from "@/lib/catalog";
-import type { BreadcrumbItem } from "@/components/catalog/catalog-breadcrumbs";
-import { fetchShopTypes } from "@/lib/db/store";
+  fetchAllProducts,
+  fetchShopTypes,
+} from "@/lib/db/store";
 import { isDemoSession } from "@/lib/demo";
+import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
+import { getSettings } from "@/lib/sanity/settings";
+import { normalizeSettings } from "@/lib/site-config";
+import { getStockState } from "@/lib/stock";
+import type { Product } from "@/lib/types";
 
 export const revalidate = 60;
 
-export const metadata = {
-  title: "All Products",
-  description:
-    "Browse our full range of electronics accessories — power banks, chargers, earbuds, smartwatches and more.",
+export const metadata: Metadata = {
+  title: "Shop all",
 };
 
-export default async function ProductsPage({
+function hasImage(p: Product) {
+  return Boolean(p.images?.[0] || p.cloudinaryImages?.[0]);
+}
+
+function sortProducts(list: Product[], sort: string) {
+  const sorted = [...list].sort((a, b) => {
+    if (sort === "price-asc") return a.price - b.price;
+    if (sort === "price-desc") return b.price - a.price;
+    return Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name);
+  });
+  return [
+    ...sorted.filter((p) => !getStockState(p.stockStatus).soldOut),
+    ...sorted.filter((p) => getStockState(p.stockStatus).soldOut),
+  ];
+}
+
+export default async function Products2Page({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: { q?: string; sort?: string };
 }) {
-  const filters = parseCatalogFilters(searchParams);
   const demo = isDemoSession();
-  const [result, categoryCounts, shopTypes] = await Promise.all([
-    fetchCatalog(filters, { includeDemo: demo }),
-    fetchCategoryCounts(demo),
-    fetchShopTypes().catch(() => []),
-  ]);
+  let products: Product[] = [];
+  let shopTypes = FALLBACK_SHOP_TYPES;
+  const settings = await getSettings().catch(() => null);
+  const config = normalizeSettings(settings);
 
-  const rawParams: Record<string, string> = {};
-  if (filters.sort) rawParams.sort = filters.sort;
-  if (filters.availability && filters.availability !== "all")
-    rawParams.availability = filters.availability;
-  if (filters.minPrice != null) rawParams.minPrice = String(filters.minPrice);
-  if (filters.maxPrice != null) rawParams.maxPrice = String(filters.maxPrice);
-  if (filters.query) rawParams.q = filters.query;
+  try {
+    const [p, types] = await Promise.all([fetchAllProducts(demo), fetchShopTypes()]);
+    products = applyGadgetStudioImagesList(p);
+    shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
+  } catch {
+    products = [];
+  }
 
-  const breadcrumbs: BreadcrumbItem[] = [
-    { label: "Home", href: "/" },
-    { label: "Products", current: true },
-  ];
+  const q = (searchParams.q || "").trim();
+  const qLower = q.toLowerCase();
+  let list = products.filter((p) => hasImage(p));
+  if (qLower) {
+    list = list.filter(
+      (p) =>
+        p.name.toLowerCase().includes(qLower) ||
+        p.category.toLowerCase().includes(qLower) ||
+        (p.shortDescription || "").toLowerCase().includes(qLower)
+    );
+  }
+
+  const sort = searchParams.sort || "featured";
+  const inStockFirst = sortProducts(list, sort);
 
   return (
-    <div className="container mx-auto px-4 py-12 lg:px-8">
-      <CatalogView
-        result={result}
-        filters={filters}
-        basePath="/products"
-        rawParams={rawParams}
-        title="All Products"
-        breadcrumbs={breadcrumbs}
-        showCategoryPills
-        selectedCategory={null}
-        categoryCounts={categoryCounts}
-        shopTypes={shopTypes}
-        emptyMessage="No products match these filters."
-        emptyActionHref="/products"
-      />
-    </div>
+    <GadgetShopCatalog
+      title="Shop all"
+      description="Curated tech with COD, clear pricing, and warranty-backed picks — find it fast and buy in a few taps."
+      products={inStockFirst}
+      shopTypes={shopTypes}
+      query={q}
+      sort={sort}
+      config={config}
+      breadcrumbs={[
+        { label: "Home", href: "/" },
+        { label: "All products" },
+      ]}
+    />
   );
 }
