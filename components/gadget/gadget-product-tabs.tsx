@@ -16,22 +16,23 @@ import type { Product } from "@/lib/types";
 /* ─── Tab Definitions ─────────────────────────────────────────────── */
 type TabId = "details" | "features" | "specs" | "inbox" | "compatibility";
 
-const TABS: {
+const SECTIONS: {
   id: TabId;
   label: string;
-  icon: React.ElementType;
+  emoji: string;
+  colorBg: string;
 }[] = [
-  { id: "details", label: "Full Details", icon: FileText },
-  { id: "features", label: "Features", icon: Sparkles },
-  { id: "specs", label: "Specifications", icon: SlidersHorizontal },
-  { id: "inbox", label: "In the Box", icon: Package },
-  { id: "compatibility", label: "Compatibility", icon: Wifi },
+  { id: "details", label: "Full Details", emoji: "📝", colorBg: "bg-[var(--g-cream)]" },
+  { id: "features", label: "Why You'll Love It", emoji: "✨", colorBg: "bg-amber-50/50" },
+  { id: "specs", label: "Specifications", emoji: "⚙️", colorBg: "bg-stone-50" },
+  { id: "inbox", label: "What's in the Box", emoji: "📦", colorBg: "bg-emerald-50/40" },
+  { id: "compatibility", label: "Compatibility", emoji: "🔗", colorBg: "bg-blue-50/40" },
 ];
 
 /* ─── Main Component ──────────────────────────────────────────────── */
 export function GadgetProductTabs({ product }: { product: Product }) {
-  const [active, setActive] = useState<TabId>("details");
-  const tabsRef = useRef<HTMLDivElement>(null);
+  // Details is open by default
+  const [openId, setOpenId] = useState<TabId | "">("details");
 
   const features = (product.features ?? []).filter(Boolean);
   const specs = (product.specifications ?? []).filter(
@@ -41,213 +42,157 @@ export function GadgetProductTabs({ product }: { product: Product }) {
   const compat = (product.compatibility ?? []).filter((c) => c?.trim());
   const hasDesc = Boolean(product.description?.length);
 
-  // Only show tabs that have data
-  const visibleTabs = TABS.filter((t) => {
-    if (t.id === "details") return hasDesc;
-    if (t.id === "features") return features.length > 0;
-    if (t.id === "specs") return specs.length > 0;
-    if (t.id === "inbox") return inbox.length > 0;
-    if (t.id === "compatibility") return compat.length > 0;
+  const visibleSections = SECTIONS.filter((s) => {
+    if (s.id === "details") return hasDesc;
+    if (s.id === "features") return features.length > 0;
+    if (s.id === "specs") return specs.length > 0;
+    if (s.id === "inbox") return inbox.length > 0;
+    if (s.id === "compatibility") return compat.length > 0;
     return false;
   });
 
-  if (visibleTabs.length === 0) return null;
-
-  // If active tab has no data, fall back to first visible tab
-  const activeTab = visibleTabs.find((t) => t.id === active) ?? visibleTabs[0];
+  if (visibleSections.length === 0) return null;
 
   return (
-    <section
-      className="mt-12 scroll-mt-20"
-      aria-label="Product details"
-    >
-      {/* ── Tab Strip ─────────────────────────────────────────────── */}
-      <div
-        ref={tabsRef}
-        className="sticky top-0 z-10 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 bg-[var(--g-cream)] border-b border-[var(--g-line)]"
-      >
-        <div
-          className="flex gap-0 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          role="tablist"
-          aria-label="Product detail sections"
-        >
-          {visibleTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab.id === tab.id;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setActive(tab.id)}
+    <section className="mt-10 sm:mt-12 space-y-4" aria-label="Product details">
+      {visibleSections.map((section) => {
+        const isOpen = openId === section.id;
+        return (
+          <div
+            key={section.id}
+            className="overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-[0_4px_16px_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          >
+            {/* ── Accordion Header Strip ── */}
+            <button
+              type="button"
+              onClick={() => setOpenId(isOpen ? "" : section.id)}
+              className="flex w-full items-center justify-between bg-[var(--g-cream)]/40 px-5 py-4 transition-colors hover:bg-[var(--g-cream)] sm:px-6 sm:py-5"
+              aria-expanded={isOpen}
+            >
+              <div className="flex items-center gap-3.5">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--g-white)] text-xl shadow-sm border border-[var(--g-line)]">
+                  {section.emoji}
+                </span>
+                <span className="gadget-display text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-xl">
+                  {section.label}
+                </span>
+              </div>
+              <span
                 className={cn(
-                  "relative flex shrink-0 items-center gap-2 px-4 py-3.5 text-[13px] font-semibold transition-all duration-200 sm:px-5 sm:py-4 sm:text-sm",
-                  isActive
-                    ? "text-[var(--g-forest)]"
-                    : "text-[var(--g-taupe)] hover:text-[var(--g-charcoal)]"
+                  "flex h-8 w-8 items-center justify-center rounded-full bg-[var(--g-white)] border border-[var(--g-line)] text-[var(--g-forest)] transition-transform duration-300",
+                  isOpen ? "rotate-180" : ""
                 )}
+                aria-hidden
               >
-                <Icon
-                  className={cn(
-                    "h-3.5 w-3.5 shrink-0 transition-colors duration-200",
-                    isActive
-                      ? "text-[var(--g-forest)]"
-                      : "text-[var(--g-taupe)]"
-                  )}
-                  aria-hidden
-                />
-                {tab.label}
-                {/* Active underline indicator */}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] rounded-t-full bg-[var(--g-forest)]" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </span>
+            </button>
 
-      {/* ── Tab Content ───────────────────────────────────────────── */}
-      <div className="mt-0 rounded-b-2xl border border-t-0 border-[var(--g-line)] bg-[var(--g-white)]">
-        {/* Full Details */}
-        {activeTab.id === "details" && hasDesc && (
-          <div className="p-6 sm:p-8">
-            <header className="mb-5 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--g-forest)]/10">
-                <FileText className="h-4.5 w-4.5 text-[var(--g-forest)]" aria-hidden />
+            {/* ── Accordion Content ── */}
+            <div
+              className={cn(
+                "grid transition-all duration-300 ease-in-out",
+                isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+              )}
+            >
+              <div className="overflow-hidden">
+                <div
+                  className={cn(
+                    "border-t border-[var(--g-line)] p-5 sm:p-6",
+                    section.colorBg
+                  )}
+                >
+                  {/* Details */}
+                  {section.id === "details" && hasDesc && (
+                    <div className="prose prose-sm max-w-none text-[var(--g-charcoal)]/85 leading-relaxed sm:prose-base">
+                      <RichText blocks={product.description!} />
+                    </div>
+                  )}
+
+                  {/* Features */}
+                  {section.id === "features" && features.length > 0 && (
+                    <ul className="grid gap-3 sm:grid-cols-2">
+                      {features.map((f, i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-3 rounded-xl border border-amber-200/40 bg-[var(--g-white)] px-4 py-3.5 text-[15px] font-medium text-[var(--g-charcoal)] shadow-sm"
+                        >
+                          <span className="mt-0.5 shrink-0 text-amber-500">
+                            ★
+                          </span>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Specifications */}
+                  {section.id === "specs" && specs.length > 0 && (
+                    <dl className="overflow-hidden rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-sm">
+                      {specs.map((s, i) => (
+                        <div
+                          key={s.label}
+                          className={cn(
+                            "grid grid-cols-[120px_1fr] sm:grid-cols-2 gap-4 px-5 py-3.5 text-[15px]",
+                            i % 2 === 0 ? "bg-[var(--g-cream)]/30" : "bg-[var(--g-white)]"
+                          )}
+                        >
+                          <dt className="font-semibold text-[var(--g-charcoal)]">{s.label}</dt>
+                          <dd className="text-[var(--g-taupe)]">{s.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+
+                  {/* In the Box */}
+                  {section.id === "inbox" && inbox.length > 0 && (
+                    <ul className="grid gap-3 sm:grid-cols-2">
+                      {inbox.map((item, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-3.5 rounded-xl border border-emerald-200/40 bg-[var(--g-white)] px-4 py-3.5 text-[15px] font-medium text-[var(--g-charcoal)] shadow-sm"
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100/70 text-xs font-bold text-emerald-700">
+                            {i + 1}
+                          </span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Compatibility */}
+                  {section.id === "compatibility" && compat.length > 0 && (
+                    <ul className="grid gap-3 sm:grid-cols-2">
+                      {compat.map((c, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-3.5 rounded-xl border border-blue-200/40 bg-[var(--g-white)] px-4 py-3.5 text-[15px] font-medium text-[var(--g-charcoal)] shadow-sm"
+                        >
+                          <span className="shrink-0 text-xl text-blue-500">📱</span>
+                          {c}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
-              <div>
-                <h2 className="gadget-display text-xl font-semibold tracking-tight text-[var(--g-charcoal)]">
-                  Full Details
-                </h2>
-                <p className="text-xs text-[var(--g-taupe)]">Everything you need to know</p>
-              </div>
-            </header>
-            <div className="prose prose-sm max-w-none text-[var(--g-charcoal)]/85 leading-relaxed">
-              <RichText blocks={product.description!} />
             </div>
           </div>
-        )}
-
-        {/* Features */}
-        {activeTab.id === "features" && features.length > 0 && (
-          <div className="p-6 sm:p-8">
-            <header className="mb-5 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50">
-                <Sparkles className="h-4.5 w-4.5 text-amber-500" aria-hidden />
-              </div>
-              <div>
-                <h2 className="gadget-display text-xl font-semibold tracking-tight text-[var(--g-charcoal)]">
-                  Why You'll Love It
-                </h2>
-                <p className="text-xs text-[var(--g-taupe)]">Key highlights of this product</p>
-              </div>
-            </header>
-            <ul className="grid gap-2.5 sm:grid-cols-2">
-              {features.map((f, i) => (
-                <li
-                  key={i}
-                  className="flex items-start gap-3 rounded-xl border border-[var(--g-line)] bg-[var(--g-cream)] px-4 py-3 text-sm text-[var(--g-charcoal)] transition hover:border-[var(--g-sage)]/40 hover:bg-[var(--g-cream-deep)]"
-                >
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)] text-white">
-                    <Check className="h-3 w-3 stroke-[2.5]" aria-hidden />
-                  </span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Specifications */}
-        {activeTab.id === "specs" && specs.length > 0 && (
-          <div className="p-6 sm:p-8">
-            <header className="mb-5 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--g-forest)]/10">
-                <SlidersHorizontal className="h-4.5 w-4.5 text-[var(--g-forest)]" aria-hidden />
-              </div>
-              <div>
-                <h2 className="gadget-display text-xl font-semibold tracking-tight text-[var(--g-charcoal)]">
-                  Specifications
-                </h2>
-                <p className="text-xs text-[var(--g-taupe)]">Technical details at a glance</p>
-              </div>
-            </header>
-            <dl className="overflow-hidden rounded-xl border border-[var(--g-line)]">
-              {specs.map((s, i) => (
-                <div
-                  key={s.label}
-                  className={cn(
-                    "grid grid-cols-2 gap-4 px-5 py-3 text-sm",
-                    i % 2 === 0 ? "bg-[var(--g-cream)]/60" : "bg-[var(--g-white)]"
-                  )}
-                >
-                  <dt className="font-semibold text-[var(--g-charcoal)]">{s.label}</dt>
-                  <dd className="text-[var(--g-taupe)]">{s.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        )}
-
-        {/* In the Box */}
-        {activeTab.id === "inbox" && inbox.length > 0 && (
-          <div className="p-6 sm:p-8">
-            <header className="mb-5 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50">
-                <Package className="h-4.5 w-4.5 text-emerald-600" aria-hidden />
-              </div>
-              <div>
-                <h2 className="gadget-display text-xl font-semibold tracking-tight text-[var(--g-charcoal)]">
-                  What's in the Box
-                </h2>
-                <p className="text-xs text-[var(--g-taupe)]">Everything included in your purchase</p>
-              </div>
-            </header>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {inbox.map((item, i) => (
-                <li
-                  key={i}
-                  className="flex items-center gap-3 rounded-xl border border-[var(--g-line)] bg-[var(--g-cream)] px-4 py-3 text-sm text-[var(--g-charcoal)]"
-                >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-xs font-bold text-emerald-700">
-                    {i + 1}
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Compatibility */}
-        {activeTab.id === "compatibility" && compat.length > 0 && (
-          <div className="p-6 sm:p-8">
-            <header className="mb-5 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
-                <Wifi className="h-4.5 w-4.5 text-blue-500" aria-hidden />
-              </div>
-              <div>
-                <h2 className="gadget-display text-xl font-semibold tracking-tight text-[var(--g-charcoal)]">
-                  Compatibility
-                </h2>
-                <p className="text-xs text-[var(--g-taupe)]">Works great with these devices</p>
-              </div>
-            </header>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {compat.map((c, i) => (
-                <li
-                  key={i}
-                  className="flex items-center gap-3 rounded-xl border border-[var(--g-line)] bg-[var(--g-cream)] px-4 py-3 text-sm text-[var(--g-charcoal)]"
-                >
-                  <Wifi className="h-3.5 w-3.5 shrink-0 text-blue-400" aria-hidden />
-                  {c}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+        );
+      })}
     </section>
   );
 }

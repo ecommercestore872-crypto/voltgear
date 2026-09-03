@@ -63,7 +63,7 @@ export function ProductCard({ product, className }: { product: Product; classNam
             </div>
           )}
           {product.badge && (
-            <div className="flex items-center justify-center rounded bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
+            <div className="absolute top-2 left-2 z-10 flex items-center justify-center rounded bg-black/80 backdrop-blur-md border border-white/10 text-white px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shadow-md">
               {product.badge}
             </div>
           )}

@@ -258,14 +258,16 @@ export function ReviewsSection({
                   {review.comment}
                 </p>
                 {review.image && (
-                  <div className="mt-5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={review.image}
-                      alt={`Photo from ${review.name ?? "customer"}`}
-                      className="max-h-64 rounded-xl border border-border/50 object-cover shadow-sm bg-muted/20"
-                      loading="lazy"
-                    />
+                  <div className="mt-4">
+                    <a href={review.image} target="_blank" rel="noopener noreferrer" className="block">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={review.image}
+                        alt={`Photo from ${review.name ?? "customer"}`}
+                        className="h-20 w-20 cursor-zoom-in rounded-lg border border-border/70 object-cover shadow-sm bg-muted/20 hover:opacity-80 transition-opacity"
+                        loading="lazy"
+                      />
+                    </a>
                   </div>
                 )}
               </li>
