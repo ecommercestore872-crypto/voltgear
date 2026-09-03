@@ -62,19 +62,19 @@ export function FloatingAddToCartBar({
               <button
                 type="button"
                 onClick={handleAdd}
-                className="relative inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold tracking-wide text-primary-foreground shadow-sm transition-all hover:bg-primary-hover active:scale-95"
+                className="relative inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-primary-foreground shadow-sm transition-all hover:bg-primary-hover active:scale-95"
               >
                 {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
-                <span>{added ? "Added" : "Add to Cart"}</span>
+                <span className="hidden min-[370px]:inline">{added ? "Added" : "Add to Cart"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={onBuyNow}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-4 py-2.5 text-sm font-semibold tracking-wide text-background shadow-sm transition-all hover:bg-foreground/90 active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-background shadow-sm transition-all hover:bg-foreground/90 active:scale-95"
               >
                 <Zap className="w-4 h-4 fill-current" />
-                <span>Buy Now</span>
+                <span className="hidden min-[370px]:inline">Buy Now</span>
               </button>
             </div>
           </div>

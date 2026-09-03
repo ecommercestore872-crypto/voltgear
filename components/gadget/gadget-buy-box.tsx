@@ -57,7 +57,7 @@ export function GadgetBuyBox({
   const threshold = Number(config.freeShippingThreshold ?? 0);
   const itemImage = gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
 
-  function handleAdd(open = true) {
+  function handleAdd(open = true, event?: React.MouseEvent<HTMLButtonElement>) {
     if (outOfStock) return;
     addItem(
       {
@@ -81,7 +81,7 @@ export function GadgetBuyBox({
       price,
       quantity,
     });
-    const btn = btnRef.current;
+    const btn = event?.currentTarget || btnRef.current;
     if (btn) {
       const r = btn.getBoundingClientRect();
       dispatchAddToCartEffect(null, r.left + r.width / 2, r.top);
@@ -207,7 +207,7 @@ export function GadgetBuyBox({
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             {!outOfStock ? (
-              <div className="flex h-12 w-fit items-center gap-3 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] px-4">
+              <div className="flex h-12 w-full justify-between sm:w-fit sm:justify-center items-center gap-3 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] px-5 sm:px-4">
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -231,7 +231,7 @@ export function GadgetBuyBox({
               ref={btnRef}
               type="button"
               disabled={outOfStock}
-              onClick={() => handleAdd(true)}
+              onClick={(e) => handleAdd(true, e)}
               className="gadget-btn-primary gadget-press inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold uppercase tracking-wide disabled:cursor-not-allowed disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
             >
               {added ? (
@@ -301,7 +301,7 @@ export function GadgetBuyBox({
             </div>
             <button
               type="button"
-              onClick={() => handleAdd(true)}
+              onClick={(e) => handleAdd(true, e)}
               className="gadget-btn-primary gadget-press inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-sm font-bold"
             >
               <ShoppingBag className="h-4 w-4" />
