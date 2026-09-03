@@ -232,7 +232,7 @@ export function CartDrawer() {
             </SheetTitle>
           </SheetHeader>
 
-          <div className="gadget-custom-scroll flex-1 overflow-y-auto overflow-x-hidden py-4 pr-1">
+          <div className="gadget-custom-scroll flex-1 overflow-y-auto overflow-x-hidden py-4 pr-3">
             {items.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-4 px-2 text-center">
                 <div
@@ -296,7 +296,7 @@ export function CartDrawer() {
                           )}
                         />
                       )}
-                      <div className="flex flex-1 flex-col justify-between">
+                      <div className="flex flex-1 min-w-0 flex-col justify-between">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold leading-snug text-[var(--g-charcoal)] truncate">
