@@ -112,7 +112,8 @@ export default function CheckoutPage() {
   const [placedTotal, setPlacedTotal] = useState<number | null>(null);
   const [customer, setCustomer] = useState<Record<string, string>>({});
   const [giftWrap, setGiftWrap] = useState(false);
-  const [promoCode, setPromoCode] = useState("");
+  const [promoInput, setPromoInput] = useState("");
+  const [activePromo, setActivePromo] = useState<{ code: string; discount: number; shipping: number; error?: string; loading?: boolean } | null>(null);
   const [priceChanged, setPriceChanged] = useState<
     | {
         items: PriceMismatch[];
@@ -124,12 +125,39 @@ export default function CheckoutPage() {
   >(null);
 
   const GIFT_WRAP_FEE = 199;
-  const PROMO_DISCOUNT = 500; // Hardcoded visual placeholder for Figma design accuracy
-  const hasPromo = promoCode.toLowerCase() === "save500" || true; // just to simulate UI
+  
+  const baseShipping = subtotal === 0 || subtotal >= config.freeShippingThreshold ? 0 : config.shippingFee;
+  const shipping = activePromo && !activePromo.error ? activePromo.shipping : baseShipping;
+  const appliedDiscount = activePromo && !activePromo.error ? activePromo.discount : 0;
+  const subDiscount = (activePromo && !activePromo.error && activePromo.shipping === baseShipping) ? appliedDiscount : 0;
+  
+  const total = (subtotal + shipping + (giftWrap ? GIFT_WRAP_FEE : 0)) - subDiscount;
+  const hasPromo = !!activePromo && !activePromo.error;
 
-  const shipping =
-    subtotal === 0 || subtotal >= config.freeShippingThreshold ? 0 : config.shippingFee;
-  const total = (subtotal + shipping + (giftWrap ? GIFT_WRAP_FEE : 0)) - (step === 2 && hasPromo ? PROMO_DISCOUNT : 0);
+  async function handleApplyPromo() {
+    if (!promoInput.trim()) {
+      setActivePromo(null);
+      return;
+    }
+    setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, loading: true });
+    
+    try {
+      const res = await fetch("/api/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput.trim(), subtotal, shipping: baseShipping }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, error: data.error || "Invalid promo code" });
+      } else {
+        setActivePromo({ code: data.code, discount: data.discount, shipping: data.shipping });
+        setPromoInput("");
+      }
+    } catch(err) {
+      setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, error: "Network error" });
+    }
+  }
 
   const shippingLabel = useMemo(() => {
     if (subtotal === 0) return null;
@@ -169,7 +197,7 @@ export default function CheckoutPage() {
           total, // actual final total including pseudo promos could break backend signature check in real app if api doesn't support promo, but keeping identical
           giftWrap,
           giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
-          ...(promoCode.trim() ? { promoCode: promoCode.trim() } : {}),
+          ...(activePromo?.code && !activePromo.error ? { promoCode: activePromo.code } : {}),
         }),
       });
       const data = await res.json();
@@ -512,9 +540,9 @@ export default function CheckoutPage() {
                         )}
                      </ul>
                      {hasPromo && (
-                        <div className="m-5 mt-2 bg-[#E8F8F5] p-3.5 rounded-lg flex items-center gap-3 text-[#13A387] border border-[#13A387]/20">
+                        <div className="m-5 mt-2 bg-primary/5 p-3.5 rounded-lg flex items-center gap-3 text-primary border border-primary/20">
                            <Gift className="w-5 h-5 shrink-0" />
-                           <p className="text-[12px] font-bold tracking-wide">You saved {formatPrice(PROMO_DISCOUNT)} on this order!</p>
+                           <p className="text-[12px] font-bold tracking-wide">You saved {formatPrice(appliedDiscount)} on this order!</p>
                         </div>
                      )}
                   </div>
@@ -966,10 +994,10 @@ export default function CheckoutPage() {
                     <span>Shipping</span>
                     <span className="font-bold text-foreground">{shippingLabel ?? "—"}</span>
                   </div>
-                  {(giftWrap || step === 2) && hasPromo && (
-                    <div className="flex justify-between text-primary">
+                  {activePromo && (
+                    <div className="flex font-semibold items-center justify-between text-[#13A387] py-2 border-b">
                       <span>Discount (Promo applied)</span>
-                      <span className="font-bold">- {formatPrice(PROMO_DISCOUNT)}</span>
+                      <span className="font-bold">- {formatPrice(appliedDiscount)}</span>
                     </div>
                   )}
                   {giftWrap && (
@@ -993,7 +1021,7 @@ export default function CheckoutPage() {
                 {hasPromo && step === 2 && (
                   <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F0F7F6] border border-primary/20 p-3 text-xs font-bold text-primary">
                      <Banknote className="h-4 w-4 shrink-0" />
-                     You will save {formatPrice(PROMO_DISCOUNT)} on this order!
+                     You will save {formatPrice(appliedDiscount)} on this order!
                   </div>
                 )}
              </div>
@@ -1005,12 +1033,23 @@ export default function CheckoutPage() {
                  <div className="flex items-center gap-2">
                     <Input
                        placeholder="Enter promo code"
-                       value={promoCode}
-                       onChange={(e) => setPromoCode(e.target.value)}
+                       value={promoInput}
+                       onChange={(e) => setPromoInput(e.target.value)}
+                       onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
                        className="h-10 grow"
+                       disabled={activePromo?.loading}
                     />
-                    <Button variant="default" className="h-10 px-5 font-bold shadow-sm">Apply</Button>
+                    <Button variant="default" onClick={handleApplyPromo} disabled={activePromo?.loading || !promoInput.trim()} className="h-10 px-5 font-bold shadow-sm">
+                      {activePromo?.loading ? "Applying..." : "Apply"}
+                    </Button>
                  </div>
+                 {activePromo?.error && <p className="mt-2 text-xs font-semibold text-destructive">{activePromo.error}</p>}
+                 {activePromo && !activePromo.error && (
+                   <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+                     <span className="text-xs font-bold text-primary">Applied: {activePromo.code}</span>
+                     <button type="button" onClick={() => setActivePromo(null)} className="text-xs font-semibold text-muted-foreground hover:text-foreground">Remove</button>
+                   </div>
+                 )}
                </div>
              )}
 

@@ -67,7 +67,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
       className="bg-[var(--g-cream-deep)] py-10 sm:py-14"
       aria-labelledby="featured-product-heading"
     >
-      <div className="mx-auto max-w-3xl px-4 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 lg:px-8">
         <p className="gadget-eyebrow">Featured</p>
         <h2
           id="featured-product-heading"
@@ -79,7 +79,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
           One standout product worth a closer look — clear price, ready to buy.
         </p>
 
-        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] lg:grid-cols-[5fr_7fr] lg:gap-0">
+        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] lg:grid-cols-2 lg:gap-0">
           <Link
             href={href}
             prefetch={false}
@@ -130,20 +130,9 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
             ) : null}
 
             {product.shortDescription ? (
-              <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)]">
+              <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)] line-clamp-2">
                 {product.shortDescription}
               </p>
-            ) : null}
-
-            {features.length ? (
-              <ul className="mt-4 space-y-1.5 text-sm text-[var(--g-charcoal)]">
-                {features.map((f) => (
-                  <li key={f} className="flex gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--g-forest)]" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
             ) : null}
 
             <div className="mt-6 flex flex-wrap items-end gap-3">
