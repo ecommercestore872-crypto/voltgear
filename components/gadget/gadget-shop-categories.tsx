@@ -17,6 +17,7 @@ export type CategoryIconTile = {
   label: string;
   href: string;
   product: Product;
+  imageUrl?: string;
 };
 
 type SlideTile = {
@@ -32,7 +33,7 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
     key: `p-${t.href}`,
     label: t.label,
     href: t.href,
-    image: gadgetImageSrc(t.product, PRODUCT_IMAGE.card) || undefined,
+    image: t.imageUrl || gadgetImageSrc(t.product, PRODUCT_IMAGE.card) || undefined,
   }));
 
   const used = new Set(
@@ -166,7 +167,7 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
               className="group flex flex-col items-center gap-2.5 shrink-0 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--g-forest)] rounded-xl p-1 min-h-[44px]"
             >
               {/* Circle Avatar Stage */}
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-[#eaefe8] p-3 transition duration-300 group-hover:scale-105 group-hover:bg-[#e1e9de] group-hover:shadow-md sm:h-24 sm:w-24 sm:p-4">
+              <div className="relative flex h-20 w-20 overflow-hidden items-center justify-center rounded-full bg-black shadow-md transition duration-300 group-hover:scale-105 group-hover:shadow-xl sm:h-24 sm:w-24">
                 {tile.image ? (
                   <Image
                     src={tile.image}
@@ -175,12 +176,12 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
                     priority={idx < 4}
                     quality={90}
                     sizes="(max-width: 640px) 80px, 96px"
-                    className="object-contain p-2 transition duration-300 group-hover:scale-110"
+                    className="object-cover transition duration-300 group-hover:scale-110"
                   />
                 ) : tile.glyph ? (
-                  <CategoryGlyph name={tile.glyph} className="h-10 w-10 text-[var(--g-forest)] sm:h-12 sm:w-12" />
+                  <CategoryGlyph name={tile.glyph} className="h-10 w-10 text-white sm:h-12 sm:w-12" />
                 ) : (
-                  <CategoryGlyph name="watch" className="h-10 w-10 text-[var(--g-forest)] sm:h-12 sm:w-12" />
+                  <CategoryGlyph name="watch" className="h-10 w-10 text-white sm:h-12 sm:w-12" />
                 )}
               </div>
 

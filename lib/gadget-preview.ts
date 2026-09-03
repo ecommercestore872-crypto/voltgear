@@ -122,9 +122,9 @@ export function products2Href(categorySlug?: string): string {
 }
 
 export function gadgetShopTypeLinks(
-  types: { name: string; slug: string }[]
-): { label: string; href: string }[] {
-  return types.map((t) => ({ label: t.name, href: products2Href(t.slug) }));
+  types: { name: string; slug: string; imageUrl?: string }[]
+): { label: string; href: string; imageUrl?: string }[] {
+  return types.map((t) => ({ label: t.name, href: products2Href(t.slug), imageUrl: t.imageUrl }));
 }
 
 export type GadgetVideoKind = "none" | "file" | "instagram" | "tiktok";
