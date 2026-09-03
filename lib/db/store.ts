@@ -234,20 +234,16 @@ export const fetchShopTypes = unstable_cache(
       new Set((prodData ?? []).map((p) => String(p.category || "").trim()))
     ).filter(Boolean);
 
-    // Merge database categories, fallback categories, and product categories dynamically
+    // Merge database categories and product categories dynamically
     const mergedMap = new Map<string, ShopType>();
 
-    // 1. Populate with fallbacks
-    for (const fb of FALLBACK_SHOP_TYPES) {
-      mergedMap.set(fb.slug, fb);
-    }
-
-    // 2. Override with DB categories if available
+    // 1. Give DB definitions absolute priority
     for (const dt of dbTypes) {
       mergedMap.set(dt.slug, dt);
     }
 
-    // 3. Ensure any distinct category present on products is included
+    // 2. Ensure any distinct category present on products is included loosely if not configured
+    // so store doesn't crash on unmapped products, but without image unless managed in admin
     for (let i = 0; i < productCategories.length; i++) {
       const catSlug = productCategories[i];
       if (!mergedMap.has(catSlug)) {
