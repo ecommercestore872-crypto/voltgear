@@ -154,7 +154,7 @@ export function Navbar({
           </span>
         )}
       </div>
-      <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors tracking-wide hidden lg:block">Cart</span>
+      <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors tracking-wide hidden md:block">Cart</span>
     </button>
   );
 
@@ -178,19 +178,19 @@ export function Navbar({
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-card/95 backdrop-blur-sm">
       {/* --- TOP BAR --- Desktop only */}
-      <div className="hidden lg:flex w-full bg-[#EAF5F4] h-10 items-center justify-between px-6 lg:px-10 text-[11px] font-bold tracking-wide text-primary border-b border-background">
+      <div className="hidden md:flex w-full bg-[#EAF5F4] h-10 items-center justify-between px-4 lg:px-10 text-[10px] lg:text-[11px] font-bold tracking-wide text-primary border-b border-background">
         <div className="flex items-center gap-1.5">
-          <Truck className="w-3.5 h-3.5" /> Free Delivery on orders over PKR 3,000
+          <Truck className="w-3.5 h-3.5" /> Free Delivery <span className="hidden lg:inline">on orders over PKR 3,000</span>
         </div>
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-4 lg:gap-10">
           <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 1 Year Warranty</div>
-          <div className="flex items-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> 7 Days Easy Returns</div>
+          <div className="flex items-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> 7 Days Returns</div>
           <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> COD Available</div>
         </div>
       </div>
 
       {/* --- MIDDLE BAR --- Desktop */}
-      <div className="hidden lg:flex h-20 w-full max-w-[1440px] mx-auto items-center px-6 lg:px-10 bg-white justify-between gap-10 border-b border-border/40">
+      <div className="hidden md:flex h-20 w-full max-w-[1440px] mx-auto items-center px-4 lg:px-10 bg-white justify-between gap-4 lg:gap-10 border-b border-border/40">
         <div className="flex items-center justify-start shrink-0">
           {Brand}
         </div>
@@ -203,39 +203,39 @@ export function Navbar({
               </button>
           </form>
         </div>
-        <div className="flex items-center gap-8 text-xs font-semibold text-foreground shrink-0 mt-1">
+        <div className="flex items-center gap-4 lg:gap-8 text-xs font-semibold text-foreground shrink-0 mt-1">
            <Link href="/account" className="flex flex-col items-center justify-center gap-1 group">
              <User className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" strokeWidth={1.5} />
-             <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors tracking-wide">Account</span>
+             <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors tracking-wide hidden md:block">Account</span>
            </Link>
            <Link href="/wishlist" className="flex flex-col items-center justify-center gap-1 group">
              <Heart className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" strokeWidth={1.5} />
-             <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors tracking-wide">Wishlist</span>
+             <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors tracking-wide hidden md:block">Wishlist</span>
            </Link>
            {CartButton}
         </div>
       </div>
 
       {/* --- BOTTOM BAR --- Desktop */}
-      <div className="hidden lg:flex h-[52px] w-full max-w-[1440px] mx-auto items-center xl:px-10 px-6 bg-white shadow-sm border-[0.5px] border-border/10 justify-start pb-0.5">
-        <div className="relative h-[48px] w-56 flex-shrink-0" onMouseEnter={() => setMegaOpen(true)} onMouseLeave={() => setMegaOpen(false)}>
-          <button className="flex h-full w-full items-center justify-between px-5 bg-primary text-primary-foreground hover:bg-primary-hover transition-colors rounded-t-md shadow-sm border border-primary">
-            <span className="flex items-center gap-2 font-bold text-[13px] tracking-wide"><Menu className="w-4 h-4"/> All Categories</span>
+      <div className="hidden md:flex h-[52px] w-full max-w-[1440px] mx-auto items-center xl:px-10 px-4 lg:px-6 bg-white shadow-sm border-[0.5px] border-border/10 justify-start pb-0.5">
+        <div className="relative h-[48px] w-48 lg:w-56 flex-shrink-0" onMouseEnter={() => setMegaOpen(true)} onMouseLeave={() => setMegaOpen(false)}>
+          <button className="flex h-full w-full items-center justify-between px-3 lg:px-5 bg-primary text-primary-foreground hover:bg-primary-hover transition-colors rounded-t-md shadow-sm border border-primary">
+            <span className="flex items-center gap-2 font-bold text-xs lg:text-[13px] tracking-wide"><Menu className="w-4 h-4"/> Categories</span>
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${megaOpen ? 'rotate-180':''}`} />
           </button>
           <MegaMenu open={megaOpen} onClose={() => setMegaOpen(false)} shopTypes={shopTypes} />
         </div>
         
-        <nav aria-label="Primary" className="flex items-center justify-center gap-6 ml-6 h-full pt-1">
-          <Link href="/products?sort=newest" className="text-[13px] font-bold tracking-wide text-foreground hover:text-primary">New Arrivals</Link>
-          <Link href="/products?sort=bestselling" className="text-[13px] font-bold tracking-wide text-foreground hover:text-primary">Best Sellers</Link>
-          <Link href="/products?tag=deals" className="text-[13px] font-bold tracking-wide text-foreground hover:text-primary">Deals</Link>
-          <Link href="/contact" className="text-[13px] font-bold tracking-wide text-foreground hover:text-primary">Support</Link>
+        <nav aria-label="Primary" className="flex items-center justify-center gap-4 lg:gap-6 ml-4 lg:ml-6 h-full pt-1 whitespace-nowrap overflow-hidden">
+          <Link href="/products?sort=newest" className="text-xs lg:text-[13px] font-bold tracking-wide text-foreground hover:text-primary">New Arrivals</Link>
+          <Link href="/products?sort=bestselling" className="text-xs lg:text-[13px] font-bold tracking-wide text-foreground hover:text-primary">Best Sellers</Link>
+          <Link href="/products?tag=deals" className="text-xs lg:text-[13px] font-bold tracking-wide text-foreground hover:text-primary">Deals</Link>
+          <Link href="/contact" className="text-xs lg:text-[13px] font-bold tracking-wide text-foreground hover:text-primary">Support</Link>
         </nav>
       </div>
 
       {/* Mobile row */}
-      <div className="flex h-14 items-center gap-2 px-3 sm:px-4 lg:hidden">
+      <div className="flex h-14 items-center gap-2 px-3 sm:px-4 md:hidden">
         <button
           onClick={() => setDrawerOpen(true)}
           aria-label="Open menu"
@@ -263,7 +263,7 @@ export function Navbar({
 
       {/* Mobile inline search row */}
       {mobileSearchOpen && (
-        <div className="border-t border-border bg-card px-4 py-3 lg:hidden">
+        <div className="border-t border-border bg-card px-4 py-3 md:hidden">
           <SearchForm autoFocus />
         </div>
       )}
@@ -273,7 +273,7 @@ export function Navbar({
         <div
           id="mobile-nav-drawer"
           ref={drawerRef}
-          className="fixed inset-0 z-50 flex flex-col bg-card lg:hidden animate-in fade-in slide-in-from-left-4 duration-200"
+          className="fixed inset-0 z-50 flex flex-col bg-card md:hidden animate-in fade-in slide-in-from-left-4 duration-200"
         >
           <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
             <button
