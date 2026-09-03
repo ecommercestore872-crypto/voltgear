@@ -67,7 +67,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
       className="bg-[var(--g-cream-deep)] py-10 sm:py-14"
       aria-labelledby="featured-product-heading"
     >
-      <div className="mx-auto max-w-6xl px-4 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 lg:px-8">
         <p className="gadget-eyebrow">Featured</p>
         <h2
           id="featured-product-heading"
@@ -83,7 +83,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
           <Link
             href={href}
             prefetch={false}
-            className="relative block min-h-[18rem] bg-[var(--g-cream)] sm:min-h-[22rem] lg:min-h-[26rem]"
+            className="relative block min-h-[16rem] bg-[var(--g-cream)] sm:min-h-[20rem] lg:min-h-[22rem] lg:aspect-square"
           >
             {image ? (
               <Image
@@ -106,7 +106,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
             ) : null}
           </Link>
 
-          <div className="flex flex-col px-6 py-8 sm:px-10 sm:py-10">
+          <div className="flex flex-col px-6 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
               {product.category.replace(/-/g, " ")}
               {product.badge ? ` · ${product.badge}` : ""}
