@@ -36,6 +36,19 @@ describe("buildOrderConfirmationEmail", () => {
       true
     );
   });
+
+  it("uses custom subject and body and still injects items and track", () => {
+    const msg = buildOrderConfirmationEmail(confirm, {
+      letters: { confirmed: { subject: "Got it {{orderId}}", body: "Hi {{name}}" } },
+      theme: { button: "#cc0000" },
+    });
+    assert.equal(msg.subject, "Got it VG-TEST1");
+    assert.match(msg.html, /Hi Ali Khan/);
+    assert.equal(msg.html.includes("Charger"), true);
+    assert.equal(msg.html.includes("House 1, Street 2"), true);
+    assert.match(msg.html, /#cc0000/);
+    assert.equal(msg.html.includes("cash on delivery"), false);
+  });
 });
 
 describe("buildOrderStatusEmail", () => {
@@ -58,6 +71,26 @@ describe("buildOrderStatusEmail", () => {
       true
     );
   });
+
+  it("uses custom shipped copy and still appends the note and track link", () => {
+    const msg = buildOrderStatusEmail(
+      {
+        orderId: "VG-TEST1",
+        name: "Ali Khan",
+        status: "shipped",
+        note: "Tracking: PKG-1",
+        email: "ali@example.com",
+      },
+      { letters: { shipped: { subject: "Out {{orderId}}", body: "Packed for {{name}}" } } }
+    );
+    assert.equal(msg.subject, "Out VG-TEST1");
+    assert.match(msg.html, /Packed for Ali Khan/);
+    assert.equal(msg.html.includes("Tracking: PKG-1"), true);
+    assert.equal(
+      msg.html.includes("/track?orderId=VG-TEST1&email=ali%40example.com"),
+      true
+    );
+  });
 });
 
 describe("buildAdminNewOrderEmail", () => {
@@ -70,6 +103,16 @@ describe("buildAdminNewOrderEmail", () => {
     assert.equal(msg.html.includes("03001234567"), true);
     assert.equal(msg.html.includes("VG-TEST1"), true);
     assert.match(msg.html, /because a customer placed an order/);
+  });
+
+  it("uses custom owner copy and still injects contact and items", () => {
+    const msg = buildAdminNewOrderEmail(confirm, {
+      letters: { owner: { subject: "Sale {{orderId}}", body: "New from {{name}}" } },
+    });
+    assert.equal(msg.subject, "Sale VG-TEST1");
+    assert.match(msg.html, /New from Ali Khan/);
+    assert.equal(msg.html.includes("ali@example.com"), true);
+    assert.equal(msg.html.includes("Charger"), true);
   });
 });
 

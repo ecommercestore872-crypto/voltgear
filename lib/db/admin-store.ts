@@ -18,6 +18,7 @@ import {
 } from "@/lib/db/publish";
 import { missingSchemaColumn, omitColumn } from "@/lib/db/product-column-fallback";
 import { sanitizeChromeLinks, validateChromeLists } from "@/lib/chrome-nav-rules";
+import { parseOrderEmailConfig, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import {
@@ -711,6 +712,7 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
       : null,
     status: "published",
     draft: null,
+    ...(doc.orderEmails ? { order_emails: parseOrderEmailConfig(doc.orderEmails) } : {}),
   };
 }
 
@@ -723,7 +725,16 @@ export async function saveAdminSettings(draft: Record<string, unknown>) {
 export async function publishAdminSettings(doc: Record<string, unknown>) {
   const gate = validateChromeLists(doc);
   if (!gate.ok) return { ok: false as const, error: gate.error, status: 400 };
-  let payload: Record<string, unknown> = settingsLiveRow(doc);
+  const current = await getAdminSettings();
+  const currentDraft =
+    current?.draft && typeof current.draft === "object"
+      ? (current.draft as Record<string, unknown>)
+      : null;
+  const leftover =
+    !doc.orderEmails && currentDraft?.orderEmails
+      ? { orderEmails: parseOrderEmailConfig(currentDraft.orderEmails) }
+      : null;
+  let payload: Record<string, unknown> = { ...settingsLiveRow(doc), draft: leftover };
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const { error } = await db().from("site_settings").upsert(payload, { onConflict: "id" });
     if (!error) {
@@ -737,6 +748,75 @@ export async function publishAdminSettings(doc: Record<string, unknown>) {
     payload = omitColumn(payload, missing);
   }
   return { ok: false as const, error: "Settings columns are missing on the database.", status: 500 };
+}
+
+export function editorOrderEmails(row: Record<string, unknown> | null): OrderEmailConfig {
+  const draft = row?.draft && typeof row.draft === "object" ? (row.draft as Record<string, unknown>) : null;
+  if (draft?.orderEmails) return parseOrderEmailConfig(draft.orderEmails);
+  return parseOrderEmailConfig(row?.order_emails);
+}
+
+export async function saveAdminOrderEmails(config: OrderEmailConfig) {
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>), orderEmails: parseOrderEmailConfig(config) }
+      : { orderEmails: parseOrderEmailConfig(config) };
+  const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  return { ok: true as const };
+}
+
+async function stripOrderEmailsDraft() {
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>) }
+      : null;
+  if (!draft || !("orderEmails" in draft)) return;
+  delete draft.orderEmails;
+  await db()
+    .from("site_settings")
+    .update({ draft: Object.keys(draft).length ? draft : null })
+    .eq("id", 1);
+}
+
+export async function publishAdminOrderEmails(config: OrderEmailConfig) {
+  const parsed = parseOrderEmailConfig(config);
+  let payload: Record<string, unknown> = {
+    order_emails: parsed,
+    updated_at: new Date().toISOString(),
+  };
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const { error } = await db().from("site_settings").update(payload).eq("id", 1);
+    if (!error) {
+      if ("order_emails" in payload) await stripOrderEmailsDraft();
+      revalidatePath("/", "layout");
+      return { ok: true as const };
+    }
+    const missing = missingSchemaColumn(error);
+    if (!missing || !(missing in payload)) {
+      return { ok: false as const, error: error.message, status: 500 };
+    }
+    payload = omitColumn(payload, missing);
+  }
+  return { ok: false as const, error: "Order email columns are missing on the database.", status: 500 };
+}
+
+export async function discardAdminOrderEmails() {
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>) }
+      : {};
+  if (!("orderEmails" in draft)) return { ok: true as const };
+  delete draft.orderEmails;
+  const { error } = await db()
+    .from("site_settings")
+    .update({ draft: Object.keys(draft).length ? draft : null })
+    .eq("id", 1);
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  return { ok: true as const };
 }
 
 export async function discardAdminSettingsDraft() {

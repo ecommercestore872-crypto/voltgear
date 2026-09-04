@@ -1,0 +1,2 @@
+ALTER TABLE public.site_settings
+  ADD COLUMN IF NOT EXISTS order_emails jsonb;

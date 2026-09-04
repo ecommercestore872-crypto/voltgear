@@ -137,6 +137,7 @@ export interface SiteSettings {
   helpLinks?: { label: string; href: string }[];
   footerCompanyLinks?: { label: string; href: string }[];
   footerCareLinks?: { label: string; href: string }[];
+  orderEmails?: import("./order-email-cms-rules").OrderEmailConfig;
   announcement?: {
     enabled?: boolean;
     message?: string;

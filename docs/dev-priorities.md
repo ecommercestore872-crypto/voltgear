@@ -6,8 +6,11 @@ Single tracker for this store. Status lives here only.
 
 ## Active task
 
-**T-36 — Chrome CMS** — implementing  
-Spec: `docs/superpowers/specs/2026-09-05-t36-chrome-cms-design.md`  
+**T-38 — Autopilot honesty** — next  
+Spec: pending  
+
+**T-37 — Order email CMS** — shipping  
+Spec: `docs/superpowers/specs/2026-09-05-t37-order-email-cms-design.md`  
 
 ## Program
 
@@ -50,9 +53,11 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-20 | Shopper self-cancel on Track (24h, new/processing) | ✅ Done | T-03, T-04 | Cancel from `/track` within 24h while new/processing; same cancelled email. Spec: `docs/superpowers/specs/2026-09-01-t20-shopper-self-cancel-design.md`. Shipped 2026-09-01. |
 | T-32 | Storefront visual system (Buy n Try hardware stage) | 🟡 In Progress | T-16, T-19 | Spec + UI plan written 2026-09-05. Hardware-stage cards, Newsreader + Manrope, BNT10 popup, shopper copy to Buy n Try. Admin out of scope. Emails → T-33. |
 | T-33 | Customer email + message brand (Buy n Try) | 🟡 In Progress | T-32 | Transactional fallback brand is Buy n Try (T-34). FROM_EMAIL / marketing VoltGear copy still env. |
-| T-34 | Launch safety | 🟡 In Progress | T-03, T-04 | Courier API auth, newsletter persist, distinct admin new-order email, optional atomic stock. |
-| T-35 | Color and Size variants | 🟡 In Progress | T-09, T-34 | Color/Size on/off + per-value on/off. Optional color photo swaps gallery. Product units only. |
-| T-36 | Chrome CMS | 🟡 In Progress | T-32 | Settings-driven logo, navbar, Help, footer Company/Care. |
+| T-34 | Launch safety | ✅ Done | T-03, T-04 | Courier API auth, newsletter persist, distinct admin new-order email, optional atomic stock. |
+| T-35 | Color and Size variants | ✅ Done | T-09, T-34 | Color/Size on/off + per-value on/off. Optional color photo swaps gallery. Product units only. |
+| T-36 | Chrome CMS | ✅ Done | T-32 | Settings-driven logo, navbar, Help, footer Company/Care. |
+| T-37 | Order email CMS | ✅ Done | T-04, T-36 | Shared theme/layout + subject/body for six order letters at `/admin/order-emails`. Run `20260905050000_order_emails.sql` on live Supabase. |
+| T-38 | Autopilot honesty UI | ⚪ Planned | T-34 | Tell the truth on Autopilot screens: off by default, engines are not live. |
 
 ## Suggested build order
 

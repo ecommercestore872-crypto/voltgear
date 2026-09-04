@@ -6,6 +6,7 @@
  * Without a key, emails are logged to the console (dev mode).
  */
 
+import { fetchSiteSettings } from "@/lib/db/store";
 import { publicSiteUrl } from "@/lib/deploy-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import {
@@ -19,6 +20,7 @@ import {
   type OrderEmailPayload,
   type OrderStatusEmailPayload,
 } from "@/lib/email-rules";
+import type { OrderEmailConfig } from "@/lib/order-email-cms-rules";
 
 export type { OrderEmailPayload, OrderStatusEmailPayload };
 export { buildOrderConfirmationEmail, buildOrderStatusEmail, buildAdminNewOrderEmail };
@@ -45,6 +47,17 @@ function notifyEmail(settingsEmail?: string | null, customerEmail?: string | nul
     settingsEmail,
     customerEmail,
   });
+}
+
+async function loadOrderEmailConfig(): Promise<OrderEmailConfig | undefined> {
+  try {
+    const settings = await fetchSiteSettings();
+    const cfg = settings?.orderEmails;
+    if (!cfg || (!cfg.theme && !cfg.letters)) return undefined;
+    return cfg;
+  } catch {
+    return undefined;
+  }
 }
 
 async function deliver(message: EmailMessage): Promise<boolean> {
@@ -162,7 +175,8 @@ export async function sendOrderStatusUpdateEmail(
   to: string,
   payload: OrderStatusEmailPayload
 ): Promise<boolean> {
-  return deliver({ to, ...buildOrderStatusEmail({ ...payload, email: to }) });
+  const config = await loadOrderEmailConfig();
+  return deliver({ to, ...buildOrderStatusEmail({ ...payload, email: to }, config) });
 }
 
 export async function sendOrderConfirmationEmail(
@@ -170,10 +184,11 @@ export async function sendOrderConfirmationEmail(
   payload: OrderEmailPayload,
   replyTo?: string
 ): Promise<boolean> {
+  const config = await loadOrderEmailConfig();
   return deliver({
     to,
     replyTo,
-    ...buildOrderConfirmationEmail({ ...payload, email: to }),
+    ...buildOrderConfirmationEmail({ ...payload, email: to }, config),
   });
 }
 
@@ -183,7 +198,11 @@ export async function sendAdminNewOrderEmail(
 ): Promise<boolean> {
   const dest = to.trim();
   if (!dest) return false;
-  return deliver({ to: dest, ...buildAdminNewOrderEmail({ ...payload, email: payload.email }) });
+  const config = await loadOrderEmailConfig();
+  return deliver({
+    to: dest,
+    ...buildAdminNewOrderEmail({ ...payload, email: payload.email }, config),
+  });
 }
 
 export async function notifyNewOrderEmails(

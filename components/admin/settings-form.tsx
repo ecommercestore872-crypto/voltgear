@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -178,7 +179,11 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
         ))}
         <p className="sm:col-span-2 text-xs text-muted-foreground">
           New-order alerts go to <code>ORDER_NOTIFY_EMAIL</code> if set, otherwise this contact
-          email. Footer subscribers are under Customers → Newsletter. Empty logo keeps the BNT
+          email. Letter copy and layout:{" "}
+          <Link href="/admin/order-emails" className="underline underline-offset-2">
+            Order emails
+          </Link>
+          . Footer subscribers are under Customers → Newsletter. Empty logo keeps the BNT
           wordmark. Empty link lists hide that group on the shop.
         </p>
         <ChromeLinkList
