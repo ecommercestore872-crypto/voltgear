@@ -133,6 +133,10 @@ export interface SiteSettings {
   whatsappNumber?: string;
   warrantyMonths?: number;
   returnWindowDays?: number;
+  navLinks?: { label: string; href: string }[];
+  helpLinks?: { label: string; href: string }[];
+  footerCompanyLinks?: { label: string; href: string }[];
+  footerCareLinks?: { label: string; href: string }[];
   announcement?: {
     enabled?: boolean;
     message?: string;

@@ -1,34 +1,19 @@
 import Link from "next/link";
 import { Banknote, Mail, Phone, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 
-import { BntWordmark } from "@/components/brand/bnt-wordmark";
+import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
 import { getSocialIcon } from "@/components/icons/social-icons";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
+import {
+  DEFAULT_FOOTER_CARE_LINKS,
+  DEFAULT_FOOTER_COMPANY_LINKS,
+  resolveChromeLinks,
+} from "@/lib/chrome-nav-rules";
 import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
 import type { SiteSettings } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
-
-const COMPANY_LINKS = [
-  { href: "/about", label: "About Us" },
-  { href: "/contact", label: "Contact Us" },
-  { href: "/blog", label: "Blogs" },
-  { href: "/faq", label: "Customer Care" },
-  { href: "/privacy-policy", label: "Privacy Policy" },
-  { href: "/terms-of-service", label: "Terms and Conditions" },
-  { href: "/bulk-order", label: "Corporate Orders" },
-  { href: "/", label: "Official Brand Outlet" },
-];
-
-const CARE_LINKS = [
-  { href: "/contact", label: "Register a Complaint" },
-  { href: "/track", label: "Track Your Order" },
-  { href: "/faq#payments", label: "Modes Of Payments" },
-  { href: "/warranty", label: "Warranty Policy" },
-  { href: "/shipping-returns#returns", label: "Exchange and Refund Policy" },
-  { href: "/shipping-returns#shipping", label: "Shipping Policy" },
-];
 
 function splitTwo<T>(items: T[]): [T[], T[]] {
   const mid = Math.ceil(items.length / 2);
@@ -53,13 +38,15 @@ export function GadgetFooter({
   settings: SiteSettings | null;
   shopTypes?: ShopType[];
 }) {
-  const brandName = SHOPPER_BRAND.spokenName;
+  const brandName = settings?.brandName?.trim() || SHOPPER_BRAND.spokenName;
   const shopLinks = [
     { href: products2Href(), label: "All Products" },
     ...gadgetShopTypeLinks(shopTypes),
   ];
+  const companyLinks = resolveChromeLinks(settings?.footerCompanyLinks, DEFAULT_FOOTER_COMPANY_LINKS);
+  const careLinks = resolveChromeLinks(settings?.footerCareLinks, DEFAULT_FOOTER_CARE_LINKS);
   const [shopA, shopB] = splitTwo(shopLinks);
-  const [companyA, companyB] = splitTwo(COMPANY_LINKS);
+  const [companyA, companyB] = splitTwo(companyLinks);
   const phone = settings?.phone;
   const email = settings?.email;
   const socials = (settings?.socialLinks ?? []).filter(
@@ -136,46 +123,48 @@ export function GadgetFooter({
             </div>
           </div>
 
-          {/* Company */}
-          <div>
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--g-white)]">
-              Company
-            </h2>
-            <div className="mt-4 grid grid-cols-2 gap-x-4">
-              <ul>
-                {companyA.map((l) => (
-                  <li key={l.href}>
-                    <FooterLink href={l.href} label={l.label} />
-                  </li>
-                ))}
-              </ul>
-              <ul>
-                {companyB.map((l) => (
-                  <li key={l.href}>
+          {companyLinks.length ? (
+            <div>
+              <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--g-white)]">
+                Company
+              </h2>
+              <div className="mt-4 grid grid-cols-2 gap-x-4">
+                <ul>
+                  {companyA.map((l) => (
+                    <li key={l.href + l.label}>
+                      <FooterLink href={l.href} label={l.label} />
+                    </li>
+                  ))}
+                </ul>
+                <ul>
+                  {companyB.map((l) => (
+                    <li key={l.href + l.label}>
+                      <FooterLink href={l.href} label={l.label} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : null}
+
+          {careLinks.length ? (
+            <div>
+              <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--g-white)]">
+                Care
+              </h2>
+              <ul className="mt-4">
+                {careLinks.map((l) => (
+                  <li key={l.href + l.label}>
                     <FooterLink href={l.href} label={l.label} />
                   </li>
                 ))}
               </ul>
             </div>
-          </div>
-
-          {/* Care */}
-          <div>
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--g-white)]">
-              Care
-            </h2>
-            <ul className="mt-4">
-              {CARE_LINKS.map((l) => (
-                <li key={l.href + l.label}>
-                  <FooterLink href={l.href} label={l.label} />
-                </li>
-              ))}
-            </ul>
-          </div>
+          ) : null}
 
           {/* Brand + contact + newsletter */}
           <div className="flex flex-col">
-            <BntWordmark invert />
+            <ShopBrandMark logo={settings?.logo} name={brandName} invert />
 
             {socials.length ? (
               <div className="mt-5 flex flex-wrap gap-3">

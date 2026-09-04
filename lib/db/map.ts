@@ -10,6 +10,7 @@ import type {
   Testimonial,
 } from "@/lib/types";
 import { normalizeHomeSections } from "@/lib/db/home-section-rules";
+import { parseChromeLinks } from "@/lib/chrome-nav-rules";
 import { parseVariantOptions } from "@/lib/variant-options-rules";
 
 function num(v: unknown, fallback = 0): number {
@@ -144,6 +145,10 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     whatsappNumber: row.whatsapp_number ? String(row.whatsapp_number) : undefined,
     warrantyMonths: row.warranty_months != null ? num(row.warranty_months) : undefined,
     returnWindowDays: row.return_window_days != null ? num(row.return_window_days) : undefined,
+    navLinks: parseChromeLinks(row.nav_links) ?? undefined,
+    helpLinks: parseChromeLinks(row.help_links) ?? undefined,
+    footerCompanyLinks: parseChromeLinks(row.footer_company_links) ?? undefined,
+    footerCareLinks: parseChromeLinks(row.footer_care_links) ?? undefined,
     announcement: row.announcement as SiteSettings["announcement"],
     seo: row.seo as SiteSettings["seo"],
     homeSections: normalizeHomeSections(row.home_sections),

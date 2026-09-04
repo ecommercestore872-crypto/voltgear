@@ -3,12 +3,21 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ChromeLinkList } from "@/components/admin/chrome-link-list";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { PublishStatus } from "@/lib/db/publish";
+import {
+  DEFAULT_FOOTER_CARE_LINKS,
+  DEFAULT_FOOTER_COMPANY_LINKS,
+  DEFAULT_HELP_LINKS,
+  DEFAULT_NAV_LINKS,
+  parseChromeLinks,
+  type ChromeLink,
+} from "@/lib/chrome-nav-rules";
 
 type SettingsRow = Record<string, unknown> & {
   status?: PublishStatus;
@@ -63,6 +72,12 @@ function fromRow(row?: SettingsRow | null) {
       (d.seo as { description?: string } | undefined)?.description ??
         (row?.seo as { description?: string } | undefined)?.description
     ),
+    navLinks: parseChromeLinks(d.navLinks ?? row?.nav_links) ?? DEFAULT_NAV_LINKS,
+    helpLinks: parseChromeLinks(d.helpLinks ?? row?.help_links) ?? DEFAULT_HELP_LINKS,
+    footerCompanyLinks:
+      parseChromeLinks(d.footerCompanyLinks ?? row?.footer_company_links) ?? DEFAULT_FOOTER_COMPANY_LINKS,
+    footerCareLinks:
+      parseChromeLinks(d.footerCareLinks ?? row?.footer_care_links) ?? DEFAULT_FOOTER_CARE_LINKS,
   };
 }
 
@@ -101,6 +116,10 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
         endsAt: form.announcementEndsAt || null
       },
       seo: { title: form.seoTitle, description: form.seoDescription },
+      navLinks: form.navLinks,
+      helpLinks: form.helpLinks,
+      footerCompanyLinks: form.footerCompanyLinks,
+      footerCareLinks: form.footerCareLinks,
     };
   }
 
@@ -159,8 +178,30 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
         ))}
         <p className="sm:col-span-2 text-xs text-muted-foreground">
           New-order alerts go to <code>ORDER_NOTIFY_EMAIL</code> if set, otherwise this contact
-          email. Footer subscribers are under Customers → Newsletter.
+          email. Footer subscribers are under Customers → Newsletter. Empty logo keeps the BNT
+          wordmark. Empty link lists hide that group on the shop.
         </p>
+        <ChromeLinkList
+          title="Navbar links"
+          hint="Shown next to Shop. Categories stay under Admin → Categories."
+          links={form.navLinks}
+          onChange={(navLinks: ChromeLink[]) => setForm((f) => ({ ...f, navLinks }))}
+        />
+        <ChromeLinkList
+          title="Help links"
+          links={form.helpLinks}
+          onChange={(helpLinks: ChromeLink[]) => setForm((f) => ({ ...f, helpLinks }))}
+        />
+        <ChromeLinkList
+          title="Footer — Company"
+          links={form.footerCompanyLinks}
+          onChange={(footerCompanyLinks: ChromeLink[]) => setForm((f) => ({ ...f, footerCompanyLinks }))}
+        />
+        <ChromeLinkList
+          title="Footer — Care"
+          links={form.footerCareLinks}
+          onChange={(footerCareLinks: ChromeLink[]) => setForm((f) => ({ ...f, footerCareLinks }))}
+        />
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Address</Label>
           <Textarea value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />

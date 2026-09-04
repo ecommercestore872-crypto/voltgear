@@ -21,22 +21,23 @@ import { useWishlist } from "@/components/wishlist/wishlist-provider";
 import { GadgetSearchInput } from "@/components/gadget/gadget-search-input";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
-import { BntWordmark } from "@/components/brand/bnt-wordmark";
+import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { SHOPPER_BRAND } from "@/lib/brand";
+import {
+  DEFAULT_HELP_LINKS,
+  DEFAULT_NAV_LINKS,
+  resolveChromeLinks,
+} from "@/lib/chrome-nav-rules";
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const PRIMARY_LINKS = [
-  { label: "Offers", href: `${products2Href()}?sort=featured` },
-  { label: "Blog", href: "/blog" },
-];
-
-const HELP_LINKS = [
-  { label: "Track order", href: "/track", icon: Package },
-  { label: "Shipping & returns", href: "/shipping-returns", icon: Truck },
-  { label: "FAQs", href: "/faq", icon: HelpCircle },
-  { label: "Support", href: "/contact", icon: Headphones },
-];
+function helpIcon(href: string) {
+  if (href.startsWith("/track")) return Package;
+  if (href.startsWith("/shipping")) return Truck;
+  if (href.startsWith("/faq")) return HelpCircle;
+  if (href.startsWith("/contact")) return Headphones;
+  return HelpCircle;
+}
 
 function IconHit({
   className,
@@ -72,8 +73,11 @@ export function GadgetNavbar({
   const [shopOpen, setShopOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const links = gadgetShopTypeLinks(shopTypes);
-  const brandName = SHOPPER_BRAND.spokenName;
+  const brandName = settings?.brandName?.trim() || SHOPPER_BRAND.spokenName;
+  const tagline = settings?.tagline?.trim() || SHOPPER_BRAND.tagline;
   const phone = settings?.phone;
+  const navLinks = resolveChromeLinks(settings?.navLinks, DEFAULT_NAV_LINKS);
+  const helpLinks = resolveChromeLinks(settings?.helpLinks, DEFAULT_HELP_LINKS);
 
   useEffect(() => setMounted(true), []);
 
@@ -108,7 +112,7 @@ export function GadgetNavbar({
               aria-label="Navigation menu"
             >
               <div className="mb-5 flex items-center justify-between gap-3">
-                <BntWordmark compact />
+                <ShopBrandMark logo={settings?.logo} name={brandName} compact />
                 <button
                   type="button"
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] text-[var(--g-forest)]"
@@ -152,37 +156,45 @@ export function GadgetNavbar({
                 ))}
               </nav>
 
-              <p className="gadget-eyebrow mb-2">Explore</p>
-              <nav className="mb-6 grid border-t border-[var(--g-line)]" aria-label="Mobile explore">
-                {PRIMARY_LINKS.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setOpen(false)}
-                    className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
+              {navLinks.length ? (
+                <>
+                  <p className="gadget-eyebrow mb-2">Explore</p>
+                  <nav className="mb-6 grid border-t border-[var(--g-line)]" aria-label="Mobile explore">
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.href + link.label}
+                        href={link.href}
+                        onClick={() => setOpen(false)}
+                        className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </nav>
+                </>
+              ) : null}
 
-              <p className="gadget-eyebrow mb-2">Help</p>
-              <nav className="grid border-t border-[var(--g-line)]" aria-label="Mobile help">
-                {HELP_LINKS.map((link) => {
-                  const Icon = link.icon;
-                  return (
-                    <Link
-                      key={link.href + link.label}
-                      href={link.href}
-                      onClick={() => setOpen(false)}
-                      className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-                    >
-                      <Icon className="h-4 w-4 text-[var(--g-sage)]" aria-hidden />
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </nav>
+              {helpLinks.length ? (
+                <>
+                  <p className="gadget-eyebrow mb-2">Help</p>
+                  <nav className="grid border-t border-[var(--g-line)]" aria-label="Mobile help">
+                    {helpLinks.map((link) => {
+                      const Icon = helpIcon(link.href);
+                      return (
+                        <Link
+                          key={link.href + link.label}
+                          href={link.href}
+                          onClick={() => setOpen(false)}
+                          className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+                        >
+                          <Icon className="h-4 w-4 text-[var(--g-sage)]" aria-hidden />
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                </>
+              ) : null}
 
               {phone ? (
                 <a
@@ -208,7 +220,7 @@ export function GadgetNavbar({
         <div className="mx-auto flex h-8 max-w-[90rem] items-center justify-between gap-6 px-6 text-[10px] font-semibold uppercase tracking-[0.16em] xl:px-8">
           <p className="min-w-0 truncate">
             <span className="text-[color-mix(in_srgb,var(--g-terracotta)_55%,white)]">
-              {SHOPPER_BRAND.tagline}
+              {tagline}
             </span>
             <span className="mx-2.5 text-white/25">·</span>
             <span className="text-[var(--g-cream)]/80">Cash on delivery</span>
@@ -219,15 +231,15 @@ export function GadgetNavbar({
                 {phone}
               </a>
             ) : null}
-            <Link href="/track" className="transition hover:text-[var(--g-cream)]">
-              Track
-            </Link>
-            <Link href="/warranty" className="transition hover:text-[var(--g-cream)]">
-              Warranty
-            </Link>
-            <Link href="/contact" className="transition hover:text-[var(--g-cream)]">
-              Help
-            </Link>
+            {helpLinks.map((link) => (
+              <Link
+                key={link.href + link.label}
+                href={link.href}
+                className="transition hover:text-[var(--g-cream)]"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
       </div>
@@ -239,8 +251,8 @@ export function GadgetNavbar({
             className="group flex min-h-11 shrink-0 items-center"
             aria-label={`${brandName} home`}
           >
-            <BntWordmark compact className="sm:hidden" />
-            <BntWordmark className="hidden sm:inline-flex" />
+            <ShopBrandMark logo={settings?.logo} name={brandName} compact className="sm:hidden" />
+            <ShopBrandMark logo={settings?.logo} name={brandName} className="hidden sm:inline-flex" />
           </Link>
 
           <nav aria-label="Primary" className="hidden items-center md:flex">
@@ -288,9 +300,9 @@ export function GadgetNavbar({
               ) : null}
             </div>
 
-            {PRIMARY_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
-                key={link.href}
+                key={link.href + link.label}
                 href={link.href}
                 className="gadget-nav-link flex min-h-11 items-center px-3 text-[13px] font-medium tracking-[0.02em] text-[var(--g-charcoal)] hover:text-[var(--g-forest)]"
               >

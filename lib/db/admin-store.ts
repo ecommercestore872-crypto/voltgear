@@ -17,6 +17,7 @@ import {
   type ProductDocument,
 } from "@/lib/db/publish";
 import { missingSchemaColumn, omitColumn } from "@/lib/db/product-column-fallback";
+import { sanitizeChromeLinks, validateChromeLists } from "@/lib/chrome-nav-rules";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import {
@@ -700,6 +701,14 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
     return_window_days: doc.returnWindowDays ?? null,
     announcement: doc.announcement ?? null,
     seo: doc.seo ?? null,
+    nav_links: Array.isArray(doc.navLinks) ? sanitizeChromeLinks(doc.navLinks) : null,
+    help_links: Array.isArray(doc.helpLinks) ? sanitizeChromeLinks(doc.helpLinks) : null,
+    footer_company_links: Array.isArray(doc.footerCompanyLinks)
+      ? sanitizeChromeLinks(doc.footerCompanyLinks)
+      : null,
+    footer_care_links: Array.isArray(doc.footerCareLinks)
+      ? sanitizeChromeLinks(doc.footerCareLinks)
+      : null,
     status: "published",
     draft: null,
   };
@@ -712,12 +721,22 @@ export async function saveAdminSettings(draft: Record<string, unknown>) {
 }
 
 export async function publishAdminSettings(doc: Record<string, unknown>) {
-  const { error } = await db()
-    .from("site_settings")
-    .upsert(settingsLiveRow(doc), { onConflict: "id" });
-  if (error) return { ok: false as const, error: error.message, status: 500 };
-  revalidatePath("/", "layout");
-  return { ok: true as const };
+  const gate = validateChromeLists(doc);
+  if (!gate.ok) return { ok: false as const, error: gate.error, status: 400 };
+  let payload: Record<string, unknown> = settingsLiveRow(doc);
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const { error } = await db().from("site_settings").upsert(payload, { onConflict: "id" });
+    if (!error) {
+      revalidatePath("/", "layout");
+      return { ok: true as const };
+    }
+    const missing = missingSchemaColumn(error);
+    if (!missing || !(missing in payload)) {
+      return { ok: false as const, error: error.message, status: 500 };
+    }
+    payload = omitColumn(payload, missing);
+  }
+  return { ok: false as const, error: "Settings columns are missing on the database.", status: 500 };
 }
 
 export async function discardAdminSettingsDraft() {

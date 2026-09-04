@@ -6,8 +6,8 @@ Single tracker for this store. Status lives here only.
 
 ## Active task
 
-**T-35 — Color and Size variants** — implementing  
-Spec: `docs/superpowers/specs/2026-09-05-t35-color-size-variants-design.md`  
+**T-36 — Chrome CMS** — implementing  
+Spec: `docs/superpowers/specs/2026-09-05-t36-chrome-cms-design.md`  
 
 ## Program
 
@@ -52,6 +52,7 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-33 | Customer email + message brand (Buy n Try) | 🟡 In Progress | T-32 | Transactional fallback brand is Buy n Try (T-34). FROM_EMAIL / marketing VoltGear copy still env. |
 | T-34 | Launch safety | 🟡 In Progress | T-03, T-04 | Courier API auth, newsletter persist, distinct admin new-order email, optional atomic stock. |
 | T-35 | Color and Size variants | 🟡 In Progress | T-09, T-34 | Color/Size on/off + per-value on/off. Optional color photo swaps gallery. Product units only. |
+| T-36 | Chrome CMS | 🟡 In Progress | T-32 | Settings-driven logo, navbar, Help, footer Company/Care. |
 
 ## Suggested build order
 
