@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   checkoutHref,
+  collectionHref,
   hasShopperProductVideo,
   isGadgetContinuityPath,
   isGadgetPreviewPath,
@@ -19,8 +20,16 @@ describe("isGadgetPreviewPath", () => {
     assert.equal(isGadgetPreviewPath("/product2/pad"), true);
     assert.equal(isGadgetPreviewPath("/products2"), true);
     assert.equal(isGadgetPreviewPath("/products2/earbuds"), true);
-    assert.equal(isGadgetPreviewPath("/product/pad"), false);
-    assert.equal(isGadgetPreviewPath("/products"), false);
+    assert.equal(isGadgetPreviewPath("/product/pad"), true);
+    assert.equal(isGadgetPreviewPath("/products"), true);
+    assert.equal(isGadgetPreviewPath("/collections"), true);
+    assert.equal(isGadgetPreviewPath("/collections/summer-picks"), true);
+  });
+});
+
+describe("collectionHref", () => {
+  it("builds a storefront collection URL", () => {
+    assert.equal(collectionHref("summer-picks"), "/collections/summer-picks");
   });
 });
 
@@ -56,7 +65,8 @@ describe("shouldUseGadgetChrome", () => {
     assert.equal(shouldUseGadgetChrome("/cart", { sessionActive: true }), true);
     assert.equal(shouldUseGadgetChrome("/search", { sessionActive: true }), true);
     assert.equal(shouldUseGadgetChrome("/blog", { sessionActive: true }), true);
-    assert.equal(shouldUseGadgetChrome("/products", { sessionActive: true }), false);
+    assert.equal(shouldUseGadgetChrome("/products", { sessionActive: true }), true);
+    assert.equal(shouldUseGadgetChrome("/collections/summer-picks"), true);
     assert.equal(checkoutHref(true), "/checkout?from=gadget");
     assert.equal(checkoutHref(false), "/checkout");
   });

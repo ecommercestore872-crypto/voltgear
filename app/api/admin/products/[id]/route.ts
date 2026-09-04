@@ -9,6 +9,7 @@ import {
   saveAdminProduct,
   unpublishAdminProduct,
 } from "@/lib/db/admin-store";
+import { setProductCollections } from "@/lib/db/collection-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +38,9 @@ export async function PATCH(request: Request, { params }: Ctx) {
   else if (action === "discard") result = await discardAdminProductDraft(params.id);
   else result = await saveAdminProduct(params.id, doc);
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (action === "save" || action === "publish") {
+    await setProductCollections(params.id, body?.collectionIds);
+  }
   return NextResponse.json(result);
 }
 

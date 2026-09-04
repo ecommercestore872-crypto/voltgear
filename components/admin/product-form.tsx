@@ -17,7 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ShopType } from "@/lib/categories";
 import { PRODUCT_PHOTO_HINT } from "@/lib/product-image";
 import type { AdminProduct } from "@/lib/db/admin-types";
+import { ProductCollectionsFields } from "@/components/admin/product-collections-fields";
 import { VariantAxesFields } from "@/components/admin/variant-axes-fields";
+import type { CollectionPickerItem } from "@/lib/db/collection-rules";
 import {
   portableTextToPlain,
   slugify,
@@ -99,9 +101,13 @@ function fromProduct(product?: AdminProduct | null, knownSlugs: string[] = []): 
 export function ProductForm({
   product,
   shopTypes,
+  collections = [],
+  collectionIds = [],
 }: {
   product?: AdminProduct | null;
   shopTypes: ShopType[];
+  collections?: CollectionPickerItem[];
+  collectionIds?: string[];
 }) {
   const router = useRouter();
   const isNew = !product;
@@ -113,6 +119,8 @@ export function ProductForm({
   const [description, setDescription] = useState(() =>
     portableTextToPlain(fromProduct(product, knownSlugs).description)
   );
+  const [collectionList, setCollectionList] = useState(collections);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState(collectionIds);
   const id = product?._id;
 
   const set = <K extends keyof ProductDocument>(key: K, value: ProductDocument[K]) => {
@@ -137,7 +145,7 @@ export function ProductForm({
       if (action === "create") {
         const json = await adminFetch("/api/admin/products", {
           method: "POST",
-          body: JSON.stringify({ doc: payload }),
+          body: JSON.stringify({ doc: payload, collectionIds: selectedCollectionIds }),
         });
         router.replace(`/admin/products/${json.id}`);
         return;
@@ -151,7 +159,7 @@ export function ProductForm({
       }
       await adminFetch(`/api/admin/products/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ action, doc: payload }),
+        body: JSON.stringify({ action, doc: payload, collectionIds: selectedCollectionIds }),
       });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
@@ -392,8 +400,17 @@ export function ProductForm({
               checked={Boolean(doc.featured)}
               onChange={(e) => set("featured", e.target.checked)}
             />
-            Show on homepage
+            Featured — homepage spotlight
           </label>
+          <ProductCollectionsFields
+            collections={collectionList}
+            selectedIds={selectedCollectionIds}
+            productId={id}
+            onChange={(ids, nextCollections) => {
+              setSelectedCollectionIds(ids);
+              if (nextCollections) setCollectionList(nextCollections);
+            }}
+          />
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

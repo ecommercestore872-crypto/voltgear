@@ -66,8 +66,10 @@ export function CollectionsManager({
         <h1 className="text-2xl font-semibold">Collections</h1>
       </div>
       <p className="text-sm text-muted-foreground">
-        Group products for home rails (bestsellers, featured, new arrivals). Manual
-        picks or auto rules.
+        Group products for home rails (Best Sellers, Featured, new collections).
+        Manual picks or auto rules. Name a collection Best Sellers or Featured to
+        fill those existing rails; any other name gets the same product-rail layout
+        on the home page.
       </p>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 

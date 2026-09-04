@@ -44,3 +44,67 @@ export function canSaveCollection(input: {
   }
   return { ok: true };
 }
+
+/** Map common merchandising names onto the existing home rails. */
+export function inferHomeSlotFromName(name: string): CollectionHomeSlot | null {
+  const slug = slugifyCollectionName(name);
+  if (slug === "bestsellers" || slug === "best-seller" || slug === "best-sellers") {
+    return "bestsellers";
+  }
+  if (slug === "featured") return "featured";
+  if (slug === "offers" || slug === "best-offers" || slug === "best-offer") {
+    return "offers";
+  }
+  return null;
+}
+
+/** `null` = leave memberships unchanged; otherwise the exact set of collection ids. */
+export function parseCollectionIds(raw: unknown): string[] | null {
+  if (raw == null) return null;
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((id) => String(id).trim())
+    .filter(Boolean);
+}
+
+export function canAssignProductToCollection(mode: string): boolean {
+  return mode === "manual";
+}
+
+export function membershipIdsForProduct(
+  collections: { id: string; productIds: string[] }[],
+  productId: string
+): string[] {
+  return collections.filter((c) => c.productIds.includes(productId)).map((c) => c.id);
+}
+
+export function extraHomeCollectionRails<
+  T extends { id: string; active: boolean; homeSlot: CollectionHomeSlot | null },
+>(collections: T[]): T[] {
+  return collections.filter((c) => c.active && c.homeSlot == null);
+}
+
+export type CollectionPickerItem = {
+  id: string;
+  name: string;
+  slug: string;
+  mode: CollectionMode;
+  autoRule: CollectionAutoRule | null;
+  homeSlot: CollectionHomeSlot | null;
+};
+
+export function collectionPickerHint(input: {
+  homeSlot: CollectionHomeSlot | null;
+  mode: CollectionMode;
+  autoRule: CollectionAutoRule | null;
+}): string {
+  if (input.mode === "auto") {
+    return input.autoRule === "featured"
+      ? "Automatic · Featured flag"
+      : "Automatic · Best sellers rule";
+  }
+  if (input.homeSlot === "bestsellers") return "Home · Best Sellers rail";
+  if (input.homeSlot === "featured") return "Home · Featured product";
+  if (input.homeSlot === "offers") return "Home · Best Offers rail";
+  return "Home · product rail";
+}

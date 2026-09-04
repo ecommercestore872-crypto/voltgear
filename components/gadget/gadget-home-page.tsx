@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react";
 import { GadgetBlogSection } from "@/components/gadget/gadget-blog-section";
 import { GadgetFeaturedProduct } from "@/components/gadget/gadget-featured-product";
 import { GadgetHeroSlider } from "@/components/gadget/gadget-hero-slider";
@@ -23,11 +24,12 @@ import {
   gadgetLifestyleFeatureImage,
 } from "@/lib/gadget-creatives";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
-import { gadgetShopTypeLinks, product2Href, products2Href } from "@/lib/gadget-preview";
-import { fetchProductsForHomeSlot } from "@/lib/db/collection-store";
+import { collectionHref, gadgetShopTypeLinks, product2Href, products2Href } from "@/lib/gadget-preview";
+import { fetchExtraCollectionRails, fetchProductsForHomeSlot } from "@/lib/db/collection-store";
 import {
   enabledHomeSectionIds,
   normalizeHomeSections,
+  type HomeSectionId,
 } from "@/lib/db/home-section-rules";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
@@ -51,8 +53,9 @@ export async function GadgetHomePage() {
   let slotBestsellers: Product[] | null = null;
   let slotFeatured: Product[] | null = null;
   let slotOffers: Product[] | null = null;
+  let extraRails: Awaited<ReturnType<typeof fetchExtraCollectionRails>> = [];
   try {
-    const [s, p, t, set, types, best, blogs, colBest, colFeat, colOffers] =
+    const [s, p, t, set, types, best, blogs, colBest, colFeat, colOffers, extra] =
       await Promise.all([
         fetchHeroSlides(demo),
         fetchAllProducts(demo),
@@ -64,6 +67,7 @@ export async function GadgetHomePage() {
         fetchProductsForHomeSlot("bestsellers", demo).catch(() => null),
         fetchProductsForHomeSlot("featured", demo).catch(() => null),
         fetchProductsForHomeSlot("offers", demo).catch(() => null),
+        fetchExtraCollectionRails(demo).catch(() => []),
       ]);
     slides = s;
     products = applyGadgetStudioImagesList(p);
@@ -77,6 +81,10 @@ export async function GadgetHomePage() {
       : null;
     slotFeatured = colFeat ? applyGadgetStudioImagesList(colFeat) : null;
     slotOffers = colOffers ? applyGadgetStudioImagesList(colOffers) : null;
+    extraRails = extra.map((rail) => ({
+      ...rail,
+      products: applyGadgetStudioImagesList(rail.products),
+    }));
   } catch {
     products = [];
   }
@@ -193,6 +201,23 @@ export async function GadgetHomePage() {
     detail,
     icon,
   }));
+  const merchIds: HomeSectionId[] = ["bestsellers", "featured", "offers"];
+  const lastMerchId = [...layout].reverse().find((id) => merchIds.includes(id));
+  const extraRailTones = ["leaf", "clay", "default"] as const;
+
+  function extraCollectionSections(startDelay: number) {
+    return extraRails.map((rail, index) => (
+      <GadgetReveal key={`collection-${rail.id}`} delayMs={startDelay + index * 20}>
+        <GadgetNewArrivals
+          products={rail.products}
+          title={rail.name}
+          headingId={`collection-${rail.slug}-heading`}
+          viewAllHref={collectionHref(rail.slug)}
+          tone={extraRailTones[index % extraRailTones.length]}
+        />
+      </GadgetReveal>
+    ));
+  }
 
   return (
     <div className="text-[var(--g-charcoal)]">
@@ -200,15 +225,17 @@ export async function GadgetHomePage() {
 
       {layout.map((id, i) => {
         const delayMs = 40 + i * 20;
+        let section: ReactNode = null;
         switch (id) {
           case "trust":
-            return trustItems.length ? (
+            section = trustItems.length ? (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetTrustStrip items={trustItems} />
               </GadgetReveal>
             ) : null;
+            break;
           case "bestsellers":
-            return (
+            section = (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetNewArrivals
                   products={railProducts}
@@ -218,14 +245,16 @@ export async function GadgetHomePage() {
                 />
               </GadgetReveal>
             );
+            break;
           case "featured":
-            return featuredProduct ? (
+            section = featuredProduct ? (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetFeaturedProduct product={featuredProduct} />
               </GadgetReveal>
             ) : null;
+            break;
           case "offers":
-            return (
+            section = (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetNewArrivals
                   products={bestOffers}
@@ -236,8 +265,9 @@ export async function GadgetHomePage() {
                 />
               </GadgetReveal>
             );
+            break;
           case "lifestyle":
-            return (
+            section = (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetLifestyleShop
                   tiles={categoryCards.slice(0, 4)}
@@ -253,28 +283,40 @@ export async function GadgetHomePage() {
                 />
               </GadgetReveal>
             );
+            break;
           case "categories":
-            return (
+            section = (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetShopCategories tiles={categoryCards} />
               </GadgetReveal>
             );
+            break;
           case "reviews":
-            return (
+            section = (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetReviewsSlider reviews={testimonials} />
               </GadgetReveal>
             );
+            break;
           case "blog":
-            return (
+            section = (
               <GadgetReveal key={id} delayMs={delayMs}>
                 <GadgetBlogSection posts={blogPosts} />
               </GadgetReveal>
             );
+            break;
           default:
-            return null;
+            section = null;
         }
+        if (id !== lastMerchId) return section;
+        return (
+          <Fragment key={`${id}-extras`}>
+            {section}
+            {extraCollectionSections(delayMs + 20)}
+          </Fragment>
+        );
       })}
+      {!lastMerchId ? extraCollectionSections(40 + layout.length * 20) : null}
     </div>
   );
 }

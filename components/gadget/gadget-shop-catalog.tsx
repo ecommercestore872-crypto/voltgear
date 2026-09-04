@@ -19,6 +19,8 @@ export function GadgetShopCatalog({
   sort,
   config,
   breadcrumbs,
+  basePath: catalogBasePath,
+  flattenGrid,
 }: {
   title: string;
   description: string;
@@ -29,6 +31,8 @@ export function GadgetShopCatalog({
   sort: string;
   config: PublicSiteConfig;
   breadcrumbs: { label: string; href?: string }[];
+  basePath?: string;
+  flattenGrid?: boolean;
 }) {
   const trust: { icon: typeof Wallet; label: string; detail: string }[] = [];
   if (config.codEnabled) {
@@ -53,7 +57,9 @@ export function GadgetShopCatalog({
     });
   }
 
-  const basePath = activeCategory ? products2Href(activeCategory) : products2Href();
+  const basePath =
+    catalogBasePath ?? (activeCategory ? products2Href(activeCategory) : products2Href());
+  const useFlatGrid = Boolean(flattenGrid || activeCategory);
 
   function categoryHref(slug?: string) {
     const href = slug ? products2Href(slug) : products2Href();
@@ -120,7 +126,7 @@ export function GadgetShopCatalog({
               href={categoryHref()}
               className={cn(
                 "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:px-5 sm:text-sm",
-                !activeCategory ? "gadget-chip-active" : "gadget-chip-idle"
+                !activeCategory && !flattenGrid ? "gadget-chip-active" : "gadget-chip-idle"
               )}
             >
               All products
@@ -144,7 +150,7 @@ export function GadgetShopCatalog({
         </div>
 
         {products.length ? (
-          activeCategory ? (
+          useFlatGrid ? (
             <ul className="mt-4 grid grid-cols-2 gap-3.5 sm:mt-5 sm:gap-4.5 md:grid-cols-3 lg:mt-6 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
               {products.map((p) => (
                 <li key={p._id} className="min-w-0">

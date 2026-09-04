@@ -1,7 +1,11 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  canAssignProductToCollection,
   canSaveCollection,
+  extraHomeCollectionRails,
+  inferHomeSlotFromName,
+  parseCollectionIds,
   parseHomeSlot,
   slugifyCollectionName,
   type CollectionAutoRule,
@@ -125,7 +129,10 @@ export async function createAdminCollection(input: {
     (input.autoRule === "featured" || input.autoRule === "bestsellers")
       ? input.autoRule
       : null;
-  const homeSlot = parseHomeSlot(input.homeSlot);
+  const homeSlot =
+    input.homeSlot === undefined
+      ? inferHomeSlotFromName(String(input.name ?? ""))
+      : parseHomeSlot(input.homeSlot);
   const check = canSaveCollection({
     name: input.name,
     slug: input.slug,
@@ -165,6 +172,7 @@ export async function createAdminCollection(input: {
   revalidatePath("/admin/collections");
   revalidatePath("/");
   revalidatePath("/admin/home");
+  revalidatePath(`/collections/${slug}`);
   return { ok: true as const, collection: await getAdminCollection(id) };
 }
 
@@ -236,6 +244,7 @@ export async function updateAdminCollection(
   revalidatePath(`/admin/collections/${id}`);
   revalidatePath("/");
   revalidatePath("/admin/home");
+  revalidatePath(`/collections/${slug}`);
   return { ok: true as const, collection: await getAdminCollection(id) };
 }
 
@@ -350,4 +359,149 @@ export async function fetchProductsForHomeSlot(
     byId.set(String((row as { id: string }).id), p);
   }
   return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+}
+
+async function productsForIds(
+  ids: string[],
+  includeDemo = false
+): Promise<Product[]> {
+  if (!ids.length) return [];
+  const { data: rows, error: pErr } = await db()
+    .from("products")
+    .select(PRODUCT_EMBED)
+    .in("id", ids)
+    .eq("status", "published");
+  if (pErr) throw pErr;
+
+  const byId = new Map<string, Product>();
+  for (const row of rows ?? []) {
+    const p = mapProduct(row as Record<string, unknown>, {
+      includeDemoReviews: includeDemo,
+    });
+    if (!p) continue;
+    if (!includeDemo && p.isDemo) continue;
+    byId.set(String((row as { id: string }).id), p);
+  }
+  return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+}
+
+export type StorefrontCollectionRail = {
+  id: string;
+  name: string;
+  slug: string;
+  products: Product[];
+};
+
+/** Active collections that are not bound to a reserved home slot. */
+export async function fetchExtraCollectionRails(
+  includeDemo = false
+): Promise<StorefrontCollectionRail[]> {
+  const collections = await listAdminCollections();
+  const extras = extraHomeCollectionRails(collections);
+  const rails: StorefrontCollectionRail[] = [];
+  for (const collection of extras) {
+    const ids = await resolveCollectionProductIds(collection);
+    const products = await productsForIds(ids, includeDemo);
+    if (!products.length) continue;
+    rails.push({
+      id: collection.id,
+      name: collection.name,
+      slug: collection.slug,
+      products: products.slice(0, 8),
+    });
+  }
+  return rails;
+}
+
+export async function getStorefrontCollectionBySlug(
+  slug: string,
+  includeDemo = false
+): Promise<{ collection: AdminCollection; products: Product[] } | null> {
+  const { data, error } = await db()
+    .from("collections")
+    .select("id")
+    .eq("slug", slug)
+    .eq("active", true)
+    .maybeSingle();
+  if (error || !data) return null;
+  const collection = await getAdminCollection(String((data as { id: string }).id));
+  if (!collection) return null;
+  const ids = await resolveCollectionProductIds(collection);
+  const products = await productsForIds(ids, includeDemo);
+  return { collection, products };
+}
+
+export async function setProductCollections(
+  productId: string,
+  rawIds: unknown
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const desired = parseCollectionIds(rawIds);
+  if (desired == null) return { ok: true };
+
+  let collections: AdminCollection[];
+  try {
+    collections = await listAdminCollections();
+  } catch {
+    return { ok: true };
+  }
+  const assignable = new Set(
+    collections.filter((c) => canAssignProductToCollection(c.mode)).map((c) => c.id)
+  );
+  const wanted = new Set(desired.filter((id) => assignable.has(id)));
+
+  const { data: links, error } = await db()
+    .from("collection_products")
+    .select("collection_id")
+    .eq("product_id", productId);
+  if (error) return { ok: false, error: error.message, status: 500 };
+
+  const current = new Set(
+    (links ?? [])
+      .map((row) => String((row as { collection_id: string }).collection_id))
+      .filter((id) => assignable.has(id))
+  );
+
+  const toAdd = Array.from(wanted).filter((id) => !current.has(id));
+  const toRemove = Array.from(current).filter((id) => !wanted.has(id));
+
+  if (toRemove.length) {
+    const { error: delErr } = await db()
+      .from("collection_products")
+      .delete()
+      .eq("product_id", productId)
+      .in("collection_id", toRemove);
+    if (delErr) return { ok: false, error: delErr.message, status: 500 };
+  }
+
+  for (const collectionId of toAdd) {
+    const { data: last } = await db()
+      .from("collection_products")
+      .select("sort_order")
+      .eq("collection_id", collectionId)
+      .order("sort_order", { ascending: false })
+      .limit(1);
+    const sortOrder = last?.[0]
+      ? Number((last[0] as { sort_order: number }).sort_order) + 1
+      : 0;
+    const { error: insErr } = await db()
+      .from("collection_products")
+      .insert({
+        collection_id: collectionId,
+        product_id: productId,
+        sort_order: sortOrder,
+      });
+    if (insErr && insErr.code !== "23505") {
+      return { ok: false, error: insErr.message, status: 500 };
+    }
+  }
+
+  revalidatePath("/admin/collections");
+  revalidatePath("/");
+  for (const c of collections) {
+    if (wanted.has(c.id) || current.has(c.id)) {
+      revalidatePath(`/admin/collections/${c.id}`);
+      revalidatePath(`/collections/${c.slug}`);
+    }
+  }
+  return { ok: true };
 }

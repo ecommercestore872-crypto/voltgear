@@ -10,7 +10,9 @@ export function isGadgetPreviewPath(pathname: string): boolean {
     pathname === "/product2" ||
     pathname.startsWith("/product2/") ||
     pathname === "/products2" ||
-    pathname.startsWith("/products2/")
+    pathname.startsWith("/products2/") ||
+    pathname === "/collections" ||
+    pathname.startsWith("/collections/")
   );
 }
 
@@ -121,6 +123,10 @@ export function product2Href(slug: string): string {
 export function products2Href(categorySlug?: string): string {
   if (categorySlug) return `/products/${categorySlug}`;
   return "/products";
+}
+
+export function collectionHref(slug: string): string {
+  return `/collections/${slug}`;
 }
 
 export function gadgetShopTypeLinks(

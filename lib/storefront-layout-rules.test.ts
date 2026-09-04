@@ -24,7 +24,8 @@ describe("chromeMode", () => {
     assert.equal(chromeMode("/"), "gadget");
     assert.equal(chromeMode("/home2"), "gadget");
     assert.equal(chromeMode("/products2"), "gadget");
-    assert.equal(chromeMode("/product/pad"), "shop");
+    assert.equal(chromeMode("/collections/summer"), "gadget");
+    assert.equal(chromeMode("/product/pad"), "gadget");
   });
 });
 
