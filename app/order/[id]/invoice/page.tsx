@@ -13,8 +13,9 @@ export default async function InvoicePage({ params }: { params: { id: string } }
 
   const { customer, items, total, orderId, createdAt } = order;
   const isCod = order.payment === "cod";
-  const tax = Math.round(total * 0.05); // Simulated simple 5% tax from total for aesthetics, or extract actual tax if saved
-  const subtotal = total - tax;
+  const safeTotal = typeof total === "number" ? total : 0;
+  const tax = Math.round(safeTotal * 0.05); // Simulated simple 5% tax from total for aesthetics, or extract actual tax if saved
+  const subtotal = safeTotal - tax;
 
   return (
     <div className="min-h-screen bg-[var(--g-cream)]/30 p-4 md:p-8 flex justify-center text-[var(--g-charcoal)] font-sans">
@@ -86,9 +87,9 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                         {item.name}
                         {item.variantName && <span className="block text-xs text-[var(--g-taupe)] font-medium mt-1 uppercase tracking-wider">{item.variantName}</span>}
                      </td>
-                     <td className="px-6 py-5 text-center font-semibold text-base">{item.quantity}</td>
+                     <td className="px-6 py-5 text-center font-semibold text-base">{item.quantity ?? 1}</td>
                      <td className="px-6 py-5 text-right font-medium text-[var(--g-taupe)]">{formatPrice(item.price ?? 0)}</td>
-                     <td className="px-6 py-5 text-right font-bold text-[var(--g-charcoal)] text-[15px]">{formatPrice((item.price ?? 0) * item.quantity)}</td>
+                     <td className="px-6 py-5 text-right font-bold text-[var(--g-charcoal)] text-[15px]">{formatPrice((item.price ?? 0) * (item.quantity ?? 1))}</td>
                    </tr>
                  ))}
                </tbody>
@@ -116,7 +117,7 @@ export default async function InvoicePage({ params }: { params: { id: string } }
                      </div>
                      <div className="flex justify-between pt-1">
                         <span className="text-lg font-black uppercase text-[var(--g-charcoal)] tracking-tight">Total</span>
-                        <span className="text-xl font-black text-[var(--g-forest)] tabular-nums print:text-black">{formatPrice(total)}</span>
+                        <span className="text-xl font-black text-[var(--g-forest)] tabular-nums print:text-black">{formatPrice(safeTotal)}</span>
                      </div>
                  </div>
               </div>
