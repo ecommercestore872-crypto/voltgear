@@ -18,7 +18,7 @@ import type { SiteSettings } from "@/lib/types";
 import "./globals.css";
 
 import { StorefrontAnnouncementBar } from "@/components/promotions/announcement-bar";
-import { PromoPopupModal } from "@/components/promotions/promo-popup-modal";
+import { StorefrontPromoPopup } from "@/components/promotions/storefront-promo-popup";
 
 const CartDrawer = dynamic(
   () =>
@@ -68,11 +68,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Accessories Hub — Best Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
-    template: "%s | Accessories Hub Pakistan",
+    default: "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
+    template: "%s | Buy n Try",
   },
   description:
-    "Buy authentic tripods in Pakistan, wireless earbuds, smartwatches, power banks, microphones & fast chargers at Accessories Hub. Guaranteed quality with fast nationwide delivery.",
+    "Buy authentic tripods, wireless earbuds, smartwatches, power banks and chargers at Buy n Try. Try it at home — cash on delivery nationwide.",
   keywords: [
     "tripods in Pakistan",
     "best earbuds in Pakistan",
@@ -81,21 +81,21 @@ export const metadata: Metadata = {
     "fast chargers Pakistan",
     "wireless microphones Pakistan",
     "ring lights Pakistan",
-    "Accessories Hub",
-    "VoltGear",
+    "Buy n Try",
+    "buyntryy",
   ],
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Accessories Hub",
-    title: "Accessories Hub — Best Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
+    siteName: "Buy n Try",
+    title: "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
     description:
-      "Buy authentic tripods in Pakistan, wireless earbuds, smartwatches, power banks & fast chargers with nationwide fast delivery.",
+      "Buy authentic tripods, earbuds, smartwatches and chargers. Try it at home — cash on delivery nationwide.",
     url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Accessories Hub — Best Electronics Accessories in Pakistan",
+    title: "Buy n Try — Electronics Accessories in Pakistan",
     description:
       "Buy authentic tripods in Pakistan, wireless earbuds, smartwatches, power banks & fast chargers.",
   },
@@ -152,7 +152,7 @@ export default async function RootLayout({
 
   const { heading, body } = resolveFonts(settings);
   const brandVars = themeCssVars(settings);
-  const brandName = settings?.brandName || "VoltGear";
+  const brandName = settings?.brandName || "Buy n Try";
   const loadClarity = shouldLoadClarity({
     id: CLARITY_ID,
     isAdmin: !pathname || pathname.startsWith("/admin"),
@@ -242,7 +242,7 @@ export default async function RootLayout({
             demoBanner={<DemoBanner />}
           >
             <StorefrontAnnouncementBar />
-            <PromoPopupModal />
+            <StorefrontPromoPopup />
             {children}
           </AppChrome>
         </Suspense>

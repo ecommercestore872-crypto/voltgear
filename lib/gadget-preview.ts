@@ -163,3 +163,15 @@ export function videoEmbedSrc(kind: GadgetVideoKind, url: string): string | null
   }
   return `https://www.tiktok.com/embed${path}`;
 }
+
+export function hasShopperProductVideo(product: {
+  productVideo?: { url?: string | null; cloudinaryPublicId?: string | null } | null;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+}): boolean {
+  return (
+    videoKind(product.productVideo?.url, product.productVideo?.cloudinaryPublicId) !== "none" ||
+    videoKind(product.instagramUrl) !== "none" ||
+    videoKind(product.tiktokUrl) !== "none"
+  );
+}

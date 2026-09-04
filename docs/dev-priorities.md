@@ -6,9 +6,10 @@ Single tracker for this store. Status lives here only.
 
 ## Active task
 
-**Admin ops upgrades (T-27…T-31)** — implemented locally; push migrations + commit  
-Spec: `docs/superpowers/specs/2026-09-01-admin-ops-upgrades-design.md`  
-Plan: `docs/superpowers/plans/2026-09-01-admin-ops-upgrades.md`  
+**T-32 — Storefront visual system (Buy n Try hardware stage)** — implementing  
+Spec: `docs/superpowers/specs/2026-09-05-t32-storefront-visual-system-design.md`  
+UI plan: `docs/ui/2026-09-05-t32-buyntryy-hardware-stage-ui.md`  
+Plan: `docs/superpowers/plans/2026-09-05-t32-storefront-visual-system.md`  
 
 ## Program
 
@@ -49,6 +50,8 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-18 | Gadget catalog entry chrome | ⚪ Planned | T-16 | Preview catalog/nav entry points matching T-16. Spawned from T-16 impact analysis. |
 | T-19 | Gadget craft system: motion, type, copy, icons | ✅ Done | T-16 | Craft tokens + home reveals + buy trust microcopy + glyphs. |
 | T-20 | Shopper self-cancel on Track (24h, new/processing) | ✅ Done | T-03, T-04 | Cancel from `/track` within 24h while new/processing; same cancelled email. Spec: `docs/superpowers/specs/2026-09-01-t20-shopper-self-cancel-design.md`. Shipped 2026-09-01. |
+| T-32 | Storefront visual system (Buy n Try hardware stage) | 🟡 In Progress | T-16, T-19 | Spec + UI plan written 2026-09-05. Hardware-stage cards, Newsreader + Manrope, BNT10 popup, shopper copy to Buy n Try. Admin out of scope. Emails → T-33. |
+| T-33 | Customer email + message brand (Buy n Try) | ⚪ Planned | T-32 | Spawned from T-32 impact: transactional and marketing mail still say VoltGear. |
 
 ## Suggested build order
 

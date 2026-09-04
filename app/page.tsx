@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch {
     settings = null;
   }
-  const title = settings?.seo?.title || "VoltGear — Premium Electronics Accessories";
+  const title = settings?.seo?.title || "Buy n Try — Premium Electronics Accessories";
   const description =
     settings?.seo?.description ||
     "Shop smartwatches, power banks, chargers and earbuds. Premium electronics accessories with fast shipping.";

@@ -1,3 +1,4 @@
+import { SHOPPER_BRAND } from "@/lib/brand";
 import type { SiteSettings } from "@/lib/types";
 
 /**
@@ -45,7 +46,7 @@ export interface PublicSiteConfig {
  * missing entirely. Marketing claims (ratings, customer counts, urgency,
  * warranty/return durations) intentionally have NO fallback.
  */
-const FALLBACK_STORE_NAME = "VoltGear";
+const FALLBACK_STORE_NAME = SHOPPER_BRAND.fallbackStoreName;
 const FALLBACK_CURRENCY = "PKR";
 const FALLBACK_FREE_SHIPPING_THRESHOLD = 5000;
 const FALLBACK_SHIPPING_FEE = 199;

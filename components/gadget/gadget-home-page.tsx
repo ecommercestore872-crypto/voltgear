@@ -195,7 +195,7 @@ export async function GadgetHomePage() {
   }));
 
   return (
-    <div className="bg-[var(--g-cream)] text-[var(--g-charcoal)]">
+    <div className="text-[var(--g-charcoal)]">
       <GadgetHeroSlider slides={slides} fallbackBanners={demoBanners} />
 
       {layout.map((id, i) => {
@@ -214,6 +214,7 @@ export async function GadgetHomePage() {
                   products={railProducts}
                   title="Best Sellers"
                   headingId="best-sellers-heading"
+                  tone="leaf"
                 />
               </GadgetReveal>
             );
@@ -231,6 +232,7 @@ export async function GadgetHomePage() {
                   title="Best Offers"
                   viewAllHref={`${products2Href()}?sort=price-asc`}
                   headingId="best-offers-heading"
+                  tone="clay"
                 />
               </GadgetReveal>
             );

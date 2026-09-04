@@ -28,7 +28,7 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/10 mb-3">
             <Truck className="h-6 w-6 text-amber-400" />
           </div>
-          <h1 className="text-xl font-bold">VoltGear Delivery Update</h1>
+          <h1 className="text-xl font-bold">Buy n Try Delivery Update</h1>
           <p className="text-xs text-white/80 mt-1">We need your input to complete your delivery</p>
         </div>
 

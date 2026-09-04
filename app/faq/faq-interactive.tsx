@@ -44,7 +44,7 @@ const FAQS_BY_CATEGORY: Record<string, { id: string; question: string; answer: s
     {
       id: "q_orders_4",
       question: "What is your warranty policy?",
-      answer: "All VoltGear products come with a 1 Year Official Warranty against manufacturing defects.\n\nIf you face any issue, simply contact our support team with your order details and we'll arrange a replacement or repair.\n\nNote: Warranty does not cover physical damage, misuse, or normal wear and tear."
+      answer: "All Buy n Try products come with a 1 Year Official Warranty against manufacturing defects.\n\nIf you face any issue, simply contact our support team with your order details and we'll arrange a replacement or repair.\n\nNote: Warranty does not cover physical damage, misuse, or normal wear and tear."
     },
     {
       id: "q_orders_5",

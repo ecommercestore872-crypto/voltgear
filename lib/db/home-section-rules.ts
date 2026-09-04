@@ -1,6 +1,6 @@
 export const HOME_SECTION_IDS = [
-  "trust",
   "categories",
+  "trust",
   "bestsellers",
   "featured",
   "offers",
@@ -25,7 +25,7 @@ export const HOME_SECTION_LABELS: Record<HomeSectionId, string> = {
 };
 
 export const DEFAULT_HOME_SECTIONS: HomeSectionEntry[] = HOME_SECTION_IDS.map(
-  (id) => ({ id, enabled: true })
+  (id) => ({ id, enabled: id !== "lifestyle" })
 );
 
 const ID_SET = new Set<string>(HOME_SECTION_IDS);

@@ -15,7 +15,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Warranty Policy",
-  description: "VoltGear warranty coverage and how to claim.",
+  description: "Buy n Try warranty coverage and how to claim.",
 };
 
 export default async function WarrantyPage() {
@@ -27,7 +27,7 @@ export default async function WarrantyPage() {
     <GadgetSupportLayout
       eyebrow="Care"
       title="Warranty policy"
-      description="Every VoltGear product is backed by our commitment to quality. Here’s what’s covered and how to claim."
+      description="Every Buy n Try product is backed by our commitment to quality. Here’s what’s covered and how to claim."
       related={[
         { href: "/shipping-returns#returns", label: "Exchange & refunds" },
         { href: "/contact", label: "Register a complaint" },

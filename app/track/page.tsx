@@ -7,7 +7,7 @@ import { TrackOrder } from "@/components/orders/track-order";
 export const metadata: Metadata = {
   title: "Track Your Order",
   description:
-    "Check the status of your VoltGear order — confirmation, shipping and delivery updates.",
+    "Check the status of your Buy n Try order — confirmation, shipping and delivery updates.",
 };
 
 export const revalidate = 60;

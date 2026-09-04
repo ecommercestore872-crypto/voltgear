@@ -64,7 +64,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
 
   return (
     <section
-      className="bg-[var(--g-cream-deep)] py-10 sm:py-14"
+      className="gadget-band-forest py-10 sm:py-14"
       aria-labelledby="featured-product-heading"
     >
       <div className="mx-auto max-w-5xl px-4 lg:px-8">
@@ -102,7 +102,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
               </span>
             )}
             {off ? (
-              <span className="absolute left-4 top-4 rounded-full bg-[var(--g-forest)] px-3 py-1 text-xs font-bold text-[var(--g-white)]">
+              <span className="absolute left-4 top-4 rounded-full bg-[var(--g-terracotta)] px-3 py-1 text-xs font-bold text-[var(--g-cream)]">
                 {off}% OFF
               </span>
             ) : null}

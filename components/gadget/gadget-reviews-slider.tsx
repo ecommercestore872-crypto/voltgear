@@ -193,7 +193,7 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
 
   return (
     <section
-      className="relative overflow-hidden bg-[var(--g-cream-deep)] px-4 py-12 sm:py-16 lg:px-8"
+      className="gadget-band-leaf relative overflow-hidden px-4 py-12 sm:py-16 lg:px-8"
       aria-labelledby="customer-reviews-heading"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -207,7 +207,7 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-[var(--g-forest)]/10 blur-3xl"
+        className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-[var(--g-terracotta)]/16 blur-3xl"
         aria-hidden
       />
 

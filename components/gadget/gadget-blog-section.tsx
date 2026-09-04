@@ -105,7 +105,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
 
   return (
     <section
-      className="bg-[var(--g-cream)] px-4 py-10 sm:py-14 lg:px-8"
+      className="gadget-band-clay px-4 py-10 sm:py-14 lg:px-8"
       aria-labelledby="gadget-blogs-heading"
     >
       <div className="mx-auto max-w-6xl">

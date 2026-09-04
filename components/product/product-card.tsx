@@ -41,12 +41,12 @@ export function ProductCard({ product, className }: { product: Product; classNam
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden transition-shadow hover:shadow-lg",
+        "group relative overflow-hidden border-0 bg-transparent shadow-none",
         className
       )}
     >
       <Link href={href} prefetch={false} className="block">
-        <div className="relative aspect-square overflow-hidden bg-muted">
+        <div className="gadget-studio-stage relative aspect-square overflow-hidden rounded-2xl">
           {image ? (
             <Image
               ref={imgRef}

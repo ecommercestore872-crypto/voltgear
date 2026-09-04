@@ -22,23 +22,17 @@ export default async function OrderSuccessPage({ params }: { params: { id: strin
         {/* Top section: Status & Progress */}
         <div className="grid gap-6 lg:grid-cols-[1fr_560px] items-stretch animate-premium-slide">
            {/* Left: Thank You Banner */}
-           <div className="rounded-2xl bg-[#1C352D] border border-[#F3D052]/20 p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow-xl relative overflow-hidden group">
-              <div className="absolute -left-16 -top-16 w-32 h-32 rounded-full border-[20px] border-[#F3D052]/5 opacity-50 transition-transform duration-700 group-hover:scale-110" />
-              <div className="shrink-0 flex items-center justify-center relative">
-                 <div className="w-24 h-24 rounded-full border-[6px] border-[#F3D052]/20 bg-[#F3D052]/10 flex items-center justify-center relative overflow-hidden">
-                    <Check className="w-12 h-12 text-[#F3D052] stroke-[3] animate-in zoom-in duration-500 delay-150 fill-mode-backwards" />
-                    <div className="absolute inset-0 rounded-full animate-ping border-[4px] border-[#F3D052] opacity-20 duration-1000" />
-                 </div>
-                 <span className="absolute top-0 right-0 text-[#F3D052] font-bold text-xs animate-bounce">+</span>
-                 <span className="absolute bottom-4 left-0 text-[#F3D052] font-bold text-xs animate-pulse">+</span>
+           <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)]">
+                    <Check className="h-8 w-8 text-[var(--g-cream)] stroke-[2]" />
               </div>
-              <div className="flex-1 relative z-10 text-center sm:text-left mt-2 sm:mt-0">
-                 <span className="inline-block px-3 py-1 rounded-full bg-[#F3D052]/10 text-[#F3D052] text-[11px] font-bold uppercase tracking-widest mb-3 border border-[#F3D052]/20 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200 fill-mode-backwards">
-                    Thank You!
-                 </span>
-                 <h1 className="text-3xl sm:text-[34px] font-extrabold text-white tracking-tight leading-tight mb-2 gadget-display">Order Confirmed!</h1>
-                 <p className="text-sm font-medium text-[#F3D052]/80 leading-relaxed max-w-sm mx-auto sm:mx-0 pr-0 sm:pr-4">
-                    Your order has been placed successfully. We’ve received your order and will get it ready to ship as soon as possible.
+              <div className="flex-1 text-center sm:text-left">
+                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)] mb-2">
+                    Thank you
+                 </p>
+                 <h1 className="gadget-display text-3xl tracking-tight text-[var(--g-charcoal)] sm:text-[34px]">Order confirmed</h1>
+                 <p className="mt-2 text-sm leading-relaxed text-[var(--g-taupe)] max-w-sm mx-auto sm:mx-0">
+                    Your order has been placed. We’ll get it ready to ship as soon as possible.
                  </p>
               </div>
            </div>

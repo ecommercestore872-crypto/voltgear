@@ -31,7 +31,7 @@ export function GadgetTrustStrip({
       aria-label="Why shop with us"
     >
       <div className="mx-auto max-w-6xl">
-        <div className="flex flex-col items-center justify-between gap-3 rounded-[2rem] border border-[var(--g-card-border)] bg-white/90 px-5 py-3 shadow-[0_4px_16px_rgba(31,54,38,0.04)] backdrop-blur-md lg:flex-row lg:gap-6 lg:px-7 lg:py-3.5">
+        <div className="flex flex-col items-center justify-between gap-3 rounded-[2rem] border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[color-mix(in_srgb,var(--g-blush)_55%,white)] px-5 py-3 shadow-[0_4px_16px_rgba(31,54,38,0.06)] backdrop-blur-md lg:flex-row lg:gap-6 lg:px-7 lg:py-3.5">
           {/* Left headline matching reference image */}
           <div className="shrink-0 text-center lg:text-left">
             <p className="text-sm font-bold text-[var(--g-charcoal)] sm:text-base lg:text-[15px]">
@@ -49,7 +49,17 @@ export function GadgetTrustStrip({
                   key={item.key}
                   className="flex items-center justify-center gap-2 p-1 lg:justify-start"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--g-cream)] text-[var(--g-forest)]">
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                      item.icon === "cod"
+                        ? "bg-[color-mix(in_srgb,var(--g-terracotta)_22%,var(--g-cream))] text-[var(--g-terracotta)]"
+                        : item.icon === "shipping"
+                          ? "bg-[color-mix(in_srgb,var(--g-sage)_22%,var(--g-cream))] text-[var(--g-forest)]"
+                          : item.icon === "returns"
+                            ? "bg-[color-mix(in_srgb,var(--g-leaf)_20%,var(--g-cream))] text-[var(--g-leaf)]"
+                            : "bg-[color-mix(in_srgb,var(--g-forest)_14%,var(--g-cream))] text-[var(--g-forest)]"
+                    }`}
+                  >
                     <Icon className="h-3.5 w-3.5 stroke-[1.6]" aria-hidden />
                   </span>
                   <div className="min-w-0 text-left">

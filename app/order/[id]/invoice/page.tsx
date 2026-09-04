@@ -4,7 +4,7 @@ import { formatPrice } from "@/lib/utils";
 import PrintButton from "./print-button";
 
 export const metadata = {
-  title: "Order Invoice - VoltGear",
+  title: "Order Invoice - Buy n Try",
 };
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
@@ -36,11 +36,10 @@ export default async function InvoicePage({ params }: { params: { id: string } }
            {/* Invoice Header */}
            <div className="flex justify-between items-start border-b border-[var(--g-line)] pb-8 mb-8">
               <div>
-                <div className="text-[32px] font-black tracking-tight text-[var(--g-forest)] mb-1 gadget-display leading-none">VOLTGEAR.</div>
-                <p className="text-[13px] text-[var(--g-taupe)] font-medium uppercase tracking-widest mb-3">Accessories Hub</p>
-                <p className="text-sm text-[var(--g-charcoal)] mt-2">123 Tech Avenue, Block 4</p>
-                <p className="text-sm text-[var(--g-charcoal)] mt-0.5">Lahore, Pakistan</p>
-                <p className="text-sm text-[var(--g-charcoal)] mt-0.5">support@voltgear.pk</p>
+                <div className="gadget-display text-[32px] font-semibold tracking-tight text-[var(--g-forest)] mb-1 leading-none">Buy n Try</div>
+                <p className="text-[13px] text-[var(--g-taupe)] font-medium mb-3">buyntryy.com</p>
+                <p className="text-sm text-[var(--g-charcoal)] mt-2">Pakistan</p>
+                <p className="text-sm text-[var(--g-charcoal)] mt-0.5">hello@buyntryy.com</p>
               </div>
               <div className="text-right">
                 <h2 className="text-[40px] font-black uppercase text-[var(--g-charcoal)] tracking-tighter mb-4 gadget-display leading-none">INVOICE</h2>

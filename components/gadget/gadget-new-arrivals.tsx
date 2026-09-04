@@ -12,11 +12,13 @@ export function GadgetNewArrivals({
   title = "Best Sellers",
   viewAllHref = "/products2",
   headingId,
+  tone = "default",
 }: {
   products: Product[];
   title?: string;
   viewAllHref?: string;
   headingId?: string;
+  tone?: "default" | "clay" | "leaf";
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -57,7 +59,16 @@ export function GadgetNewArrivals({
   if (!products.length) return null;
 
   return (
-    <section className="bg-[var(--g-cream)] py-8 sm:py-10" aria-labelledby={heading}>
+    <section
+      className={
+        tone === "clay"
+          ? "gadget-band-clay py-8 sm:py-10"
+          : tone === "leaf"
+            ? "gadget-band-leaf py-8 sm:py-10"
+            : "py-8 sm:py-10"
+      }
+      aria-labelledby={heading}
+    >
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
         <div className="mb-4 flex items-end justify-between gap-3 sm:mb-6">
           <h2

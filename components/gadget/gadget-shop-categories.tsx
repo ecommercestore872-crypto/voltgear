@@ -74,7 +74,7 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
 
   return (
     <section
-      className="bg-[var(--g-cream)] px-4 py-8 sm:py-12 lg:px-8"
+      className="gadget-band-leaf px-4 py-8 sm:py-12 lg:px-8"
       aria-labelledby="shop-categories-heading"
     >
       <div className="mx-auto max-w-6xl">
@@ -143,7 +143,13 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
               className="group flex flex-col items-center gap-2.5 shrink-0 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--g-forest)] rounded-xl p-1 min-h-[44px]"
             >
               {/* Circle Avatar Stage */}
-              <div className="relative flex h-20 w-20 overflow-hidden items-center justify-center rounded-full bg-black shadow-md transition duration-300 group-hover:scale-105 group-hover:shadow-xl sm:h-24 sm:w-24">
+              <div
+                className={`relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full shadow-md ring-2 ring-white/70 transition duration-300 group-hover:scale-105 group-hover:shadow-xl sm:h-24 sm:w-24 ${
+                  ["bg-[var(--g-forest)]", "bg-[var(--g-sage)]", "bg-[var(--g-terracotta)]", "bg-[var(--g-forest-mid)]"][
+                    idx % 4
+                  ]
+                }`}
+              >
                 {tile.image ? (
                   <Image
                     src={tile.image}

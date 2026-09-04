@@ -1,12 +1,12 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Banknote, Mail, Phone, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 
+import { BntWordmark } from "@/components/brand/bnt-wordmark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
 import { getSocialIcon } from "@/components/icons/social-icons";
+import { SHOPPER_BRAND } from "@/lib/brand";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
-import { imageUrl } from "@/lib/sanity/image";
 import type { SiteSettings } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -53,8 +53,7 @@ export function GadgetFooter({
   settings: SiteSettings | null;
   shopTypes?: ShopType[];
 }) {
-  const brandName = settings?.brandName || "VoltGear";
-  const logoUrl = settings?.logo ? imageUrl(settings.logo, { w: 200 }) : undefined;
+  const brandName = SHOPPER_BRAND.spokenName;
   const shopLinks = [
     { href: products2Href(), label: "All Products" },
     ...gadgetShopTypeLinks(shopTypes),
@@ -79,7 +78,7 @@ export function GadgetFooter({
         <div className="border-b border-white/10 px-5 py-6 sm:px-8">
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 text-center sm:grid-cols-4 sm:gap-6">
             <div className="flex flex-col items-center gap-1.5 p-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-sage)_35%,transparent)] text-[color-mix(in_srgb,var(--g-sage)_40%,white)] shadow-sm">
                 <Truck className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">{threshold > 0 ? "Free Shipping" : "Fast Shipping"}</p>
@@ -89,7 +88,7 @@ export function GadgetFooter({
             </div>
             {codEnabled && (
               <div className="flex flex-col items-center gap-1.5 p-2">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_40%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_45%,white)] shadow-sm">
                   <Banknote className="h-5 w-5 stroke-[1.6]" />
                 </span>
                 <p className="text-xs font-bold text-white">Cash on Delivery</p>
@@ -97,14 +96,14 @@ export function GadgetFooter({
               </div>
             )}
             <div className="flex flex-col items-center gap-1.5 p-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-[color-mix(in_srgb,var(--g-sage)_30%,white)] shadow-sm">
                 <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">{warrantyMonths}-Month Warranty</p>
               <p className="text-[11px] text-white/60">100% genuine replacement</p>
             </div>
             <div className="flex flex-col items-center gap-1.5 p-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_28%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_35%,white)] shadow-sm">
                 <RotateCcw className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">Easy Returns</p>
@@ -176,19 +175,7 @@ export function GadgetFooter({
 
           {/* Brand + contact + newsletter */}
           <div className="flex flex-col">
-            {logoUrl ? (
-              <Image
-                src={logoUrl}
-                alt={brandName}
-                width={140}
-                height={40}
-                className="h-9 w-auto object-contain object-left brightness-0 invert"
-              />
-            ) : (
-              <p className="gadget-display text-2xl font-semibold tracking-[-0.02em] text-[var(--g-cream)]">
-                {brandName}
-              </p>
-            )}
+            <BntWordmark invert />
 
             {socials.length ? (
               <div className="mt-5 flex flex-wrap gap-3">

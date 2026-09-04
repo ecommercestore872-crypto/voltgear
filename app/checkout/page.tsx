@@ -384,13 +384,12 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[var(--g-cream)] font-sans">
-      <div className="bg-[#1C352D] pt-12 pb-16 border-b border-[#1C352D] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[#F3D052]/5 opacity-50 mix-blend-overlay" />
-        <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
-           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#F3D052] mb-3">
-             Secure Payment
+      <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)] pt-10 pb-10">
+        <div className="container mx-auto px-4 lg:px-8">
+           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)] mb-2">
+             Checkout
            </p>
-           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-white gadget-display">
+           <h1 className="gadget-display text-3xl tracking-tight text-[var(--g-charcoal)] sm:text-4xl">
              Complete your order
            </h1>
         </div>

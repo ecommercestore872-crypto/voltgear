@@ -29,8 +29,8 @@ export function GadgetSearchInput({
         "group relative flex items-center rounded-full border bg-white transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
         tall ? "h-12 sm:h-[3.15rem]" : "h-10 sm:h-11",
         focused
-          ? "border-[var(--g-charcoal)]/30 shadow-[0_0_0_3px_rgba(26,26,26,0.06),0_8px_24px_rgba(0,0,0,0.08)]"
-          : "border-[var(--g-card-border)] shadow-sm hover:border-[var(--g-taupe)]/40",
+          ? "border-[var(--g-forest)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--g-sage)_28%,transparent)]"
+          : "border-[var(--g-line)] shadow-none hover:border-[color-mix(in_srgb,var(--g-sage)_40%,var(--g-line))]",
         className
       )}
     >

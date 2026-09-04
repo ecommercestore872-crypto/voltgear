@@ -1,95 +1,139 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Sparkles, X, Tag, Copy, Check, ArrowRight, Gift } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
+import { Check, Copy, X } from "lucide-react";
 
-export function PromoPopupModal() {
+import { BntSeal } from "@/components/brand/bnt-seal";
+import { SHOPPER_BRAND } from "@/lib/brand";
+import {
+  WELCOME_POPUP_DELAY_MS,
+  WELCOME_POPUP_STORAGE_KEY,
+  welcomePopupStillHidden,
+} from "@/lib/welcome-coupon-rules";
+
+export function PromoPopupModal({
+  code,
+  minOrderLabel = "Rs. 3,000",
+}: {
+  code?: string | null;
+  minOrderLabel?: string;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // Show modal once per session
-    const hasSeenModal = sessionStorage.getItem("vg_promo_modal_seen");
-    if (!hasSeenModal) {
-      const timer = setTimeout(() => setIsOpen(true), 1500);
-      return () => clearTimeout(timer);
+    if (!code) return;
+    const seen = window.localStorage.getItem(WELCOME_POPUP_STORAGE_KEY);
+    if (welcomePopupStillHidden(seen)) return;
+    const timer = window.setTimeout(() => setIsOpen(true), WELCOME_POPUP_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [code]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    closeRef.current?.focus();
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") handleClose();
     }
-  }, []);
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
 
   function handleClose() {
-    sessionStorage.setItem("vg_promo_modal_seen", "true");
+    window.localStorage.setItem(
+      WELCOME_POPUP_STORAGE_KEY,
+      new Date().toISOString()
+    );
     setIsOpen(false);
   }
 
-  function handleCopy() {
-    navigator.clipboard.writeText("VOLT10");
+  async function handleCopy() {
+    if (!code) return;
+    await navigator.clipboard.writeText(code);
     setCopied(true);
-    setTimeout(() => {
+    window.setTimeout(() => {
       setCopied(false);
       handleClose();
-    }, 1500);
+    }, 1200);
   }
 
-  if (!isOpen) return null;
+  if (!code || !isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-amber-200">
-        {/* Close Button */}
+    <div
+      className="gadget-theme fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--g-forest)]/45"
+      role="presentation"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-coupon-title"
+        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream)] p-6 text-[var(--g-charcoal)] shadow-[0_16px_40px_rgba(31,54,38,0.12)]"
+      >
         <button
+          ref={closeRef}
+          type="button"
           onClick={handleClose}
-          className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition z-10"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-[var(--g-taupe)] transition hover:bg-[var(--g-cream-deep)] hover:text-[var(--g-charcoal)]"
+          aria-label="Close welcome offer"
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4 stroke-[1.75]" />
         </button>
 
-        {/* Header Visual */}
-        <div className="bg-gradient-to-br from-[#1F3626] to-[#2A4833] p-6 text-white text-center space-y-2">
-          <div className="h-12 w-12 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center mx-auto mb-2 border border-amber-400/30">
-            <Gift className="h-6 w-6" />
-          </div>
-          <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/20">
-            Exclusive Welcome Offer
-          </span>
-          <h2 className="text-xl font-bold tracking-tight">Get 10% OFF Your First Order!</h2>
-          <p className="text-xs text-white/80 max-w-xs mx-auto">
-            Use code <strong className="text-amber-300 font-mono">VOLT10</strong> at checkout for orders over Rs. 3,000.
+        <div className="text-center">
+          <BntSeal className="mx-auto" />
+          <h2
+            id="welcome-coupon-title"
+            className="gadget-display mt-4 text-2xl font-semibold tracking-[-0.02em]"
+          >
+            {SHOPPER_BRAND.tagline}
+          </h2>
+          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-[var(--g-taupe)]">
+            10% off your first order over {minOrderLabel}.
           </p>
         </div>
 
-        {/* Action Body */}
-        <div className="p-6 space-y-4 text-center">
-          <div className="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300 flex items-center justify-between">
-            <div className="text-left">
-              <div className="text-[10px] text-gray-500 font-semibold uppercase">PROMO CODE</div>
-              <div className="text-lg font-bold text-[#1F3626] font-mono tracking-wider">VOLT10</div>
+        <div className="gadget-ticket-well mt-6 flex items-center justify-between rounded-xl px-4 py-3">
+          <div className="text-left">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]">
+              Code
             </div>
-            <Button
-              onClick={handleCopy}
-              className="bg-[#1F3626] hover:bg-[#2a4633] text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  <span>Copy Code</span>
-                </>
-              )}
-            </Button>
+            <div className="font-mono text-lg font-bold tracking-[0.12em] text-[var(--g-forest)]">
+              {code}
+            </div>
           </div>
-
           <button
-            onClick={handleClose}
-            className="text-xs font-bold text-gray-500 hover:text-gray-900 transition underline block mx-auto"
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--g-forest)] px-4 py-2.5 text-xs font-semibold text-[var(--g-cream)] transition hover:bg-[var(--g-forest-mid)]"
           >
-            No thanks, I&apos;ll pay full price
+            {copied ? (
+              <>
+                <Check className="h-3.5 w-3.5" aria-hidden />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-3.5 w-3.5 stroke-[1.75]" aria-hidden />
+                Copy
+              </>
+            )}
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={handleClose}
+          className="mt-4 block w-full text-center text-sm font-medium text-[var(--g-taupe)] underline-offset-4 hover:text-[var(--g-charcoal)] hover:underline"
+        >
+          Continue shopping
+        </button>
       </div>
     </div>
   );

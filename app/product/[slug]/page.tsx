@@ -25,7 +25,7 @@ export async function generateMetadata({
   const product = await fetchProductBySlug(params.slug, isDemoSession()).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
   
-  const title = `${product.name} — Buy in Pakistan | Accessories Hub`;
+  const title = `${product.name} — Buy in Pakistan | Buy n Try`;
   const description =
     product.shortDescription ||
     `Buy ${product.name} at the best price in Pakistan with fast nationwide shipping & official warranty.`;
@@ -41,7 +41,7 @@ export async function generateMetadata({
       `${product.name} price in Pakistan`,
       `${product.category} in Pakistan`,
       "buy online Pakistan",
-      "Accessories Hub",
+      "Buy n Try",
     ],
     openGraph: {
       type: "website",
@@ -129,7 +129,7 @@ export default async function Product2Page({ params }: { params: { slug: string 
       availability: product.stockStatus !== "out-of-stock" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       seller: {
         "@type": "Organization",
-        name: "Accessories Hub",
+        name: "Buy n Try",
       },
     },
   };
@@ -219,7 +219,7 @@ export default async function Product2Page({ params }: { params: { slug: string 
                 View all
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:gap-5">
               {relatedProducts.map((p) => (
                 <GadgetProductCard key={p._id} product={p} />
               ))}

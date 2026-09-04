@@ -111,10 +111,10 @@ export default async function BlogPostPage({
     image: cover || undefined,
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,
-    author: { "@type": "Person", name: post.author || "VoltGear Team" },
+    author: { "@type": "Person", name: post.author || "Buy n Try Team" },
     publisher: {
       "@type": "Organization",
-      name: "VoltGear",
+      name: "Buy n Try",
       logo: {
         "@type": "ImageObject",
         url: `${siteUrl}/logo.png`,
@@ -145,7 +145,7 @@ export default async function BlogPostPage({
           <div>
             <p className="flex items-center gap-1.5 font-semibold text-[var(--g-charcoal)]">
               <User className="h-3.5 w-3.5" />
-              {post.author || "VoltGear Team"}
+              {post.author || "Buy n Try Team"}
             </p>
             <p className="mt-0.5 flex flex-wrap items-center gap-3">
               <span className="flex items-center gap-1.5">

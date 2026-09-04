@@ -1,14 +1,14 @@
-import { DM_Sans, Fraunces } from "next/font/google";
+import { Manrope, Newsreader } from "next/font/google";
 
-/** Biometic cream / forest theme: serif display + clean sans */
-export const gadgetSans = DM_Sans({
+/** Buy n Try: Newsreader display + Manrope UI */
+export const gadgetSans = Manrope({
   subsets: ["latin"],
   variable: "--font-gadget-sans",
   display: "swap",
   preload: false,
 });
 
-export const gadgetDisplay = Fraunces({
+export const gadgetDisplay = Newsreader({
   subsets: ["latin"],
   variable: "--font-gadget-display",
   display: "swap",

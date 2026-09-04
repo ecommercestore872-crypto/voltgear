@@ -25,10 +25,10 @@ export function WishlistButton({ product }: { product: Product }) {
         });
       }}
       className={cn(
-        "absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full shadow-md backdrop-blur transition-all",
+        "absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--g-line)] shadow-none backdrop-blur-sm transition-colors",
         active
-          ? "bg-red-500 text-white opacity-100"
-          : "bg-background/90 text-foreground opacity-0 group-hover:opacity-100 hover:bg-background"
+          ? "bg-[var(--g-forest)] text-[var(--g-cream)]"
+          : "bg-[var(--g-cream)]/90 text-[var(--g-charcoal)] hover:bg-[var(--g-white)]"
       )}
       aria-label={active ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
     >

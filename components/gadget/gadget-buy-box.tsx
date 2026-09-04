@@ -16,7 +16,6 @@ import {
 
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import { ProductGallery } from "@/components/product/product-gallery";
-import { ProductVideoModal } from "@/components/product/product-video-modal";
 import { useCart } from "@/components/cart/cart-provider";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
@@ -93,8 +92,8 @@ export function GadgetBuyBox({
 
   return (
     <>
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <div className="overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:p-4">
+      <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-8 lg:gap-12">
+        <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:max-w-lg md:max-w-none md:p-3 lg:p-4">
           <ProductGallery product={product} />
         </div>
 
@@ -103,7 +102,7 @@ export function GadgetBuyBox({
             {product.category.replace(/-/g, " ")}
             {product.badge ? ` · ${product.badge}` : ""}
           </p>
-          <h1 className="gadget-display mt-2 text-3xl font-semibold tracking-[-0.03em] text-[var(--g-charcoal)] sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.02em] text-[var(--g-charcoal)] sm:text-4xl">
             {product.name}
           </h1>
 
@@ -135,15 +134,6 @@ export function GadgetBuyBox({
               {product.shortDescription}
             </p>
           ) : null}
-
-          <div className="mt-5">
-            <ProductVideoModal
-              productName={product.name}
-              videoUrl={product.productVideo?.url}
-              tiktokUrl={product.tiktokUrl}
-              instagramUrl={product.instagramUrl}
-            />
-          </div>
 
           <div className="mt-5 flex flex-wrap items-end gap-3">
             <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">

@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       page?.seo?.description ||
       page?.excerpt ||
-      "Learn about VoltGear — tech accessories with COD, warranty, and honest pricing.",
+      "Learn about Buy n Try — tech accessories with COD, warranty, and honest pricing.",
     alternates: { canonical: "/about" },
   };
 }

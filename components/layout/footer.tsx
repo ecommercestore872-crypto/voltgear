@@ -15,7 +15,7 @@ export function Footer({
   shopTypes?: ShopType[];
 }) {
   const links = shopTypeLinks(shopTypes);
-  const brandName = settings?.brandName || "VoltGear";
+  const brandName = settings?.brandName || "Buy n Try";
   const logoUrl = settings?.logo
     ? imageUrl(settings.logo, { w: 120 })
     : undefined;

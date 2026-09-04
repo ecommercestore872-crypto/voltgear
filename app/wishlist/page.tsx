@@ -3,7 +3,7 @@ import { fetchAllProducts } from "@/lib/db/store";
 import { WishlistClient } from "./wishlist-client";
 
 export const metadata: Metadata = {
-  title: "My Wishlist | VoltGear",
+  title: "My Wishlist | Buy n Try",
   description: "View and manage your saved items.",
 };
 

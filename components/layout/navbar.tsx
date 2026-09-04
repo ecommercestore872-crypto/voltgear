@@ -94,7 +94,7 @@ export function Navbar({
   const [megaOpen, setMegaOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  const brandName = settings?.brandName || "VoltGear";
+  const brandName = settings?.brandName || "Buy n Try";
   const links = shopTypeLinks(shopTypes);
   const logoUrl = settings?.logo
     ? imageUrl(settings.logo, { w: 256 })

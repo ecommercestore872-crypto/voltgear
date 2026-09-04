@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   checkoutHref,
+  hasShopperProductVideo,
   isGadgetContinuityPath,
   isGadgetPreviewPath,
   product2Href,
@@ -86,5 +87,27 @@ describe("videoEmbedSrc", () => {
     );
     assert.equal(videoEmbedSrc("file", "https://cdn.example.com/x.mp4"), null);
     assert.equal(videoEmbedSrc("none", ""), null);
+  });
+});
+
+describe("hasShopperProductVideo", () => {
+  it("is true when a file, Cloudinary, Instagram, or TikTok link exists", () => {
+    assert.equal(hasShopperProductVideo({}), false);
+    assert.equal(
+      hasShopperProductVideo({ productVideo: { url: "https://cdn.example.com/demo.mp4" } }),
+      true
+    );
+    assert.equal(
+      hasShopperProductVideo({ productVideo: { cloudinaryPublicId: "products/clip" } }),
+      true
+    );
+    assert.equal(
+      hasShopperProductVideo({ instagramUrl: "https://www.instagram.com/reel/abc123/" }),
+      true
+    );
+    assert.equal(
+      hasShopperProductVideo({ tiktokUrl: "https://www.tiktok.com/@shop/video/123" }),
+      true
+    );
   });
 });
