@@ -33,6 +33,8 @@ export function isGadgetContinuityPath(pathname: string): boolean {
   return (
     pathname === "/cart" ||
     pathname.startsWith("/cart/") ||
+    pathname === "/order" ||
+    pathname.startsWith("/order/") ||
     pathname === "/search" ||
     pathname.startsWith("/search/") ||
     pathname === "/compare" ||

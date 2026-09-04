@@ -5,10 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
-import {
-  CategoryGlyph,
-  EXTRA_CATEGORY_TILES,
-} from "@/components/gadget/gadget-category-glyphs";
+import { CategoryGlyph } from "@/components/gadget/gadget-category-glyphs";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
@@ -36,28 +33,7 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
     image: t.imageUrl || gadgetImageSrc(t.product, PRODUCT_IMAGE.card) || undefined,
   }));
 
-  const used = new Set(
-    fromProducts.flatMap((t) => [
-      t.href.toLowerCase(),
-      t.label.toLowerCase().replace(/\s+/g, ""),
-    ])
-  );
-
-  const extras: SlideTile[] = EXTRA_CATEGORY_TILES.filter((e) => {
-    const hrefKey = e.href.toLowerCase();
-    const labelKey = e.label.toLowerCase().replace(/\s+/g, "");
-    if (used.has(hrefKey) || used.has(labelKey)) return false;
-    // also skip if a product tile already covers same category path
-    if (fromProducts.some((p) => p.href === e.href)) return false;
-    return true;
-  }).map((e) => ({
-    key: `g-${e.glyph}-${e.href}`,
-    label: e.label,
-    href: e.href,
-    glyph: e.glyph,
-  }));
-
-  return [...fromProducts, ...extras];
+  return fromProducts;
 }
 
 export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {

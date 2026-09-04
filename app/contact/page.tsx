@@ -25,11 +25,15 @@ export default async function ContactPage() {
 
   return (
     <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
-      <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
-        <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
-          <p className="gadget-eyebrow">Support</p>
-          <h1 className="gadget-h1 mt-2">Contact us</h1>
-          <p className="gadget-body mt-3 max-w-xl sm:text-base">
+      <div className="bg-[#1C352D] border-b border-[#1C352D]">
+        <div className="mx-auto max-w-6xl px-4 py-16 lg:px-8 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#F3D052]">
+            Support
+          </p>
+          <h1 className="gadget-display mt-3 text-4xl font-extrabold tracking-[-0.03em] sm:text-5xl text-white">
+            Contact us
+          </h1>
+          <p className="gadget-body mt-4 mx-auto max-w-xl sm:text-base text-[#F3D052]/80 font-medium">
             Questions about an order, warranty, or product? WhatsApp or call for the fastest reply —
             we usually get back the same day.
           </p>

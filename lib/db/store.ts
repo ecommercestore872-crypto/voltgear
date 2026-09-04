@@ -242,24 +242,6 @@ export const fetchShopTypes = unstable_cache(
       mergedMap.set(dt.slug, dt);
     }
 
-    // 2. Ensure any distinct category present on products is included loosely if not configured
-    // so store doesn't crash on unmapped products, but without image unless managed in admin
-    for (let i = 0; i < productCategories.length; i++) {
-      const catSlug = productCategories[i];
-      if (!mergedMap.has(catSlug)) {
-        const formattedName = catSlug
-          .split("-")
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" ");
-        mergedMap.set(catSlug, {
-          slug: catSlug,
-          name: formattedName,
-          description: `Shop curated ${formattedName.toLowerCase()} accessories.`,
-          sortOrder: 10 + i,
-        });
-      }
-    }
-
     return Array.from(mergedMap.values()).sort((a, b) => a.sortOrder - b.sortOrder);
   },
   ["shop-types-v2"],

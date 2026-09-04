@@ -37,15 +37,15 @@ export default async function BlogPage() {
 
   return (
     <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
-      <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
-        <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
-            Blog
+      <div className="bg-[#1C352D] border-b border-[#1C352D]">
+        <div className="mx-auto max-w-6xl px-4 py-16 lg:px-8 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#F3D052]">
+            Blog &amp; Updates
           </p>
-          <h1 className="gadget-display mt-2 text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
+          <h1 className="gadget-display mt-3 text-4xl font-extrabold tracking-[-0.03em] sm:text-5xl text-white">
             Guides, news &amp; tips
           </h1>
-          <p className="mt-3 max-w-xl text-sm text-[var(--g-taupe)] sm:text-base">
+          <p className="mt-4 max-w-xl mx-auto text-sm text-[#F3D052]/80 sm:text-base font-medium">
             Practical picks and how-tos for chargers, audio, and everyday tech.
           </p>
         </div>

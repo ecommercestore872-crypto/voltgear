@@ -35,14 +35,16 @@ export default async function WriteReviewPage() {
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-10 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+      <div className="mb-8 rounded-2xl bg-[#1C352D] p-8 sm:p-10 text-center shadow-lg">
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#F3D052] mb-3">
+          Customer Feedback
+        </p>
+        <h1 className="text-3xl font-extrabold tracking-[-0.03em] sm:text-4xl text-white">
           Write a review
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-4 mx-auto max-w-lg text-sm text-[#F3D052]/80 font-medium">
           Picked up your order recently? Choose the product you bought, rate it
-          and (if you like) attach a photo — your review appears right under
-          that product.
+          and attach a photo — your review appears directly under the product.
         </p>
       </div>
 
