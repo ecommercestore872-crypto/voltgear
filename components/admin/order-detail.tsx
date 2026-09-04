@@ -8,7 +8,7 @@ import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ORDER_STATUS_VALUES } from "@/lib/db/order-rules";
+import { ORDER_STATUS_VALUES, orderEmailIssueFromHistory } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -47,6 +47,7 @@ export function OrderDetail({ order }: { order: Order & { postex_tracking_number
 
   const customer = order.customer ?? {};
   const history = order.statusHistory ?? [];
+  const emailIssue = orderEmailIssueFromHistory(history);
 
   async function handleBookPostEx() {
     setBookingPostEx(true);
@@ -169,6 +170,13 @@ export function OrderDetail({ order }: { order: Order & { postex_tracking_number
       {showChitModal && (
         <PostExChitModal order={order} onClose={() => setShowChitModal(false)} />
       )}
+
+      {emailIssue ? (
+        <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+          {emailIssue} The order was still saved. Send the customer a message from Messaging if
+          needed.
+        </p>
+      ) : null}
 
       <section className="rounded-lg border p-4">
         <h2 className="text-sm font-semibold">Customer</h2>

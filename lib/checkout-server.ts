@@ -160,10 +160,17 @@ export async function resolveCheckout(
       if (!resolvedVariant) {
         return { ok: false, error: CHECKOUT_ERRORS.unavailable };
       }
-      if (!getStockState(resolvedVariant.stockStatus).purchasable) {
+      const stockSource =
+        product.colorEnabled || product.sizeEnabled
+          ? product.stockStatus
+          : resolvedVariant.stockStatus;
+      if (!getStockState(stockSource).purchasable) {
         return { ok: false, error: CHECKOUT_ERRORS.soldOut };
       }
-      unitPrice = asNumber(resolvedVariant.price, product.price);
+      unitPrice =
+        product.colorEnabled || product.sizeEnabled
+          ? asNumber(product.price, 0)
+          : asNumber(resolvedVariant.price, product.price);
     } else {
       if (variants.length) {
         return { ok: false, error: CHECKOUT_ERRORS.unavailable };

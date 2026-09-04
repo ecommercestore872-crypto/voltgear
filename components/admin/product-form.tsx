@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ShopType } from "@/lib/categories";
 import { PRODUCT_PHOTO_HINT } from "@/lib/product-image";
 import type { AdminProduct } from "@/lib/db/admin-types";
+import { VariantAxesFields } from "@/components/admin/variant-axes-fields";
 import {
   portableTextToPlain,
   slugify,
@@ -32,6 +33,7 @@ function emptyDoc(): ProductDocument {
     category: "",
     price: 0,
     stockStatus: "in-stock",
+    quantity: null,
     images: [],
     features: [],
     specifications: [],
@@ -39,6 +41,10 @@ function emptyDoc(): ProductDocument {
     inTheBox: [],
     productFaq: [],
     variants: [],
+    colorEnabled: false,
+    sizeEnabled: false,
+    colorOptions: [],
+    sizeOptions: [],
     reviews: [],
   };
 }
@@ -63,8 +69,13 @@ function fromProduct(product?: AdminProduct | null, knownSlugs: string[] = []): 
     inTheBox: product.inTheBox,
     productVideo: product.productVideo,
     variants: product.variants,
+    colorEnabled: product.colorEnabled,
+    sizeEnabled: product.sizeEnabled,
+    colorOptions: product.colorOptions,
+    sizeOptions: product.sizeOptions,
     productFaq: product.productFaq,
     stockStatus: product.stockStatus,
+    quantity: product.quantity ?? null,
     rating: product.rating,
     reviewCount: product.reviewCount,
     reviews: product.reviews,
@@ -338,6 +349,43 @@ export function ProductForm({
               <option value="out-of-stock">Out of stock</option>
             </select>
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="quantity">Units on hand</Label>
+            <Input
+              id="quantity"
+              type="number"
+              min={0}
+              step={1}
+              value={doc.quantity ?? ""}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === "") {
+                  set("quantity", null);
+                  return;
+                }
+                const n = Number(raw);
+                set("quantity", Number.isInteger(n) && n >= 0 ? n : doc.quantity ?? null);
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty for unlimited. Set a number to stop overselling. Zero marks the product sold out.
+            </p>
+          </div>
+          <VariantAxesFields
+            colorEnabled={Boolean(doc.colorEnabled)}
+            sizeEnabled={Boolean(doc.sizeEnabled)}
+            colorOptions={doc.colorOptions ?? []}
+            sizeOptions={doc.sizeOptions ?? []}
+            onChange={(next) =>
+              setDoc((d) => ({
+                ...d,
+                colorEnabled: next.colorEnabled,
+                sizeEnabled: next.sizeEnabled,
+                colorOptions: next.colorOptions,
+                sizeOptions: next.sizeOptions,
+              }))
+            }
+          />
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

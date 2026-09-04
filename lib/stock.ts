@@ -56,6 +56,9 @@ export function getVariantStockState(
   product: Product,
   variant?: ProductVariant | null
 ): StockState {
+  if (product.colorEnabled || product.sizeEnabled) {
+    return getStockState(product.stockStatus);
+  }
   if (variant?.stockStatus) return getStockState(variant.stockStatus);
   return getStockState(product.stockStatus);
 }

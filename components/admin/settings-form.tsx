@@ -157,6 +157,10 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
             <Input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
           </div>
         ))}
+        <p className="sm:col-span-2 text-xs text-muted-foreground">
+          New-order alerts go to <code>ORDER_NOTIFY_EMAIL</code> if set, otherwise this contact
+          email. Footer subscribers are under Customers → Newsletter.
+        </p>
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Address</Label>
           <Textarea value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />

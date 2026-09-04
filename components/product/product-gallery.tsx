@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Expand, ImageOff } from "lucide-react";
 
@@ -39,6 +39,11 @@ export function ProductGallery({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
+
+  useEffect(() => {
+    setActive(0);
+    setLightboxIndex(0);
+  }, [variantImage?.src]);
 
   const current = sources[Math.min(active, sources.length - 1)];
   const lb = sources.length

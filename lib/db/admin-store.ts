@@ -13,6 +13,7 @@ import {
   toLiveProductRow,
   toReviewRows,
   toVariantRows,
+  withGeneratedVariants,
   type ProductDocument,
 } from "@/lib/db/publish";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
@@ -77,8 +78,13 @@ export function productToDocument(product: Product, costPrice?: number): Product
     inTheBox: product.inTheBox,
     productVideo: product.productVideo,
     variants: product.variants,
+    colorEnabled: product.colorEnabled,
+    sizeEnabled: product.sizeEnabled,
+    colorOptions: product.colorOptions,
+    sizeOptions: product.sizeOptions,
     productFaq: product.productFaq,
     stockStatus: product.stockStatus,
+    quantity: product.quantity,
     rating: product.rating,
     reviewCount: product.reviewCount,
     reviews: product.reviews,
@@ -136,6 +142,10 @@ export async function createAdminProduct(doc: ProductDocument) {
       category: merged.category.trim(),
       price: Number.isFinite(merged.price) ? merged.price : 0,
       stock_status: merged.stockStatus || "in-stock",
+      quantity:
+        merged.quantity != null && Number.isInteger(merged.quantity) && merged.quantity >= 0
+          ? merged.quantity
+          : null,
       status: "draft",
       draft: merged,
       is_demo: Boolean(merged.isDemo),
@@ -204,7 +214,7 @@ async function replaceProductChildren(id: string, doc: ProductDocument) {
 export async function publishAdminProduct(id: string, doc: ProductDocument) {
   const current = await getAdminProduct(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
-  const merged = mergeProductForm(editorDocument(current), doc);
+  const merged = withGeneratedVariants(mergeProductForm(editorDocument(current), doc));
   const gate = canPublish(merged, await assignableCategoryRefs());
   if (!gate.ok) return { ok: false as const, error: gate.error, status: 400 };
   if (slugTaken(merged.slug, await allProductSlugs(), id)) {

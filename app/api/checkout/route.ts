@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { sendOrderConfirmationEmail } from "@/lib/email";
-import { createOrder, enqueueEmailEvent, nextPublicOrderId } from "@/lib/order-store";
+import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
+import { appendOrderNote, createOrder, enqueueEmailEvent, nextPublicOrderId } from "@/lib/order-store";
+import { fetchSiteSettings } from "@/lib/db/store";
 import { resolveCheckout, CHECKOUT_PRICE_CHANGED_ERROR, GIFT_WRAP_FEE } from "@/lib/checkout-server";
 import { isDemoRequest } from "@/lib/demo";
 import { attachOrderAttribution } from "@/lib/db/analytics-checkout";
@@ -203,7 +204,23 @@ export async function POST(request: Request) {
       city: baseOrder.customer.city,
       postal: baseOrder.customer.postal,
     };
-    await sendOrderConfirmationEmail(baseOrder.customer.email, emailPayload);
+    const settings = await fetchSiteSettings().catch(() => null);
+    const emailResult = await notifyNewOrderEmails(
+      baseOrder.customer.email,
+      {
+        ...emailPayload,
+        email: baseOrder.customer.email,
+      },
+      { settingsEmail: settings?.email }
+    );
+    const emailNote = orderEmailFailureNote(emailResult);
+    if (emailNote) {
+      try {
+        await appendOrderNote(orderId, emailNote);
+      } catch {
+        console.error("[checkout] email failure note");
+      }
+    }
     await enqueueEmailEvent(
       "post-purchase",
       baseOrder.customer.email,

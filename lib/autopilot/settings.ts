@@ -12,12 +12,12 @@ export interface AutopilotControlSettings {
 }
 
 export const DEFAULT_AUTOPILOT_SETTINGS: AutopilotControlSettings = {
-  masterEnabled: true,
-  orderDispatchMode: "ACTIVE",
-  deliveryRescueMode: "ACTIVE",
-  settlementReconciliationMode: "ACTIVE",
-  inventoryReorderMode: "ACTIVE",
-  commandCenterMode: "ACTIVE",
-  telemetryGatheringEnabled: true,
+  masterEnabled: false,
+  orderDispatchMode: "DISABLED",
+  deliveryRescueMode: "DISABLED",
+  settlementReconciliationMode: "DISABLED",
+  inventoryReorderMode: "DISABLED",
+  commandCenterMode: "DISABLED",
+  telemetryGatheringEnabled: false,
   updatedAt: new Date().toISOString(),
 };

@@ -70,15 +70,19 @@ export function NewsletterPopup() {
     if (!email.trim() || !email.includes("@")) return;
     setLoading(true);
     try {
-      await fetch("/api/newsletter", {
+      const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      }).catch(() => {});
-    } catch {}
-    setSubmitted(true);
-    setLoading(false);
-    setTimeout(dismiss, 3000);
+        body: JSON.stringify({ email: email.trim(), source: "popup" }),
+      });
+      if (!res.ok) throw new Error("fail");
+      setSubmitted(true);
+      setTimeout(dismiss, 3000);
+    } catch {
+      setSubmitted(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (!open) return null;

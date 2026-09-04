@@ -1,8 +1,11 @@
+import { EMAIL_SEND_ISSUE_PREFIX } from "../email-rules";
 import type {
   Order,
   OrderStatus,
   OrderStatusHistoryEntry,
 } from "../types";
+
+export { EMAIL_SEND_ISSUE_PREFIX };
 
 export const ORDER_STATUS_VALUES: OrderStatus[] = [
   "new",
@@ -17,6 +20,15 @@ export const SHOPPER_NOT_FOUND_MESSAGE =
 
 export const SHOPPER_CANCEL_WINDOW_MS = 24 * 60 * 60 * 1000;
 export const SHOPPER_CANCEL_NOTE = "Cancelled by customer";
+
+export function orderEmailIssueFromHistory(
+  history: OrderStatusHistoryEntry[] | undefined
+): string | null {
+  const hit = [...(history ?? [])]
+    .reverse()
+    .find((entry) => (entry.note ?? "").startsWith(EMAIL_SEND_ISSUE_PREFIX));
+  return hit?.note ?? null;
+}
 
 export type ShopperTrackPayload = {
   orderId: string;

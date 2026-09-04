@@ -2,25 +2,29 @@
  * Email delivery abstraction.
  *
  * Provider: Resend. Set RESEND_API_KEY + FROM_EMAIL.
- * ORDER_NOTIFY_EMAIL: BCC + Reply-To for order confirmation (optional).
+ * ORDER_NOTIFY_EMAIL: separate owner “new order” email + Reply-To (optional).
  * Without a key, emails are logged to the console (dev mode).
  */
 
 import { publicSiteUrl } from "@/lib/deploy-rules";
+import { SHOPPER_BRAND } from "@/lib/brand";
 import {
-  bccList,
+  buildAdminNewOrderEmail,
   buildOrderConfirmationEmail,
   buildOrderStatusEmail,
+  defaultFromAddress,
+  orderEmailFailureNote,
+  resolveNotifyAddress,
+  type NewOrderEmailResult,
   type OrderEmailPayload,
   type OrderStatusEmailPayload,
 } from "@/lib/email-rules";
 
 export type { OrderEmailPayload, OrderStatusEmailPayload };
-export { buildOrderConfirmationEmail, buildOrderStatusEmail };
+export { buildOrderConfirmationEmail, buildOrderStatusEmail, buildAdminNewOrderEmail };
 
-const BRAND_NAME = process.env.BRAND_NAME || "VoltGear";
-const FROM_EMAIL =
-  process.env.FROM_EMAIL || "VoltGear <no-reply@voltgear.store>";
+const BRAND_NAME = process.env.BRAND_NAME || SHOPPER_BRAND.spokenName;
+const FROM_EMAIL = process.env.FROM_EMAIL || defaultFromAddress(BRAND_NAME);
 
 function pkr(n: number): string {
   return `Rs ${n.toLocaleString("en-PK")}`;
@@ -35,13 +39,17 @@ interface EmailMessage {
   replyTo?: string;
 }
 
-function notifyEmail(): string {
-  return (process.env.ORDER_NOTIFY_EMAIL ?? "").trim();
+function notifyEmail(settingsEmail?: string | null, customerEmail?: string | null): string {
+  return resolveNotifyAddress({
+    envNotify: process.env.ORDER_NOTIFY_EMAIL,
+    settingsEmail,
+    customerEmail,
+  });
 }
 
 async function deliver(message: EmailMessage): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
-  const replyTo = notifyEmail() || undefined;
+  const replyTo = notifyEmail() || message.replyTo;
   const payload: Record<string, unknown> = {
     from: FROM_EMAIL,
     to: [message.to],
@@ -159,14 +167,44 @@ export async function sendOrderStatusUpdateEmail(
 
 export async function sendOrderConfirmationEmail(
   to: string,
-  payload: OrderEmailPayload
+  payload: OrderEmailPayload,
+  replyTo?: string
 ): Promise<boolean> {
   return deliver({
     to,
-    bcc: bccList(to, notifyEmail()),
+    replyTo,
     ...buildOrderConfirmationEmail({ ...payload, email: to }),
   });
 }
+
+export async function sendAdminNewOrderEmail(
+  to: string,
+  payload: OrderEmailPayload
+): Promise<boolean> {
+  const dest = to.trim();
+  if (!dest) return false;
+  return deliver({ to: dest, ...buildAdminNewOrderEmail({ ...payload, email: payload.email }) });
+}
+
+export async function notifyNewOrderEmails(
+  customerEmail: string,
+  payload: OrderEmailPayload,
+  opts?: { settingsEmail?: string | null }
+): Promise<NewOrderEmailResult> {
+  const adminTo = notifyEmail(opts?.settingsEmail, customerEmail);
+  const customerSent = await sendOrderConfirmationEmail(
+    customerEmail,
+    payload,
+    adminTo || undefined
+  );
+  let adminSent = false;
+  if (adminTo) {
+    adminSent = await sendAdminNewOrderEmail(adminTo, { ...payload, email: customerEmail });
+  }
+  return { customerSent, adminSent, adminTo };
+}
+
+export { orderEmailFailureNote };
 
 export async function sendPostPurchaseEmail(
   to: string,

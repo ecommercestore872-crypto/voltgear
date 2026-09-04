@@ -8,22 +8,28 @@ export function NewsletterBlock() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim() || !email.includes("@")) return;
     
     setLoading(true);
+    setError(false);
     try {
-      await fetch("/api/newsletter", {
+      const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      }).catch(() => {});
-    } catch {}
-    
-    setSubmitted(true);
-    setLoading(false);
+        body: JSON.stringify({ email: email.trim(), source: "block" }),
+      });
+      if (!res.ok) throw new Error("fail");
+      setSubmitted(true);
+    } catch {
+      setSubmitted(false);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -68,6 +74,9 @@ export function NewsletterBlock() {
             </form>
           )}
           
+          {!submitted && error ? (
+            <p className="mt-4 text-sm text-red-600">Couldn’t subscribe — try again.</p>
+          ) : null}
           {!submitted && (
             <p className="mt-4 text-[12px] font-medium text-slate-400 uppercase tracking-widest">
               No spam, ever. Unsubscribe anytime.

@@ -1,20 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
+import { subscribeNewsletter } from "@/lib/db/newsletter-store";
+
+const rateLimiter = createMemoryRateLimiter({
+  limit: 8,
+  windowMs: 10 * 60 * 1000,
+  maxKeys: 2000,
+});
+
+function clientIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for") || "";
+  return forwarded.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
+}
+
 export async function POST(req: NextRequest) {
+  const ip = clientIp(req);
+  if (ip && !rateLimiter.take({ ip })) {
+    return NextResponse.json(
+      { error: "Too many signup attempts. Try again later." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
-    const email = typeof body?.email === "string" ? body.email.trim() : "";
-
-    if (!email || !email.includes("@")) {
-      return NextResponse.json({ error: "Valid email required" }, { status: 400 });
+    const result = await subscribeNewsletter({
+      email: body?.email,
+      source: typeof body?.source === "string" ? body.source : "footer",
+    });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
-
-    // Store as a simple log — in production, wire to Mailchimp/Resend lists
-    console.log(`[newsletter] New subscriber: ${email}`);
-
     return NextResponse.json({
       ok: true,
-      message: "Request received — we'll be in touch.",
+      message: result.created
+        ? "You’re on the list."
+        : "You’re already on the list.",
     });
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });

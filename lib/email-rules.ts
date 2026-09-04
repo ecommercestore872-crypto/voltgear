@@ -1,8 +1,9 @@
+import { SHOPPER_BRAND } from "./brand";
 import type { OrderStatus } from "./types";
 
 import { publicSiteUrl } from "./deploy-rules";
 
-const BRAND_NAME = process.env.BRAND_NAME || "VoltGear";
+const BRAND_NAME = process.env.BRAND_NAME || SHOPPER_BRAND.spokenName;
 
 export interface OrderEmailPayload {
   orderId: string;
@@ -62,7 +63,18 @@ function trackButton(orderId: string, email: string): string {
   )}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px;font-weight:600">Track your order</a></p>`;
 }
 
-export function orderShell({ title, body }: { title: string; body: string }): string {
+export function orderShell({
+  title,
+  body,
+  footer,
+}: {
+  title: string;
+  body: string;
+  footer?: string;
+}): string {
+  const foot =
+    footer ??
+    `You received this email from ${BRAND_NAME} because you placed an order.`;
   return `<!doctype html>
 <html><body style="margin:0;padding:16px;background:#f4f4f5;color:#18181b;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
 <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;padding:24px">
@@ -71,10 +83,46 @@ export function orderShell({ title, body }: { title: string; body: string }): st
   )}</p>
 <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3">${title}</h1>
 <div style="font-size:15px;line-height:1.6;color:#27272a">${body}</div>
-<p style="margin:28px 0 0;font-size:12px;color:#71717a">You received this email from ${escapeHtml(
-    BRAND_NAME
-  )} because you placed an order.</p>
+<p style="margin:28px 0 0;font-size:12px;color:#71717a">${escapeHtml(foot)}</p>
 </div></body></html>`;
+}
+
+export function defaultFromAddress(
+  brand: string,
+  mailbox = "no-reply@voltgear.store"
+): string {
+  const name = brand.trim() || "Buy n Try";
+  return `${name} <${mailbox}>`;
+}
+
+export function resolveNotifyAddress(input: {
+  envNotify?: string | null;
+  settingsEmail?: string | null;
+  customerEmail?: string | null;
+}): string {
+  const env = (input.envNotify ?? "").trim();
+  const settings = (input.settingsEmail ?? "").trim();
+  const pick = env || settings;
+  if (!pick) return "";
+  const customer = (input.customerEmail ?? "").trim().toLowerCase();
+  if (customer && pick.toLowerCase() === customer) return "";
+  return pick;
+}
+
+export type NewOrderEmailResult = {
+  customerSent: boolean;
+  adminSent: boolean;
+  adminTo: string;
+};
+
+export const EMAIL_SEND_ISSUE_PREFIX = "Email send issue:";
+
+export function orderEmailFailureNote(result: NewOrderEmailResult): string | null {
+  const parts: string[] = [];
+  if (!result.customerSent) parts.push("customer confirmation failed");
+  if (result.adminTo && !result.adminSent) parts.push("owner alert failed");
+  if (!parts.length) return null;
+  return `${EMAIL_SEND_ISSUE_PREFIX} ${parts.join("; ")}.`;
 }
 
 export function bccList(to: string, notifyEmail?: string | null): string[] {
@@ -82,6 +130,42 @@ export function bccList(to: string, notifyEmail?: string | null): string[] {
   if (!notify) return [];
   if (notify.toLowerCase() === to.trim().toLowerCase()) return [];
   return [notify];
+}
+
+export function buildAdminNewOrderEmail(p: OrderEmailPayload): BuiltEmail {
+  const name = escapeHtml(p.name || "Customer");
+  const rows = p.items
+    .map((i) => {
+      const label = `${escapeHtml(i.name ?? "")}${
+        i.variantName ? ` — ${escapeHtml(i.variantName)}` : ""
+      } × ${i.quantity}`;
+      return `<tr><td style="padding:8px 0;border-bottom:1px solid #e4e4e7">${label}</td><td style="padding:8px 0;border-bottom:1px solid #e4e4e7;text-align:right;white-space:nowrap">${pkr(
+        (i.price ?? 0) * (i.quantity ?? 1)
+      )}</td></tr>`;
+    })
+    .join("");
+
+  const body = `<p style="margin:0 0 12px">A customer just placed a cash-on-delivery order.</p>
+<p style="margin:0 0 8px"><strong>${name}</strong> · ${escapeHtml(p.email || "no email")}</p>
+<p style="margin:0 0 8px">${escapeHtml(p.phone || "")}</p>
+<p style="margin:0 0 16px">${escapeHtml([p.address, p.city, p.postal].filter(Boolean).join(", "))}</p>
+<p style="margin:0 0 8px;font-size:13px;color:#71717a">Order <strong style="color:#18181b">${escapeHtml(
+    p.orderId
+  )}</strong></p>
+<table style="width:100%;border-collapse:collapse">${rows}
+<tr><td style="padding-top:12px;font-weight:600">Total</td><td style="padding-top:12px;font-weight:600;text-align:right;white-space:nowrap">${pkr(
+    p.total
+  )}</td></tr></table>`;
+
+  return {
+    subject: `${BRAND_NAME} — New order ${p.orderId}`,
+    text: `New COD order ${p.orderId} from ${p.name || "a customer"} (${p.email || ""}). Total ${pkr(p.total)}.`,
+    html: orderShell({
+      title: "New customer order",
+      body,
+      footer: `You received this email from ${BRAND_NAME} because a customer placed an order.`,
+    }),
+  };
 }
 
 export function buildOrderConfirmationEmail(p: OrderEmailPayload): BuiltEmail {

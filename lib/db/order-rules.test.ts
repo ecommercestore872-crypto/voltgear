@@ -3,9 +3,11 @@ import { describe, it } from "node:test";
 
 import type { Order } from "../types";
 import {
+  EMAIL_SEND_ISSUE_PREFIX,
   SHOPPER_CANCEL_NOTE,
   SHOPPER_CANCEL_WINDOW_MS,
   canShopperCancel,
+  orderEmailIssueFromHistory,
   emailsMatch,
   isAllowedOrderStatus,
   shopperCancelBlockReason,
@@ -265,5 +267,15 @@ describe("toShopperTrackPayload cancellable", () => {
 describe("SHOPPER_CANCEL_NOTE", () => {
   it("is the fixed customer note", () => {
     assert.equal(SHOPPER_CANCEL_NOTE, "Cancelled by customer");
+  });
+});
+
+describe("orderEmailIssueFromHistory", () => {
+  it("returns the latest email send issue note", () => {
+    const note = orderEmailIssueFromHistory([
+      { status: "new", note: "Order placed" },
+      { status: "new", note: `${EMAIL_SEND_ISSUE_PREFIX} customer confirmation failed.` },
+    ]);
+    assert.match(note ?? "", /customer confirmation failed/);
   });
 });

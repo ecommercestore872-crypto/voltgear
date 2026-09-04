@@ -13,6 +13,7 @@ import {
   toLiveProductRow,
   toReviewRows,
   toVariantRows,
+  withGeneratedVariants,
   type ProductDocument,
 } from "./publish";
 
@@ -69,6 +70,40 @@ describe("canPublish", () => {
     assert.equal(canPublish({ ...sample, price: -1 }, shopTypes).ok, false);
     assert.equal(canPublish(sample, shopTypes).ok, true);
   });
+
+  it("rejects Color on with no enabled colors", () => {
+    const r = canPublish(
+      {
+        ...sample,
+        colorEnabled: true,
+        colorOptions: [{ key: "red", name: "Red", enabled: false }],
+      },
+      shopTypes
+    );
+    assert.equal(r.ok, false);
+  });
+});
+
+describe("withGeneratedVariants", () => {
+  it("replaces flat variants with enabled color × size rows", () => {
+    const doc = withGeneratedVariants({
+      ...sample,
+      colorEnabled: true,
+      sizeEnabled: true,
+      colorOptions: [
+        { key: "black", name: "Black", enabled: true },
+        { key: "navy", name: "Navy", enabled: false },
+      ],
+      sizeOptions: [
+        { key: "m", name: "M", enabled: true },
+        { key: "l", name: "L", enabled: true },
+      ],
+    });
+    assert.deepEqual(
+      (doc.variants ?? []).map((v) => v._key),
+      ["black__m", "black__l"]
+    );
+  });
 });
 
 describe("slugTaken", () => {
@@ -117,6 +152,11 @@ describe("toLiveProductRow", () => {
   it("writes is_demo when the document is tagged demo", () => {
     const row = toLiveProductRow({ ...sample, isDemo: true });
     assert.equal(row.is_demo, true);
+  });
+
+  it("writes units on hand and leaves empty as unlimited", () => {
+    assert.equal(toLiveProductRow(sample).quantity, null);
+    assert.equal(toLiveProductRow({ ...sample, quantity: 8 }).quantity, 8);
   });
 });
 

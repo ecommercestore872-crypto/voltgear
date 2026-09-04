@@ -22,4 +22,26 @@ describe("mapProduct", () => {
     assert.equal(JSON.stringify(product).includes("1200"), false);
     assert.equal(JSON.stringify(product).includes("cost_price"), false);
   });
+
+  it("maps color and size option columns", () => {
+    const product = mapProduct({
+      id: "1",
+      name: "Hoodie",
+      slug: "hoodie",
+      category: "apparel",
+      price: 2000,
+      stock_status: "in-stock",
+      color_enabled: true,
+      size_enabled: true,
+      color_options: [{ key: "black", name: "Black", enabled: true, image: "https://img/b.jpg" }],
+      size_options: [{ key: "m", name: "M", enabled: true }],
+      product_images: [],
+      product_variants: [],
+      product_reviews: [],
+    });
+    assert.equal(product?.colorEnabled, true);
+    assert.equal(product?.sizeEnabled, true);
+    assert.equal(product?.colorOptions?.[0].image, "https://img/b.jpg");
+    assert.equal(product?.sizeOptions?.[0].name, "M");
+  });
 });

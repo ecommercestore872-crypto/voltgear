@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAdminRequest } from "@/lib/admin";
 import { getOrderByPublicId } from "@/lib/db/store";
 import { getServiceClient } from "@/lib/supabase/server";
 import { createPostExOrder } from "@/lib/postex";
 
 export async function POST(req: NextRequest) {
+  if (!isAdminRequest(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { orderId } = await req.json();
 

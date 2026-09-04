@@ -6,10 +6,8 @@ Single tracker for this store. Status lives here only.
 
 ## Active task
 
-**T-32 — Storefront visual system (Buy n Try hardware stage)** — implementing  
-Spec: `docs/superpowers/specs/2026-09-05-t32-storefront-visual-system-design.md`  
-UI plan: `docs/ui/2026-09-05-t32-buyntryy-hardware-stage-ui.md`  
-Plan: `docs/superpowers/plans/2026-09-05-t32-storefront-visual-system.md`  
+**T-35 — Color and Size variants** — implementing  
+Spec: `docs/superpowers/specs/2026-09-05-t35-color-size-variants-design.md`  
 
 ## Program
 
@@ -51,7 +49,9 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-19 | Gadget craft system: motion, type, copy, icons | ✅ Done | T-16 | Craft tokens + home reveals + buy trust microcopy + glyphs. |
 | T-20 | Shopper self-cancel on Track (24h, new/processing) | ✅ Done | T-03, T-04 | Cancel from `/track` within 24h while new/processing; same cancelled email. Spec: `docs/superpowers/specs/2026-09-01-t20-shopper-self-cancel-design.md`. Shipped 2026-09-01. |
 | T-32 | Storefront visual system (Buy n Try hardware stage) | 🟡 In Progress | T-16, T-19 | Spec + UI plan written 2026-09-05. Hardware-stage cards, Newsreader + Manrope, BNT10 popup, shopper copy to Buy n Try. Admin out of scope. Emails → T-33. |
-| T-33 | Customer email + message brand (Buy n Try) | ⚪ Planned | T-32 | Spawned from T-32 impact: transactional and marketing mail still say VoltGear. |
+| T-33 | Customer email + message brand (Buy n Try) | 🟡 In Progress | T-32 | Transactional fallback brand is Buy n Try (T-34). FROM_EMAIL / marketing VoltGear copy still env. |
+| T-34 | Launch safety | 🟡 In Progress | T-03, T-04 | Courier API auth, newsletter persist, distinct admin new-order email, optional atomic stock. |
+| T-35 | Color and Size variants | 🟡 In Progress | T-09, T-34 | Color/Size on/off + per-value on/off. Optional color photo swaps gallery. Product units only. |
 
 ## Suggested build order
 

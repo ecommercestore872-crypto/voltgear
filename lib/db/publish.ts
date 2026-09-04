@@ -1,4 +1,10 @@
 import { categoryIsAssignable } from "@/lib/db/category-rules";
+import {
+  generateSellableVariants,
+  parseVariantOptions,
+  validateVariantAxes,
+  type VariantOption,
+} from "@/lib/variant-options-rules";
 
 export type PublishStatus = "draft" | "published" | "unpublished";
 
@@ -29,8 +35,13 @@ export interface ProductDocument {
     image?: string;
     isDefault?: boolean;
   }>;
+  colorEnabled?: boolean;
+  sizeEnabled?: boolean;
+  colorOptions?: VariantOption[];
+  sizeOptions?: VariantOption[];
   productFaq?: { question: string; answer: string }[];
   stockStatus: string;
+  quantity?: number | null;
   rating?: number;
   reviewCount?: number;
   reviews?: Array<{
@@ -86,7 +97,12 @@ export function mergeProductForm(
     images: form.images ?? [],
     shortDescription: form.shortDescription,
     description: form.description,
-    stockStatus: form.stockStatus || "in-stock",
+    stockStatus:
+      form.quantity === 0 ? "out-of-stock" : form.stockStatus || "in-stock",
+    quantity:
+      form.quantity != null && Number.isInteger(form.quantity) && form.quantity >= 0
+        ? form.quantity
+        : null,
     featured: Boolean(form.featured),
     isDemo: Boolean(form.isDemo),
     costPrice:
@@ -103,6 +119,10 @@ export function mergeProductForm(
     compatibility: existing?.compatibility,
     inTheBox: existing?.inTheBox,
     variants: existing?.variants,
+    colorEnabled: form.colorEnabled ?? existing?.colorEnabled ?? false,
+    sizeEnabled: form.sizeEnabled ?? existing?.sizeEnabled ?? false,
+    colorOptions: form.colorOptions ?? existing?.colorOptions ?? [],
+    sizeOptions: form.sizeOptions ?? existing?.sizeOptions ?? [],
     productFaq: existing?.productFaq,
     reviews: existing?.reviews,
     rating: existing?.rating,
@@ -135,6 +155,10 @@ export function canPublish(
     slug?: string;
     category?: string;
     price?: number;
+    colorEnabled?: boolean;
+    sizeEnabled?: boolean;
+    colorOptions?: VariantOption[];
+    sizeOptions?: VariantOption[];
   },
   types: { slug: string }[]
 ): { ok: true } | { ok: false; error: string } {
@@ -146,7 +170,41 @@ export function canPublish(
   if (input.price == null || !Number.isFinite(input.price) || input.price < 0) {
     return { ok: false, error: "A non-negative price is required to publish." };
   }
+  const axes = validateVariantAxes({
+    colorEnabled: Boolean(input.colorEnabled),
+    sizeEnabled: Boolean(input.sizeEnabled),
+    colorOptions: parseVariantOptions(input.colorOptions),
+    sizeOptions: parseVariantOptions(input.sizeOptions),
+  });
+  if (!axes.ok) return axes;
   return { ok: true };
+}
+
+export function withGeneratedVariants(doc: ProductDocument): ProductDocument {
+  const colorEnabled = Boolean(doc.colorEnabled);
+  const sizeEnabled = Boolean(doc.sizeEnabled);
+  const colorOptions = parseVariantOptions(doc.colorOptions);
+  const sizeOptions = parseVariantOptions(doc.sizeOptions);
+  if (!colorEnabled && !sizeEnabled) {
+    return {
+      ...doc,
+      colorEnabled: false,
+      sizeEnabled: false,
+      colorOptions,
+      sizeOptions,
+    };
+  }
+  return {
+    ...doc,
+    colorEnabled,
+    sizeEnabled,
+    colorOptions,
+    sizeOptions,
+    variants: generateSellableVariants(
+      { colorEnabled, sizeEnabled, colorOptions, sizeOptions },
+      doc.stockStatus || "in-stock"
+    ),
+  };
 }
 
 export function slugTaken(
@@ -183,6 +241,10 @@ export function toLiveProductRow(doc: ProductDocument) {
     product_video: { ...(doc.productVideo ?? {}), tiktokUrl: doc.tiktokUrl ?? null, instagramUrl: doc.instagramUrl ?? null },
     product_faq: doc.productFaq ?? [],
     stock_status: doc.stockStatus || "in-stock",
+    quantity:
+      doc.quantity != null && Number.isInteger(doc.quantity) && doc.quantity >= 0
+        ? doc.quantity
+        : null,
     rating: doc.rating ?? null,
     review_count: doc.reviewCount ?? doc.reviews?.length ?? 0,
     featured: Boolean(doc.featured),
@@ -193,6 +255,10 @@ export function toLiveProductRow(doc: ProductDocument) {
         ? doc.costPrice
         : null,
     is_demo: Boolean(doc.isDemo),
+    color_enabled: Boolean(doc.colorEnabled),
+    size_enabled: Boolean(doc.sizeEnabled),
+    color_options: parseVariantOptions(doc.colorOptions),
+    size_options: parseVariantOptions(doc.sizeOptions),
     status: "published" as const,
     draft: null,
   };

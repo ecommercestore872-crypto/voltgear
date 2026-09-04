@@ -10,6 +10,7 @@ import type {
   Testimonial,
 } from "@/lib/types";
 import { normalizeHomeSections } from "@/lib/db/home-section-rules";
+import { parseVariantOptions } from "@/lib/variant-options-rules";
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -96,12 +97,17 @@ export function mapProduct(
       ? (row.product_video as { tiktokUrl?: string }).tiktokUrl
       : undefined,
     variants,
+    colorEnabled: Boolean(row.color_enabled),
+    sizeEnabled: Boolean(row.size_enabled),
+    colorOptions: parseVariantOptions(row.color_options),
+    sizeOptions: parseVariantOptions(row.size_options),
     productFaq: Array.isArray(row.product_faq)
       ? (row.product_faq as Product["productFaq"])
       : undefined,
     sku: row.sku ? String(row.sku) : undefined,
     brand: row.brand ? String(row.brand) : undefined,
     stockStatus: stock(row.stock_status),
+    quantity: row.quantity != null && Number.isFinite(Number(row.quantity)) ? Number(row.quantity) : null,
     rating: row.rating != null ? num(row.rating) : undefined,
     reviewCount: row.review_count != null ? num(row.review_count) : undefined,
     reviews,

@@ -549,6 +549,51 @@ export async function createOrderRow(input: {
   if (input.promoCode) {
     row.promo_code = input.promoCode;
   }
+  const rpcItems = input.items.map((i) => ({
+    slug: i.slug,
+    name: i.name,
+    price: i.price,
+    quantity: i.quantity,
+    variantKey: i.variantKey,
+    variantName: i.variantName,
+    variantSku: i.variantSku,
+    lineTotal: i.lineTotal,
+  }));
+
+  const { data: rpcData, error: rpcError } = await db().rpc("checkout_place_order", {
+    p_order_id: input.orderId,
+    p_customer: input.customer,
+    p_payment: input.payment,
+    p_subtotal: input.subtotal,
+    p_shipping: input.shipping,
+    p_total: input.total,
+    p_discount: input.discount ?? 0,
+    p_promo_code: input.promoCode ?? "",
+    p_is_demo: Boolean(input.isDemo),
+    p_items: rpcItems,
+  });
+
+  if (!rpcError && rpcData?.ok) {
+    return input.orderId;
+  }
+
+  if (rpcError?.message?.includes("BUSINESS_ERROR:")) {
+    throw new Error(
+      `ATOMIC_BUSINESS_ERROR:${rpcError.message.split("BUSINESS_ERROR:")[1].trim()}`
+    );
+  }
+
+  const rpcMissing =
+    !rpcError ||
+    rpcError.code === "PGRST202" ||
+    rpcError.code === "42883" ||
+    rpcError.message?.includes("could not find");
+
+  if (rpcError && !rpcMissing) {
+    console.error("[order] checkout_place_order failed:", rpcError);
+    throw new Error("ATOMIC_INFRA_ERROR");
+  }
+
   let { data, error } = await db().from("orders").insert(row).select("id").single();
   if (isMissingIsDemoColumn(error)) {
     demoColumnMissing = true;
@@ -659,6 +704,23 @@ export async function getAllOrders(): Promise<Order[]> {
     .order("created_at", { ascending: false });
   if (error) return [];
   return Promise.all((data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)));
+}
+
+export async function appendOrderHistoryNote(
+  orderId: string,
+  note: string
+): Promise<void> {
+  const current = await getOrderByPublicId(orderId);
+  if (!current || !note.trim()) return;
+  const { error } = await db().from("order_status_history").insert({
+    order_id: current._id,
+    status: current.status ?? "new",
+    note: note.trim(),
+    at: new Date().toISOString(),
+  });
+  if (error) {
+    console.error("[orders] email note failed:", error);
+  }
 }
 
 export async function updateOrderStatusRow(

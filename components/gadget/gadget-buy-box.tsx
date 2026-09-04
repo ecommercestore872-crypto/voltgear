@@ -15,17 +15,26 @@ import {
 } from "lucide-react";
 
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
-import { ProductGallery } from "@/components/product/product-gallery";
 import { useCart } from "@/components/cart/cart-provider";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { trackAddToCart } from "@/lib/analytics";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
+import { ProductGallery } from "@/components/product/product-gallery";
+import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
 import { getVariantStockState } from "@/lib/stock";
 import type { PublicSiteConfig } from "@/lib/site-config";
 import { warrantyLabel } from "@/lib/site-config";
 import type { Product, ProductVariant } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
+import { imageUrl } from "@/lib/sanity/image";
+import {
+  axesEnabled,
+  canSubmitVariantSelection,
+  colorImageForKey,
+  comboVariantKey,
+  initialAxisSelection,
+} from "@/lib/variant-options-rules";
 
 function defaultVariant(product: Product): ProductVariant | null {
   const variants = product.variants ?? [];
@@ -41,23 +50,51 @@ export function GadgetBuyBox({
   config: PublicSiteConfig;
 }) {
   const { addItem, openCart } = useCart();
-  const [variant, setVariant] = useState<ProductVariant | null>(() => defaultVariant(product));
+  const axesOn = axesEnabled(product);
+  const [colorKey, setColorKey] = useState<string | null>(() =>
+    initialAxisSelection(product.colorOptions)
+  );
+  const [sizeKey, setSizeKey] = useState<string | null>(() =>
+    initialAxisSelection(product.sizeOptions)
+  );
+  const [legacyVariant, setLegacyVariant] = useState<ProductVariant | null>(() =>
+    axesOn ? null : defaultVariant(product)
+  );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const selectedKey = axesOn ? comboVariantKey(colorKey, sizeKey) : legacyVariant?._key;
+  const variant = axesOn
+    ? (product.variants ?? []).find((v) => v._key === selectedKey) ?? null
+    : legacyVariant;
   const hasVariants = (product.variants?.length ?? 0) > 0;
+  const selectionReady = axesOn
+    ? canSubmitVariantSelection(product, colorKey, sizeKey)
+    : !hasVariants || Boolean(variant);
   const stock = getVariantStockState(product, variant);
   const outOfStock = stock.soldOut;
-  const price = variant?.price ?? product.price;
-  const compareAtPrice = variant?.compareAtPrice ?? product.compareAtPrice;
+  const price = axesOn ? product.price : variant?.price ?? product.price;
+  const compareAtPrice = axesOn
+    ? product.compareAtPrice
+    : variant?.compareAtPrice ?? product.compareAtPrice;
+  const colorPhoto = axesOn ? colorImageForKey(product.colorOptions, colorKey) : variant?.image;
   const off = salePercent(price, compareAtPrice);
   const rating = product.rating != null && product.rating > 0 ? product.rating : 4.8;
   const reviewCount = product.reviewCount ?? 0;
   const threshold = Number(config.freeShippingThreshold ?? 0);
-  const itemImage = gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
+  const itemImage = colorPhoto
+    ? imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb })
+    : gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
+  const variantImage = colorPhoto
+    ? {
+        src: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.gallery }),
+        thumb: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb }),
+        alt: `${product.name}${variant?.name ? ` — ${variant.name}` : ""}`,
+      }
+    : null;
 
   function handleAdd(open = true, event?: React.MouseEvent<HTMLButtonElement>) {
-    if (outOfStock) return;
+    if (outOfStock || !selectionReady) return;
     addItem(
       {
         slug: product.slug,
@@ -94,7 +131,7 @@ export function GadgetBuyBox({
     <>
       <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-8 lg:gap-12">
         <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:max-w-lg md:max-w-none md:p-3 lg:p-4">
-          <ProductGallery product={product} />
+          <ProductGallery product={product} variantImage={variantImage} />
         </div>
 
         <div className="flex flex-col">
@@ -165,7 +202,18 @@ export function GadgetBuyBox({
             {stock.status === "low-stock" && !outOfStock ? " — order soon" : null}
           </p>
 
-          {hasVariants ? (
+          {axesOn ? (
+            <VariantAxisPickers
+              colorEnabled={product.colorEnabled}
+              sizeEnabled={product.sizeEnabled}
+              colorOptions={product.colorOptions}
+              sizeOptions={product.sizeOptions}
+              colorKey={colorKey}
+              sizeKey={sizeKey}
+              onColorKey={setColorKey}
+              onSizeKey={setSizeKey}
+            />
+          ) : hasVariants ? (
             <fieldset className="mt-6">
               <legend className="mb-2 text-sm font-semibold text-[var(--g-charcoal)]">Choose option</legend>
               <div className="flex flex-wrap gap-2">
@@ -178,7 +226,7 @@ export function GadgetBuyBox({
                       type="button"
                       disabled={sold}
                       aria-pressed={selected}
-                      onClick={() => setVariant(v)}
+                      onClick={() => setLegacyVariant(v)}
                       className={cn(
                         "min-h-11 rounded-full border px-4 text-sm font-semibold transition",
                         selected
@@ -220,7 +268,7 @@ export function GadgetBuyBox({
             <button
               ref={btnRef}
               type="button"
-              disabled={outOfStock}
+              disabled={outOfStock || !selectionReady}
               onClick={(e) => handleAdd(true, e)}
               className="gadget-btn-primary gadget-press inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold uppercase tracking-wide disabled:cursor-not-allowed disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
             >
@@ -231,7 +279,7 @@ export function GadgetBuyBox({
               ) : (
                 <>
                   <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
-                  {outOfStock ? "Sold out" : "Buy now"}
+                  {outOfStock ? "Sold out" : !selectionReady ? "Choose options" : "Buy now"}
                 </>
               )}
             </button>
@@ -291,11 +339,12 @@ export function GadgetBuyBox({
             </div>
             <button
               type="button"
+              disabled={!selectionReady}
               onClick={(e) => handleAdd(true, e)}
-              className="gadget-btn-primary gadget-press inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-sm font-bold"
+              className="gadget-btn-primary gadget-press inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-sm font-bold disabled:cursor-not-allowed disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
             >
               <ShoppingBag className="h-4 w-4" />
-              Buy now
+              {selectionReady ? "Buy now" : "Choose options"}
             </button>
           </div>
         </div>

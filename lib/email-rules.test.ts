@@ -3,8 +3,12 @@ import { describe, it } from "node:test";
 
 import {
   bccList,
+  buildAdminNewOrderEmail,
   buildOrderConfirmationEmail,
   buildOrderStatusEmail,
+  defaultFromAddress,
+  orderEmailFailureNote,
+  resolveNotifyAddress,
 } from "./email-rules";
 
 const confirm = {
@@ -53,6 +57,73 @@ describe("buildOrderStatusEmail", () => {
       msg.html.includes("/track?orderId=VG-TEST1&email=ali%40example.com"),
       true
     );
+  });
+});
+
+describe("buildAdminNewOrderEmail", () => {
+  it("tells the owner a customer placed an order and includes contact details", () => {
+    const msg = buildAdminNewOrderEmail(confirm);
+    assert.match(msg.subject, /new order/i);
+    assert.match(msg.html, /New customer order/);
+    assert.equal(msg.html.includes("Ali Khan"), true);
+    assert.equal(msg.html.includes("ali@example.com"), true);
+    assert.equal(msg.html.includes("03001234567"), true);
+    assert.equal(msg.html.includes("VG-TEST1"), true);
+    assert.match(msg.html, /because a customer placed an order/);
+  });
+});
+
+describe("resolveNotifyAddress", () => {
+  it("prefers env, then settings, and skips the customer address", () => {
+    assert.equal(
+      resolveNotifyAddress({
+        envNotify: "owner@shop.pk",
+        settingsEmail: "settings@shop.pk",
+        customerEmail: "ali@example.com",
+      }),
+      "owner@shop.pk"
+    );
+    assert.equal(
+      resolveNotifyAddress({
+        envNotify: "  ",
+        settingsEmail: "settings@shop.pk",
+        customerEmail: "ali@example.com",
+      }),
+      "settings@shop.pk"
+    );
+    assert.equal(
+      resolveNotifyAddress({
+        envNotify: "Ali@example.com",
+        settingsEmail: "settings@shop.pk",
+        customerEmail: "ali@example.com",
+      }),
+      ""
+    );
+  });
+});
+
+describe("defaultFromAddress", () => {
+  it("uses the spoken brand as the display name", () => {
+    assert.equal(defaultFromAddress("Buy n Try"), "Buy n Try <no-reply@voltgear.store>");
+  });
+});
+
+describe("orderEmailFailureNote", () => {
+  it("is silent when both sends succeeded", () => {
+    assert.equal(
+      orderEmailFailureNote({ customerSent: true, adminSent: true, adminTo: "a@b.com" }),
+      null
+    );
+  });
+
+  it("names the failed letters", () => {
+    const note = orderEmailFailureNote({
+      customerSent: false,
+      adminSent: false,
+      adminTo: "a@b.com",
+    });
+    assert.match(note ?? "", /customer confirmation failed/);
+    assert.match(note ?? "", /owner alert failed/);
   });
 });
 

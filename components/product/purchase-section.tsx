@@ -26,9 +26,17 @@ import { trackAddToCart } from "@/lib/analytics";
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import { imageUrl } from "@/lib/sanity/image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
+import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
 import { getVariantStockState } from "@/lib/stock";
 import type { Product, ProductVariant } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
+import {
+  axesEnabled,
+  canSubmitVariantSelection,
+  colorImageForKey,
+  comboVariantKey,
+  initialAxisSelection,
+} from "@/lib/variant-options-rules";
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import { ProductSocialVideoModal } from "@/components/product/product-social-video-modal";
 
@@ -44,44 +52,60 @@ export function PurchaseSection({
   product: Product;
 }) {
   const { addItem } = useCart();
-  const [variant, setVariant] = useState<ProductVariant | null>(() =>
-    defaultVariant(product)
+  const axesOn = axesEnabled(product);
+  const [colorKey, setColorKey] = useState<string | null>(() =>
+    initialAxisSelection(product.colorOptions)
+  );
+  const [sizeKey, setSizeKey] = useState<string | null>(() =>
+    initialAxisSelection(product.sizeOptions)
+  );
+  const [legacyVariant, setLegacyVariant] = useState<ProductVariant | null>(() =>
+    axesOn ? null : defaultVariant(product)
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
 
+  const selectedKey = axesOn ? comboVariantKey(colorKey, sizeKey) : legacyVariant?._key;
+  const variant = axesOn
+    ? (product.variants ?? []).find((v) => v._key === selectedKey) ?? null
+    : legacyVariant;
   const hasVariants = (product.variants?.length ?? 0) > 0;
+  const selectionReady = axesOn
+    ? canSubmitVariantSelection(product, colorKey, sizeKey)
+    : !hasVariants || Boolean(variant);
   const stock = getVariantStockState(product, variant);
   const outOfStock = stock.soldOut;
 
-  const price = variant?.price ?? product.price;
-  const compareAtPrice =
-    variant?.compareAtPrice ?? product.compareAtPrice;
+  const price = axesOn ? product.price : variant?.price ?? product.price;
+  const compareAtPrice = axesOn
+    ? product.compareAtPrice
+    : variant?.compareAtPrice ?? product.compareAtPrice;
   const discount =
     compareAtPrice && compareAtPrice > price
       ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
       : 0;
 
+  const colorPhoto = axesOn ? colorImageForKey(product.colorOptions, colorKey) : variant?.image;
   const selectedVariantImage = useMemo(() => {
-    const v = variant;
-    if (!v?.image) return null;
+    if (!colorPhoto) return null;
     return {
-      src: imageUrl(v.image, { w: PRODUCT_IMAGE.gallery }),
-      thumb: imageUrl(v.image, { w: PRODUCT_IMAGE.thumb }),
-      alt: `${product.name} — ${v.name}`,
+      src: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.gallery }),
+      thumb: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb }),
+      alt: `${product.name}${variant?.name ? ` — ${variant.name}` : ""}`,
     };
-  }, [variant, product.name]);
+  }, [colorPhoto, product.name, variant?.name]);
 
-  const itemImage =
-    product.images?.[0]
+  const itemImage = colorPhoto
+    ? imageUrl(colorPhoto, { w: 128 })
+    : product.images?.[0]
       ? imageUrl(product.images[0], { w: 128 })
       : product.cloudinaryImages?.[0]
         ? cloudinaryImageUrl(product.cloudinaryImages[0], { w: 128 })
         : undefined;
 
   function handleAdd() {
-    if (outOfStock) return;
+    if (outOfStock || !selectionReady) return;
     addItem(
       {
         slug: product.slug,
@@ -185,8 +209,18 @@ export function PurchaseSection({
           </div>
         </div>
 
-        {/* Variants */}
-        {hasVariants && (
+        {axesOn ? (
+          <VariantAxisPickers
+            colorEnabled={product.colorEnabled}
+            sizeEnabled={product.sizeEnabled}
+            colorOptions={product.colorOptions}
+            sizeOptions={product.sizeOptions}
+            colorKey={colorKey}
+            sizeKey={sizeKey}
+            onColorKey={setColorKey}
+            onSizeKey={setSizeKey}
+          />
+        ) : hasVariants ? (
           <fieldset>
             <legend className="mb-2 text-sm font-semibold">Options</legend>
             <div className="flex flex-wrap gap-2">
@@ -200,7 +234,7 @@ export function PurchaseSection({
                     disabled={vStock.soldOut}
                     aria-pressed={selected}
                     aria-label={`${v.name}${vStock.soldOut ? " (sold out)" : ""}`}
-                    onClick={() => setVariant(v)}
+                    onClick={() => setLegacyVariant(v)}
                     className={cn(
                       "min-h-11 rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
                       selected
@@ -216,7 +250,7 @@ export function PurchaseSection({
               })}
             </div>
           </fieldset>
-        )}
+        ) : null}
 
         {/* Quantity + Add to Cart + Buy Now */}
         <div className="flex flex-col gap-4 mt-8 pb-4 border-b border-border/50">
@@ -247,7 +281,7 @@ export function PurchaseSection({
             <Button
               ref={btnRef}
               className="h-12 w-full rounded lg:text-[15px] font-bold tracking-wide shadow-sm flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-all"
-              disabled={outOfStock}
+              disabled={outOfStock || !selectionReady}
               onClick={handleAdd}
             >
               {added ? (
@@ -257,11 +291,11 @@ export function PurchaseSection({
               ) : (
                 <>
                   <ShoppingBag className="h-5 w-5" strokeWidth={2.5} />
-                  {outOfStock ? "Sold Out" : "Add to Cart"}
+                  {outOfStock ? "Sold Out" : !selectionReady ? "Choose options" : "Add to Cart"}
                 </>
               )}
             </Button>
-            {!outOfStock && (
+            {!outOfStock && selectionReady && (
               <div className="[&>button]:h-12 [&>button]:rounded [&>button]:border-2 [&>button]:border-primary [&>button]:bg-transparent [&>button]:text-primary hover:[&>button]:bg-primary/5 [&>button]:transition-colors [&>button]:font-bold [&>button]:text-[15px] [&>button]:tracking-wide relative">
                 <BuyNow
                   product={product}

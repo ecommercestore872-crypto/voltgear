@@ -8,6 +8,7 @@ import {
   getPendingEmailEvents as getPendingEmailEventsFromDb,
   markEmailSent as markEmailSentRow,
   recentWinbackExists as recentWinbackExistsRow,
+  appendOrderHistoryNote,
   cancelOrderRestoreInventoryRow,
   updateOrderStatusRow,
   deleteOrderRow,
@@ -55,6 +56,10 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 }
 
 export const ORDER_STATUSES = ORDER_STATUS_VALUES;
+
+export async function appendOrderNote(orderId: string, note: string): Promise<void> {
+  return appendOrderHistoryNote(orderId, note);
+}
 
 export async function updateOrderStatus(
   orderId: string,

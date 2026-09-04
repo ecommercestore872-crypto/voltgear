@@ -26,6 +26,13 @@ export interface ProductVariant {
   isDefault?: boolean;
 }
 
+export interface ProductOption {
+  key: string;
+  name: string;
+  enabled: boolean;
+  image?: StoreImage;
+}
+
 export interface ProductVideo {
   url?: string;
   cloudinaryPublicId?: string;
@@ -55,10 +62,15 @@ export interface Product {
   inTheBox?: string[];
   productVideo?: ProductVideo;
   variants?: ProductVariant[];
+  colorEnabled?: boolean;
+  sizeEnabled?: boolean;
+  colorOptions?: ProductOption[];
+  sizeOptions?: ProductOption[];
   productFaq?: ProductFaqItem[];
   sku?: string;
   brand?: string;
   stockStatus: StockStatus;
+  quantity?: number | null;
   rating?: number;
   reviewCount?: number;
   reviews?: ProductReview[];
