@@ -138,6 +138,7 @@ export interface SiteSettings {
   footerCompanyLinks?: { label: string; href: string }[];
   footerCareLinks?: { label: string; href: string }[];
   orderEmails?: import("./order-email-cms-rules").OrderEmailConfig;
+  autopilot?: import("./autopilot/config").AutopilotConfig;
   announcement?: {
     enabled?: boolean;
     message?: string;
@@ -231,6 +232,7 @@ export interface Order {
   statusHistory?: OrderStatusHistoryEntry[];
   createdAt: string;
   isDemo?: boolean;
+  postexTrackingNumber?: string;
 }
 
 export type EmailEventKind =

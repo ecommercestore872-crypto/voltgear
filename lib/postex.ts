@@ -98,6 +98,34 @@ export async function createPostExOrder(
 /**
  * Fetches PDF invoice / airway bill base64 string from PostEx for tracking number(s).
  */
+export function postExConfigured(): boolean {
+  return Boolean(getPostExToken());
+}
+
+/** Official path: GET /v1/track-order/{trackingNumber} with `token` header. */
+export async function trackPostExOrder(
+  trackingNumber: string
+): Promise<{ ok: true; rawStatus: string; data: unknown } | { ok: false; error: string }> {
+  const token = getPostExToken();
+  if (!token) return { ok: false, error: "PostEx API Token is missing." };
+  const tn = trackingNumber.trim();
+  if (!tn) return { ok: false, error: "Missing tracking number." };
+  try {
+    const res = await fetch(`${POSTEX_BASE_URL}/v1/track-order/${encodeURIComponent(tn)}`, {
+      method: "GET",
+      headers: { token },
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      return { ok: false, error: `PostEx track failed (${res.status})` };
+    }
+    return { ok: true, rawStatus: JSON.stringify(data ?? {}), data };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "PostEx track request failed.";
+    return { ok: false, error: message };
+  }
+}
+
 export async function getPostExInvoice(
   trackingNumbers: string[]
 ): Promise<{ ok: true; pdfBase64: string } | { ok: false; error: string }> {

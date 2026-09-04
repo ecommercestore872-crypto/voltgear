@@ -129,10 +129,33 @@ export async function GET(request: Request) {
     winbacksQueued++;
   }
 
+  let autoBooked = 0;
+  let autoRescued = 0;
+  try {
+    const { fetchSiteSettings } = await import("@/lib/db/store");
+    const { parseAutopilotConfig } = await import("@/lib/autopilot/config");
+    const settings = await fetchSiteSettings().catch(() => null);
+    const cfg = parseAutopilotConfig(settings?.autopilot);
+    if (cfg.autoDispatch) {
+      const { runAutoDispatch } = await import("@/lib/autopilot/dispatch-run");
+      const booked = await runAutoDispatch();
+      autoBooked = booked.filter((r) => r.ok && r.action === "book" && r.trackingNumber).length;
+    }
+    if (cfg.autoRescue) {
+      const { runAutoRescue } = await import("@/lib/autopilot/rescue-run");
+      const rescued = await runAutoRescue();
+      autoRescued = rescued.filter((r) => r.changed).length;
+    }
+  } catch (err) {
+    errors.push(`autopilot: ${String(err)}`);
+  }
+
   return NextResponse.json({
     ok: true,
     sent: results,
     winbacksQueued,
+    autoBooked,
+    autoRescued,
     errors,
     queued: events.length,
   });

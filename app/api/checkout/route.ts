@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
+import { parseAutopilotConfig } from "@/lib/autopilot/config";
+import { fulfillOrderWithPostEx } from "@/lib/autopilot/dispatch-run";
 import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
 import { appendOrderNote, createOrder, enqueueEmailEvent, nextPublicOrderId } from "@/lib/order-store";
-import { fetchSiteSettings } from "@/lib/db/store";
+import { fetchSiteSettings, getAllOrders, getOrderByPublicId } from "@/lib/db/store";
 import { resolveCheckout, CHECKOUT_PRICE_CHANGED_ERROR, GIFT_WRAP_FEE } from "@/lib/checkout-server";
 import { isDemoRequest } from "@/lib/demo";
 import { attachOrderAttribution } from "@/lib/db/analytics-checkout";
@@ -227,6 +229,15 @@ export async function POST(request: Request) {
       emailPayload,
       5 * 24 * 60 * 60 * 1000
     );
+
+    try {
+      if (parseAutopilotConfig(settings?.autopilot).autoDispatch) {
+        const placed = await getOrderByPublicId(orderId);
+        if (placed) await fulfillOrderWithPostEx(placed, await getAllOrders());
+      }
+    } catch {
+      console.error("[checkout] autopilot dispatch skipped");
+    }
 
     return NextResponse.json({
       ok: true,

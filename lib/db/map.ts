@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types";
 import { normalizeHomeSections } from "@/lib/db/home-section-rules";
 import { parseChromeLinks } from "@/lib/chrome-nav-rules";
+import { parseAutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig } from "@/lib/order-email-cms-rules";
 import { parseVariantOptions } from "@/lib/variant-options-rules";
 
@@ -151,6 +152,7 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     footerCompanyLinks: parseChromeLinks(row.footer_company_links) ?? undefined,
     footerCareLinks: parseChromeLinks(row.footer_care_links) ?? undefined,
     orderEmails: parseOrderEmailConfig(row.order_emails),
+    autopilot: parseAutopilotConfig(row.autopilot),
     announcement: row.announcement as SiteSettings["announcement"],
     seo: row.seo as SiteSettings["seo"],
     homeSections: normalizeHomeSections(row.home_sections),

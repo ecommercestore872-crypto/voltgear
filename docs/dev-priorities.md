@@ -6,11 +6,8 @@ Single tracker for this store. Status lives here only.
 
 ## Active task
 
-**T-38 — Autopilot honesty** — next  
-Spec: pending  
-
-**T-37 — Order email CMS** — shipping  
-Spec: `docs/superpowers/specs/2026-09-05-t37-order-email-cms-design.md`  
+**T-38 — Autopilot** — slice B engines implemented locally  
+Spec: `docs/superpowers/specs/2026-09-05-t38b-autopilot-engines-design.md`  
 
 ## Program
 
@@ -57,7 +54,7 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-35 | Color and Size variants | ✅ Done | T-09, T-34 | Color/Size on/off + per-value on/off. Optional color photo swaps gallery. Product units only. |
 | T-36 | Chrome CMS | ✅ Done | T-32 | Settings-driven logo, navbar, Help, footer Company/Care. |
 | T-37 | Order email CMS | ✅ Done | T-04, T-36 | Shared theme/layout + subject/body for six order letters at `/admin/order-emails`. Run `20260905050000_order_emails.sql` on live Supabase. |
-| T-38 | Autopilot honesty UI | ⚪ Planned | T-34 | Tell the truth on Autopilot screens: off by default, engines are not live. |
+| T-38 | Autopilot honesty + engines | 🟡 In Progress | T-34 | A: honest board. B: real PostEx book/track + CSV settle. Ads/reorder not engines. |
 
 ## Suggested build order
 

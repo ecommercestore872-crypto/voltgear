@@ -18,6 +18,7 @@ import {
 } from "@/lib/db/publish";
 import { missingSchemaColumn, omitColumn } from "@/lib/db/product-column-fallback";
 import { sanitizeChromeLinks, validateChromeLists } from "@/lib/chrome-nav-rules";
+import { parseAutopilotConfig, type AutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
@@ -801,6 +802,38 @@ export async function publishAdminOrderEmails(config: OrderEmailConfig) {
     payload = omitColumn(payload, missing);
   }
   return { ok: false as const, error: "Order email columns are missing on the database.", status: 500 };
+}
+
+export function editorAutopilot(row: Record<string, unknown> | null): AutopilotConfig {
+  return parseAutopilotConfig(row?.autopilot);
+}
+
+export async function publishAdminAutopilot(config: AutopilotConfig) {
+  const parsed = parseAutopilotConfig(config);
+  let payload: Record<string, unknown> = {
+    autopilot: parsed,
+    updated_at: new Date().toISOString(),
+  };
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const { error } = await db().from("site_settings").update(payload).eq("id", 1);
+    if (!error) {
+      if (!("autopilot" in payload)) {
+        return {
+          ok: false as const,
+          error: "Run supabase/migrations/20260905060000_autopilot.sql on Supabase.",
+          status: 500,
+        };
+      }
+      revalidatePath("/admin/autopilot/settings");
+      return { ok: true as const };
+    }
+    const missing = missingSchemaColumn(error);
+    if (!missing || !(missing in payload)) {
+      return { ok: false as const, error: error.message, status: 500 };
+    }
+    payload = omitColumn(payload, missing);
+  }
+  return { ok: false as const, error: "Autopilot column is missing on the database.", status: 500 };
 }
 
 export async function discardAdminOrderEmails() {

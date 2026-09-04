@@ -492,6 +492,9 @@ function mapOrder(row: Record<string, unknown>, items: OrderItem[], history: Ord
     statusHistory: history,
     createdAt: String(row.created_at ?? new Date().toISOString()),
     isDemo: Boolean(row.is_demo),
+    postexTrackingNumber: row.postex_tracking_number
+      ? String(row.postex_tracking_number)
+      : undefined,
   };
 }
 

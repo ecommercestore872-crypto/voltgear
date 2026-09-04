@@ -31,7 +31,11 @@ function formatDate(iso?: string | null): string {
   });
 }
 
-export function OrderDetail({ order }: { order: Order & { postex_tracking_number?: string } }) {
+export function OrderDetail({
+  order,
+}: {
+  order: Order & { postex_tracking_number?: string };
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<OrderStatus>(order.status ?? "new");
   const [note, setNote] = useState("");

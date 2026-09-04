@@ -12,7 +12,8 @@ interface PostExChitModalProps {
 export function PostExChitModal({ order, onClose }: PostExChitModalProps) {
   const printRef = useRef<HTMLDivElement>(null);
 
-  const trackingNo = order.postex_tracking_number || `PE-${order.orderId}`;
+  const trackingNo =
+    order.postexTrackingNumber || order.postex_tracking_number || `PE-${order.orderId}`;
   const customer = order.customer || {};
 
   function handlePrint() {
