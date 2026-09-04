@@ -16,6 +16,7 @@ import {
   withGeneratedVariants,
   type ProductDocument,
 } from "@/lib/db/publish";
+import { missingSchemaColumn, omitColumn } from "@/lib/db/product-column-fallback";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import {
@@ -211,6 +212,26 @@ async function replaceProductChildren(id: string, doc: ProductDocument) {
   }
 }
 
+async function writeLiveProductRow(
+  id: string,
+  row: Record<string, unknown>
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  let payload: Record<string, unknown> = { ...row, updated_at: new Date().toISOString() };
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const { error } = await db().from("products").update(payload).eq("id", id);
+    if (!error) return { ok: true };
+    if (error.code === "23505") {
+      return { ok: false, error: "That slug is already used.", status: 409 };
+    }
+    const missing = missingSchemaColumn(error);
+    if (!missing || !(missing in payload)) {
+      return { ok: false, error: error.message, status: 500 };
+    }
+    payload = omitColumn(payload, missing);
+  }
+  return { ok: false, error: "Product columns are missing on the database.", status: 500 };
+}
+
 export async function publishAdminProduct(id: string, doc: ProductDocument) {
   const current = await getAdminProduct(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
@@ -221,16 +242,8 @@ export async function publishAdminProduct(id: string, doc: ProductDocument) {
     return { ok: false as const, error: "That product name is already used.", status: 409 };
   }
   const row = toLiveProductRow(merged);
-  const { error } = await db()
-    .from("products")
-    .update({ ...row, updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) {
-    if (error.code === "23505") {
-      return { ok: false as const, error: "That slug is already used.", status: 409 };
-    }
-    return { ok: false as const, error: error.message, status: 500 };
-  }
+  const written = await writeLiveProductRow(id, row);
+  if (!written.ok) return written;
   try {
     await replaceProductChildren(id, merged);
   } catch (err) {
