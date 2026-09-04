@@ -12,18 +12,9 @@ export type LifestyleTile = {
   product: Product;
 };
 
-const LIFESTYLE_LABELS: Record<string, string> = {
-  smartwatch: "For Everyday",
-  "power-bank": "For Adventure",
-  charger: "For Productivity",
-  earbuds: "For Focus",
-  headphones: "For Sound",
-  cable: "For Lifestyle",
-};
-
 function tileLabel(href: string, fallback: string) {
-  const slug = href.split("/").pop() || "";
-  return LIFESTYLE_LABELS[slug] || `For ${fallback}`;
+  // Use the admin-managed category name directly.
+  return fallback;
 }
 
 export function GadgetLifestyleShop({

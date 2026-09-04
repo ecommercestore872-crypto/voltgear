@@ -256,13 +256,13 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
             <li
               key={`${item.customerName}-${i}`}
               data-review-card
-              className="w-[min(100%,20.5rem)] shrink-0 sm:w-[22rem]"
+              className="w-[min(100%,18rem)] shrink-0 sm:w-[19rem]"
               aria-hidden={i >= items.length}
             >
-              <blockquote className="gadget-review-card group flex h-full min-h-[15.5rem] flex-col rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 shadow-[0_8px_28px_rgba(31,54,38,0.06)] transition duration-500 ease-out hover:-translate-y-1 hover:border-[var(--g-sage)]/40 hover:shadow-[0_18px_40px_rgba(31,54,38,0.12)]">
-                <div className="flex items-start justify-between gap-3">
+              <blockquote className="gadget-review-card group flex h-full min-h-[14rem] flex-col rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-5 shadow-[0_4px_16px_rgba(31,54,38,0.04)] transition duration-500 ease-out hover:-translate-y-1 hover:border-[var(--g-sage)]/40 hover:shadow-[0_12px_32px_rgba(31,54,38,0.08)]">
+                <div className="flex items-start justify-between gap-2">
                   <Quote
-                    className="h-8 w-8 text-[var(--g-sage)] transition duration-500 group-hover:scale-110 group-hover:text-[var(--g-forest)]"
+                    className="h-6 w-6 text-[var(--g-sage)] transition duration-500 group-hover:scale-110 group-hover:text-[var(--g-forest)]"
                     aria-hidden
                   />
                   <div className="flex items-center gap-0.5" aria-label={`${item.rating} out of 5 stars`}>
@@ -280,11 +280,11 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
                   </div>
                 </div>
 
-                <p className="mt-4 flex-1 text-[15px] leading-relaxed text-[var(--g-charcoal)]/85">
+                <p className="mt-3 flex-1 text-[14.5px] leading-relaxed text-[var(--g-charcoal)]/85">
                   “{item.reviewText}”
                 </p>
 
-                <footer className="mt-6 flex items-center gap-3 border-t border-[var(--g-line)] pt-4">
+                <footer className="mt-4 flex items-center gap-3 border-t border-[var(--g-line)] pt-4">
                   <span
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--g-forest)] text-sm font-bold text-[var(--g-white)] transition duration-300 group-hover:scale-105"
                     aria-hidden

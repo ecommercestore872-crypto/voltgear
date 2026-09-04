@@ -113,14 +113,14 @@ export async function GadgetHomePage() {
     {
       key: "returns",
       title: "Easy Returns",
-      detail: "Warranty backed",
+      detail: config.returnWindowDays ? `${config.returnWindowDays}-day policy` : "Hassle-free",
       icon: "returns" as const,
       show: true,
     },
     {
       key: "curated",
-      title: "Curated Tech",
-      detail: "Certified picks",
+      title: "Quality Covered",
+      detail: config.warrantyMonths ? `${config.warrantyMonths}-month warranty` : "Certified picks",
       icon: "curated" as const,
       show: true,
     },

@@ -8,6 +8,7 @@ import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
 import { imageUrl } from "@/lib/sanity/image";
 import type { SiteSettings } from "@/lib/types";
+import { formatPrice } from "@/lib/utils";
 
 const COMPANY_LINKS = [
   { href: "/about", label: "About Us" },
@@ -66,6 +67,11 @@ export function GadgetFooter({
     (s) => s.platform && s.url && s.url.startsWith("http")
   );
 
+  const threshold = settings?.freeShippingThreshold ?? 3000;
+  const warrantyMonths = settings?.warrantyMonths ?? 12;
+  const returnWindowDays = settings?.returnWindowDays ?? 7;
+  const codEnabled = settings?.codEnabled ?? true;
+
   return (
     <footer className="bg-[var(--g-cream)] pt-6 sm:px-3 sm:pb-3 sm:pt-8">
       <div className="overflow-hidden rounded-t-[2.25rem] bg-[var(--g-forest)] text-[var(--g-white)] sm:rounded-[2.25rem]">
@@ -76,21 +82,25 @@ export function GadgetFooter({
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
                 <Truck className="h-5 w-5 stroke-[1.6]" />
               </span>
-              <p className="text-xs font-bold text-white">Free Shipping</p>
-              <p className="text-[11px] text-white/60">On orders over Rs. 3,000</p>
+              <p className="text-xs font-bold text-white">{threshold > 0 ? "Free Shipping" : "Fast Shipping"}</p>
+              <p className="text-[11px] text-white/60">
+                {threshold > 0 ? `On orders over ${formatPrice(threshold)}` : "Across the country"}
+              </p>
             </div>
-            <div className="flex flex-col items-center gap-1.5 p-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
-                <Banknote className="h-5 w-5 stroke-[1.6]" />
-              </span>
-              <p className="text-xs font-bold text-white">Cash on Delivery</p>
-              <p className="text-[11px] text-white/60">Pay at your doorstep</p>
-            </div>
+            {codEnabled && (
+              <div className="flex flex-col items-center gap-1.5 p-2">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
+                  <Banknote className="h-5 w-5 stroke-[1.6]" />
+                </span>
+                <p className="text-xs font-bold text-white">Cash on Delivery</p>
+                <p className="text-[11px] text-white/60">Pay at your doorstep</p>
+              </div>
+            )}
             <div className="flex flex-col items-center gap-1.5 p-2">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm">
                 <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
               </span>
-              <p className="text-xs font-bold text-white">1-Year Warranty</p>
+              <p className="text-xs font-bold text-white">{warrantyMonths}-Month Warranty</p>
               <p className="text-[11px] text-white/60">100% genuine replacement</p>
             </div>
             <div className="flex flex-col items-center gap-1.5 p-2">
@@ -98,7 +108,7 @@ export function GadgetFooter({
                 <RotateCcw className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">Easy Returns</p>
-              <p className="text-[11px] text-white/60">7-day hassle-free policy</p>
+              <p className="text-[11px] text-white/60">{returnWindowDays}-day hassle-free policy</p>
             </div>
           </div>
         </div>
