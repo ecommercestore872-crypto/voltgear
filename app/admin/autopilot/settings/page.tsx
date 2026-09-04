@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+
 import {
-  Sparkles,
-  ShieldCheck,
-  Radio,
   Power,
-  Settings2,
   CheckCircle2,
   Database,
   Truck,
@@ -23,7 +20,7 @@ export default function AutopilotSettingsPage() {
   const [settings, setSettings] = useState(getAutopilotSettings());
   const [saved, setSaved] = useState(false);
 
-  function handleModeChange(key: keyof typeof settings, value: any) {
+  function handleModeChange(key: keyof typeof settings, value: boolean | string | AutopilotMode) {
     const updated = updateAutopilotSettings({ [key]: value });
     setSettings(updated);
     setSaved(true);

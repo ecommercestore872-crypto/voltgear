@@ -4,14 +4,8 @@ import React, { useState } from "react";
 import {
   Tag,
   CreditCard,
-  Zap,
   Plus,
-  CheckCircle2,
-  Calendar,
-  Percent,
-  DollarSign,
   Building2,
-  Trash2,
   Sparkles,
   Flame,
 } from "lucide-react";
@@ -89,7 +83,7 @@ export default function AdminPromotionsPage() {
   const [activeTab, setActiveTab] = useState<"COUPONS" | "BANKS" | "CAMPAIGNS">("COUPONS");
   const [coupons, setCoupons] = useState<DiscountCoupon[]>(INITIAL_COUPONS);
   const [bankOffers, setBankOffers] = useState<BankPaymentOffer[]>(INITIAL_BANK_OFFERS);
-  const [campaigns, setCampaigns] = useState<FlashCampaign[]>(INITIAL_FLASH_CAMPAIGNS);
+  const [campaigns] = useState<FlashCampaign[]>(INITIAL_FLASH_CAMPAIGNS);
 
   // New Coupon Form state
   const [newCode, setNewCode] = useState("");

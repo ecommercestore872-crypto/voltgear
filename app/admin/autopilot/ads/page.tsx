@@ -7,7 +7,7 @@ import {
   Flame,
   Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { buildAdBudgetOverview } from "@/lib/autopilot/ad-engine";
 import { ProductAdMetrics } from "@/lib/autopilot/ad-types";
 
