@@ -23,6 +23,7 @@ interface CheckoutCustomer {
   address?: string;
   city?: string;
   postal?: string;
+  note?: string;
 }
 
 interface CheckoutBody {
@@ -146,6 +147,7 @@ export async function POST(request: Request) {
         address: customer.address,
         city: customer.city,
         postal: customer.postal,
+        note: customer.note,
       },
       items: lines,
       payment: "cod" as const,

@@ -199,6 +199,14 @@ export function OrderDetail({ order }: { order: Order & { postex_tracking_number
               <dd>{customer.postal}</dd>
             </div>
           ) : null}
+          {customer.note ? (
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground font-semibold">Order Note</dt>
+              <dd className="rounded-md bg-muted/50 p-3 mt-1 text-sm border">
+                {customer.note}
+              </dd>
+            </div>
+          ) : null}
         </dl>
       </section>
 

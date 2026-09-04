@@ -193,7 +193,10 @@ export default function CheckoutPage() {
             ...(i.variantName ? { variantName: i.variantName } : {}),
             ...(i.variantSku ? { variantSku: i.variantSku } : {}),
           })),
-          customer, // contains name, email, phone, etc
+          customer: {
+            ...customer,
+            note: orderNotes.trim() || undefined,
+          }, // contains name, email, phone, etc, plus order notes
           payment: { method: payment },
           subtotal,
           shipping,

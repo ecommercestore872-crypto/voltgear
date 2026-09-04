@@ -173,6 +173,7 @@ export interface OrderCustomer {
   address?: string;
   city?: string;
   postal?: string;
+  note?: string;
 }
 
 export interface OrderItem {
