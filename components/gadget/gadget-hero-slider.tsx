@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 
+import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import { resolveSlideCta } from "@/lib/db/hero-slide-rules";
 import type { GadgetCreativeBanner } from "@/lib/gadget-creatives";
 import { product2Href } from "@/lib/gadget-preview";
@@ -98,6 +99,7 @@ export function GadgetHeroSlider({
       className="bg-[var(--g-cream)] px-3 pt-3 pb-2 sm:px-4 sm:pt-4 lg:px-8"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      role="region"
       aria-roledescription="carousel"
       aria-label="Campaign banners"
     >
@@ -105,33 +107,32 @@ export function GadgetHeroSlider({
         <div className="relative aspect-[16/10] w-full sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
           {banners.map((banner, i) => {
             const isActive = i === index;
+            const shouldPaint = isActive || i === 0;
             return (
               <div
                 key={banner.id}
                 className="absolute inset-0"
                 style={{
                   opacity: isActive ? 1 : 0,
-                  transform: reduceMotion
-                    ? undefined
-                    : isActive
-                      ? "scale(1)"
-                      : "scale(1.04)",
                   transition: reduceMotion
                     ? "opacity 1ms"
-                    : `opacity ${FADE_MS}ms cubic-bezier(0.22, 1, 0.36, 1), transform ${FADE_MS + 300}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+                    : `opacity ${FADE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
                   zIndex: isActive ? 1 : 0,
                   pointerEvents: isActive ? "auto" : "none",
                 }}
                 aria-hidden={!isActive}
               >
-                <Image
-                  src={banner.imageUrl}
-                  alt={banner.title || "Campaign"}
-                  fill
-                  priority={i === 0}
-                  className="object-cover object-center"
-                  sizes="(max-width: 1200px) 100vw, 1200px"
-                />
+                {shouldPaint ? (
+                  <Image
+                    src={cloudinaryImageUrl(banner.imageUrl, { w: 1200 }) || banner.imageUrl}
+                    alt=""
+                    fill
+                    priority={i === 0}
+                    quality={70}
+                    className="object-cover object-center"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1152px"
+                  />
+                ) : null}
               </div>
             );
           })}
@@ -207,10 +208,12 @@ export function GadgetHeroSlider({
             {!active.ctaDisabled ? (
               <Link
                 href={active.href}
-                className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[var(--g-amber)] px-5 py-2 text-xs font-black uppercase tracking-wider text-[var(--g-charcoal)] shadow-[0_8px_20px_rgba(245,166,35,0.4)] transition-all hover:scale-105 hover:bg-[#F5B435] sm:px-6 sm:text-sm"
+                className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[#f0b429] px-5 py-2 text-xs font-black uppercase tracking-wider text-[#1a1a1a] shadow-[0_8px_20px_rgba(245,166,35,0.4)] transition-all hover:scale-105 hover:bg-[#f5c14d] sm:px-6 sm:text-sm"
               >
                 <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
-                <span>Shop now</span>
+                <span className="max-w-[16ch] truncate sm:max-w-none">
+                  Shop {active.title || "this offer"}
+                </span>
               </Link>
             ) : (
               <span className="inline-flex min-h-11 items-center rounded-full bg-white/20 backdrop-blur-md px-5 text-xs font-bold uppercase tracking-wide text-white border border-white/20">

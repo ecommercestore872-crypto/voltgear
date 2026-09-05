@@ -4,7 +4,6 @@ import { GadgetFeaturedProduct } from "@/components/gadget/gadget-featured-produ
 import { GadgetHeroSlider } from "@/components/gadget/gadget-hero-slider";
 import { GadgetLifestyleShop } from "@/components/gadget/gadget-lifestyle-shop";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
-import { GadgetReveal } from "@/components/gadget/gadget-reveal";
 import { GadgetReviewsSlider } from "@/components/gadget/gadget-reviews-slider";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
 import { GadgetTrustStrip } from "@/components/gadget/gadget-trust-strip";
@@ -12,8 +11,7 @@ import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import {
   fetchBlogPosts,
   fetchHeroSlides,
-  fetchHomeBestsellers,
-  fetchAllProducts,
+  fetchHomepageProducts,
   fetchShopTypes,
   fetchSiteSettings,
   fetchTestimonials,
@@ -47,7 +45,6 @@ export async function GadgetHomePage() {
   let products: Product[] = [];
   let testimonials: Testimonial[] = [];
   let slides: Awaited<ReturnType<typeof fetchHeroSlides>> = [];
-  let bestsellers: Product[] = [];
   let blogPosts: Page[] = [];
   let settings = null;
   let shopTypes = gadgetShopTypeLinks(FALLBACK_SHOP_TYPES);
@@ -56,14 +53,13 @@ export async function GadgetHomePage() {
   let slotOffers: Product[] | null = null;
   let extraRails: Awaited<ReturnType<typeof fetchExtraCollectionRails>> = [];
   try {
-    const [s, p, t, set, types, best, blogs, colBest, colFeat, colOffers, extra] =
+    const [s, p, t, set, types, blogs, colBest, colFeat, colOffers, extra] =
       await Promise.all([
         fetchHeroSlides(demo),
-        fetchAllProducts(demo),
+        fetchHomepageProducts(demo),
         fetchTestimonials(demo),
         fetchSiteSettings(),
         fetchShopTypes(),
-        fetchHomeBestsellers(demo),
         fetchBlogPosts(demo),
         fetchProductsForHomeSlot("bestsellers", demo).catch(() => null),
         fetchProductsForHomeSlot("featured", demo).catch(() => null),
@@ -75,7 +71,6 @@ export async function GadgetHomePage() {
     testimonials = t;
     settings = set;
     shopTypes = gadgetShopTypeLinks(types);
-    bestsellers = applyGadgetStudioImagesList(best);
     blogPosts = blogs;
     slotBestsellers = colBest
       ? applyGadgetStudioImagesList(colBest)
@@ -139,13 +134,7 @@ export async function GadgetHomePage() {
     .filter((p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p))
     .slice(0, 8);
 
-  const railProducts = (
-    slotBestsellers?.length
-      ? slotBestsellers
-      : bestsellers.length
-        ? bestsellers
-        : newArrivals
-  ).slice(0, 8);
+  const railProducts = (slotBestsellers?.length ? slotBestsellers : newArrivals).slice(0, 8);
 
   const featuredProduct =
     slotFeatured?.find(
@@ -207,17 +196,16 @@ export async function GadgetHomePage() {
   const lastMerchId = [...layout].reverse().find((id) => merchIds.includes(id));
   const extraRailTones = ["leaf", "clay", "default"] as const;
 
-  function extraCollectionSections(startDelay: number) {
+  function extraCollectionSections() {
     return extraRails.map((rail, index) => (
-      <GadgetReveal key={`collection-${rail.id}`} delayMs={startDelay + index * 20}>
-        <GadgetNewArrivals
-          products={rail.products}
-          title={rail.name}
-          headingId={`collection-${rail.slug}-heading`}
-          viewAllHref={collectionHref(rail.slug)}
-          tone={extraRailTones[index % extraRailTones.length]}
-        />
-      </GadgetReveal>
+      <GadgetNewArrivals
+        key={`collection-${rail.id}`}
+        products={rail.products}
+        title={rail.name}
+        headingId={`collection-${rail.slug}-heading`}
+        viewAllHref={collectionHref(rail.slug)}
+        tone={extraRailTones[index % extraRailTones.length]}
+      />
     ));
   }
 
@@ -225,77 +213,54 @@ export async function GadgetHomePage() {
     <div className="text-[var(--g-charcoal)]">
       <GadgetHeroSlider slides={slides} fallbackBanners={demoBanners} />
 
-      {layout.map((id, i) => {
-        const delayMs = 40 + i * 20;
+      {layout.map((id) => {
         let section: ReactNode = null;
         switch (id) {
           case "trust":
-            section = trustItems.length ? (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetTrustStrip items={trustItems} />
-              </GadgetReveal>
-            ) : null;
+            section = trustItems.length ? <GadgetTrustStrip key={id} items={trustItems} /> : null;
             break;
           case "bestsellers":
             section = (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetNewArrivals
-                  products={railProducts}
-                  title="Best Sellers"
-                  headingId="best-sellers-heading"
-                  viewAllHref={collectionHref("best-sellers")}
-                  tone="leaf"
-                />
-              </GadgetReveal>
+              <GadgetNewArrivals
+                key={id}
+                products={railProducts}
+                title="Best Sellers"
+                headingId="best-sellers-heading"
+                viewAllHref={collectionHref("best-sellers")}
+                tone="leaf"
+              />
             );
             break;
           case "featured":
             section = featuredProduct ? (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetFeaturedProduct product={featuredProduct} />
-              </GadgetReveal>
+              <GadgetFeaturedProduct key={id} product={featuredProduct} />
             ) : null;
             break;
           case "offers":
             section = (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetNewArrivals
-                  products={bestOffers}
-                  title="Best Offers"
-                  viewAllHref={collectionHref("best-offers")}
-                  headingId="best-offers-heading"
-                  tone="clay"
-                />
-              </GadgetReveal>
+              <GadgetNewArrivals
+                key={id}
+                products={bestOffers}
+                title="Best Offers"
+                viewAllHref={collectionHref("best-offers")}
+                headingId="best-offers-heading"
+                tone="clay"
+              />
             );
             break;
           case "lifestyle":
             section = lifestyleShopHasContent(lifestyleShop) ? (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetLifestyleShop shop={lifestyleShop} />
-              </GadgetReveal>
+              <GadgetLifestyleShop key={id} shop={lifestyleShop} />
             ) : null;
             break;
           case "categories":
-            section = (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetShopCategories tiles={categoryCards} />
-              </GadgetReveal>
-            );
+            section = <GadgetShopCategories key={id} tiles={categoryCards} />;
             break;
           case "reviews":
-            section = (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetReviewsSlider reviews={testimonials} />
-              </GadgetReveal>
-            );
+            section = <GadgetReviewsSlider key={id} reviews={testimonials} />;
             break;
           case "blog":
-            section = (
-              <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetBlogSection posts={blogPosts} />
-              </GadgetReveal>
-            );
+            section = <GadgetBlogSection key={id} posts={blogPosts} />;
             break;
           default:
             section = null;
@@ -304,11 +269,11 @@ export async function GadgetHomePage() {
         return (
           <Fragment key={`${id}-extras`}>
             {section}
-            {extraCollectionSections(delayMs + 20)}
+            {extraCollectionSections()}
           </Fragment>
         );
       })}
-      {!lastMerchId ? extraCollectionSections(40 + layout.length * 20) : null}
+      {!lastMerchId ? extraCollectionSections() : null}
     </div>
   );
 }

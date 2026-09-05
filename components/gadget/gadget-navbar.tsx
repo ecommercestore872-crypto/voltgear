@@ -219,13 +219,13 @@ export function GadgetNavbar({
       <div className="hidden bg-[var(--g-forest)] text-[var(--g-cream)] md:block">
         <div className="mx-auto flex h-8 max-w-[90rem] items-center justify-between gap-6 px-6 text-[10px] font-semibold uppercase tracking-[0.16em] xl:px-8">
           <p className="min-w-0 truncate">
-            <span className="text-[color-mix(in_srgb,var(--g-terracotta)_55%,white)]">
+            <span className="text-[var(--g-cream)]">
               {tagline}
             </span>
-            <span className="mx-2.5 text-white/25">·</span>
-            <span className="text-[var(--g-cream)]/80">Cash on delivery</span>
+            <span className="mx-2.5 text-white/70">·</span>
+            <span className="text-[var(--g-cream)]">Cash on delivery</span>
           </p>
-          <nav className="flex shrink-0 items-center gap-4 text-[var(--g-cream)]/80" aria-label="Help">
+          <nav className="flex shrink-0 items-center gap-4 text-[var(--g-cream)]" aria-label="Help">
             {phone ? (
               <a href={`tel:${phone.replace(/\s+/g, "")}`} className="transition hover:text-[var(--g-cream)]">
                 {phone}
@@ -255,13 +255,11 @@ export function GadgetNavbar({
               logo={settings?.logo}
               name={brandName}
               compact
-              priority
               className="sm:hidden"
             />
             <ShopBrandMark
               logo={settings?.logo}
               name={brandName}
-              priority
               className="hidden sm:inline-flex"
             />
           </Link>
@@ -342,7 +340,7 @@ export function GadgetNavbar({
             >
               <Heart className="h-4 w-4 stroke-[1.75]" />
               {wishCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--g-terracotta)] px-1 text-[9px] font-bold text-[var(--g-cream)]">
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#7a2e12] px-1 text-[9px] font-bold text-white">
                   {wishCount}
                 </span>
               ) : null}
@@ -354,7 +352,7 @@ export function GadgetNavbar({
             >
               <ShoppingBag className="h-4 w-4 stroke-[1.75]" />
               {count > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--g-terracotta)] px-1 text-[9px] font-bold text-[var(--g-cream)]">
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#7a2e12] px-1 text-[9px] font-bold text-white">
                   {count}
                 </span>
               ) : null}

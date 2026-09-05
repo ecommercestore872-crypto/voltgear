@@ -93,6 +93,25 @@ export async function fetchAllProducts(includeDemo = false): Promise<Product[]> 
     .filter(Boolean) as Product[];
 }
 
+const HOMEPAGE_PRODUCT_LIMIT = 36;
+
+/** Slim catalog for the homepage — avoids a second full-catalog + analytics pass. */
+export async function fetchHomepageProducts(includeDemo = false): Promise<Product[]> {
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db().from("products").select(PRODUCT_EMBED).eq("status", LIVE),
+      includeDemo
+    )
+      .order("featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(HOMEPAGE_PRODUCT_LIMIT)
+  );
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+    .filter(Boolean) as Product[];
+}
+
 export async function fetchProductBySlug(slug: string, includeDemo = false): Promise<Product | null> {
   const { data, error } = await execDemoQuery(() =>
     demoFilter(

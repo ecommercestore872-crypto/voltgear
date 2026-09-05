@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import {
   lifestyleShopHasContent,
   visibleLifestyleTiles,
@@ -26,10 +27,10 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
           >
             {banner.imageUrl ? (
               <Image
-                src={banner.imageUrl}
+                src={cloudinaryImageUrl(banner.imageUrl, { w: 900 }) || banner.imageUrl}
                 alt=""
                 fill
-                quality={90}
+                quality={70}
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover object-[center_30%] transition duration-700 ease-out group-hover:scale-[1.03]"
               />
@@ -51,9 +52,11 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
                   {banner.title}
                 </span>
               ) : null}
-              {banner.cta ? (
+              {banner.cta || banner.title ? (
                 <span className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-[var(--g-white)] px-5 text-sm font-medium text-[var(--g-charcoal)] shadow-[0_1px_0_rgba(26,26,26,0.06)] transition group-hover:bg-[var(--g-cream)]">
-                  {banner.cta}
+                  {banner.cta && !/^shop now$/i.test(banner.cta.trim())
+                    ? banner.cta
+                    : `Shop ${banner.title || "lifestyle picks"}`}
                 </span>
               ) : null}
             </span>
@@ -78,10 +81,10 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
                 </div>
                 <div className="relative mt-2 flex-1">
                   <Image
-                    src={tile.imageUrl}
-                    alt={tile.title}
+                    src={cloudinaryImageUrl(tile.imageUrl, { w: 480 }) || tile.imageUrl}
+                    alt=""
                     fill
-                    quality={90}
+                    quality={70}
                     sizes="(max-width: 640px) 45vw, 20vw"
                     className="object-contain p-1 transition duration-500 group-hover:scale-[1.05] sm:p-2"
                   />

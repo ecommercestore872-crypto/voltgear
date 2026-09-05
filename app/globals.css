@@ -301,9 +301,9 @@
   --g-cream-deep: #ebdcc6;
   --g-forest: #1b3d29;
   --g-forest-mid: #2f5840;
-  --g-sage: #4f8a56;
+  --g-sage: #2f6b38;
   --g-charcoal: #1a1a1a;
-  --g-taupe: #6f675c;
+  --g-taupe: #5c564c;
   --g-sale: #c45e32;
   --g-terracotta: #c45e32;
   --g-amber: #c45e32;
@@ -734,14 +734,10 @@
   transition-duration: var(--g-dur-fast);
 }
 
-/* Scroll reveals */
+/* Scroll reveals — stay painted so Speed Index is not blocked on hydration */
 .gadget-reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition:
-    opacity var(--g-dur-reveal, 700ms) var(--g-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-    transform var(--g-dur-reveal, 700ms) var(--g-ease, cubic-bezier(0.22, 1, 0.36, 1));
-  will-change: opacity, transform;
+  opacity: 1;
+  transform: none;
 }
 
 .gadget-reveal-in {

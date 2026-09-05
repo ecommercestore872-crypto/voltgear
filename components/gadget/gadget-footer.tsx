@@ -24,7 +24,7 @@ function FooterLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="block py-1.5 text-[13px] text-white/85 transition hover:text-[var(--g-white)] min-h-[36px] flex items-center"
+      className="block py-1.5 text-[13px] text-white/90 transition hover:text-[var(--g-white)] min-h-[36px] flex items-center"
     >
       {label}
     </Link>
@@ -69,7 +69,7 @@ export function GadgetFooter({
                 <Truck className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">{threshold > 0 ? "Free Shipping" : "Fast Shipping"}</p>
-              <p className="text-[11px] text-white/60">
+              <p className="text-[11px] text-white/85">
                 {threshold > 0 ? `On orders over ${formatPrice(threshold)}` : "Across the country"}
               </p>
             </div>
@@ -79,7 +79,7 @@ export function GadgetFooter({
                   <Banknote className="h-5 w-5 stroke-[1.6]" />
                 </span>
                 <p className="text-xs font-bold text-white">Cash on Delivery</p>
-                <p className="text-[11px] text-white/60">Pay at your doorstep</p>
+                <p className="text-[11px] text-white/85">Pay at your doorstep</p>
               </div>
             )}
             <div className="flex flex-col items-center gap-1.5 p-2">
@@ -87,14 +87,14 @@ export function GadgetFooter({
                 <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">{warrantyMonths}-Month Warranty</p>
-              <p className="text-[11px] text-white/60">100% genuine replacement</p>
+              <p className="text-[11px] text-white/85">100% genuine replacement</p>
             </div>
             <div className="flex flex-col items-center gap-1.5 p-2">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_28%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_35%,white)] shadow-sm">
                 <RotateCcw className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">Easy Returns</p>
-              <p className="text-[11px] text-white/60">{returnWindowDays}-day hassle-free policy</p>
+              <p className="text-[11px] text-white/85">{returnWindowDays}-day hassle-free policy</p>
             </div>
           </div>
         </div>
@@ -194,7 +194,7 @@ export function GadgetFooter({
             ) : null}
 
             <div className="mt-6 space-y-2.5">
-              <p className="text-sm text-white/75">We’re here to help.</p>
+              <p className="text-sm text-white/90">We’re here to help.</p>
               {phone ? (
                 <a
                   href={`tel:${phone.replace(/\s+/g, "")}`}
@@ -226,7 +226,7 @@ export function GadgetFooter({
         </div>
 
         <div className="border-t border-white/10 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs text-white/50">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs text-white/80">
             <p>
               © {new Date().getFullYear()} {brandName}. All rights reserved.
             </p>

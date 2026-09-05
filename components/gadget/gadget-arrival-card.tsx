@@ -95,7 +95,7 @@ export function GadgetArrivalCard({
         >
           <div className="pointer-events-none absolute inset-x-2.5 top-2.5 z-10 flex items-start gap-1.5 pr-11">
             {off ? (
-              <span className="shrink-0 rounded-md bg-[var(--g-terracotta)] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--g-cream)]">
+              <span className="shrink-0 rounded-md bg-[#7a2e12] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white">
                 −{off}%
               </span>
             ) : null}
@@ -110,7 +110,7 @@ export function GadgetArrivalCard({
               src={image}
               alt={product.name}
               fill
-              quality={92}
+              quality={70}
               sizes={isGrid ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw" : "260px"}
               className="object-contain p-3 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] sm:p-4 lg:p-5"
             />
@@ -138,7 +138,7 @@ export function GadgetArrivalCard({
         </Link>
 
         {hasRealReviews ? (
-          <p className="mt-1 text-[11px] font-medium text-[var(--g-taupe)]">
+          <p className="mt-1 text-[11px] font-medium text-[var(--g-charcoal)]/80">
             {product.rating?.toFixed(1)} · {product.reviewCount} reviews
           </p>
         ) : null}
@@ -154,7 +154,7 @@ export function GadgetArrivalCard({
               {priceNow}
             </span>
             {priceWas ? (
-              <span className="text-[11px] font-medium text-[var(--g-taupe)] line-through sm:text-[12px]">
+              <span className="text-[11px] font-medium text-[var(--g-charcoal)]/70 line-through sm:text-[12px]">
                 {priceWas}
               </span>
             ) : null}

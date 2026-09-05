@@ -117,29 +117,27 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
             >
               Blogs
             </h2>
-            <div className="mt-3 flex items-center gap-2" role="tablist" aria-label="Blog filter">
+            <div className="mt-3 flex items-center gap-2" role="group" aria-label="Blog filter">
               <button
                 type="button"
-                role="tab"
-                aria-selected={tab === "popular"}
+                aria-pressed={tab === "popular"}
                 onClick={() => setTab("popular")}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                   tab === "popular"
                     ? "bg-[var(--g-forest)] text-[var(--g-white)]"
-                    : "text-[var(--g-taupe)] hover:text-[var(--g-charcoal)]"
+                    : "text-[var(--g-charcoal)]/80 hover:text-[var(--g-charcoal)]"
                 }`}
               >
                 Popular
               </button>
               <button
                 type="button"
-                role="tab"
-                aria-selected={tab === "latest"}
+                aria-pressed={tab === "latest"}
                 onClick={() => setTab("latest")}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                   tab === "latest"
                     ? "bg-[var(--g-forest)] text-[var(--g-white)]"
-                    : "text-[var(--g-taupe)] hover:text-[var(--g-charcoal)]"
+                    : "text-[var(--g-charcoal)]/80 hover:text-[var(--g-charcoal)]"
                 }`}
               >
                 Latest
@@ -148,9 +146,9 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
           </div>
           <Link
             href="/blog"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--g-sage)] transition hover:text-[var(--g-forest)]"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--g-forest)] transition hover:text-[var(--g-forest-mid)]"
           >
-            View All
+            View all blog posts
             <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current">
               <ArrowRight className="h-3 w-3" aria-hidden />
             </span>
@@ -165,13 +163,17 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
               return (
                 <li key={`${tab}-${post.slug}`} className="w-[min(78vw,18.25rem)] shrink-0">
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(31,54,38,0.1)]">
-                    <Link href={href} className="relative block aspect-[16/10] overflow-hidden bg-[var(--g-cream-deep)]">
+                    <Link
+                      href={href}
+                      aria-label={post.title}
+                      className="relative block aspect-[16/10] overflow-hidden bg-[var(--g-cream-deep)]"
+                    >
                       {post.coverImage ? (
                         <Image
                           src={post.coverImage}
                           alt=""
                           fill
-                          quality={88}
+                          quality={70}
                           sizes="292px"
                           className="object-cover transition duration-500 hover:scale-[1.03]"
                         />
@@ -192,7 +194,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
 
                     <div className="flex flex-1 flex-col gap-2 p-4 sm:p-5">
                       {date ? (
-                        <p className="text-[12px] text-[var(--g-taupe)]">{date}</p>
+                        <p className="text-[12px] text-[var(--g-charcoal)]/75">{date}</p>
                       ) : null}
                       <Link href={href}>
                         <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[var(--g-charcoal)]">
@@ -200,7 +202,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
                         </h3>
                       </Link>
                       {post.excerpt ? (
-                        <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--g-taupe)]">
+                        <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--g-charcoal)]/75">
                           {post.excerpt}
                         </p>
                       ) : null}
@@ -209,7 +211,8 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
                         href={href}
                         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] text-[13px] font-semibold text-[var(--g-charcoal)] transition hover:border-[var(--g-forest)] hover:text-[var(--g-forest)]"
                       >
-                        Read More
+                        Read article
+                        <span className="sr-only">: {post.title}</span>
                         <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current">
                           <ArrowRight className="h-3 w-3" aria-hidden />
                         </span>

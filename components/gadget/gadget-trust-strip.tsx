@@ -66,7 +66,7 @@ export function GadgetTrustStrip({
                     <p className="truncate text-[11px] font-semibold leading-tight text-[var(--g-charcoal)] sm:text-[12px]">
                       {item.title}
                     </p>
-                    <p className="truncate text-[10px] leading-tight text-[var(--g-taupe)]">
+                    <p className="truncate text-[10px] leading-tight text-[var(--g-charcoal)]/80">
                       {item.detail}
                     </p>
                   </div>

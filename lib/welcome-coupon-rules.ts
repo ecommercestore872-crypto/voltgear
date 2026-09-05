@@ -6,7 +6,7 @@ import {
 
 export const WELCOME_POPUP_STORAGE_KEY = "bnt_welcome_seen";
 export const WELCOME_POPUP_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-export const WELCOME_POPUP_DELAY_MS = 5000;
+export const WELCOME_POPUP_DELAY_MS = 20_000;
 
 export function pickWelcomeCoupon(
   promos: PromoCodeRecord[],

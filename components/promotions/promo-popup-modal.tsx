@@ -94,14 +94,14 @@ export function PromoPopupModal({
           >
             {SHOPPER_BRAND.tagline}
           </h2>
-          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-[var(--g-taupe)]">
+          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-[var(--g-charcoal)]/80">
             10% off your first order over {minOrderLabel}.
           </p>
         </div>
 
         <div className="gadget-ticket-well mt-6 flex items-center justify-between rounded-xl px-4 py-3">
           <div className="text-left">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--g-charcoal)]/75">
               Code
             </div>
             <div className="font-mono text-lg font-bold tracking-[0.12em] text-[var(--g-forest)]">
@@ -130,7 +130,7 @@ export function PromoPopupModal({
         <button
           type="button"
           onClick={handleClose}
-          className="mt-4 block w-full text-center text-sm font-medium text-[var(--g-taupe)] underline-offset-4 hover:text-[var(--g-charcoal)] hover:underline"
+          className="mt-4 block w-full text-center text-sm font-medium text-[var(--g-charcoal)] underline-offset-4 hover:underline"
         >
           Continue shopping
         </button>

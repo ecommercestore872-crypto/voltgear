@@ -27,7 +27,7 @@ export function GadgetFooterNewsletter() {
 
   return (
     <div>
-      <p className="text-sm text-white/75">Get exclusive offers and updates.</p>
+      <p className="text-sm text-white/90">Get exclusive offers and updates.</p>
       <form onSubmit={onSubmit} className="relative mt-3">
         <label htmlFor="gadget-footer-email" className="sr-only">
           Email address
@@ -42,7 +42,7 @@ export function GadgetFooterNewsletter() {
             if (status !== "idle" && status !== "loading") setStatus("idle");
           }}
           placeholder="Email address"
-          className="h-12 w-full min-w-0 rounded-full border border-white/35 bg-transparent pl-5 pr-14 text-base text-[var(--g-white)] outline-none placeholder:text-white/45 focus:border-[var(--g-sage)] sm:text-sm"
+            className="h-12 w-full min-w-0 rounded-full border border-white/35 bg-transparent pl-5 pr-14 text-base text-[var(--g-white)] outline-none placeholder:text-white/70 focus:border-[var(--g-sage)] sm:text-sm"
         />
         <button
           type="submit"

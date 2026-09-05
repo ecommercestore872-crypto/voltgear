@@ -98,7 +98,7 @@ export function GadgetNewArrivals({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              aria-label="Previous"
+              aria-label={`Previous ${title}`}
               disabled={!canPrev}
               onClick={() => scrollByDir(-1)}
               className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/80 text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
@@ -107,7 +107,7 @@ export function GadgetNewArrivals({
             </button>
             <button
               type="button"
-              aria-label="Next"
+              aria-label={`Next ${title}`}
               disabled={!canNext}
               onClick={() => scrollByDir(1)}
               className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/80 text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
@@ -118,7 +118,7 @@ export function GadgetNewArrivals({
               href={viewAllHref}
               className="inline-flex min-h-10 items-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/70 px-3.5 text-sm font-semibold text-[var(--g-forest)] transition hover:border-[var(--g-forest)]/30 hover:bg-[var(--g-white)]"
             >
-              View all
+              View all {title}
             </Link>
           </div>
         </div>

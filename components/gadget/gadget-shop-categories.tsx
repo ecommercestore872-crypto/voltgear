@@ -101,7 +101,7 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
               href="/products2"
               className="group inline-flex items-center gap-1.5 text-xs font-bold text-[#2a4633] transition hover:text-[var(--g-amber-text)] sm:text-sm"
             >
-              <span>View All</span>
+              <span>View all products</span>
               <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current text-[11px] transition group-hover:translate-x-0.5">
                 →
               </span>
@@ -153,10 +153,9 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
                 {tile.image ? (
                   <Image
                     src={tile.image}
-                    alt={tile.label}
+                    alt=""
                     fill
-                    priority={idx < 4}
-                    quality={90}
+                    quality={70}
                     sizes="(max-width: 640px) 88px, 112px"
                     className="object-cover transition duration-300 group-hover:scale-110"
                   />

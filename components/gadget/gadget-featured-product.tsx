@@ -83,15 +83,16 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
           <Link
             href={href}
             prefetch={false}
+            aria-label={product.name}
             className="flex relative min-h-[14rem] bg-[var(--g-cream)] sm:min-h-[20rem] lg:min-h-0 h-full"
           >
             {image ? (
                <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 lg:p-8">
                 <Image
                   src={image}
-                  alt={product.name}
+                  alt=""
                   fill
-                  quality={92}
+                  quality={72}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-contain transition duration-500 hover:scale-[1.03] p-4 lg:p-6"
                 />
@@ -102,14 +103,14 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
               </span>
             )}
             {off ? (
-              <span className="absolute left-4 top-4 rounded-full bg-[var(--g-terracotta)] px-3 py-1 text-xs font-bold text-[var(--g-cream)]">
+              <span className="absolute left-4 top-4 rounded-full bg-[#7a2e12] px-3 py-1 text-xs font-bold text-white">
                 {off}% OFF
               </span>
             ) : null}
           </Link>
 
           <div className="flex flex-col px-6 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-forest)]">
               {product.category.replace(/-/g, " ")}
               {product.badge ? ` · ${product.badge}` : ""}
             </p>
@@ -120,17 +121,17 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
             </Link>
 
             {rating != null ? (
-              <div className="mt-3 flex items-center gap-1.5" aria-label={`Rated ${rating.toFixed(1)} of 5`}>
+              <div className="mt-3 flex items-center gap-1.5" role="img" aria-label={`Rated ${rating.toFixed(1)} of 5`}>
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" strokeWidth={1.75} />
                 <span className="text-sm font-semibold tabular-nums">{rating.toFixed(1)}</span>
                 {product.reviewCount ? (
-                  <span className="text-sm text-[var(--g-taupe)]">({product.reviewCount} reviews)</span>
+                  <span className="text-sm text-[var(--g-charcoal)]/75">({product.reviewCount} reviews)</span>
                 ) : null}
               </div>
             ) : null}
 
             {product.shortDescription ? (
-              <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)] line-clamp-2">
+              <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-charcoal)]/80 line-clamp-2">
                 {product.shortDescription}
               </p>
             ) : null}
@@ -140,7 +141,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
                 {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > product.price ? (
-                <span className="pb-1 text-lg text-[var(--g-taupe)] line-through">
+                <span className="pb-1 text-lg text-[var(--g-charcoal)]/70 line-through">
                   {formatPrice(product.compareAtPrice)}
                 </span>
               ) : null}
@@ -149,7 +150,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
             <p
               className={`mt-2 text-sm font-semibold ${
                 stock.soldOut
-                  ? "text-[var(--g-taupe)]"
+                  ? "text-[var(--g-charcoal)]/80"
                   : stock.status === "low-stock"
                     ? "text-amber-700"
                     : "text-[var(--g-forest)]"

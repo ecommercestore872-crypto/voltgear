@@ -92,7 +92,6 @@ const FALLBACK: Testimonial[] = [
   },
 ];
 
-const SPEED_PX_PER_SEC = 42;
 const GAP_PX = 20;
 
 function buildItems(reviews: Testimonial[]): Testimonial[] {
@@ -110,12 +109,9 @@ function buildItems(reviews: Testimonial[]): Testimonial[] {
 
 export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
   const items = useMemo(() => buildItems(reviews), [reviews]);
-  const loop = useMemo(() => [...items, ...items], [items]);
   const scrollerRef = useRef<HTMLUListElement>(null);
-  const [paused, setPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [active, setActive] = useState(0);
-  const resumeTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -130,46 +126,14 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
     const card = el?.querySelector<HTMLElement>("[data-review-card]");
     if (!el || !card) return;
     const step = card.offsetWidth + GAP_PX;
-    const i = Math.round(el.scrollLeft / step) % items.length;
-    setActive(i);
+    const i = Math.round(el.scrollLeft / step);
+    setActive(Math.min(items.length - 1, Math.max(0, i)));
   }, [items.length]);
-
-  /** Continuous auto-scroll (seamless loop via duplicated cards). */
-  useEffect(() => {
-    if (paused || reduceMotion) return;
-    const el = scrollerRef.current;
-    if (!el) return;
-
-    let raf = 0;
-    let last = performance.now();
-
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      el.scrollLeft += SPEED_PX_PER_SEC * dt;
-      const half = el.scrollWidth / 2;
-      if (half > 0 && el.scrollLeft >= half) {
-        el.scrollLeft -= half;
-      }
-      syncActive();
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [paused, reduceMotion, items.length, syncActive]);
-
-  function pauseBriefly() {
-    setPaused(true);
-    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
-    resumeTimer.current = window.setTimeout(() => setPaused(false), 4500);
-  }
 
   function scrollByDir(dir: -1 | 1) {
     const el = scrollerRef.current;
     const card = el?.querySelector<HTMLElement>("[data-review-card]");
     if (!el || !card) return;
-    pauseBriefly();
     const step = card.offsetWidth + GAP_PX;
     el.scrollBy({ left: dir * step, behavior: reduceMotion ? "auto" : "smooth" });
     window.setTimeout(syncActive, 350);
@@ -179,28 +143,15 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
     const el = scrollerRef.current;
     const card = el?.querySelector<HTMLElement>("[data-review-card]");
     if (!el || !card) return;
-    pauseBriefly();
     const step = card.offsetWidth + GAP_PX;
     el.scrollTo({ left: i * step, behavior: reduceMotion ? "auto" : "smooth" });
     setActive(i);
   }
 
-  useEffect(() => {
-    return () => {
-      if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
-    };
-  }, []);
-
   return (
     <section
       className="gadget-band-leaf relative overflow-hidden px-4 py-12 sm:py-16 lg:px-8"
       aria-labelledby="customer-reviews-heading"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPaused(false);
-      }}
     >
       <div
         className="pointer-events-none absolute -right-24 top-10 h-64 w-64 rounded-full bg-[var(--g-sage)]/20 blur-3xl"
@@ -214,7 +165,7 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
       <div className="relative mx-auto max-w-6xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-forest)]">
               Reviews
             </p>
             <h2
@@ -223,7 +174,7 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
             >
               What our customers say
             </h2>
-            <p className="mt-2 text-sm text-[var(--g-taupe)] sm:text-[15px]">
+            <p className="mt-2 text-sm text-[var(--g-charcoal)]/80 sm:text-[15px]">
               Real feedback from buyers who shopped with cash on delivery and curated picks.
             </p>
           </div>
@@ -252,12 +203,11 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
           className="mt-8 flex gap-5 overflow-x-auto overscroll-x-contain pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           onScroll={syncActive}
         >
-          {loop.map((item, i) => (
+          {items.map((item, i) => (
             <li
               key={`${item.customerName}-${i}`}
               data-review-card
               className="w-[min(85vw,18.5rem)] shrink-0 sm:w-[19rem]"
-              aria-hidden={i >= items.length}
             >
               <blockquote className="gadget-review-card group flex h-full min-h-[14rem] flex-col rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-5 shadow-[0_4px_16px_rgba(31,54,38,0.04)] transition duration-500 ease-out hover:-translate-y-1 hover:border-[var(--g-sage)]/40 hover:shadow-[0_12px_32px_rgba(31,54,38,0.08)]">
                 <div className="flex items-start justify-between gap-2">
@@ -265,7 +215,7 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
                     className="h-6 w-6 text-[var(--g-sage)] transition duration-500 group-hover:scale-110 group-hover:text-[var(--g-forest)]"
                     aria-hidden
                   />
-                  <div className="flex items-center gap-0.5" aria-label={`${item.rating} out of 5 stars`}>
+                  <div className="flex items-center gap-0.5" role="img" aria-label={`${item.rating} out of 5 stars`}>
                     {Array.from({ length: 5 }).map((_, s) => (
                       <Star
                         key={s}
@@ -296,11 +246,11 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
                       {item.customerName.replace(/·\d+$/, "")}
                     </span>
                     {item.verified ? (
-                      <span className="text-[11px] font-medium text-[var(--g-sage)]">
+                      <span className="text-[11px] font-medium text-[var(--g-forest)]">
                         Verified buyer
                       </span>
                     ) : (
-                      <span className="text-[11px] text-[var(--g-taupe)]">
+                      <span className="text-[11px] text-[var(--g-charcoal)]/75">
                         {item.product || "Customer"}
                       </span>
                     )}
@@ -311,13 +261,12 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
           ))}
         </ul>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-2" role="tablist" aria-label="Review slides">
+        <div className="mt-6 flex flex-wrap justify-center gap-2" role="group" aria-label="Review slides">
           {items.map((_, i) => (
             <button
               key={i}
               type="button"
-              role="tab"
-              aria-selected={i === active}
+              aria-current={i === active ? "true" : undefined}
               aria-label={`Go to review ${i + 1}`}
               onClick={() => goTo(i)}
               className={`h-2 rounded-full transition-all duration-300 ease-out ${
