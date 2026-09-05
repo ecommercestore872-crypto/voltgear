@@ -23,7 +23,7 @@ export async function generateMetadata({
   const found = await getStorefrontCollectionBySlug(params.slug).catch(() => null);
   const name = found?.collection.name || params.slug.replace(/-/g, " ");
   return {
-    title: `${name} | Buy n Try`,
+    title: name,
     description: `Shop the ${name} collection at Buy n Try (buyntryy.com).`,
     alternates: { canonical: `/collections/${params.slug}` },
   };

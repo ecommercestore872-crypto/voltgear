@@ -33,9 +33,35 @@ export function categorySearchMeta(input: {
   const terms = CATEGORY_SEARCH_TERMS[input.slug] ?? [input.name];
   const lead = (input.description || input.name).trim();
   return {
-    title: `${input.name} in Pakistan | ${SHOPPER_BRAND.spokenName}`,
+    title: `${input.name} in Pakistan`,
     description: `${lead} Shop ${terms.slice(0, 3).join(", ")} at ${SHOPPER_BRAND.spokenName} (buyntryy.com). Cash on delivery nationwide.`,
     keywords: [...terms, SHOPPER_BRAND.spokenName, "buyntryy", "Pakistan"],
+  };
+}
+
+export const SEARCH_CRAWL_DISALLOW = [
+  "/admin/",
+  "/api/admin/",
+  "/checkout/",
+  "/demo/",
+] as const;
+
+export function websiteStructuredData(input: {
+  siteUrl: string;
+  brandName: string;
+}) {
+  const origin = input.siteUrl.replace(/\/+$/, "");
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: input.brandName,
+    alternateName: ["BNT", "buyntryy", "buyntryy.com"],
+    url: `${origin}/`,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${origin}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
   };
 }
 
@@ -44,6 +70,7 @@ export function productStructuredData(input: {
   description: string;
   url: string;
   image?: string;
+  images?: string[];
   category?: string;
   price: number;
   currency?: string;
@@ -52,26 +79,57 @@ export function productStructuredData(input: {
   brandName?: string;
   rating?: number;
   reviewCount?: number;
+  shippingFee?: number;
+  returnDays?: number;
 }) {
   const brandName = input.brandName || SHOPPER_BRAND.spokenName;
+  const currency = input.currency || "PKR";
+  const images = (input.images?.length ? input.images : input.image ? [input.image] : []).filter(
+    Boolean
+  );
+  const offers: Record<string, unknown> = {
+    "@type": "Offer",
+    url: input.url,
+    price: String(input.price),
+    priceCurrency: currency,
+    availability: input.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    itemCondition: "https://schema.org/NewCondition",
+    seller: { "@type": "Organization", name: brandName },
+  };
+  if (typeof input.shippingFee === "number" && input.shippingFee >= 0) {
+    offers.shippingDetails = {
+      "@type": "OfferShippingDetails",
+      shippingRate: {
+        "@type": "MonetaryAmount",
+        value: String(input.shippingFee),
+        currency,
+      },
+      shippingDestination: {
+        "@type": "DefinedRegion",
+        addressCountry: "PK",
+      },
+    };
+  }
+  if (input.returnDays && input.returnDays > 0) {
+    offers.hasMerchantReturnPolicy = {
+      "@type": "MerchantReturnPolicy",
+      applicableCountry: "PK",
+      returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+      merchantReturnDays: input.returnDays,
+      returnMethod: "https://schema.org/ReturnByMail",
+      returnFees: "https://schema.org/FreeReturn",
+    };
+  }
   const data: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: input.name,
     description: input.description,
     url: input.url,
-    image: input.image ? [input.image] : [],
+    image: images,
     category: input.category,
     brand: { "@type": "Brand", name: brandName },
-    offers: {
-      "@type": "Offer",
-      url: input.url,
-      price: input.price,
-      priceCurrency: input.currency || "PKR",
-      availability: input.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      itemCondition: "https://schema.org/NewCondition",
-      seller: { "@type": "Organization", name: brandName },
-    },
+    offers,
   };
   if (input.sku) data.sku = input.sku;
   if (input.rating && input.reviewCount && input.reviewCount > 0) {
@@ -79,13 +137,14 @@ export function productStructuredData(input: {
       "@type": "AggregateRating",
       ratingValue: input.rating,
       reviewCount: input.reviewCount,
+      bestRating: 5,
     };
   }
   return data as {
     "@type": string;
     brand: { name: string };
     offers: {
-      price: number;
+      price: string;
       priceCurrency: string;
       availability: string;
     };
@@ -142,7 +201,7 @@ export function organizationStructuredData(input: {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: input.brandName,
-    alternateName: ["buyntryy", "Buy n Try", SHOPPER_BRAND.seal],
+    alternateName: ["BNT", "buyntryy", "buyntryy.com", "Buy n Try", SHOPPER_BRAND.seal],
     url: input.siteUrl,
     areaServed: { "@type": "Country", name: "Pakistan" },
   };

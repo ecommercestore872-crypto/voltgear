@@ -78,6 +78,22 @@ export async function ensureGeneratedHomeCollections() {
   }
 }
 
+export async function fetchSitemapCollections(): Promise<
+  { slug: string; _updatedAt?: string }[]
+> {
+  const { data, error } = await db().from("collections").select("slug, updated_at, active");
+  if (error) throw error;
+  return (data ?? [])
+    .filter((row) => (row as { active?: boolean }).active !== false)
+    .map((row) => ({
+      slug: String((row as { slug?: string }).slug ?? ""),
+      _updatedAt: (row as { updated_at?: unknown }).updated_at
+        ? String((row as { updated_at?: unknown }).updated_at)
+        : undefined,
+    }))
+    .filter((row) => row.slug);
+}
+
 export async function listAdminCollections(): Promise<AdminCollection[]> {
   await ensureGeneratedHomeCollections();
   const { data, error } = await db()

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { AdsensePrivacyDisclosures } from "@/components/legal/adsense-privacy-disclosures";
 import {
   GadgetArticleShell,
   GadgetCmsSections,
@@ -18,22 +19,25 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       page?.seo?.description ||
       page?.excerpt ||
-      "How we collect, use, and protect your information.",
+      "How Buy n Try collects, uses, and shares information, including Google advertising cookies.",
     alternates: { canonical: "/privacy-policy" },
   };
 }
 
 export default async function PrivacyPolicyPage() {
   const page = await loadCmsPage("privacy-policy");
-  const brand = normalizeSettings(await getSettings().catch(() => null)).storeName;
+  const settings = await getSettings().catch(() => null);
+  const brand = normalizeSettings(settings).storeName;
+  const email = normalizeSettings(settings).supportEmail;
+  const address = settings?.address?.trim();
 
   return (
     <GadgetArticleShell
-      eyebrow="Company"
+      eyebrow="Legal"
       title={page?.title || "Privacy policy"}
       description={
         page?.excerpt ||
-        `How ${brand} handles order details, contact info, and site usage data.`
+        `How ${brand} handles orders, support messages, cookies, and advertising on buyntryy.com.`
       }
       coverUrl={cmsCover(page)}
       backHref="/contact"
@@ -42,56 +46,64 @@ export default async function PrivacyPolicyPage() {
       {page?.sections?.length ? (
         <GadgetCmsSections page={page} />
       ) : (
-        <div className="space-y-6 text-sm leading-relaxed text-[var(--g-charcoal)]">
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--g-charcoal)] mb-2">What We Collect</h2>
-            <p>
-              When you place an order or contact us, we collect your name, phone number, email address,
-              shipping address, and order details to process, deliver, and support your purchases.
-            </p>
-          </div>
+        <div>
+          <h2>Who we are</h2>
+          <p>
+            This policy applies to {brand} at buyntryy.com, an online shop for consumer electronics
+            accessories sold in Pakistan with cash on delivery. It is written for shoppers and
+            visitors, not for children. This site is not directed at children under 13.
+          </p>
+          {address ? <p>Business correspondence address: {address}.</p> : null}
 
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--g-charcoal)] mb-2">How We Use Information</h2>
-            <p>
-              We use personal information to fulfill Cash on Delivery (COD) orders, send order confirmations,
-              manage warranty requests, provide support, and improve storefront performance. We do not sell your personal information.
-            </p>
-          </div>
+          <h2>What we collect</h2>
+          <p>
+            When you place an order or message us, we collect the details you provide: name, phone,
+            email, delivery address, city, and order contents. We also store cart and checkout
+            session data so your basket is not lost while you shop.
+          </p>
+          <p>
+            If you subscribe to restock or newsletter updates, we keep the email you typed until you
+            ask us to remove it.
+          </p>
 
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--g-charcoal)] mb-2">Third-Party Advertising &amp; Google AdSense</h2>
-            <p className="mb-2">
-              We may use third-party advertising companies, including Google AdSense, to serve advertisements when you visit our website. These companies may use cookies, web beacons, and similar technologies to collect information about your visits to this and other websites in order to provide targeted advertisements about goods and services of interest to you.
-            </p>
-            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>
-                <strong>Google AdSense Cookies:</strong> Google, as a third-party vendor, uses cookies to serve ads on our site.
-              </li>
-              <li>
-                <strong>Google DART Cookie:</strong> Google&rsquo;s use of the DART cookie enables it to serve ads to our users based on their visit to our site and other sites on the Internet.
-              </li>
-              <li>
-                <strong>Opt-Out Options:</strong> Users may opt out of personalized advertising by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-[var(--g-forest)] underline font-medium">Google Ads Settings</a> or <a href="https://www.aboutads.info/choices" target="_blank" rel="noopener noreferrer" className="text-[var(--g-forest)] underline font-medium">aboutads.info</a>.
-              </li>
-            </ul>
-          </div>
+          <h2>How we use information</h2>
+          <p>
+            We use this information to confirm and dispatch Cash on Delivery orders, send order
+            email, handle warranty and return requests, answer support, and keep the storefront
+            working. We do not sell your personal information.
+          </p>
 
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--g-charcoal)] mb-2">Cookies &amp; Tracking</h2>
-            <p>
-              We use cookies to maintain cart sessions, analyze website traffic, and deliver a personalized browsing experience. You can control cookie preferences through your browser settings or our site consent manager.
-            </p>
-          </div>
+          <h2>Who we share with</h2>
+          <p>
+            Couriers receive the name, phone, and address needed to deliver a parcel. Payment is
+            typically collected in cash at the door. Hosting, email, and analytics providers process
+            data only to run this shop. We share data when the law requires it.
+          </p>
 
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--g-charcoal)] mb-2">Contact &amp; Privacy Requests</h2>
-            <p>
-              If you have questions regarding this Privacy Policy or wish to request data correction/deletion, please contact our privacy team via our <a href="/contact" className="text-[var(--g-forest)] underline font-medium">Contact Page</a> or email <span className="font-semibold">support@voltgear.pk</span>.
-            </p>
-          </div>
+          <h2>First-party cookies</h2>
+          <p>
+            Essential cookies remember your cart, checkout progress, and cookie choice. They are
+            required for the shop to function. Analytics tools (if enabled) measure which pages are
+            used so we can fix broken flows. You can limit non-essential cookies from the cookie
+            bar or your browser. See our{" "}
+            <a href="/cookies">cookie policy</a>.
+          </p>
+
+          <h2>Your choices</h2>
+          <p>
+            Ask us to correct or delete account or order-contact details via the{" "}
+            <a href="/contact">contact page</a>
+            {email ? (
+              <>
+                {" "}
+                or {email}
+              </>
+            ) : null}
+            . We keep order records as needed for warranties, disputes, and tax/accounting duties.
+          </p>
         </div>
       )}
+      <AdsensePrivacyDisclosures />
     </GadgetArticleShell>
   );
 }

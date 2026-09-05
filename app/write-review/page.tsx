@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "Write a Review",
   description:
     "Tell us what you think about your Buy n Try purchase — attach a photo and it will appear on the product's review section.",
+  robots: { index: false, follow: false },
 };
 
 interface ReviewProduct {

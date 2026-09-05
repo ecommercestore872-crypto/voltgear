@@ -20,8 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
     settings?.seo?.description ||
     "Shop earbuds, airbuds, smartwatches, power banks and chargers at Buy n Try (buyntryy.com). Cash on delivery nationwide.";
   return {
-    title,
+    title: { absolute: title },
     description,
+    alternates: { canonical: "/" },
     openGraph: { title, description, type: "website" },
     twitter: { card: "summary_large_image", title, description },
   };

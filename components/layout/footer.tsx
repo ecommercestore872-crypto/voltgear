@@ -220,12 +220,21 @@ export function Footer({
       <Separator className="bg-white/10" />
       <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-white/50 sm:flex-row lg:px-8 max-w-7xl">
         <p>© {new Date().getFullYear()} {brandName}. All rights reserved.</p>
-        <p className="flex gap-4">
+        <p className="flex flex-wrap gap-4">
           <Link href="/privacy-policy" className="hover:text-white transition-colors">
             Privacy Policy
           </Link>
+          <Link href="/cookies" className="hover:text-white transition-colors">
+            Cookies
+          </Link>
           <Link href="/terms-of-service" className="hover:text-white transition-colors">
             Terms of Service
+          </Link>
+          <Link href="/about" className="hover:text-white transition-colors">
+            About
+          </Link>
+          <Link href="/contact" className="hover:text-white transition-colors">
+            Contact
           </Link>
         </p>
       </div>

@@ -7,7 +7,11 @@ import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
-import { indexSiteUrl, organizationStructuredData } from "@/lib/seo-rules";
+import { indexSiteUrl, organizationStructuredData, websiteStructuredData } from "@/lib/seo-rules";
+import {
+  BUY_N_TRY_ADSENSE_PUB_ID,
+  resolveAdsensePublisherId,
+} from "@/lib/adsense-policy";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchShopTypes } from "@/lib/db/store";
 import { getSettings, resolveFonts } from "@/lib/sanity/settings";
@@ -117,13 +121,18 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico?v=bnt", type: "image/x-icon", sizes: "any" },
-      { url: "/favicon-32.png?v=bnt", type: "image/png", sizes: "32x32" },
-      { url: "/favicon-16.png?v=bnt", type: "image/png", sizes: "16x16" },
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "48x48" },
+      { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/favicon.ico?v=bnt",
+    shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
+  other: {
+    "google-adsense-account": BUY_N_TRY_ADSENSE_PUB_ID,
   },
 };
 
@@ -131,6 +140,9 @@ export const revalidate = 60;
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
+const ADSENSE_CLIENT = resolveAdsensePublisherId(
+  process.env.NEXT_PUBLIC_ADSENSE_PUB_ID
+).scriptClient;
 
 export default async function RootLayout({
   children,
@@ -173,18 +185,10 @@ export default async function RootLayout({
   });
 
   const jsonLd = [
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: brandName,
-      alternateName: ["buyntryy", "Buy n Try"],
-      url: SITE_URL,
-      potentialAction: {
-        "@type": "SearchAction",
-        target: `${SITE_URL}/search?q={search_term_string}`,
-        "query-input": "required name=search_term_string",
-      },
-    },
+    websiteStructuredData({
+      siteUrl: SITE_URL,
+      brandName,
+    }),
     organizationStructuredData({
       siteUrl: SITE_URL,
       brandName,
@@ -199,7 +203,7 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="en"
+      lang="en-PK"
       className={cn(heading.variable, body.variable)}
     >
       <head>
@@ -228,13 +232,11 @@ export default async function RootLayout({
             />
           </>
         )}
-        {process.env.NEXT_PUBLIC_ADSENSE_PUB_ID && (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUB_ID}`}
-            crossOrigin="anonymous"
-          />
-        )}
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          crossOrigin="anonymous"
+        />
         {loadClarity && (
           <script
             type="text/javascript"

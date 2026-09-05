@@ -73,8 +73,12 @@ export function GadgetCmsSections({ page }: { page: Page }) {
     return <ContentBlocks blocks={page.sections} />;
   }
   return (
-    <p className="rounded-2xl border border-dashed border-[var(--g-line)] bg-[var(--g-white)] p-8 text-center text-[var(--g-taupe)]">
-      This page is empty. Add content in Admin / Sanity.
+    <p className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-8 text-[var(--g-taupe)]">
+      This page is maintained by the shop. If a section is missing, use{" "}
+      <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+        Contact us
+      </Link>
+      .
     </p>
   );
 }

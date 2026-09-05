@@ -7,6 +7,7 @@ import {
   GadgetArticleShell,
 } from "@/components/gadget/gadget-article-shell";
 import { ContentBlocks } from "@/components/sections/content-blocks";
+import { BlogGuideAd } from "@/components/ads/blog-guide-ad";
 import { fetchBlogPosts, fetchPageBySlug } from "@/lib/db/store";
 import { isDemoSession } from "@/lib/demo";
 import { publicSiteUrl } from "@/lib/deploy-rules";
@@ -172,6 +173,7 @@ export default async function BlogPostPage({
             This post has no content yet.
           </p>
         )}
+        <BlogGuideAd />
       </GadgetArticleShell>
     </>
   );

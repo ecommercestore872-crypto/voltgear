@@ -3,8 +3,9 @@ import { fetchAllProducts } from "@/lib/db/store";
 import { WishlistClient } from "./wishlist-client";
 
 export const metadata: Metadata = {
-  title: "My Wishlist | Buy n Try",
+  title: "My Wishlist",
   description: "View and manage your saved items.",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 60;

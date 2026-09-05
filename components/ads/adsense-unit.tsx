@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+
+import { COOKIE_CONSENT_STORAGE_KEY } from "@/components/legal/cookie-consent-bar";
+import { allowsAdsenseDisplayAds } from "@/lib/adsense-placement";
+import { resolveAdsensePublisherId } from "@/lib/adsense-policy";
 
 interface AdSenseUnitProps {
   slot?: string;
@@ -15,35 +20,53 @@ export function AdSenseUnit({
   responsive = true,
   className = "",
 }: AdSenseUnitProps) {
-  const pubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID;
+  const ids = resolveAdsensePublisherId(process.env.NEXT_PUBLIC_ADSENSE_PUB_ID);
+  const pathname = usePathname() || "";
   const pushed = useRef(false);
+  const [adsAllowed, setAdsAllowed] = useState(false);
 
   useEffect(() => {
-    if (!pubId || pushed.current) return;
+    setAdsAllowed(
+      window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all"
+    );
+  }, [pathname]);
+
+  useEffect(() => {
+    if (
+      !slot ||
+      !adsAllowed ||
+      !allowsAdsenseDisplayAds(pathname) ||
+      pushed.current
+    ) {
+      return;
+    }
     try {
-      // @ts-ignore
+      // @ts-expect-error adsbygoogle is injected by Google's script
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
     } catch (err) {
       console.warn("AdSense push error:", err);
     }
-  }, [pubId]);
+  }, [adsAllowed, pathname, slot]);
 
-  if (!pubId) {
-    // Hidden or neutral placeholder when AdSense Pub ID is not configured
-    return null;
-  }
+  if (!slot || !adsAllowed || !allowsAdsenseDisplayAds(pathname)) return null;
 
   return (
-    <div className={`adsense-wrapper my-6 overflow-hidden text-center ${className}`}>
+    <aside
+      className={`mt-10 overflow-hidden border-t border-[var(--g-line)] pt-8 text-center ${className}`}
+      aria-label="Advertisement"
+    >
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-taupe)]">
+        Advertisement
+      </p>
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
-        data-ad-client={pubId}
-        data-ad-slot={slot || "1234567890"}
+        data-ad-client={ids.scriptClient}
+        data-ad-slot={slot}
         data-ad-format={format}
         data-full-width-responsive={responsive ? "true" : "false"}
       />
-    </div>
+    </aside>
   );
 }

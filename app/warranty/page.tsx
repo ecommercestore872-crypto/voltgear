@@ -50,8 +50,8 @@ export default async function WarrantyPage() {
             </p>
           ) : (
             <p>
-              Warranty terms are being finalized. Contact us with your order number and
-              we&apos;ll take care of any issues.
+              Manufacturing defects are handled case by case. Contact us with your order number
+              and photos of the issue and we will confirm what we can replace or repair.
             </p>
           )}
         </GadgetSupportCard>
@@ -74,8 +74,11 @@ export default async function WarrantyPage() {
             </p>
           ) : (
             <p>
-              Return terms are being finalized. Contact us with your order number and
-              we&apos;ll help.
+              Unused items can be discussed for exchange or refund after delivery. Start from{" "}
+              <Link href="/shipping-returns#returns" className="font-semibold text-[var(--g-forest)] hover:underline">
+                exchange &amp; refunds
+              </Link>{" "}
+              or the contact page with your order number.
             </p>
           )}
         </GadgetSupportCard>

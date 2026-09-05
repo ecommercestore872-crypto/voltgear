@@ -3,12 +3,14 @@ import { describe, it } from "node:test";
 
 import {
   CANONICAL_PUBLIC_ORIGIN,
+  SEARCH_CRAWL_DISALLOW,
   categorySearchMeta,
   categoryStructuredData,
   indexSiteUrl,
   llmsTxt,
   organizationStructuredData,
   productStructuredData,
+  websiteStructuredData,
 } from "./seo-rules";
 
 describe("indexSiteUrl", () => {
@@ -30,7 +32,7 @@ describe("categorySearchMeta", () => {
       description: "Immersive sound. All-day comfort.",
     });
     assert.match(meta.title, /Earbuds/i);
-    assert.match(meta.title, /Buy n Try/);
+    assert.equal(meta.title.includes("|"), false);
     assert.match(meta.description, /airbuds/i);
     assert.match(meta.description, /buyntryy\.com/);
     assert.ok(meta.keywords.includes("airbuds"));
@@ -53,11 +55,29 @@ describe("productStructuredData", () => {
     });
     assert.equal(data["@type"], "Product");
     assert.equal(data.brand.name, "Buy n Try");
-    assert.equal(data.offers.price, 4999);
+    assert.equal(data.offers.price, "4999");
     assert.equal(data.offers.priceCurrency, "PKR");
     assert.equal(data.offers.availability, "https://schema.org/InStock");
     assert.equal("gtin" in data, false);
     assert.equal(data.sku, "SM-1");
+  });
+
+  it("adds Pakistan shipping and returns when those store settings exist", () => {
+    const data = productStructuredData({
+      name: "Studio Max",
+      description: "Wireless earbuds",
+      url: "https://buyntryy.com/product/studio-max",
+      price: 4999,
+      inStock: true,
+      shippingFee: 199,
+      returnDays: 7,
+    });
+    const offers = data.offers as {
+      shippingDetails?: { shippingDestination?: { addressCountry?: string } };
+      hasMerchantReturnPolicy?: { merchantReturnDays?: number };
+    };
+    assert.equal(offers.shippingDetails?.shippingDestination?.addressCountry, "PK");
+    assert.equal(offers.hasMerchantReturnPolicy?.merchantReturnDays, 7);
   });
 });
 
@@ -72,6 +92,27 @@ describe("categoryStructuredData", () => {
     assert.equal(data.collection["@type"], "CollectionPage");
     assert.equal(data.itemList.numberOfItems, 1);
     assert.equal(data.itemList.itemListElement[0].url, "https://buyntryy.com/product/studio-max");
+  });
+});
+
+describe("websiteStructuredData", () => {
+  it("puts Buy n Try on the home URL the way Google site names expect", () => {
+    const data = websiteStructuredData({
+      siteUrl: "https://buyntryy.com",
+      brandName: "Buy n Try",
+    });
+    assert.equal(data["@type"], "WebSite");
+    assert.equal(data.name, "Buy n Try");
+    assert.equal(data.url, "https://buyntryy.com/");
+    assert.ok(data.alternateName.includes("BNT"));
+    assert.ok(data.alternateName.includes("buyntryy.com"));
+    assert.equal(data.potentialAction.target, "https://buyntryy.com/search?q={search_term_string}");
+  });
+
+  it("keeps Googlebot on the same crawl blocks as every other bot", () => {
+    assert.ok(SEARCH_CRAWL_DISALLOW.includes("/admin/"));
+    assert.ok(SEARCH_CRAWL_DISALLOW.includes("/checkout/"));
+    assert.equal(SEARCH_CRAWL_DISALLOW.includes("/brand/"), false);
   });
 });
 

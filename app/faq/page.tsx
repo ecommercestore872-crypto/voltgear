@@ -10,7 +10,7 @@ import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "FAQs & Payments | Buy n Try",
+  title: "FAQs & Payments",
   description:
     "Cash on delivery, payments, orders, shipping, and warranty answers from Buy n Try (buyntryy.com).",
   alternates: { canonical: "/faq" },

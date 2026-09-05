@@ -7,6 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { FirstPartyTracker } from "@/components/analytics/first-party-tracker";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
+import { CookieConsentBar } from "@/components/legal/cookie-consent-bar";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { GadgetFooter } from "@/components/gadget/gadget-footer";
@@ -93,6 +94,7 @@ export function AppChrome({
             <ShopWhatsAppButton settings={settings} />
             {cartDrawer}
             {cartEffects}
+            <CookieConsentBar />
           </div>
         ) : (
           <>
@@ -107,6 +109,7 @@ export function AppChrome({
             {reviewReminder}
             {cartEffects}
             {compareBar}
+            <CookieConsentBar />
           </>
         )}
       </WishlistProvider>

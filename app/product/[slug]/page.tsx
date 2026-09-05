@@ -30,7 +30,7 @@ export async function generateMetadata({
   const product = await fetchProductBySlug(params.slug, isDemoSession()).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
   
-  const title = `${product.name} — Buy in Pakistan | ${SHOPPER_BRAND.spokenName}`;
+  const title = `${product.name} — Buy in Pakistan`;
   const description =
     product.shortDescription ||
     `Buy ${product.name} at Buy n Try (buyntryy.com) with cash on delivery nationwide.`;
@@ -145,6 +145,8 @@ export default async function Product2Page({ params }: { params: { slug: string 
     brandName: SHOPPER_BRAND.spokenName,
     rating: product.rating,
     reviewCount: product.reviewCount,
+    shippingFee: config.shippingFee,
+    returnDays: config.returnWindowDays ?? undefined,
   });
 
   const breadcrumbJsonLd = {

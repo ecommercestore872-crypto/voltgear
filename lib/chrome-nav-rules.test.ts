@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  DEFAULT_FOOTER_COMPANY_LINKS,
   DEFAULT_NAV_LINKS,
   resolveChromeLinks,
   sanitizeChromeLinks,
@@ -42,6 +43,21 @@ describe("validateChromeLists", () => {
 
   it("allows an empty list", () => {
     assert.equal(validateChromeLists({ navLinks: [] }).ok, true);
+  });
+});
+
+describe("DEFAULT_FOOTER_COMPANY_LINKS", () => {
+  it("keeps About, Contact, Privacy, Cookies, and Terms findable", () => {
+    const hrefs = DEFAULT_FOOTER_COMPANY_LINKS.map((l) => l.href);
+    for (const href of [
+      "/about",
+      "/contact",
+      "/privacy-policy",
+      "/cookies",
+      "/terms-of-service",
+    ]) {
+      assert.equal(hrefs.includes(href), true, href);
+    }
   });
 });
 

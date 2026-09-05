@@ -1,74 +1,84 @@
 import type { MetadataRoute } from "next";
 
-import { fetchAllProducts, fetchBlogPosts, fetchPageSlugs, fetchShopTypes } from "@/lib/db/store";
+import { fetchSitemapCollections } from "@/lib/db/collection-store";
+import { fetchShopTypes, fetchSitemapPages, fetchSitemapProducts } from "@/lib/db/store";
 import { indexSiteUrl } from "@/lib/seo-rules";
 
 export const dynamic = "force-dynamic";
 
+function entry(
+  url: string,
+  lastModified?: string | Date,
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "weekly",
+  priority = 0.5
+): MetadataRoute.Sitemap[number] {
+  return {
+    url,
+    ...(lastModified ? { lastModified } : {}),
+    changeFrequency,
+    priority,
+  };
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = indexSiteUrl();
-  const now = new Date();
 
-  let products: { slug?: string; _id?: string }[] = [];
+  let products: { slug: string; _updatedAt?: string }[] = [];
   let shopTypes: { slug: string }[] = [];
-  let posts: { slug?: string }[] = [];
-  let pages: { slug: string }[] = [];
+  let pages: { slug: string; pageType?: string; _updatedAt?: string }[] = [];
+  let collections: { slug: string; _updatedAt?: string }[] = [];
 
   try {
-    const [p, types, blogs, slugs] = await Promise.all([
-      fetchAllProducts().catch(() => []),
+    const [p, types, slugs, cols] = await Promise.all([
+      fetchSitemapProducts().catch(() => []),
       fetchShopTypes().catch(() => []),
-      fetchBlogPosts().catch(() => []),
-      fetchPageSlugs().catch(() => []),
+      fetchSitemapPages().catch(() => []),
+      fetchSitemapCollections().catch(() => []),
     ]);
     products = p || [];
     shopTypes = types || [];
-    posts = blogs || [];
     pages = slugs || [];
+    collections = cols || [];
   } catch {
     products = [];
   }
 
+  const blogs = pages.filter((page) => page.pageType === "blog" && page.slug);
+  const cms = pages.filter((page) => page.pageType !== "blog" && page.slug);
+
   const staticRoutes: MetadataRoute.Sitemap = [
-    "/",
-    "/products",
-    "/about",
-    "/faq",
-    "/contact",
-    "/blog",
-    "/shipping-returns",
-    "/warranty",
-    "/privacy-policy",
-    "/terms-of-service",
-  ].map((path, index) => ({
-    url: `${baseUrl}${path === "/" ? "" : path}`,
-    lastModified: now,
-    changeFrequency: index < 2 ? "daily" : "weekly",
-    priority: path === "/" ? 1 : path === "/products" ? 0.9 : 0.5,
-  }));
+    entry(`${baseUrl}`, undefined, "daily", 1),
+    entry(`${baseUrl}/products`, undefined, "daily", 0.9),
+    entry(`${baseUrl}/about`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/faq`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/contact`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/blog`, undefined, "weekly", 0.55),
+    entry(`${baseUrl}/shipping-returns`, undefined, "monthly", 0.4),
+    entry(`${baseUrl}/warranty`, undefined, "monthly", 0.4),
+    entry(`${baseUrl}/privacy-policy`, undefined, "monthly", 0.3),
+    entry(`${baseUrl}/cookies`, undefined, "monthly", 0.3),
+    entry(`${baseUrl}/terms-of-service`, undefined, "monthly", 0.3),
+  ];
 
-  const categoryRoutes: MetadataRoute.Sitemap = shopTypes.map((cat) => ({
-    url: `${baseUrl}/products/${cat.slug}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.85,
-  }));
+  const categoryRoutes = shopTypes.map((cat) =>
+    entry(`${baseUrl}/products/${cat.slug}`, undefined, "daily", 0.85)
+  );
 
-  const productRoutes: MetadataRoute.Sitemap = products.map((prod) => ({
-    url: `${baseUrl}/product/${prod.slug || prod._id}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+  const collectionRoutes = collections
+    .filter((col) => col.slug)
+    .map((col) =>
+      entry(`${baseUrl}/collections/${col.slug}`, col._updatedAt, "weekly", 0.75)
+    );
 
-  const blogRoutes: MetadataRoute.Sitemap = posts
-    .filter((post) => post.slug)
-    .map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.55,
-    }));
+  const productRoutes = products
+    .filter((prod) => prod.slug)
+    .map((prod) =>
+      entry(`${baseUrl}/product/${prod.slug}`, prod._updatedAt, "weekly", 0.7)
+    );
+
+  const blogRoutes = blogs.map((post) =>
+    entry(`${baseUrl}/blog/${post.slug}`, post._updatedAt, "weekly", 0.55)
+  );
 
   const reserved = new Set([
     "about",
@@ -79,15 +89,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "warranty",
     "privacy-policy",
     "terms-of-service",
+    "cookies",
   ]);
-  const cmsRoutes: MetadataRoute.Sitemap = pages
+  const cmsRoutes = cms
     .filter((page) => page.slug && !reserved.has(page.slug))
-    .map((page) => ({
-      url: `${baseUrl}/${page.slug}`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.4,
-    }));
+    .map((page) =>
+      entry(`${baseUrl}/${page.slug}`, page._updatedAt, "monthly", 0.4)
+    );
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes, ...cmsRoutes];
+  return [
+    ...staticRoutes,
+    ...categoryRoutes,
+    ...collectionRoutes,
+    ...productRoutes,
+    ...blogRoutes,
+    ...cmsRoutes,
+  ];
 }

@@ -230,9 +230,23 @@ export function GadgetFooter({
             <p>
               © {new Date().getFullYear()} {brandName}. All rights reserved.
             </p>
-            <Link href="/products2" aria-label="Shop all electronic products in catalog" className="min-h-10 inline-flex items-center transition hover:text-[var(--g-white)]">
-              Shop all products
-            </Link>
+            <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <Link href="/privacy-policy" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+                Privacy
+              </Link>
+              <Link href="/cookies" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+                Cookies
+              </Link>
+              <Link href="/terms-of-service" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+                Terms
+              </Link>
+              <Link href="/about" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+                About
+              </Link>
+              <Link href="/contact" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+                Contact
+              </Link>
+            </nav>
           </div>
         </div>
       </div>

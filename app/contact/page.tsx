@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Headphones, Mail, MessageCircle, Package, Phone, ShieldCheck } from "lucide-react";
+import { Headphones, Mail, MapPin, MessageCircle, Package, Phone, ShieldCheck } from "lucide-react";
 
 import { GadgetContactForm } from "@/components/gadget/gadget-contact-form";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
@@ -12,7 +12,8 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Contact Us",
-  description: "Reach Buy n Try on WhatsApp, phone, or email for orders, warranty, and support.",
+  description:
+    "Contact Buy n Try for orders, warranty, and complaints — WhatsApp, phone, email, or the form on this page.",
   alternates: { canonical: "/contact" },
 };
 
@@ -22,6 +23,7 @@ export default async function ContactPage() {
   const wa = whatsappHref(config.whatsappNumber || config.supportPhone);
   const call = telHref(config.supportPhone);
   const email = config.supportEmail;
+  const address = settings?.address?.trim();
 
   return (
     <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
@@ -73,12 +75,22 @@ export default async function ContactPage() {
             </a>
           ) : null}
           {!wa && !call ? (
-            <div className="rounded-2xl border border-dashed border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:col-span-2">
+            <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:col-span-2">
               <Headphones className="h-7 w-7 text-[var(--g-sage)]" aria-hidden />
-              <p className="mt-3 font-semibold">Support channels updating</p>
+              <p className="mt-3 font-semibold">Write to us</p>
               <p className="mt-1 text-sm text-[var(--g-taupe)]">
-                Use the form below{email ? " or email us" : ""} and we&apos;ll respond as soon as we can.
+                Use the form below{email ? " or email" : ""}. We answer on working days, usually the
+                same day.
               </p>
+            </div>
+          ) : null}
+          {address ? (
+            <div className="flex min-h-[7.5rem] flex-col justify-between rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:col-span-2">
+              <MapPin className="h-7 w-7 text-[var(--g-forest)]" aria-hidden />
+              <div>
+                <p className="text-lg font-semibold text-[var(--g-charcoal)]">Address</p>
+                <p className="mt-1 text-sm text-[var(--g-taupe)]">{address}</p>
+              </div>
             </div>
           ) : null}
         </div>
@@ -112,6 +124,29 @@ export default async function ContactPage() {
         <div className="mt-10 max-w-2xl">
           <GadgetContactForm />
         </div>
+
+        <p className="mt-10 text-sm text-[var(--g-taupe)]">
+          Policies:{" "}
+          <Link href="/privacy-policy" className="font-medium text-[var(--g-forest)] hover:underline">
+            Privacy
+          </Link>
+          {" · "}
+          <Link href="/cookies" className="font-medium text-[var(--g-forest)] hover:underline">
+            Cookies
+          </Link>
+          {" · "}
+          <Link href="/terms-of-service" className="font-medium text-[var(--g-forest)] hover:underline">
+            Terms
+          </Link>
+          {" · "}
+          <Link href="/shipping-returns" className="font-medium text-[var(--g-forest)] hover:underline">
+            Shipping &amp; returns
+          </Link>
+          {" · "}
+          <Link href="/about" className="font-medium text-[var(--g-forest)] hover:underline">
+            About
+          </Link>
+        </p>
       </div>
     </div>
   );
