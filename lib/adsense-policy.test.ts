@@ -3,8 +3,11 @@ import { describe, it } from "node:test";
 
 import {
   ADSENSE_CERT_AUTHORITY_ID,
+  ADSENSE_CRAWLER_USER_AGENTS,
   ADSENSE_REQUIRED_PRIVACY_FACTS,
   adsTxtBody,
+  adsenseCrawlerRobotsRule,
+  adsenseHeadScriptSrc,
   normalizeAdsensePublisherId,
 } from "./adsense-policy";
 
@@ -51,5 +54,31 @@ describe("ADSENSE_REQUIRED_PRIVACY_FACTS", () => {
     assert.match(blob, /Third party vendors, including Google/);
     assert.match(blob, /advertising cookies/);
     assert.match(blob, /Ads Settings/);
+  });
+});
+
+describe("adsense connection crawlers", () => {
+  it("names the crawlers Google uses to verify and read the site", () => {
+    assert.deepEqual(ADSENSE_CRAWLER_USER_AGENTS, [
+      "Mediapartners-Google",
+      "Google-Display-Ads-Bot",
+    ]);
+  });
+
+  it("allows those crawlers at the site root with no Disallow", () => {
+    const rule = adsenseCrawlerRobotsRule();
+    assert.deepEqual(rule.userAgent, [
+      "Mediapartners-Google",
+      "Google-Display-Ads-Bot",
+    ]);
+    assert.equal(rule.allow, "/");
+    assert.equal("disallow" in rule, false);
+  });
+
+  it("builds the official head snippet URL with the publisher client", () => {
+    assert.equal(
+      adsenseHeadScriptSrc("ca-pub-1159111109427878"),
+      "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1159111109427878"
+    );
   });
 });

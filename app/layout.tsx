@@ -10,7 +10,7 @@ import { SHOPPER_BRAND } from "@/lib/brand";
 import { indexSiteUrl, organizationStructuredData, websiteStructuredData } from "@/lib/seo-rules";
 import {
   BUY_N_TRY_ADSENSE_PUB_ID,
-  resolveAdsensePublisherId,
+  adsenseHeadScriptSrc,
 } from "@/lib/adsense-policy";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchShopTypes } from "@/lib/db/store";
@@ -140,9 +140,9 @@ export const revalidate = 60;
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
-const ADSENSE_CLIENT = resolveAdsensePublisherId(
+const ADSENSE_SCRIPT_SRC = adsenseHeadScriptSrc(
   process.env.NEXT_PUBLIC_ADSENSE_PUB_ID
-).scriptClient;
+);
 
 export default async function RootLayout({
   children,
@@ -207,8 +207,6 @@ export default async function RootLayout({
       className={cn(heading.variable, body.variable)}
     >
       <head>
-        <link rel="preconnect" href="https://scripts.clarity.ms" />
-        <link rel="preconnect" href="https://www.clarity.ms" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -219,29 +217,23 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{ __html: themePreviewScript() }}
         />
-        {GA_ID && (
-          <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:true});`,
-              }}
-            />
-          </>
-        )}
         <script
           async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          src={ADSENSE_SCRIPT_SRC}
           crossOrigin="anonymous"
         />
-        {loadClarity && (
+        {(GA_ID || loadClarity) && (
           <script
-            type="text/javascript"
             dangerouslySetInnerHTML={{
-              __html: `window.addEventListener('load',function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}");});`,
+              __html: `(function(){var done=false;function load(){if(done)return;done=true;${
+                GA_ID
+                  ? `var g=document.createElement('script');g.async=1;g.src='https://www.googletagmanager.com/gtag/js?id=${GA_ID}';document.head.appendChild(g);window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:true});`
+                  : ""
+              }${
+                loadClarity
+                  ? `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,'clarity','script','${CLARITY_ID}');`
+                  : ""
+              }}['scroll','click','touchstart','keydown'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});window.addEventListener('load',function(){setTimeout(load,12000)});})();`,
             }}
           />
         )}

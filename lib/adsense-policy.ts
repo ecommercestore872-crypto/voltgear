@@ -6,7 +6,10 @@
  * - https://support.google.com/adsense/answer/10502938 (publisher privacy policies)
  * - https://support.google.com/adsense/answer/7532444 (ads.txt)
  * - https://support.google.com/adsense/answer/48182 (program policies)
- * - https://support.google.com/adsense/answer/81904 (insufficient content / navigation)
+ * - https://support.google.com/adsense/answer/7584263 (connect your site)
+ * - https://support.google.com/adsense/answer/9274634 (AdSense code in HTML)
+ * - https://support.google.com/adsense/answer/10532 (allow AdSense crawler)
+ * - https://support.google.com/adsense/answer/99376 (Mediapartners-Google / Google-Display-Ads-Bot)
  */
 
 export const ADSENSE_ADS_SETTINGS_URL = "https://adssettings.google.com";
@@ -17,6 +20,12 @@ export const ADSENSE_CERT_AUTHORITY_ID = "f08c47fec0942fa0";
 
 /** Public AdSense client Google issued for buyntryy.com site verification. */
 export const BUY_N_TRY_ADSENSE_PUB_ID = "ca-pub-1159111109427878";
+
+/** Crawlers Google uses to verify the site and choose ads. */
+export const ADSENSE_CRAWLER_USER_AGENTS = [
+  "Mediapartners-Google",
+  "Google-Display-Ads-Bot",
+] as const;
 
 /** Phrases Google requires publishers to disclose for advertising cookies. */
 export const ADSENSE_REQUIRED_PRIVACY_FACTS = [
@@ -56,4 +65,19 @@ export function adsTxtBody(rawPubId?: string | null): string {
     `google.com, ${ids.adsTxtPub}, DIRECT, ${ADSENSE_CERT_AUTHORITY_ID}`
   );
   return `${lines.join("\n")}\n`;
+}
+
+export function adsenseHeadScriptSrc(raw?: string | null): string {
+  const ids = resolveAdsensePublisherId(raw);
+  return `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ids.scriptClient}`;
+}
+
+export function adsenseCrawlerRobotsRule(): {
+  userAgent: string[];
+  allow: string;
+} {
+  return {
+    userAgent: [...ADSENSE_CRAWLER_USER_AGENTS],
+    allow: "/",
+  };
 }
