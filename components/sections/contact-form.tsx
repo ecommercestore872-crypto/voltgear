@@ -33,11 +33,11 @@ export function ContactForm({ heading = "Send us a Message" }: { heading?: strin
   }
 
   return (
-    <div className="rounded-xl border bg-card p-6 sm:p-8">
+    <div className="min-w-0 rounded-xl border bg-card p-4 sm:p-6 lg:p-8">
       <h3 className="text-xl font-bold tracking-tight">{heading}</h3>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="min-w-0 space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" required placeholder="Your name" />
           </div>

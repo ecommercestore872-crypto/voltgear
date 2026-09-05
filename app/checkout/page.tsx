@@ -378,7 +378,7 @@ export default function CheckoutPage() {
   if (items.length === 0 && step === 0) {
     return (
       <div className="container mx-auto max-w-xl px-4 py-16 lg:px-8">
-        <div className="rounded-2xl border border-dashed p-12 text-center">
+        <div className="rounded-2xl border border-dashed p-6 text-center sm:p-12">
           <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground" />
           <h1 className="mt-4 text-2xl font-bold tracking-tight">
             Your cart is empty
@@ -395,26 +395,26 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--g-cream)] font-sans">
-      <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)] pt-10 pb-10">
-        <div className="container mx-auto px-4 lg:px-8">
+    <div className="min-h-screen overflow-x-clip bg-[var(--g-cream)] font-sans">
+      <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)] py-6 sm:py-10">
+        <div className="mx-auto max-w-6xl px-4 lg:px-8">
            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)] mb-2">
              Checkout
            </p>
-           <h1 className="gadget-display text-3xl tracking-tight text-[var(--g-charcoal)] sm:text-4xl">
+           <h1 className="gadget-display text-2xl tracking-tight text-[var(--g-charcoal)] sm:text-3xl lg:text-4xl">
              Complete your order
            </h1>
         </div>
       </div>
 
-      <div className="container mx-auto max-w-6xl px-4 lg:px-8 py-8 relative z-20 pb-16">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)]">
+      <div className="relative z-20 mx-auto max-w-6xl px-4 py-6 pb-16 sm:py-8 lg:px-8">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8">
           {/* ── Left Content Column ─────────────────────────────────────────── */}
           <div className="flex flex-col gap-6">
             
             {step === 0 && (
               <section>
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                   <h2 className="text-xl font-bold tracking-tight">Your Cart</h2>
                   <Link href="/products" className="text-sm font-bold text-primary hover:underline">
                     Continue Shopping
@@ -436,9 +436,9 @@ export default function CheckoutPage() {
                           ) : (
                             <div className="h-20 w-20 shrink-0 rounded-lg border bg-muted sm:h-24 sm:w-24" />
                           )}
-                          <div className="flex flex-1 flex-col pb-1">
+                          <div className="flex min-w-0 flex-1 flex-col pb-1">
                             <div className="flex items-start justify-between gap-2">
-                              <div>
+                              <div className="min-w-0">
                                 <Link
                                   href={`/product/${item.slug}`}
                                   className="text-base font-bold text-foreground leading-snug hover:text-primary transition-colors"
@@ -507,10 +507,10 @@ export default function CheckoutPage() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold tracking-tight">Delivery Details</h2>
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+                <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6 lg:p-8">
                   <form
                     id="details-form"
-                    className="grid gap-6 sm:grid-cols-2"
+                    className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6"
                     onInvalidCapture={(e) => {
                       const target = e.target;
                       if (
@@ -537,11 +537,11 @@ export default function CheckoutPage() {
                       nextStep(2); // Move directly to Review step
                     }}
                   >
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <Label htmlFor="name" className="text-sm font-bold">Full Name *</Label>
                       <Input id="name" name="name" required autoComplete="name" placeholder="John Doe" defaultValue={customer.name} />
                     </div>
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <Label htmlFor="email" className="text-sm font-bold">Email Address *</Label>
                       <Input
                         id="email"
@@ -553,7 +553,7 @@ export default function CheckoutPage() {
                         defaultValue={customer.email}
                       />
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
+                    <div className="min-w-0 space-y-2 sm:col-span-2">
                       <Label htmlFor="phone" className="text-sm font-bold">Phone Number *</Label>
                       <Input
                         id="phone"
@@ -565,7 +565,7 @@ export default function CheckoutPage() {
                         defaultValue={customer.phone}
                       />
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
+                    <div className="min-w-0 space-y-2 sm:col-span-2">
                       <Label htmlFor="address" className="text-sm font-bold">Street Address *</Label>
                       <Input
                         id="address"
@@ -576,11 +576,11 @@ export default function CheckoutPage() {
                         defaultValue={customer.address}
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <Label htmlFor="city" className="text-sm font-bold">City *</Label>
                       <Input id="city" name="city" required autoComplete="address-level2" defaultValue={customer.city} />
                     </div>
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <Label htmlFor="postal" className="text-sm font-bold">Postal Code</Label>
                       <Input
                         id="postal"
@@ -593,11 +593,11 @@ export default function CheckoutPage() {
                   </form>
                 </div>
                 
-                <div className="mt-8 flex items-center justify-between">
-                  <Button type="button" variant="ghost" onClick={() => setStep(0)}>
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
+                  <Button type="button" variant="ghost" className="h-11 w-full sm:w-auto" onClick={() => setStep(0)}>
                     <ChevronLeft className="mr-1 h-4 w-4" /> Back to Cart
                   </Button>
-                  <Button size="lg" form="details-form" type="submit" className="px-8">
+                  <Button size="lg" form="details-form" type="submit" className="h-12 w-full px-6 sm:w-auto sm:px-8">
                     Continue to Review <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -608,13 +608,13 @@ export default function CheckoutPage() {
               <section className="flex flex-col gap-6">
                 
                 {/* 1. Shipping Information Card */}
-                <div className="rounded-xl border bg-white p-6 shadow-sm">
+                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
                      <h3 className="font-bold text-foreground text-[15px]">Shipping Information</h3>
                      <button onClick={() => setStep(1)} className="text-xs font-bold text-primary hover:underline">Edit</button>
                   </div>
-                  <div className="flex items-start justify-between">
-                    <div className="text-sm text-foreground/80 space-y-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 break-words text-sm text-foreground/80 space-y-1">
                        <p className="font-bold text-foreground">{customer.name || "N/A"}</p>
                        <p>{customer.phone}</p>
                        <p>{customer.email}</p>
@@ -631,27 +631,27 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* 2. Shipping Method Card */}
-                <div className="rounded-xl border bg-white p-6 shadow-sm">
+                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
                      <h3 className="font-bold text-foreground text-[15px]">Shipping Method</h3>
                      <button className="text-xs font-bold text-primary hover:underline">Edit</button>
                   </div>
-                  <label className="flex items-center gap-4 rounded-lg border border-primary bg-primary/5 p-4 cursor-default">
-                      <div className="shrink-0 flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground relative">
+                  <label className="flex cursor-default items-start gap-3 rounded-lg border border-primary bg-primary/5 p-3 sm:items-center sm:gap-4 sm:p-4">
+                      <div className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground sm:mt-0">
                          <Check className="h-3 w-3" strokeWidth={3} />
                       </div>
-                      <div className="flex-1">
+                      <div className="min-w-0 flex-1">
                          <p className="text-[13px] font-bold text-foreground">Standard Delivery (2-4 Working Days)</p>
-                         <p className="text-xs text-muted-foreground mt-0.5">Free on orders over PKR {config.freeShippingThreshold.toLocaleString()}</p>
+                         <p className="mt-0.5 text-xs text-muted-foreground">Free on orders over PKR {config.freeShippingThreshold.toLocaleString()}</p>
                       </div>
-                      <span className="text-[13px] font-bold text-foreground">
+                      <span className="shrink-0 text-[13px] font-bold text-foreground">
                         {shippingLabel || "PKR 0"}
                       </span>
                   </label>
                 </div>
 
                 {/* 3. Payment Method Card */}
-                <div className="rounded-xl border bg-white p-6 shadow-sm">
+                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
                      <h3 className="font-bold text-foreground text-[15px]">Payment Method</h3>
                      <button className="text-xs font-bold text-primary hover:underline">Edit</button>
@@ -676,7 +676,7 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* 4. Order Notes (Optional) */}
-                <div className="rounded-xl border bg-white p-6 shadow-sm">
+                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
                      <h3 className="font-bold text-foreground text-[15px]">Order Notes (Optional)</h3>
                      <button className="text-xs font-bold text-primary hover:underline">Edit</button>
@@ -684,15 +684,15 @@ export default function CheckoutPage() {
                   <input
                      type="text"
                      placeholder="Leave a note for your order (e.g. gate code, special instructions)"
-                     className="w-full rounded-md border border-border px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                     className="w-full min-w-0 rounded-md border border-border px-3 py-3 text-base shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:px-4 sm:text-sm"
                      value={orderNotes}
                      onChange={(e) => setOrderNotes(e.target.value)}
                   />
                 </div>
 
                 {/* 5. Items in Your Order View */}
-                <div className="rounded-xl border bg-white p-6 shadow-sm">
-                  <div className="flex items-center justify-between border-b pb-4 mb-4">
+                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
+                  <div className="flex items-center justify-between gap-2 border-b pb-4 mb-4">
                      <h3 className="font-bold text-foreground text-[15px]">Items in Your Order ({items.length})</h3>
                      <button onClick={() => setStep(0)} className="text-xs font-bold text-primary hover:underline">Edit Cart</button>
                   </div>
@@ -747,7 +747,7 @@ export default function CheckoutPage() {
           <aside className="w-full space-y-6 lg:sticky lg:top-8 lg:self-start">
              
              {/* Main Summary Block */}
-             <div className="rounded-2xl border bg-card p-6 shadow-sm">
+             <div className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
                 <h2 className="text-[17px] font-bold text-foreground border-b pb-4 mb-4">Order Summary</h2>
                 
                 <div className="space-y-3 text-[13px] font-medium border-b pb-4 mb-4">
@@ -799,18 +799,18 @@ export default function CheckoutPage() {
 
              {/* Promo Code Entry */}
              {step === 2 && (
-               <div className="rounded-2xl border bg-white p-5 shadow-sm">
+               <div className="min-w-0 rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
                  <h3 className="text-[13px] font-bold text-foreground mb-3">Have a Promo Code?</h3>
-                 <div className="flex items-center gap-2">
+                 <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                     <Input
                        placeholder="Enter promo code"
                        value={promoInput}
                        onChange={(e) => setPromoInput(e.target.value)}
                        onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
-                       className="h-10 grow"
+                       className="h-11 min-w-0 flex-1"
                        disabled={activePromo?.loading}
                     />
-                    <Button variant="default" onClick={handleApplyPromo} disabled={activePromo?.loading || !promoInput.trim()} className="h-10 px-5 font-bold shadow-sm">
+                    <Button variant="default" onClick={handleApplyPromo} disabled={activePromo?.loading || !promoInput.trim()} className="h-11 w-full shrink-0 px-5 font-bold shadow-sm sm:w-auto">
                       {activePromo?.loading ? "Applying..." : "Apply"}
                     </Button>
                  </div>
@@ -839,7 +839,7 @@ export default function CheckoutPage() {
 
              {/* Sidebar Trust Badges & Submit Button only available on Step 2 Review */}
              {step === 2 && (
-               <div className="rounded-2xl border bg-white p-6 shadow-sm">
+               <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-6">
                  <div className="space-y-4 border-b pb-6 mb-6">
                     <div className="flex items-start gap-4">
                        <div className="w-8 h-8 rounded-full bg-secondary text-primary flex items-center justify-center shrink-0 border">
@@ -900,9 +900,9 @@ export default function CheckoutPage() {
       </div>
 
       {/* Footer Features (Identical to Figma Checkout End) */}
-      <div className="border-t bg-white mt-12 mb-8 hidden md:block">
-        <div className="container mx-auto max-w-6xl px-4 py-8 lg:px-8">
-           <div className="grid grid-cols-4 gap-4">
+      <div className="mb-8 mt-8 border-t bg-white sm:mt-12">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8 lg:px-8">
+           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
              <div className="flex items-center gap-3">
                <Lock className="w-6 h-6 text-primary shrink-0" />
                <div>

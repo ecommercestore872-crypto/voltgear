@@ -26,11 +26,11 @@ export default async function ContactPage() {
   return (
     <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
       <div className="border-b border-[var(--g-line)]">
-        <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12 lg:px-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
             Support
           </p>
-          <h1 className="gadget-display mt-3 text-4xl tracking-[-0.03em] text-[var(--g-charcoal)] sm:text-5xl">
+          <h1 className="gadget-display mt-3 text-3xl tracking-[-0.03em] text-[var(--g-charcoal)] sm:text-4xl lg:text-5xl">
             Contact us
           </h1>
           <p className="gadget-body mt-3 max-w-xl sm:text-base">

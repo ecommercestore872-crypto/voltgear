@@ -124,8 +124,8 @@ export function NewsletterPopup() {
                 Get exclusive deals, new arrivals, and tips delivered to your inbox.
               </p>
 
-              <form onSubmit={handleSubmit} className="mt-6 flex gap-2">
-                <div className="relative flex-1">
+              <form onSubmit={handleSubmit} className="mt-6 flex min-w-0 flex-col gap-2 sm:flex-row">
+                <div className="relative min-w-0 flex-1">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="email"
@@ -133,10 +133,10 @@ export function NewsletterPopup() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
                     required
-                    className="h-11 w-full rounded-lg border bg-background pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="h-11 w-full min-w-0 rounded-lg border bg-background pl-10 pr-4 text-base outline-none focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
                   />
                 </div>
-                <Button type="submit" disabled={loading} className="h-11 px-6">
+                <Button type="submit" disabled={loading} className="h-11 w-full px-6 sm:w-auto">
                   {loading ? "..." : "Subscribe"}
                 </Button>
               </form>

@@ -135,7 +135,7 @@ export function GadgetBuyBox({
           <ProductGallery product={product} variantImage={variantImage} />
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-col">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
             {product.category.replace(/-/g, " ")}
             {product.badge ? ` · ${product.badge}` : ""}

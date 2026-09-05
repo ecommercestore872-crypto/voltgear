@@ -108,7 +108,7 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
                     placeholder="House #, Street #, Sector/Block, City"
                     value={newAddress}
                     onChange={(e) => setNewAddress(e.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3626]"
+                    className="w-full min-w-0 rounded-lg border px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#1F3626] sm:text-sm"
                   />
                 </div>
               )}
@@ -122,7 +122,7 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
                     placeholder="0300 1234567"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3626]"
+                    className="w-full min-w-0 rounded-lg border px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#1F3626] sm:text-sm"
                   />
                 </div>
               )}

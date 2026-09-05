@@ -124,15 +124,15 @@ export function WriteReviewForm({ products, categories }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 rounded-xl border bg-card p-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
+    <form onSubmit={onSubmit} className="min-w-0 space-y-4 rounded-xl border bg-card p-4 sm:p-5">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div className="min-w-0 space-y-1.5">
           <Label htmlFor="review-category">Category *</Label>
           <select
             id="review-category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
           >
             <option value="" disabled>
               Choose a category
@@ -144,14 +144,14 @@ export function WriteReviewForm({ products, categories }: Props) {
             ))}
           </select>
         </div>
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label htmlFor="review-product">Product *</Label>
           <select
             id="review-product"
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             disabled={!category}
-            className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
           >
             <option value="" disabled>
               {category ? "Choose a product" : "Pick a category first"}
@@ -195,12 +195,12 @@ export function WriteReviewForm({ products, categories }: Props) {
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div className="min-w-0 space-y-1.5">
           <Label htmlFor="review-name">Name *</Label>
           <Input id="review-name" name="name" required autoComplete="name" />
         </div>
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label htmlFor="review-email">Email *</Label>
           <Input
             id="review-email"

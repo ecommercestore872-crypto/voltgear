@@ -202,7 +202,7 @@ export function TrackOrder() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border border-border/50 bg-white p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+      <div className="min-w-0 rounded-2xl border border-border/50 bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] sm:p-6 lg:p-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -260,15 +260,15 @@ export function TrackOrder() {
 
       {result && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="rounded-2xl border border-border/50 bg-white p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-            <div className="flex items-center justify-between border-b border-border/40 pb-5 mb-6">
-               <div>
+          <div className="min-w-0 rounded-2xl border border-border/50 bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] sm:p-6 lg:p-8">
+            <div className="mb-6 flex flex-col gap-3 border-b border-border/40 pb-5 sm:flex-row sm:items-center sm:justify-between">
+               <div className="min-w-0">
                  <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">{result.orderId}</p>
-                 <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">
+                 <h2 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
                    {STATUS_LABEL[result.status]}
                  </h2>
                </div>
-               <div className="text-right">
+               <div className="sm:text-right">
                  <p className="text-[13px] text-muted-foreground">Updated</p>
                  <p className="text-[14px] font-semibold text-slate-900">{formatDate(result.statusUpdatedAt ?? result.createdAt)}</p>
                </div>
@@ -386,7 +386,7 @@ export function TrackOrder() {
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-border/50 bg-white p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+          <div className="min-w-0 rounded-2xl border border-border/50 bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] sm:p-6 lg:p-8">
             <h3 className="text-lg font-bold tracking-tight text-slate-900">Order Items</h3>
             <ul className="mt-5 divide-y divide-border/40">
               {result.items.map((item, i) => (

@@ -56,7 +56,7 @@ export function GadgetSearchInput({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         className={cn(
-          "h-full w-full bg-transparent text-sm text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)]",
+          "h-full w-full min-w-0 bg-transparent text-base text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)] sm:text-sm",
           tall ? "pl-[3.35rem] sm:pl-14" : "pl-11",
           showSubmit ? "pr-20 sm:pr-24" : "pr-4"
         )}

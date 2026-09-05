@@ -39,7 +39,7 @@ export function AdminLoginForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="mx-auto w-full max-w-sm space-y-4 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 shadow-[0_12px_40px_rgba(31,54,38,0.08)]"
+      className="mx-auto w-full max-w-sm space-y-4 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 shadow-[0_12px_40px_rgba(31,54,38,0.08)] sm:p-6"
     >
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">

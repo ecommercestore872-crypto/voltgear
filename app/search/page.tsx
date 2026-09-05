@@ -38,7 +38,7 @@ export default async function SearchPage({
       <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
         <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
           <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
-            <h1 className="gadget-display text-4xl font-semibold tracking-[-0.03em]">
+            <h1 className="gadget-display text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
               What are you looking for?
             </h1>
             <p className="mt-3 text-sm text-[var(--g-taupe)]">
@@ -50,16 +50,16 @@ export default async function SearchPage({
           <div className="rounded-2xl border border-dashed border-[var(--g-line)] bg-[var(--g-white)] p-10 text-center">
             <SearchX className="mx-auto h-10 w-10 text-[var(--g-taupe)]" />
             <p className="mt-4 text-lg font-medium">Search the catalog</p>
-            <form action={products2Href()} method="GET" className="mt-4 flex flex-wrap justify-center gap-2">
+            <form action={products2Href()} method="GET" className="mx-auto mt-4 flex w-full min-w-0 max-w-md flex-col gap-2 sm:flex-row">
               <input
                 type="search"
                 name="q"
                 placeholder="Search…"
-                className="h-11 min-w-[16rem] rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] px-4 text-sm outline-none focus:border-[var(--g-forest)]"
+                className="h-11 w-full min-w-0 rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] px-4 text-base outline-none focus:border-[var(--g-forest)] sm:text-sm"
               />
               <button
                 type="submit"
-                className="inline-flex h-11 items-center rounded-full bg-[var(--g-forest)] px-5 text-sm font-semibold text-[var(--g-white)]"
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[var(--g-forest)] px-5 text-sm font-semibold text-[var(--g-white)] sm:w-auto"
               >
                 Search
               </button>

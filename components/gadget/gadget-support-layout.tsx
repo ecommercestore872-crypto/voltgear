@@ -19,7 +19,7 @@ export function GadgetSupportLayout({
   return (
     <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
       <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
-        <div className="mx-auto max-w-3xl px-4 py-10 lg:px-8">
+        <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10 lg:px-8">
           <p className="gadget-eyebrow">{eyebrow}</p>
           <h1 className="gadget-h1 mt-2 text-[var(--g-charcoal)]">{title}</h1>
           {description ? (
@@ -27,7 +27,7 @@ export function GadgetSupportLayout({
           ) : null}
         </div>
       </div>
-      <div className="mx-auto max-w-3xl px-4 py-10 lg:px-8">
+      <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10 lg:px-8">
         {children}
         {related && related.length > 0 ? (
           <nav

@@ -32,11 +32,11 @@ export function GadgetContactForm({
   }
 
   const field =
-    "h-11 w-full rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 text-sm text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)] focus:border-[var(--g-forest)]";
+    "h-11 w-full min-w-0 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 text-base text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)] focus:border-[var(--g-forest)] sm:text-sm";
   const label = "text-xs font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]";
 
   return (
-    <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:p-8">
+    <div className="min-w-0 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 sm:p-6 lg:p-8">
       <h2 className="gadget-display text-2xl font-semibold tracking-[-0.03em] text-[var(--g-charcoal)]">
         {heading}
       </h2>
@@ -71,8 +71,8 @@ export function GadgetContactForm({
             </button>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="min-w-0 space-y-1.5">
             <label htmlFor="g-contact-name" className={label}>
               Name
             </label>
@@ -84,7 +84,7 @@ export function GadgetContactForm({
               className={field}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="min-w-0 space-y-1.5">
             <label htmlFor="g-contact-email" className={label}>
               Email
             </label>
@@ -120,7 +120,7 @@ export function GadgetContactForm({
             required
             rows={5}
             placeholder="Tell us more…"
-            className="w-full rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 py-2.5 text-sm text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)] focus:border-[var(--g-forest)]"
+            className="w-full min-w-0 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 py-2.5 text-base text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)] focus:border-[var(--g-forest)] sm:text-sm"
           />
         </div>
         <button

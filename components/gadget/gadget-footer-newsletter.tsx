@@ -42,7 +42,7 @@ export function GadgetFooterNewsletter() {
             if (status !== "idle" && status !== "loading") setStatus("idle");
           }}
           placeholder="Email address"
-          className="h-12 w-full rounded-full border border-white/35 bg-transparent pl-5 pr-14 text-sm text-[var(--g-white)] outline-none placeholder:text-white/45 focus:border-[var(--g-sage)]"
+          className="h-12 w-full min-w-0 rounded-full border border-white/35 bg-transparent pl-5 pr-14 text-base text-[var(--g-white)] outline-none placeholder:text-white/45 focus:border-[var(--g-sage)] sm:text-sm"
         />
         <button
           type="submit"

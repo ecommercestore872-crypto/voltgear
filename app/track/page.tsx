@@ -24,7 +24,7 @@ export default function TrackPage() {
         { href: "/warranty", label: "Warranty" },
       ]}
     >
-      <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-5 sm:p-6">
+      <div className="min-w-0 overflow-hidden">
         <TrackOrder />
       </div>
       <p className="mt-4 text-sm text-[var(--g-taupe)]">

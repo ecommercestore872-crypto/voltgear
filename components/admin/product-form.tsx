@@ -177,8 +177,8 @@ export function ProductForm({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{isNew ? "Add product" : doc.name || "Edit product"}</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <h1 className="min-w-0 text-xl font-semibold sm:text-2xl">{isNew ? "Add product" : doc.name || "Edit product"}</h1>
         {!isNew ? (
           <Button type="button" variant="destructive" onClick={() => run("delete")}>
             Delete

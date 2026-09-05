@@ -33,7 +33,7 @@ export default function BulkOrderPage() {
   }
 
   const field =
-    "h-11 w-full rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 text-sm outline-none focus:border-[var(--g-forest)]";
+    "h-11 w-full min-w-0 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 text-base outline-none focus:border-[var(--g-forest)] sm:text-sm";
   const label = "text-xs font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]";
 
   return (
@@ -43,7 +43,7 @@ export default function BulkOrderPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
             Company
           </p>
-          <h1 className="gadget-display mt-2 text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
+          <h1 className="gadget-display mt-2 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl lg:text-5xl">
             Bulk &amp; wholesale
           </h1>
           <p className="mt-3 max-w-xl text-sm text-[var(--g-taupe)] sm:text-base">
@@ -91,7 +91,7 @@ export default function BulkOrderPage() {
             </ul>
           </div>
 
-          <div className="h-fit rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 lg:sticky lg:top-24">
+          <div className="h-fit min-w-0 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 sm:p-6 lg:sticky lg:top-24">
             {submitted ? (
               <div className="flex flex-col items-center py-8 text-center">
                 <CheckCircle2 className="h-12 w-12 text-[var(--g-forest)]" />
@@ -142,7 +142,7 @@ export default function BulkOrderPage() {
                     name="message"
                     rows={3}
                     placeholder="Products, city, timeline…"
-                    className="w-full rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 py-2.5 text-sm outline-none focus:border-[var(--g-forest)]"
+                    className="w-full min-w-0 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 py-2.5 text-base outline-none focus:border-[var(--g-forest)] sm:text-sm"
                   />
                 </div>
                 <button

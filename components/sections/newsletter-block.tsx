@@ -56,8 +56,8 @@ export function NewsletterBlock() {
               <p className="text-sm opacity-90 text-emerald-700">Check your inbox shortly for your exclusive welcome offer.</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto relative group">
-              <div className="relative flex-1">
+            <form onSubmit={handleSubmit} className="relative mx-auto flex w-full max-w-md min-w-0 flex-col gap-3 group sm:flex-row">
+              <div className="relative min-w-0 flex-1">
                 <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" strokeWidth={2} />
                 <input
                   type="email"
@@ -65,10 +65,10 @@ export function NewsletterBlock() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
-                  className="h-14 w-full rounded-xl border-2 border-slate-200 bg-white pl-12 pr-4 text-[15px] font-medium outline-none transition-colors focus:border-primary focus:ring-0 placeholder:text-slate-400 shadow-sm"
+                  className="h-14 w-full min-w-0 rounded-xl border-2 border-slate-200 bg-white pl-12 pr-4 text-base font-medium shadow-sm outline-none transition-colors placeholder:text-slate-400 focus:border-primary focus:ring-0"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="h-14 px-8 rounded-xl font-bold text-[15px] tracking-wide shadow-sm hover:shadow-md transition-all">
+              <Button type="submit" disabled={loading} className="h-14 w-full rounded-xl px-8 text-[15px] font-bold tracking-wide shadow-sm transition-all hover:shadow-md sm:w-auto">
                 {loading ? "..." : "Subscribe"}
               </Button>
             </form>

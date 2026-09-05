@@ -39,7 +39,7 @@ export function DemoLoginForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="mx-auto mt-16 w-full max-w-sm space-y-4 rounded-xl border bg-card p-6"
+      className="mx-auto mt-10 w-full max-w-sm space-y-4 rounded-xl border bg-card p-4 sm:mt-16 sm:p-6"
     >
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400">

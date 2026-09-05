@@ -145,7 +145,7 @@ export default function CartPage() {
 
       <h1
         className={cn(
-          "text-3xl font-bold tracking-tight",
+          "text-2xl font-bold tracking-tight sm:text-3xl",
           gadget && "gadget-display font-semibold tracking-[-0.03em]"
         )}
       >
@@ -186,7 +186,7 @@ export default function CartPage() {
                   )}
                 />
               )}
-              <div className="flex flex-1 flex-col justify-between">
+              <div className="flex min-w-0 flex-1 flex-col justify-between">
                 <div>
                   <Link
                     href={productHref(item.slug)}
@@ -249,7 +249,7 @@ export default function CartPage() {
 
         <aside
           className={cn(
-            "h-fit rounded-2xl border p-6 lg:sticky lg:top-24",
+            "h-fit min-w-0 rounded-2xl border p-4 sm:p-6 lg:sticky lg:top-24",
             gadget ? "border-[var(--g-line)] bg-[var(--g-white)]" : "bg-card"
           )}
         >
