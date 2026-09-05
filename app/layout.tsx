@@ -117,9 +117,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico?v=bnt", type: "image/x-icon", sizes: "any" },
+      { url: "/favicon-32.png?v=bnt", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16.png?v=bnt", type: "image/png", sizes: "16x16" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
-      { url: "/brand/bnt-seal.png", type: "image/png", sizes: "512x512" },
     ],
+    shortcut: "/favicon.ico?v=bnt",
     apple: "/apple-icon.png",
   },
 };
