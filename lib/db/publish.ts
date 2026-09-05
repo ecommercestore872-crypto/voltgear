@@ -325,32 +325,9 @@ export function mergeApprovedReview(
   };
 }
 
-export function textToPortableText(text: string) {
-  const trimmed = text.trim();
-  if (!trimmed) return [];
-  return [
-    {
-      _type: "block",
-      _key: "b1",
-      style: "normal",
-      markDefs: [],
-      children: [{ _type: "span", _key: "s1", text: trimmed, marks: [] }],
-    },
-  ];
-}
-
-export function portableTextToPlain(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (!Array.isArray(value)) return "";
-  return value
-    .map((block) => {
-      if (!block || typeof block !== "object") return "";
-      const children = (block as { children?: { text?: string }[] }).children;
-      if (!Array.isArray(children)) return "";
-      return children.map((c) => c.text ?? "").join("");
-    })
-    .filter(Boolean)
-    .join("\n\n");
-}
+export {
+  portableTextToPlain,
+  textToPortableText,
+} from "@/lib/product-detail-copy";
 
 export const ADMIN_COOKIE = "vg_admin";

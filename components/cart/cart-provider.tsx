@@ -182,8 +182,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+const SSR_CART: CartContextValue = {
+  items: [],
+  count: 0,
+  subtotal: 0,
+  isOpen: false,
+  openCart: () => {},
+  closeCart: () => {},
+  addItem: () => {},
+  removeItem: () => {},
+  updateQuantity: () => {},
+  updateItemPrice: () => {},
+  clearCart: () => {},
+};
+
 export function useCart() {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  if (!ctx) {
+    if (typeof window === "undefined") return SSR_CART;
+    throw new Error("useCart must be used within CartProvider");
+  }
   return ctx;
 }

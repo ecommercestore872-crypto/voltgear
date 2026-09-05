@@ -78,6 +78,48 @@ export function membershipIdsForProduct(
   return collections.filter((c) => c.productIds.includes(productId)).map((c) => c.id);
 }
 
+export const GENERATED_HOME_COLLECTIONS: {
+  name: string;
+  slug: string;
+  mode: CollectionMode;
+  autoRule: CollectionAutoRule | null;
+  homeSlot: CollectionHomeSlot;
+}[] = [
+  {
+    name: "Best Sellers",
+    slug: "best-sellers",
+    mode: "auto",
+    autoRule: "bestsellers",
+    homeSlot: "bestsellers",
+  },
+  {
+    name: "Featured",
+    slug: "featured",
+    mode: "auto",
+    autoRule: "featured",
+    homeSlot: "featured",
+  },
+  {
+    name: "Best Offers",
+    slug: "best-offers",
+    mode: "auto",
+    autoRule: "bestsellers",
+    homeSlot: "offers",
+  },
+];
+
+export function missingGeneratedCollections(
+  existing: { slug?: string | null; homeSlot?: CollectionHomeSlot | null }[]
+): typeof GENERATED_HOME_COLLECTIONS {
+  const slugs = new Set(existing.map((row) => (row.slug || "").trim().toLowerCase()));
+  const slots = new Set(
+    existing.map((row) => row.homeSlot).filter((slot): slot is CollectionHomeSlot => Boolean(slot))
+  );
+  return GENERATED_HOME_COLLECTIONS.filter(
+    (spec) => !slugs.has(spec.slug) && !slots.has(spec.homeSlot)
+  );
+}
+
 export function extraHomeCollectionRails<
   T extends { id: string; active: boolean; homeSlot: CollectionHomeSlot | null },
 >(collections: T[]): T[] {

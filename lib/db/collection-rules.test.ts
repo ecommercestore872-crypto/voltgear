@@ -7,6 +7,7 @@ import {
   extraHomeCollectionRails,
   inferHomeSlotFromName,
   membershipIdsForProduct,
+  missingGeneratedCollections,
   parseCollectionIds,
   slugifyCollectionName,
 } from "./collection-rules";
@@ -29,6 +30,26 @@ describe("collection-rules", () => {
         autoRule: "bestsellers",
       }).ok,
       true
+    );
+  });
+});
+
+describe("missingGeneratedCollections", () => {
+  it("asks for Best Sellers, Featured, and Best Offers when none exist", () => {
+    const missing = missingGeneratedCollections([]);
+    assert.deepEqual(
+      missing.map((row) => row.name),
+      ["Best Sellers", "Featured", "Best Offers"]
+    );
+  });
+
+  it("does not recreate a generated collection that is already saved", () => {
+    const missing = missingGeneratedCollections([
+      { slug: "best-sellers", homeSlot: "bestsellers" },
+    ]);
+    assert.deepEqual(
+      missing.map((row) => row.homeSlot),
+      ["featured", "offers"]
     );
   });
 });

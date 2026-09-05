@@ -82,7 +82,7 @@ function FunnelStepRow({
   );
 
   const className = cn(
-    "flex w-full flex-col gap-3 border-b px-4 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between",
+    "flex w-full flex-col gap-3 border-b border-[var(--g-line)] px-4 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between",
     onClick &&
       "cursor-pointer text-left transition-colors hover:bg-[var(--g-sage)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   );
@@ -115,18 +115,18 @@ export function AnalyticsFunnelPanel({
   const topCount = list[0]?.count ?? 0;
 
   return (
-    <section className="overflow-hidden rounded-lg border bg-white">
-      <header className="border-b bg-[var(--g-cream)]/80 px-4 py-4">
+    <section className="admin-analytics-panel">
+      <header className="admin-analytics-panel-head">
         <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-1 text-sm text-[var(--g-taupe)]">{description}</p>
       </header>
       {list.length === 0 ? (
-        <div className="px-4 py-6 text-sm text-muted-foreground">
+        <div className="px-4 py-6 text-sm text-[var(--g-taupe)]">
           {empty ?? "Not available"}
         </div>
       ) : (
         <div>
-          <div className="hidden border-b bg-muted/30 px-4 py-2 text-[0.65rem] font-medium uppercase tracking-[0.12em] text-[var(--g-taupe)] sm:grid sm:grid-cols-[1fr_max-content] sm:gap-4">
+          <div className="hidden border-b border-[var(--g-line)] bg-[color-mix(in_srgb,var(--g-cream-deep)_50%,white)] px-4 py-2 text-[0.65rem] font-medium uppercase tracking-[0.12em] text-[var(--g-taupe)] sm:grid sm:grid-cols-[1fr_max-content] sm:gap-4">
             <span className="pl-10">Step</span>
             <div className="grid w-full max-w-md grid-cols-3 gap-4">
               <span>Count</span>

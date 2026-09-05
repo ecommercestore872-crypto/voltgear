@@ -10,6 +10,14 @@ export function whatsappHref(raw: string | null | undefined): string | null {
   return `https://wa.me/${digits}`;
 }
 
+/** Shop chat: Settings WhatsApp first, then the contact phone. */
+export function shopWhatsAppHref(settings: {
+  whatsappNumber?: string | null;
+  phone?: string | null;
+} | null | undefined): string | null {
+  return whatsappHref(settings?.whatsappNumber || settings?.phone);
+}
+
 export function telHref(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null;
   const compact = raw.replace(/[^\d+]/g, "");

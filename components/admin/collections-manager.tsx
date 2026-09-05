@@ -66,10 +66,8 @@ export function CollectionsManager({
         <h1 className="text-2xl font-semibold">Collections</h1>
       </div>
       <p className="text-sm text-muted-foreground">
-        Group products for home rails (Best Sellers, Featured, new collections).
-        Manual picks or auto rules. Name a collection Best Sellers or Featured to
-        fill those existing rails; any other name gets the same product-rail layout
-        on the home page.
+        Best Sellers, Featured, and Best Offers are created here so they are not
+        hardcoded on the home page. Edit or add more collections anytime.
       </p>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
@@ -124,6 +122,8 @@ export function CollectionsManager({
         </Button>
       </div>
 
+      <div>
+        <h2 className="mb-2 text-sm font-semibold">Created collections</h2>
       <ul className="space-y-2">
         {items.length === 0 ? (
           <li className="text-sm text-muted-foreground">No collections yet.</li>
@@ -146,7 +146,7 @@ export function CollectionsManager({
                   {c.mode === "manual"
                     ? `${c.productIds.length} products`
                     : "auto"}
-                  {c.homeSlot ? ` · home: ${c.homeSlot}` : ""}
+                  {c.homeSlot ? ` · on home` : ""}
                   {!c.active ? " · inactive" : ""}
                 </p>
               </div>
@@ -163,6 +163,7 @@ export function CollectionsManager({
           ))
         )}
       </ul>
+      </div>
     </div>
   );
 }

@@ -19,6 +19,7 @@ import {
   parseChromeLinks,
   type ChromeLink,
 } from "@/lib/chrome-nav-rules";
+import { SHOPPER_BRAND, shouldReplaceBrandName } from "@/lib/brand";
 
 type SettingsRow = Record<string, unknown> & {
   status?: PublishStatus;
@@ -33,7 +34,9 @@ function fromRow(row?: SettingsRow | null) {
   const d = row?.draft ?? {};
   const social = (d.socialLinks ?? row?.social_links) as { platform?: string; url?: string }[] | undefined;
   return {
-    brandName: str(d.brandName ?? row?.brand_name),
+    brandName: shouldReplaceBrandName(str(d.brandName ?? row?.brand_name))
+      ? SHOPPER_BRAND.spokenName
+      : str(d.brandName ?? row?.brand_name),
     tagline: str(d.tagline ?? row?.tagline),
     logo: str(d.logo ?? row?.logo_url),
     email: str(d.email ?? row?.email),

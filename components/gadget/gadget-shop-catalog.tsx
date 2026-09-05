@@ -101,7 +101,7 @@ export function GadgetShopCatalog({
               </span>
             ))}
           </nav>
-          <h1 className="gadget-display mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--g-charcoal)] sm:text-3xl lg:text-[2.15rem]">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--g-charcoal)] sm:text-3xl">
             {title}
           </h1>
           <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--g-taupe)] sm:text-[15px]">
@@ -110,9 +110,8 @@ export function GadgetShopCatalog({
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-3 pb-10 pt-3 sm:px-4 sm:pb-12 sm:pt-4 lg:px-8">
-
-        {/* Category filter chips / Jump to category */}
+      <div className="mx-auto max-w-6xl px-4 pb-10 pt-3 sm:pb-12 sm:pt-4 lg:px-8">
+        {useFlatGrid && !activeCategory ? null : (
         <div className="mt-3 sm:mt-4">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
             {activeCategory ? "Filter by type" : "Jump to category"}
@@ -148,10 +147,11 @@ export function GadgetShopCatalog({
             })}
           </div>
         </div>
+        )}
 
         {products.length ? (
           useFlatGrid ? (
-            <ul className="mt-4 grid grid-cols-2 gap-3.5 sm:mt-5 sm:gap-4.5 md:grid-cols-3 lg:mt-6 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+            <ul className="gadget-product-grid mt-4 sm:mt-5 lg:mt-6">
               {products.map((p) => (
                 <li key={p._id} className="min-w-0">
                   <GadgetArrivalCard product={p} isGrid />
@@ -191,7 +191,7 @@ export function GadgetShopCatalog({
                         View all {group.name} →
                       </Link>
                     </div>
-                    <ul className="grid grid-cols-2 gap-3.5 sm:gap-4.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+                    <ul className="gadget-product-grid">
                       {group.products.map((p) => (
                         <li key={p._id} className="min-w-0">
                           <GadgetArrivalCard product={p} isGrid />

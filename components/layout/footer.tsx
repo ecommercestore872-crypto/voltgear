@@ -25,20 +25,22 @@ export function Footer({
       <div className="container mx-auto grid gap-x-10 gap-y-12 px-4 py-16 md:grid-cols-2 lg:grid-cols-5 lg:px-8 max-w-7xl">
         {/* Brand column */}
         <div className="space-y-5 lg:col-span-2 pr-10">
-          {logoUrl ? (
-            <Image
-              src={logoUrl}
-              alt={brandName}
-              width={140}
-              height={40}
-              className="h-10 w-auto object-contain brightness-0 invert"
-            />
-          ) : (
-            <p className="text-xl font-bold tracking-tight">
-              {brandName}
-              <span className="text-white/40">.</span>
-            </p>
-          )}
+          <Link href="/" className="inline-flex min-h-11 w-fit items-center" aria-label={`${brandName} home`}>
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={brandName}
+                width={140}
+                height={40}
+                className="h-10 w-auto object-contain brightness-0 invert"
+              />
+            ) : (
+              <p className="text-xl font-bold tracking-tight">
+                {brandName}
+                <span className="text-white/40">.</span>
+              </p>
+            )}
+          </Link>
           <p className="text-sm text-white/70 leading-relaxed max-w-sm">
             {settings?.tagline ||
               "Premium electronics accessories. Smarter tech for everyday life."}

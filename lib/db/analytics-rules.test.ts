@@ -303,13 +303,41 @@ describe("buildCustomerAnalytics", () => {
     assert.equal(stats.firstTime.customers, 2);
     assert.equal(stats.repeat.customers, 0);
   });
+
+  it("merges the same phone when email is missing", () => {
+    const range = { start: "2026-08-01", end: "2026-08-27" };
+    const now = new Date("2026-08-27T12:00:00+05:00");
+    const stats = buildCustomerAnalytics(
+      [
+        order({
+          orderId: "VG-1",
+          createdAt: noon("2026-08-01"),
+          status: "delivered",
+          statusHistory: [{ status: "delivered", at: noon("2026-08-01") }],
+          customer: { phone: "03001234567", city: "Lahore" },
+        }),
+        order({
+          orderId: "VG-2",
+          createdAt: noon("2026-08-20"),
+          status: "delivered",
+          statusHistory: [{ status: "delivered", at: noon("2026-08-20") }],
+          customer: { phone: "+92 300 1234567", city: "Lahore" },
+        }),
+      ],
+      range,
+      now
+    );
+    assert.equal(stats.repeat.customers, 1);
+    assert.equal(stats.firstTime.customers, 0);
+    assert.equal(stats.skippedNoEmail, 0);
+  });
 });
 
 describe("parseAnalyticsQuery", () => {
   it("rejects SQL-like or unknown metrics", () => {
     assert.equal(parseAnalyticsQuery({ metric: "deliveredRevenue; drop table", preset: "last30" }).ok, false);
     assert.equal(parseAnalyticsQuery({ metric: "deliveredRevenue", preset: "last30" }).ok, true);
-    assert.equal(parseAnalyticsQuery({ metric: "deliveredRevenue", dimension: "source" }).ok, false);
+    assert.equal(parseAnalyticsQuery({ metric: "deliveredRevenue", dimension: "source" }).ok, true);
   });
 });
 

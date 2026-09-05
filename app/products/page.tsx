@@ -16,7 +16,10 @@ import type { Product } from "@/lib/types";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Shop all",
+  title: "Shop electronics accessories in Pakistan | Buy n Try",
+  description:
+    "Shop smartwatches, earbuds and airbuds, power banks, chargers, tripods, and more at Buy n Try (buyntryy.com). Cash on delivery nationwide.",
+  alternates: { canonical: "/products" },
 };
 
 function hasImage(p: Product) {

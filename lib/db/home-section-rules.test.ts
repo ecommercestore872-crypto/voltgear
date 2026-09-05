@@ -14,6 +14,23 @@ describe("normalizeHomeSections", () => {
     assert.deepEqual(normalizeHomeSections({}), DEFAULT_HOME_SECTIONS);
   });
 
+  it("inserts a missing lifestyle section above reviews", () => {
+    const out = normalizeHomeSections([
+      { id: "categories", enabled: true },
+      { id: "trust", enabled: true },
+      { id: "bestsellers", enabled: true },
+      { id: "featured", enabled: true },
+      { id: "offers", enabled: true },
+      { id: "reviews", enabled: true },
+      { id: "blog", enabled: true },
+    ]);
+    const lifestyleAt = out.findIndex((s) => s.id === "lifestyle");
+    const reviewsAt = out.findIndex((s) => s.id === "reviews");
+    assert.ok(lifestyleAt >= 0);
+    assert.equal(lifestyleAt, reviewsAt - 1);
+    assert.equal(out[lifestyleAt].enabled, true);
+  });
+
   it("preserves order and enabled flags for known ids", () => {
     const raw = [
       { id: "blog", enabled: false },
@@ -50,8 +67,9 @@ describe("enabledHomeSectionIds", () => {
       { id: "trust", enabled: true },
     ]);
     const ids = enabledHomeSectionIds(sections);
-    assert.equal(ids[0], "reviews");
-    assert.ok(!ids.includes("blog"));
+    assert.ok(ids.includes("reviews"));
     assert.ok(ids.includes("trust"));
+    assert.ok(!ids.includes("blog"));
+    assert.equal(ids.indexOf("lifestyle"), ids.indexOf("reviews") - 1);
   });
 });

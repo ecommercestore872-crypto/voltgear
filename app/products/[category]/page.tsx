@@ -11,6 +11,7 @@ import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
+import { categorySearchMeta, categoryStructuredData, indexSiteUrl } from "@/lib/seo-rules";
 
 export const revalidate = 60;
 
@@ -19,8 +20,20 @@ export async function generateMetadata({
 }: {
   params: { category: string };
 }): Promise<Metadata> {
+  const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
+  const shop = findShopType(types.length ? types : FALLBACK_SHOP_TYPES, params.category);
+  const name = shop?.name || params.category.replace(/-/g, " ");
+  const meta = categorySearchMeta({
+    slug: params.category,
+    name,
+    description: shop?.description,
+  });
   return {
-    title: params.category.replace(/-/g, " "),
+    title: meta.title,
+    description: meta.description,
+    keywords: meta.keywords,
+    alternates: { canonical: `/products/${params.category}` },
+    openGraph: { title: meta.title, description: meta.description, type: "website" },
   };
 }
 
@@ -83,21 +96,45 @@ export default async function Products2CategoryPage({
     );
   }
 
+  const sorted = sortProducts(list, sort);
+  const seo = categorySearchMeta({
+    slug: params.category,
+    name: title,
+    description,
+  });
+  const structured = categoryStructuredData({
+    siteUrl: indexSiteUrl(),
+    name: title,
+    path: `/products/${params.category}`,
+    items: sorted.slice(0, 20).map((product) => ({
+      name: product.name,
+      path: `/product/${product.slug}`,
+    })),
+  });
+
   return (
-    <GadgetShopCatalog
-      title={title}
-      description={description}
-      products={sortProducts(list, sort)}
-      shopTypes={shopTypes}
-      activeCategory={params.category}
-      query={q}
-      sort={sort}
-      config={config}
-      breadcrumbs={[
-        { label: "Home", href: "/" },
-        { label: "Shop", href: products2Href() },
-        { label: title },
-      ]}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([structured.collection, structured.itemList, structured.breadcrumb]),
+        }}
+      />
+      <GadgetShopCatalog
+        title={title}
+        description={seo.description}
+        products={sorted}
+        shopTypes={shopTypes}
+        activeCategory={params.category}
+        query={q}
+        sort={sort}
+        config={config}
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Shop", href: products2Href() },
+          { label: title },
+        ]}
+      />
+    </>
   );
 }

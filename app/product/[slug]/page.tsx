@@ -14,6 +14,8 @@ import { isDemoSession } from "@/lib/demo";
 import { normalizeSettings } from "@/lib/site-config";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product, ProductReview } from "@/lib/types";
+import { indexSiteUrl, productStructuredData } from "@/lib/seo-rules";
+import { SHOPPER_BRAND } from "@/lib/brand";
 
 export const revalidate = 60;
 
@@ -25,11 +27,11 @@ export async function generateMetadata({
   const product = await fetchProductBySlug(params.slug, isDemoSession()).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
   
-  const title = `${product.name} — Buy in Pakistan | Buy n Try`;
+  const title = `${product.name} — Buy in Pakistan | ${SHOPPER_BRAND.spokenName}`;
   const description =
     product.shortDescription ||
-    `Buy ${product.name} at the best price in Pakistan with fast nationwide shipping & official warranty.`;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://voltgear.pk";
+    `Buy ${product.name} at Buy n Try (buyntryy.com) with cash on delivery nationwide.`;
+  const siteUrl = indexSiteUrl();
   const url = `${siteUrl}/product/${product.slug}`;
   const firstImg = product.images?.[0] ? imageUrl(product.images[0], { w: 800 }) : undefined;
 
@@ -42,6 +44,7 @@ export async function generateMetadata({
       `${product.category} in Pakistan`,
       "buy online Pakistan",
       "Buy n Try",
+      "buyntryy",
     ],
     openGraph: {
       type: "website",
@@ -110,29 +113,25 @@ export default async function Product2Page({ params }: { params: { slug: string 
     .filter((p) => p._id !== product._id && p.category === product.category)
     .slice(0, 4);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://voltgear.pk";
+  const siteUrl = indexSiteUrl();
   const productImg = product.images?.[0] ? imageUrl(product.images[0], { w: 800 }) : undefined;
 
-  const prodDesc = product.shortDescription || `Buy ${product.name} in Pakistan at best price.`;
+  const prodDesc = product.shortDescription || `Buy ${product.name} in Pakistan at Buy n Try.`;
 
-  const productJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
+  const productJsonLd = productStructuredData({
     name: product.name,
     description: prodDesc,
-    image: productImg ? [productImg] : [],
+    url: `${siteUrl}/product/${product.slug}`,
+    image: productImg,
     category: product.category,
-    offers: {
-      "@type": "Offer",
-      price: product.price,
-      priceCurrency: "PKR",
-      availability: product.stockStatus !== "out-of-stock" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      seller: {
-        "@type": "Organization",
-        name: "Buy n Try",
-      },
-    },
-  };
+    price: product.price,
+    currency: config.currency || "PKR",
+    inStock: product.stockStatus !== "out-of-stock",
+    sku: product.sku,
+    brandName: SHOPPER_BRAND.spokenName,
+    rating: product.rating,
+    reviewCount: product.reviewCount,
+  });
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -219,7 +218,7 @@ export default async function Product2Page({ params }: { params: { slug: string 
                 View all
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:gap-5">
+            <div className="gadget-product-grid">
               {relatedProducts.map((p) => (
                 <GadgetProductCard key={p._id} product={p} />
               ))}

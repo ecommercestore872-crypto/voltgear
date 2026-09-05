@@ -2,26 +2,22 @@
 
 import { useId, useState, type KeyboardEvent } from "react";
 import {
-  AlignLeft,
+  Check,
   ChevronDown,
   ListChecks,
   Package,
-  Play,
   Ruler,
   Smartphone,
   type LucideIcon,
 } from "lucide-react";
 
-import { GadgetVideoPlayer, hasShopperProductVideo } from "@/components/gadget/gadget-video";
-import { RichText } from "@/components/product/rich-text";
+import { GadgetProductReadMore } from "@/components/gadget/gadget-product-read-more";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type TabId = "video" | "details" | "features" | "specs" | "inbox" | "compatibility";
+type TabId = "features" | "specs" | "inbox" | "compatibility";
 
 const SECTIONS: { id: TabId; label: string; Icon: LucideIcon }[] = [
-  { id: "video", label: "View video", Icon: Play },
-  { id: "details", label: "Full details", Icon: AlignLeft },
   { id: "features", label: "Why you'll love it", Icon: ListChecks },
   { id: "specs", label: "Specifications", Icon: Ruler },
   { id: "inbox", label: "What's in the box", Icon: Package },
@@ -36,7 +32,6 @@ function visibleFor(product: Product) {
   const inbox = (product.inTheBox ?? []).filter(Boolean);
   const compat = (product.compatibility ?? []).filter((c) => c?.trim());
   const hasDesc = Boolean(product.description?.length);
-  const hasVideo = hasShopperProductVideo(product);
 
   return {
     features,
@@ -44,10 +39,7 @@ function visibleFor(product: Product) {
     inbox,
     compat,
     hasDesc,
-    hasVideo,
     sections: SECTIONS.filter((s) => {
-      if (s.id === "video") return hasVideo;
-      if (s.id === "details") return hasDesc;
       if (s.id === "features") return features.length > 0;
       if (s.id === "specs") return specs.length > 0;
       if (s.id === "inbox") return inbox.length > 0;
@@ -58,48 +50,36 @@ function visibleFor(product: Product) {
 }
 
 function ChapterBody({
-  product,
   sectionId,
   features,
   specs,
   inbox,
   compat,
-  hasDesc,
-  hasVideo,
 }: {
-  product: Product;
   sectionId: TabId;
   features: string[];
   specs: { label: string; value: string }[];
   inbox: string[];
   compat: string[];
-  hasDesc: boolean;
-  hasVideo: boolean;
 }) {
-  if (sectionId === "video" && hasVideo) {
-    return <GadgetVideoPlayer product={product} />;
-  }
-
-  if (sectionId === "details" && hasDesc) {
-    return (
-      <div className="prose prose-sm max-w-none text-[var(--g-charcoal)] leading-relaxed sm:prose-base">
-        <RichText blocks={product.description!} />
-      </div>
-    );
-  }
-
   if (sectionId === "features" && features.length > 0) {
     return (
-      <ul className="grid gap-2 sm:grid-cols-2">
+      <ul className="grid gap-2.5 sm:grid-cols-2">
         {features.map((f, i) => (
           <li
             key={i}
-            className="flex items-start gap-3 rounded-xl bg-[var(--g-cream-deep)] px-3.5 py-3 text-sm text-[var(--g-charcoal)]"
+            className="gadget-detail-card flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--g-sage)_22%,var(--g-line))] bg-[color-mix(in_srgb,var(--g-sage)_10%,var(--g-cream))] px-3.5 py-3.5 text-sm leading-relaxed text-[var(--g-charcoal)]"
+            style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
           >
-            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)] text-[10px] font-bold text-[var(--g-cream)]">
-              {i + 1}
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)] text-[var(--g-cream)]">
+              <Check className="h-3.5 w-3.5 stroke-[2.4]" aria-hidden />
             </span>
-            {f}
+            <span>
+              <span className="gadget-display mr-1.5 text-[13px] text-[var(--g-forest)]">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              {f}
+            </span>
           </li>
         ))}
       </ul>
@@ -108,17 +88,22 @@ function ChapterBody({
 
   if (sectionId === "specs" && specs.length > 0) {
     return (
-      <dl className="overflow-hidden rounded-xl border border-[var(--g-line)]">
+      <dl className="overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--g-sage)_24%,var(--g-line))]">
         {specs.map((s, i) => (
           <div
             key={s.label}
             className={cn(
-              "grid grid-cols-[110px_1fr] gap-3 px-4 py-2.5 text-sm sm:grid-cols-[160px_1fr]",
-              i % 2 === 0 ? "bg-[var(--g-cream-deep)]" : "bg-[var(--g-cream)]"
+              "gadget-detail-card grid grid-cols-[110px_1fr] items-baseline gap-3 px-4 py-3 sm:grid-cols-[168px_1fr]",
+              i % 2 === 0
+                ? "bg-[color-mix(in_srgb,var(--g-sage)_10%,var(--g-cream-deep))]"
+                : "bg-[var(--g-cream)]"
             )}
+            style={{ animationDelay: `${Math.min(i, 8) * 50}ms` }}
           >
-            <dt className="truncate pr-2 font-medium text-[var(--g-taupe)]">{s.label}</dt>
-            <dd className="font-medium text-[var(--g-charcoal)]">{s.value}</dd>
+            <dt className="gadget-eyebrow truncate pr-2 text-[0.62rem]">{s.label}</dt>
+            <dd className="gadget-display text-[1.02rem] font-medium tracking-[-0.02em] text-[var(--g-forest)]">
+              {s.value}
+            </dd>
           </div>
         ))}
       </dl>
@@ -127,14 +112,17 @@ function ChapterBody({
 
   if (sectionId === "inbox" && inbox.length > 0) {
     return (
-      <ul className="grid gap-2 sm:grid-cols-2">
+      <ul className="grid gap-2.5 sm:grid-cols-2">
         {inbox.map((item, i) => (
           <li
             key={i}
-            className="gadget-ticket-well flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm text-[var(--g-charcoal)]"
+            className="gadget-detail-card gadget-ticket-well flex items-center gap-3 rounded-xl px-3.5 py-3.5 text-sm text-[var(--g-charcoal)]"
+            style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
           >
-            <Package className="h-4 w-4 shrink-0 text-[var(--g-forest)] stroke-[1.75]" aria-hidden />
-            {item}
+            <span className="gadget-display flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--g-forest)] text-[13px] text-[var(--g-cream)]">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span className="leading-relaxed">{item}</span>
           </li>
         ))}
       </ul>
@@ -144,10 +132,11 @@ function ChapterBody({
   if (sectionId === "compatibility" && compat.length > 0) {
     return (
       <ul className="flex flex-wrap gap-2">
-        {compat.map((c) => (
+        {compat.map((c, i) => (
           <li
             key={c}
-            className="rounded-full border border-[var(--g-forest)]/20 bg-[var(--g-cream-deep)] px-3.5 py-1.5 text-sm font-medium text-[var(--g-forest)]"
+            className="gadget-detail-card gadget-chip gadget-chip-idle rounded-full px-3.5 py-1.5 text-sm font-medium text-[var(--g-forest)]"
+            style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
           >
             {c}
           </li>
@@ -161,10 +150,10 @@ function ChapterBody({
 
 export function GadgetProductTabs({ product }: { product: Product }) {
   const baseId = useId();
-  const { features, specs, inbox, compat, hasDesc, hasVideo, sections } = visibleFor(product);
+  const { features, specs, inbox, compat, hasDesc, sections } = visibleFor(product);
   const [openId, setOpenId] = useState<TabId | "">("");
 
-  if (sections.length === 0) return null;
+  if (!hasDesc && sections.length === 0) return null;
 
   const activeIndex = sections.findIndex((s) => s.id === openId);
   const active = activeIndex >= 0 ? sections[activeIndex] : null;
@@ -200,10 +189,16 @@ export function GadgetProductTabs({ product }: { product: Product }) {
         <h2 className="gadget-h2 mt-1 text-[var(--g-charcoal)]">Look closer</h2>
       </header>
 
+      {hasDesc && product.description ? (
+        <GadgetProductReadMore blocks={product.description} />
+      ) : null}
+
+      {sections.length === 0 ? null : (
       <div
         className={cn(
-          "overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[var(--g-cream)]",
-          active && "md:grid md:grid-cols-[minmax(14rem,16.5rem)_minmax(0,1fr)]"
+          "mt-4 overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[var(--g-cream)]",
+          active && "md:grid md:grid-cols-[minmax(14rem,16.5rem)_minmax(0,1fr)]",
+          hasDesc && "mt-5"
         )}
       >
         <div
@@ -305,19 +300,17 @@ export function GadgetProductTabs({ product }: { product: Product }) {
             </p>
             <div className="relative mt-5">
               <ChapterBody
-                product={product}
                 sectionId={active.id}
                 features={features}
                 specs={specs}
                 inbox={inbox}
                 compat={compat}
-                hasDesc={hasDesc}
-                hasVideo={hasVideo}
               />
             </div>
           </div>
         ) : null}
       </div>
+      )}
     </section>
   );
 }

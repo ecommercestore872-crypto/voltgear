@@ -85,8 +85,20 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 }
 
+const SSR_WISHLIST: WishlistContextValue = {
+  items: [],
+  count: 0,
+  hasItem: () => false,
+  addItem: () => {},
+  removeItem: () => {},
+  toggleItem: () => {},
+};
+
 export function useWishlist() {
   const ctx = useContext(WishlistContext);
-  if (!ctx) throw new Error("useWishlist must be used within WishlistProvider");
+  if (!ctx) {
+    if (typeof window === "undefined") return SSR_WISHLIST;
+    throw new Error("useWishlist must be used within WishlistProvider");
+  }
   return ctx;
 }

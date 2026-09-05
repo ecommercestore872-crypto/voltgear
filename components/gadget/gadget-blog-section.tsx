@@ -163,7 +163,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
               const date = formatDate(post.publishedAt);
               const href = usingFallback ? "/blog" : `/blog/${post.slug}`;
               return (
-                <li key={`${tab}-${post.slug}`} className="w-[16.5rem] shrink-0 sm:w-[17.5rem] lg:w-[18.25rem]">
+                <li key={`${tab}-${post.slug}`} className="w-[min(78vw,18.25rem)] shrink-0">
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(31,54,38,0.1)]">
                     <Link href={href} className="relative block aspect-[16/10] overflow-hidden bg-[var(--g-cream-deep)]">
                       {post.coverImage ? (

@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
-import { publicSiteUrl } from "@/lib/deploy-rules";
+import { indexSiteUrl, organizationStructuredData } from "@/lib/seo-rules";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchShopTypes } from "@/lib/db/store";
 import { getSettings, resolveFonts } from "@/lib/sanity/settings";
@@ -53,7 +53,7 @@ const CompareBarWrapper = dynamic(
   { ssr: false, loading: () => null }
 );
 
-const SITE_URL = publicSiteUrl();
+const SITE_URL = indexSiteUrl();
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -76,6 +76,8 @@ export const metadata: Metadata = {
   keywords: [
     "tripods in Pakistan",
     "best earbuds in Pakistan",
+    "airbuds in Pakistan",
+    "buy airbuds online Pakistan",
     "smartwatches in Pakistan",
     "power banks Pakistan",
     "fast chargers Pakistan",
@@ -86,7 +88,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "en_PK",
     siteName: "Buy n Try",
     title: "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
     description:
@@ -164,6 +166,7 @@ export default async function RootLayout({
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: brandName,
+      alternateName: ["buyntryy", "Buy n Try"],
       url: SITE_URL,
       potentialAction: {
         "@type": "SearchAction",
@@ -171,15 +174,14 @@ export default async function RootLayout({
         "query-input": "required name=search_term_string",
       },
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: brandName,
-      url: SITE_URL,
-      ...(settings?.logo
-        ? { logo: `${SITE_URL}/api/logo` }
-        : {}),
-    },
+    organizationStructuredData({
+      siteUrl: SITE_URL,
+      brandName,
+      logo: settings?.logo ? `${SITE_URL}/api/logo` : undefined,
+      phone: settings?.phone || settings?.whatsappNumber,
+      email: settings?.email,
+      returnDays: settings?.returnWindowDays,
+    }),
   ];
 
   return (

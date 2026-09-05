@@ -10,6 +10,7 @@ import type {
   Testimonial,
 } from "@/lib/types";
 import { normalizeHomeSections } from "@/lib/db/home-section-rules";
+import { normalizeLifestyleShop } from "@/lib/db/lifestyle-shop-rules";
 import { parseChromeLinks } from "@/lib/chrome-nav-rules";
 import { parseAutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig } from "@/lib/order-email-cms-rules";
@@ -163,6 +164,7 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     announcement: row.announcement as SiteSettings["announcement"],
     seo: row.seo as SiteSettings["seo"],
     homeSections: normalizeHomeSections(row.home_sections),
+    lifestyleShop: normalizeLifestyleShop(row.lifestyle_shop),
   };
 }
 

@@ -59,8 +59,8 @@ export function PostExChitModal({ order, onClose }: PostExChitModalProps) {
                 <p className="text-[10px] font-sans font-bold text-gray-600">COD EXPRESS LOGISTICS</p>
               </div>
               <div className="text-right">
-                <h2 className="text-sm font-bold font-sans">VOLTGEAR PK</h2>
-                <p className="text-[10px] font-sans text-gray-600">Accessories Hub</p>
+                <h2 className="text-sm font-bold font-sans">BUY N TRY</h2>
+                <p className="text-[10px] font-sans text-gray-600">buyntryy.com</p>
               </div>
             </div>
 

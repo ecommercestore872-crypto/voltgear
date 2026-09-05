@@ -120,6 +120,9 @@ describe("assembleAnalyticsBundle", () => {
     assert.ok(bundle.insights.some((c) => c.id === "fulfillment_processing_gap"));
     assert.ok(bundle.funnel.length > 0);
     assert.equal(bundle.executive.deliveredRevenue, 2500);
+    assert.equal(bundle.moneyStory.kept, 0);
+    assert.ok(Array.isArray(bundle.alerts));
+    assert.ok(Array.isArray(bundle.coach.products));
   });
 
   it("fills visitors, sessions, converted, bySource, landingPages, and shopFunnel when traffic is available", () => {

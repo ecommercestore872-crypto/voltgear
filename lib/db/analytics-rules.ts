@@ -20,6 +20,7 @@ export const ANALYTICS_DIMENSIONS = [
   "city",
   "date",
   "customerCohort",
+  "source",
 ] as const;
 export type AnalyticsDimension = (typeof ANALYTICS_DIMENSIONS)[number];
 
@@ -44,8 +45,13 @@ export type AnalyticsOrder = {
   statusHistory?: AnalyticsHistoryEntry[] | null;
   total?: number | null;
   isDemo?: boolean;
-  customer?: { email?: string | null; city?: string | null } | null;
+  customer?: { email?: string | null; phone?: string | null; city?: string | null } | null;
   items?: AnalyticsItem[] | null;
+  source?: string | null;
+  shipping?: number | null;
+  subtotal?: number | null;
+  payment?: string | null;
+  discount?: number | null;
 };
 
 export type ProductCostRow = {
@@ -471,10 +477,18 @@ export type CustomerAnalytics = {
   skippedNoEmail: number;
 };
 
+function phoneDigits(phone: string | null | undefined): string {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (digits.length < 10) return "";
+  return digits.slice(-10);
+}
+
 function customerKey(order: AnalyticsOrder): string | null {
   const email = order.customer?.email?.trim() ?? "";
-  if (!email) return null;
-  return email.toLowerCase();
+  if (email) return `e:${email.toLowerCase()}`;
+  const phone = phoneDigits(order.customer?.phone);
+  if (phone) return `p:${phone}`;
+  return null;
 }
 
 export function buildCustomerAnalytics(
@@ -727,6 +741,29 @@ export function runAnalyticsQuery(
         orderIds: [],
       },
     ];
+  } else if (dim === "source") {
+    const live = liveOrders(orders);
+    const keys = new Set(live.map((o) => ((o.source ?? "").trim() || "unattributed")));
+    rows = Array.from(keys).map((label) => {
+      const subset = live.filter((o) => ((o.source ?? "").trim() || "unattributed") === label);
+      const snap = buildExecutiveSnapshot(subset, range, costs);
+      return {
+        label,
+        value: pickMetric(query.metric, {
+          deliveredRevenue: snap.deliveredRevenue,
+          deliveredProfit: snap.deliveredGrossProfit,
+          ordersPlaced: snap.ordersPlaced,
+          ordersDelivered: snap.ordersDelivered,
+          deliveryRate: snap.deliverySuccessRate,
+          cancellationRate: snap.cancellationRate,
+          averageOrderValue: snap.ordersDelivered ? snap.deliveredRevenue / snap.ordersDelivered : null,
+        }),
+        orderIds:
+          query.metric === "ordersPlaced" || query.metric === "cancellationRate"
+            ? snap.placedOrderIds
+            : snap.deliveredOrderIds,
+      };
+    });
   }
 
   rows.sort((a, b) => {

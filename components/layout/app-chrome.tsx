@@ -58,7 +58,11 @@ export function AppChrome({
   }, [pathname, searchParams]);
 
   if (!pathname) {
-    return <>{children}</>;
+    return (
+      <CartProvider>
+        <WishlistProvider>{children}</WishlistProvider>
+      </CartProvider>
+    );
   }
 
   if (pathname.startsWith("/admin")) {

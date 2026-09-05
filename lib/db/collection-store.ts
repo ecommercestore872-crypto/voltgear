@@ -5,6 +5,7 @@ import {
   canSaveCollection,
   extraHomeCollectionRails,
   inferHomeSlotFromName,
+  missingGeneratedCollections,
   parseCollectionIds,
   parseHomeSlot,
   slugifyCollectionName,
@@ -54,7 +55,31 @@ function mapCollection(
   };
 }
 
+export async function ensureGeneratedHomeCollections() {
+  const { data, error } = await db()
+    .from("collections")
+    .select("slug, home_slot");
+  if (error) throw error;
+  const missing = missingGeneratedCollections(
+    (data ?? []).map((row) => ({
+      slug: String((row as { slug?: string }).slug ?? ""),
+      homeSlot: parseHomeSlot((row as { home_slot?: unknown }).home_slot),
+    }))
+  );
+  for (const spec of missing) {
+    await createAdminCollection({
+      name: spec.name,
+      slug: spec.slug,
+      mode: spec.mode,
+      autoRule: spec.autoRule,
+      homeSlot: spec.homeSlot,
+      active: true,
+    });
+  }
+}
+
 export async function listAdminCollections(): Promise<AdminCollection[]> {
+  await ensureGeneratedHomeCollections();
   const { data, error } = await db()
     .from("collections")
     .select("*")

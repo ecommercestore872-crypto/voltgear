@@ -21,8 +21,11 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   const found = await getStorefrontCollectionBySlug(params.slug).catch(() => null);
+  const name = found?.collection.name || params.slug.replace(/-/g, " ");
   return {
-    title: found?.collection.name || params.slug.replace(/-/g, " "),
+    title: `${name} | Buy n Try`,
+    description: `Shop the ${name} collection at Buy n Try (buyntryy.com).`,
+    alternates: { canonical: `/collections/${params.slug}` },
   };
 }
 

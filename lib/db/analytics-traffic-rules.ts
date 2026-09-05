@@ -7,6 +7,8 @@ export type TrafficEvent = {
   name: string;
   occurredAt: string;
   properties?: Record<string, unknown>;
+  productSlug?: string | null;
+  path?: string | null;
 };
 
 export type TrafficSession = {

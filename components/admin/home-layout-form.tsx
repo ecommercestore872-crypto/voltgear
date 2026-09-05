@@ -71,7 +71,9 @@ export function HomeLayoutForm({
       <div>
         <h1 className="text-2xl font-semibold">Home layout</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Hero stays on top. Toggle and reorder the sections below.
+          Hero stays on top. Use the arrows to move Shop categories and Lifestyle
+          shop (or any other block). Lifestyle shop starts above Reviews. The
+          mosaic images and copy are edited in the form under this list.
         </p>
       </div>
 

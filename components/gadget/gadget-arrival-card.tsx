@@ -81,7 +81,7 @@ export function GadgetArrivalCard({
     <article
       className={cn(
         "gadget-hover-lift group relative flex flex-col bg-transparent",
-        isGrid ? "h-full w-full" : "w-[13.25rem] shrink-0 sm:w-[14.5rem]"
+        isGrid ? "h-full w-full min-w-0" : "gadget-rail-card h-full"
       )}
     >
       <div className="relative">
@@ -111,8 +111,8 @@ export function GadgetArrivalCard({
               alt={product.name}
               fill
               quality={92}
-              sizes={isGrid ? "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" : "268px"}
-              className="object-contain p-5 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] sm:p-6"
+              sizes={isGrid ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw" : "260px"}
+              className="object-contain p-3 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] sm:p-4 lg:p-5"
             />
           ) : (
             <span className="flex h-full items-center justify-center text-sm text-[var(--g-taupe)]">
@@ -129,7 +129,7 @@ export function GadgetArrivalCard({
             className={cn(
               "font-semibold tracking-tight text-[var(--g-charcoal)] transition group-hover:text-[var(--g-forest)]",
               isGrid
-                ? "line-clamp-2 text-[13px] leading-snug sm:text-[14px]"
+                ? "line-clamp-2 text-[14px] leading-snug sm:text-[15px]"
                 : "line-clamp-2 text-[14px] sm:text-[15px]"
             )}
           >

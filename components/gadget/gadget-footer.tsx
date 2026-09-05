@@ -164,7 +164,13 @@ export function GadgetFooter({
 
           {/* Brand + contact + newsletter */}
           <div className="flex flex-col">
-            <ShopBrandMark logo={settings?.logo} name={brandName} invert />
+            <Link
+              href="/"
+              className="inline-flex min-h-11 w-fit items-center"
+              aria-label={`${brandName} home`}
+            >
+              <ShopBrandMark logo={settings?.logo} name={brandName} invert />
+            </Link>
 
             {socials.length ? (
               <div className="mt-5 flex flex-wrap gap-3">
@@ -219,7 +225,7 @@ export function GadgetFooter({
           </div>
         </div>
 
-        <div className="border-t border-white/10 px-5 py-4 sm:px-8">
+        <div className="border-t border-white/10 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs text-white/50">
             <p>
               © {new Date().getFullYear()} {brandName}. All rights reserved.

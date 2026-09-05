@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { SHOPPER_BRAND } from "./brand";
+import { SHOPPER_BRAND, shouldReplaceBrandName } from "./brand";
 import {
   DEFAULT_HOME_SECTIONS,
   HOME_SECTION_IDS,
@@ -15,16 +15,25 @@ describe("SHOPPER_BRAND", () => {
     assert.equal(SHOPPER_BRAND.preferredWelcomeCode, "BNT10");
     assert.equal(SHOPPER_BRAND.fallbackStoreName, "Buy n Try");
   });
+
+  it("replaces leftover Accessories Hub / VoltGear names with Buy n Try", () => {
+    assert.equal(shouldReplaceBrandName("Accessories Hub"), true);
+    assert.equal(shouldReplaceBrandName("VoltGear"), true);
+    assert.equal(shouldReplaceBrandName(""), true);
+    assert.equal(shouldReplaceBrandName("Buy n Try"), false);
+  });
 });
 
 describe("DEFAULT_HOME_SECTIONS", () => {
-  it("starts with categories then trust, and disables lifestyle", () => {
+  it("places lifestyle immediately above reviews, after shop categories", () => {
     assert.equal(HOME_SECTION_IDS[0], "categories");
-    assert.equal(HOME_SECTION_IDS[1], "trust");
+    const lifestyleAt = HOME_SECTION_IDS.indexOf("lifestyle");
+    const reviewsAt = HOME_SECTION_IDS.indexOf("reviews");
+    assert.equal(lifestyleAt, reviewsAt - 1);
     assert.equal(
       DEFAULT_HOME_SECTIONS.find((s) => s.id === "lifestyle")?.enabled,
-      false
+      true
     );
-    assert.equal(DEFAULT_HOME_SECTIONS[0].id, "categories");
+    assert.equal(DEFAULT_HOME_SECTIONS[lifestyleAt].id, "lifestyle");
   });
 });

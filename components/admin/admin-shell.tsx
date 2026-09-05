@@ -156,7 +156,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </Button>
           <span className="text-sm font-medium">Admin</span>
         </header>
-        <div className="flex-1 p-4 lg:p-8">{children}</div>
+        <div className="flex-1 overflow-x-auto p-4 lg:p-8">{children}</div>
       </div>
       <AdminCommandPalette />
     </div>

@@ -48,7 +48,7 @@ function IconHit({
     <button
       type="button"
       className={cn(
-        "relative flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors",
+        "relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors",
         "hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest)]",
         className
@@ -98,7 +98,7 @@ export function GadgetNavbar({
   const menu =
     open && mounted
       ? createPortal(
-          <div className="gadget-theme md:hidden" role="presentation">
+          <div className="gadget-theme lg:hidden" role="presentation">
             <button
               type="button"
               className="fixed inset-0 z-[90] bg-[var(--g-forest)]/35"
@@ -213,7 +213,7 @@ export function GadgetNavbar({
 
   return (
     <header
-      className="sticky top-0 z-40 text-[var(--g-charcoal)]"
+      className="sticky top-0 z-40 text-[var(--g-charcoal)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]"
       style={{ paddingTop: "var(--g-safe-top)" }}
     >
       <div className="hidden bg-[var(--g-forest)] text-[var(--g-cream)] md:block">
@@ -255,7 +255,7 @@ export function GadgetNavbar({
             <ShopBrandMark logo={settings?.logo} name={brandName} className="hidden sm:inline-flex" />
           </Link>
 
-          <nav aria-label="Primary" className="hidden items-center md:flex">
+          <nav aria-label="Primary" className="hidden items-center lg:flex">
             <div
               className="relative"
               onMouseEnter={() => setShopOpen(true)}
@@ -314,7 +314,7 @@ export function GadgetNavbar({
           <form
             action={products2Href()}
             method="get"
-            className="ml-auto hidden min-w-0 w-full max-w-[12rem] md:block lg:max-w-[18rem]"
+            className="ml-auto hidden min-w-0 w-full max-w-[18rem] lg:block"
           >
             <label className="sr-only" htmlFor="gadget-search">
               Search products
@@ -322,12 +322,12 @@ export function GadgetNavbar({
             <GadgetSearchInput id="gadget-search" placeholder="Search the shop" />
           </form>
 
-          <div className={cn("flex items-center gap-1.5", "md:ml-0 ml-auto")}>
+          <div className={cn("flex items-center gap-1.5", "lg:ml-0 ml-auto")}>
             <Link
               href="/wishlist"
               aria-label={wishCount ? `Wishlist, ${wishCount} items` : "Wishlist"}
               title="Wishlist"
-              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:inline-flex"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:h-11 sm:w-11"
             >
               <Heart className="h-4 w-4 stroke-[1.75]" />
               {wishCount > 0 ? (
@@ -350,7 +350,7 @@ export function GadgetNavbar({
             </IconHit>
 
             <IconHit
-              className="md:hidden"
+              className="lg:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}

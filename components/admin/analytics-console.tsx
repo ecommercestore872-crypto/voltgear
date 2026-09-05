@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import { AnalyticsFunnelPanel } from "@/components/admin/analytics-funnel";
+import { AnalyticsProfitBoard } from "@/components/admin/analytics-profit-board";
+import { AnalyticsCoachPanel } from "@/components/admin/analytics-coach-panel";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,7 +26,20 @@ import {
   type ProductPerfRow,
   type QueryRow,
 } from "@/lib/db/analytics-rules";
+import type { CoachBundle } from "@/lib/db/analytics-coach-rules";
 import type { InsightCard } from "@/lib/db/analytics-insight-rules";
+import type {
+  CheckoutFieldRow,
+  FulfillmentHours,
+  MissingCostRow,
+  MoneyStory,
+  PeriodComparison,
+  ProductConversionRow,
+  ProfitAlert,
+  RtoProxy,
+  SourceMoneyRow,
+} from "@/lib/db/analytics-profit-rules";
+import { rowsToCsv } from "@/lib/db/analytics-profit-rules";
 import type {
   DeliveredBySourceRow,
   LandingPageRow,
@@ -52,6 +67,16 @@ type Bundle = {
   shopFunnel: ShopFunnelStep[] | null;
   insights: InsightCard[];
   retentionNotice: boolean;
+  moneyStory: MoneyStory;
+  comparison: PeriodComparison;
+  fulfillmentHours: FulfillmentHours;
+  productConversion: ProductConversionRow[];
+  sourceMoney: SourceMoneyRow[];
+  rto: RtoProxy;
+  missingCosts: MissingCostRow[];
+  checkoutFields: CheckoutFieldRow[];
+  alerts: ProfitAlert[];
+  coach: CoachBundle;
 };
 
 type SavedReport = {
@@ -85,6 +110,7 @@ const DIM_LABEL: Record<AnalyticsDimension, string> = {
   city: "City",
   date: "Date",
   customerCohort: "Customer cohort",
+  source: "Source",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -106,7 +132,37 @@ function formatCount(n: number | null | undefined): string {
 }
 
 function displaySource(source: string): string {
-  return source === "unattributed" ? "Unattributed" : source;
+  if (source === "unattributed") return "Unattributed";
+  if (source === "meta") return "Facebook / Meta";
+  if (source === "tiktok") return "TikTok";
+  if (source === "google") return "Google";
+  if (source === "direct") return "Direct";
+  return source;
+}
+
+function formatDeltaHint(pct: number | null | undefined): string | undefined {
+  if (pct == null) return undefined;
+  const n = Math.round(pct * 1000) / 10;
+  if (n === 0) return "Same as last period";
+  return n > 0 ? `Up ${n}% vs last period` : `Down ${Math.abs(n)}% vs last period`;
+}
+
+function downloadCsv(filename: string, csv: string) {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function CsvButton({ filename, csv }: { filename: string; csv: string }) {
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={() => downloadCsv(filename, csv)}>
+      Download CSV
+    </Button>
+  );
 }
 
 function formatMoney(n: number | null | undefined): string {
@@ -124,38 +180,46 @@ function MetricButton({
   hint,
   primary,
   onClick,
+  className,
 }: {
   label: string;
   value: string;
   hint?: string;
   primary?: boolean;
   onClick?: () => void;
+  className?: string;
 }) {
   const inner = (
-    <Card
-      className={cn(
-        "flex min-h-11 flex-col justify-center px-4 py-4",
-        primary && "border-foreground/20 bg-muted/40",
-        onClick && "transition-colors hover:bg-accent"
-      )}
-    >
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={cn("mt-1 font-semibold tabular-nums", primary ? "text-3xl" : "text-2xl")}>{value}</p>
-      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
-    </Card>
+    <>
+      <p className="admin-analytics-tile-label">{label}</p>
+      <p className="admin-analytics-tile-value">{value}</p>
+      {hint ? <p className="admin-analytics-tile-hint">{hint}</p> : null}
+    </>
   );
-  if (!onClick) return inner;
+  const tileClass = cn("admin-analytics-tile", primary && "admin-analytics-tile-primary", className);
+  if (!onClick) return <div className={tileClass}>{inner}</div>;
   return (
-    <button type="button" onClick={onClick} className="block w-full text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(tileClass, "w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring")}
+    >
       {inner}
     </button>
   );
 }
 
+function TableFrame({ children }: { children: ReactNode }) {
+  return <div className="admin-analytics-table">{children}</div>;
+}
+
 function RetentionBanner({ show }: { show: boolean }) {
   if (!show) return null;
   return (
-    <p role="status" className="rounded-lg border px-4 py-3 text-sm">
+    <p
+      role="status"
+      className="rounded-2xl border border-[var(--g-line)] bg-[color-mix(in_srgb,var(--g-sage)_12%,var(--g-white))] px-4 py-3 text-sm text-[var(--g-charcoal)]"
+    >
       First-party traffic data is available for the last 90 days only. Order and delivered-revenue analytics remain available for this range.
     </p>
   );
@@ -177,6 +241,9 @@ export function AnalyticsConsole() {
   const [queryError, setQueryError] = useState<string | null>(null);
   const [saveName, setSaveName] = useState("");
   const [reports, setReports] = useState<SavedReport[]>([]);
+  const [spendDraft, setSpendDraft] = useState<Record<string, string>>({});
+  const [spendSaving, setSpendSaving] = useState(false);
+  const [spendError, setSpendError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -189,6 +256,11 @@ export function AnalyticsConsole() {
       }
       const json = await adminFetch(`/api/admin/analytics?${params.toString()}`);
       setBundle(json);
+      const nextSpend: Record<string, string> = { tiktok: "", meta: "", google: "", other: "" };
+      for (const row of json.sourceMoney ?? []) {
+        if (row.spend > 0) nextSpend[row.source] = String(row.spend);
+      }
+      setSpendDraft(nextSpend);
       setDrillTitle(null);
       setDrillOrders([]);
     } catch (err) {
@@ -279,27 +351,63 @@ export function AnalyticsConsole() {
     setReports((list) => list.filter((r) => r.id !== id));
   }
 
+  async function saveSpend() {
+    setSpendSaving(true);
+    setSpendError(null);
+    const bySource: Record<string, number> = {};
+    for (const [source, value] of Object.entries(spendDraft)) {
+      const amount = Number(value);
+      bySource[source] = Number.isFinite(amount) ? amount : 0;
+    }
+    try {
+      await adminFetch("/api/admin/analytics/spend", {
+        method: "POST",
+        body: JSON.stringify({
+          preset,
+          from: preset === "custom" ? from : undefined,
+          to: preset === "custom" ? to : undefined,
+          bySource,
+        }),
+      });
+      await load();
+    } catch (err) {
+      setSpendError(err instanceof Error ? err.message : "Could not save ad spend.");
+    } finally {
+      setSpendSaving(false);
+    }
+  }
+
   const exec = bundle?.executive;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Analytics</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Delivered orders are realized money. Placed revenue is not cash in hand. Practice orders are excluded.
-        </p>
+    <div className="admin-analytics">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
+            Commerce intelligence
+          </p>
+          <h1 className="mt-1 text-3xl text-[var(--g-charcoal)]">Analytics</h1>
+          <p className="mt-1 max-w-xl text-sm text-[var(--g-taupe)]">
+            Delivered orders are realized money. Placed revenue is not cash in hand. Practice orders are excluded.
+          </p>
+        </div>
+        {bundle ? (
+          <p className="text-sm text-[var(--g-taupe)]">
+            {bundle.range.start} to {bundle.range.end} · Asia/Karachi
+          </p>
+        ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="admin-analytics-toolbar">
         {PRESETS.map((p) => (
-          <Button
+          <button
             key={p.id}
             type="button"
-            variant={preset === p.id ? "default" : "outline"}
+            className={cn("admin-analytics-chip", preset === p.id && "admin-analytics-chip-active")}
             onClick={() => setPreset(p.id)}
           >
             {p.label}
-          </Button>
+          </button>
         ))}
       </div>
       {preset === "custom" ? (
@@ -318,19 +426,14 @@ export function AnalyticsConsole() {
         </div>
       ) : null}
 
-      {bundle ? (
-        <p className="text-sm text-muted-foreground">
-          {bundle.range.start} to {bundle.range.end} · Asia/Karachi
-        </p>
-      ) : null}
-
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      {loading && !bundle ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+      {loading && !bundle ? <p className="text-sm text-[var(--g-taupe)]">Loading…</p> : null}
 
       {exec ? (
         <Tabs defaultValue="overview">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start">
+          <TabsList className="admin-analytics-tabs">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="coach">Coach</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="cities">Cities</TabsTrigger>
             <TabsTrigger value="customers">Customers</TabsTrigger>
@@ -341,12 +444,26 @@ export function AnalyticsConsole() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
+            <AnalyticsProfitBoard
+              story={bundle.moneyStory}
+              comparison={bundle.comparison}
+              alerts={bundle.alerts}
+              rto={bundle.rto}
+              missingCosts={bundle.missingCosts}
+              fulfillment={bundle.fulfillmentHours}
+              checkoutFields={bundle.checkoutFields}
+              onDrill={(title, ids) => void openDrill(title, ids)}
+            />
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               <MetricButton
                 primary
+                className="md:col-span-2 xl:col-span-1"
                 label="Delivered revenue"
                 value={formatMoney(exec.deliveredRevenue)}
-                hint="Primary KPI · money from orders first marked delivered in this range"
+                hint={
+                  formatDeltaHint(bundle.comparison.deliveredRevenue.pct) ??
+                  "Primary KPI · money from orders first marked delivered in this range"
+                }
                 onClick={() => void openDrill("Delivered orders", exec.deliveredOrderIds)}
               />
               <MetricButton
@@ -365,7 +482,7 @@ export function AnalyticsConsole() {
                 }
               />
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <MetricButton
                 label="Orders placed"
                 value={String(exec.ordersPlaced)}
@@ -393,90 +510,174 @@ export function AnalyticsConsole() {
               <MetricButton
                 label="Cancellation rate"
                 value={formatRate(exec.cancellationRate)}
-                hint="Of orders placed in this range, currently cancelled"
+                hint={
+                  formatDeltaHint(bundle.comparison.cancellationRate.pct) ??
+                  "Of orders placed in this range, currently cancelled"
+                }
               />
-              <Card className="px-4 py-4">
-                <p className="text-sm text-muted-foreground">Not available</p>
-                <ul className="mt-2 space-y-1 text-sm">
+              <Card className="admin-analytics-tile">
+                <p className="admin-analytics-tile-label">Not available</p>
+                <ul className="mt-2 space-y-1 text-sm text-[var(--g-taupe)]">
                   <li>Confirmed orders</li>
                   <li>Out for delivery</li>
-                  <li>Returned / refused</li>
-                  <li>Marketing / ROAS</li>
+                  <li>Courier-confirmed returns</li>
                   <li>Contribution profit</li>
                 </ul>
               </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="products">
-            {bundle.products.length === 0 ? (
+          <TabsContent value="coach">
+            <AnalyticsCoachPanel
+              key={`${bundle.range.start}-${bundle.range.end}-${bundle.coach.packingFee}-${bundle.coach.codFee}-${bundle.coach.products
+                .map((p) => `${p.slug}:${p.costPrice}`)
+                .join("|")}`}
+              coach={bundle.coach}
+              sourceMoney={bundle.sourceMoney}
+              onSaved={() => void load()}
+            />
+          </TabsContent>
+
+          <TabsContent value="products" className="space-y-3">
+            {bundle.products.length === 0 && bundle.productConversion.length === 0 ? (
               <p className="text-sm text-muted-foreground">No product order lines in this range.</p>
             ) : (
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full text-left text-sm">
-                  <thead className="border-b bg-muted/40">
-                    <tr>
-                      <th className="px-3 py-2 font-medium">Product</th>
-                      <th className="px-3 py-2 font-medium">Qty ordered</th>
-                      <th className="px-3 py-2 font-medium">Qty delivered</th>
-                      <th className="px-3 py-2 font-medium">Placed revenue</th>
-                      <th className="px-3 py-2 font-medium">Delivered revenue</th>
-                      <th className="px-3 py-2 font-medium">Cost of goods</th>
-                      <th className="px-3 py-2 font-medium">Delivered profit</th>
-                      <th className="px-3 py-2 font-medium">Delivery rate</th>
-                      <th className="px-3 py-2 font-medium">Cancel rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bundle.products.map((p) => (
-                      <tr key={p.slug} className="border-b last:border-0">
-                        <td className="px-3 py-2">
-                          <button
-                            type="button"
-                            className="text-left font-medium hover:underline"
-                            onClick={() => void openDrill(p.name, p.orderIds)}
-                          >
-                            {p.name}
-                          </button>
-                        </td>
-                        <td className="px-3 py-2 tabular-nums">{p.quantityOrdered}</td>
-                        <td className="px-3 py-2 tabular-nums">{p.quantityDelivered}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatMoney(p.placedRevenue)}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatMoney(p.deliveredRevenue)}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatMoney(p.costOfGoods)}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatMoney(p.deliveredGrossProfit)}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatRate(p.deliverySuccessRate)}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatRate(p.cancellationRate)}</td>
+              <>
+                <CsvButton
+                  filename={`products-${bundle.range.start}-${bundle.range.end}.csv`}
+                  csv={rowsToCsv(
+                    bundle.products.map((p) => {
+                      const conv = bundle.productConversion.find((c) => c.slug === p.slug);
+                      return {
+                        product: p.name,
+                        qtyOrdered: p.quantityOrdered,
+                        qtyDelivered: p.quantityDelivered,
+                        placedRevenue: p.placedRevenue,
+                        deliveredRevenue: p.deliveredRevenue,
+                        deliveredProfit: p.deliveredGrossProfit,
+                        views: conv?.views ?? 0,
+                        addToCart: conv?.addToCart ?? 0,
+                        viewToCart: conv?.viewToCart,
+                        cartToOrder: conv?.cartToOrder,
+                        cancelRate: p.cancellationRate,
+                      };
+                    }),
+                    [
+                      { key: "product", header: "Product" },
+                      { key: "qtyOrdered", header: "Qty ordered" },
+                      { key: "qtyDelivered", header: "Qty delivered" },
+                      { key: "placedRevenue", header: "Placed revenue" },
+                      { key: "deliveredRevenue", header: "Delivered revenue" },
+                      { key: "deliveredProfit", header: "Delivered profit" },
+                      { key: "views", header: "Views" },
+                      { key: "addToCart", header: "Add to cart" },
+                      { key: "viewToCart", header: "View to cart" },
+                      { key: "cartToOrder", header: "Cart to order" },
+                      { key: "cancelRate", header: "Cancel rate" },
+                    ]
+                  )}
+                />
+                <TableFrame>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Views</th>
+                        <th>Add to cart</th>
+                        <th>View → cart</th>
+                        <th>Cart → order</th>
+                        <th>Qty ordered</th>
+                        <th>Qty delivered</th>
+                        <th>Placed revenue</th>
+                        <th>Delivered revenue</th>
+                        <th>Cost of goods</th>
+                        <th>Delivered profit</th>
+                        <th>Delivery rate</th>
+                        <th>Cancel rate</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {bundle.products.map((p) => {
+                        const conv = bundle.productConversion.find((c) => c.slug === p.slug);
+                        return (
+                          <tr key={p.slug} className="border-b last:border-0">
+                            <td>
+                              <button
+                                type="button"
+                                className="text-left font-medium hover:underline"
+                                onClick={() => void openDrill(p.name, p.orderIds)}
+                              >
+                                {p.name}
+                              </button>
+                            </td>
+                            <td className="tabular-nums">{conv?.views ?? "—"}</td>
+                            <td className="tabular-nums">{conv?.addToCart ?? "—"}</td>
+                            <td className="tabular-nums">{formatRate(conv?.viewToCart)}</td>
+                            <td className="tabular-nums">{formatRate(conv?.cartToOrder)}</td>
+                            <td className="tabular-nums">{p.quantityOrdered}</td>
+                            <td className="tabular-nums">{p.quantityDelivered}</td>
+                            <td className="tabular-nums">{formatMoney(p.placedRevenue)}</td>
+                            <td className="tabular-nums">{formatMoney(p.deliveredRevenue)}</td>
+                            <td className="tabular-nums">{formatMoney(p.costOfGoods)}</td>
+                            <td className="tabular-nums">{formatMoney(p.deliveredGrossProfit)}</td>
+                            <td className="tabular-nums">{formatRate(p.deliverySuccessRate)}</td>
+                            <td className="tabular-nums">{formatRate(p.cancellationRate)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </TableFrame>
+              </>
             )}
           </TabsContent>
 
-          <TabsContent value="cities">
+          <TabsContent value="cities" className="space-y-3">
             {bundle.cities.length === 0 ? (
               <p className="text-sm text-muted-foreground">No city data in this range.</p>
             ) : (
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full text-left text-sm">
-                  <thead className="border-b bg-muted/40">
+              <>
+                <CsvButton
+                  filename={`cities-${bundle.range.start}-${bundle.range.end}.csv`}
+                  csv={rowsToCsv(
+                    bundle.cities.map((c) => ({
+                      city: c.city,
+                      placed: c.ordersPlaced,
+                      delivered: c.ordersDelivered,
+                      cancelled: c.ordersCancelled,
+                      deliveredRevenue: c.deliveredRevenue,
+                      deliveryRate: c.deliverySuccessRate,
+                      cancelRate: c.cancellationRate,
+                    })),
+                    [
+                      { key: "city", header: "City" },
+                      { key: "placed", header: "Placed" },
+                      { key: "delivered", header: "Delivered" },
+                      { key: "cancelled", header: "Cancelled" },
+                      { key: "deliveredRevenue", header: "Delivered revenue" },
+                      { key: "deliveryRate", header: "Delivery rate" },
+                      { key: "cancelRate", header: "Cancel rate" },
+                    ]
+                  )}
+                />
+                <TableFrame>
+                <table>
+                  <thead>
                     <tr>
-                      <th className="px-3 py-2 font-medium">City</th>
-                      <th className="px-3 py-2 font-medium">Placed</th>
-                      <th className="px-3 py-2 font-medium">Confirmed</th>
-                      <th className="px-3 py-2 font-medium">Delivered</th>
-                      <th className="px-3 py-2 font-medium">Cancelled</th>
-                      <th className="px-3 py-2 font-medium">Delivered revenue</th>
-                      <th className="px-3 py-2 font-medium">Delivery rate</th>
-                      <th className="px-3 py-2 font-medium">Cancel rate</th>
+                      <th>City</th>
+                      <th>Placed</th>
+                      <th>Confirmed</th>
+                      <th>Delivered</th>
+                      <th>Cancelled</th>
+                      <th>Delivered revenue</th>
+                      <th>Delivery rate</th>
+                      <th>Cancel rate</th>
                     </tr>
                   </thead>
                   <tbody>
                     {bundle.cities.map((c) => (
                       <tr key={c.city} className="border-b last:border-0">
-                        <td className="px-3 py-2">
+                        <td>
                           <button
                             type="button"
                             className="font-medium hover:underline"
@@ -485,33 +686,36 @@ export function AnalyticsConsole() {
                             {c.city}
                           </button>
                         </td>
-                        <td className="px-3 py-2 tabular-nums">{c.ordersPlaced}</td>
-                        <td className="px-3 py-2 text-muted-foreground">Not available</td>
-                        <td className="px-3 py-2 tabular-nums">{c.ordersDelivered}</td>
-                        <td className="px-3 py-2 tabular-nums">{c.ordersCancelled}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatMoney(c.deliveredRevenue)}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatRate(c.deliverySuccessRate)}</td>
-                        <td className="px-3 py-2 tabular-nums">{formatRate(c.cancellationRate)}</td>
+                        <td className="tabular-nums">{c.ordersPlaced}</td>
+                        <td className="text-[var(--g-taupe)]">Not available</td>
+                        <td className="tabular-nums">{c.ordersDelivered}</td>
+                        <td className="tabular-nums">{c.ordersCancelled}</td>
+                        <td className="tabular-nums">{formatMoney(c.deliveredRevenue)}</td>
+                        <td className="tabular-nums">{formatRate(c.deliverySuccessRate)}</td>
+                        <td className="tabular-nums">{formatRate(c.cancellationRate)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </TableFrame>
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="customers" className="space-y-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {([bundle.customers.firstTime, bundle.customers.repeat] as const).map((row) => (
-                <Card key={row.cohort} className="px-4 py-4">
-                  <p className="text-sm text-muted-foreground">
+                <Card key={row.cohort} className="admin-analytics-tile">
+                  <p className="admin-analytics-tile-label">
                     {row.cohort === "first-time" ? "First-time customers" : "Repeat customers"}
                   </p>
-                  <p className="mt-1 text-2xl font-semibold tabular-nums">{row.customers}</p>
-                  <p className="mt-2 text-sm">
+                  <p className="admin-analytics-tile-value">{row.customers}</p>
+                  <p className="admin-analytics-tile-hint">
                     Orders in range: {row.orderCount} · Delivered: {row.deliveredOrderCount}
                   </p>
-                  <p className="text-sm">Delivered revenue: {formatMoney(row.deliveredRevenue)}</p>
+                  <p className="mt-1 text-sm text-[var(--g-charcoal)]">
+                    Delivered revenue: {formatMoney(row.deliveredRevenue)}
+                  </p>
                 </Card>
               ))}
             </div>
@@ -522,7 +726,8 @@ export function AnalyticsConsole() {
             </div>
             {bundle.customers.skippedNoEmail > 0 ? (
               <p className="text-sm text-muted-foreground">
-                {bundle.customers.skippedNoEmail} orders had no email and were not merged into customer stats.
+                {bundle.customers.skippedNoEmail} orders had no email or phone and were not merged into
+                customer stats.
               </p>
             ) : null}
           </TabsContent>
@@ -545,24 +750,24 @@ export function AnalyticsConsole() {
               ) : bundle.traffic.bySource.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No sessions in this range.</p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border">
-                  <table className="w-full text-left text-sm">
-                    <thead className="border-b bg-muted/40">
+                <TableFrame>
+                  <table>
+                    <thead>
                       <tr>
-                        <th className="px-3 py-2 font-medium">Source</th>
-                        <th className="px-3 py-2 font-medium">Sessions</th>
+                        <th>Source</th>
+                        <th>Sessions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {bundle.traffic.bySource.map((row) => (
                         <tr key={row.source} className="border-b last:border-0">
-                          <td className="px-3 py-2">{displaySource(row.source)}</td>
-                          <td className="px-3 py-2 tabular-nums">{row.sessions}</td>
+                          <td>{displaySource(row.source)}</td>
+                          <td className="tabular-nums">{row.sessions}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
               )}
             </div>
             <div>
@@ -572,24 +777,135 @@ export function AnalyticsConsole() {
               ) : bundle.traffic.landingPages.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No landing pages in this range.</p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border">
-                  <table className="w-full text-left text-sm">
-                    <thead className="border-b bg-muted/40">
+                <TableFrame>
+                  <table>
+                    <thead>
                       <tr>
-                        <th className="px-3 py-2 font-medium">Path</th>
-                        <th className="px-3 py-2 font-medium">Sessions</th>
+                        <th>Path</th>
+                        <th>Sessions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {bundle.traffic.landingPages.map((row) => (
                         <tr key={row.path} className="border-b last:border-0">
-                          <td className="px-3 py-2">{row.path}</td>
-                          <td className="px-3 py-2 tabular-nums">{row.sessions}</td>
+                          <td>{row.path}</td>
+                          <td className="tabular-nums">{row.sessions}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
+              )}
+            </div>
+            <div>
+              <h2 className="mb-2 text-lg font-semibold">Money by source</h2>
+              <p className="mb-3 text-sm text-[var(--g-taupe)]">
+                Enter what you spent on ads in this same date range. ROAS stays blank until spend is
+                greater than zero — we will not invent it.
+              </p>
+              <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                {Array.from(
+                  new Set([
+                    "tiktok",
+                    "meta",
+                    "google",
+                    "other",
+                    ...bundle.sourceMoney
+                      .map((row) => row.source)
+                      .filter((source) => source !== "unattributed"),
+                  ])
+                ).map((source) => (
+                  <div key={source} className="space-y-1.5">
+                    <Label htmlFor={`spend-${source}`}>{displaySource(source)} spend</Label>
+                    <Input
+                      id={`spend-${source}`}
+                      inputMode="decimal"
+                      value={spendDraft[source] ?? ""}
+                      onChange={(e) =>
+                        setSpendDraft((current) => ({ ...current, [source]: e.target.value }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <Button type="button" onClick={() => void saveSpend()} disabled={spendSaving}>
+                  {spendSaving ? "Saving…" : "Save spend for this range"}
+                </Button>
+                {spendError ? <p className="text-sm text-destructive">{spendError}</p> : null}
+              </div>
+              {bundle.sourceMoney.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No source money in this range.</p>
+              ) : (
+                <>
+                  <CsvButton
+                    filename={`sources-${bundle.range.start}-${bundle.range.end}.csv`}
+                    csv={rowsToCsv(
+                      bundle.sourceMoney.map((row) => ({
+                        source: displaySource(row.source),
+                        placed: row.placedCount,
+                        delivered: row.deliveredCount,
+                        deliveredRevenue: row.deliveredRevenue,
+                        lost: row.lost,
+                        waiting: row.waiting,
+                        spend: row.spend,
+                        roas: row.roas,
+                      })),
+                      [
+                        { key: "source", header: "Source" },
+                        { key: "placed", header: "Placed" },
+                        { key: "delivered", header: "Delivered" },
+                        { key: "deliveredRevenue", header: "Delivered revenue" },
+                        { key: "lost", header: "Lost to cancels" },
+                        { key: "waiting", header: "Still moving" },
+                        { key: "spend", header: "Ad spend" },
+                        { key: "roas", header: "ROAS" },
+                      ]
+                    )}
+                  />
+                  <TableFrame>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Source</th>
+                          <th>Placed</th>
+                          <th>Delivered</th>
+                          <th>Delivered revenue</th>
+                          <th>Lost to cancels</th>
+                          <th>Still moving</th>
+                          <th>Ad spend</th>
+                          <th>ROAS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bundle.sourceMoney.map((row) => (
+                          <tr key={row.source} className="border-b last:border-0">
+                            <td>
+                              <button
+                                type="button"
+                                className="font-medium hover:underline"
+                                onClick={() => void openDrill(displaySource(row.source), row.orderIds)}
+                              >
+                                {displaySource(row.source)}
+                              </button>
+                            </td>
+                            <td className="tabular-nums">{row.placedCount}</td>
+                            <td className="tabular-nums">{row.deliveredCount}</td>
+                            <td className="tabular-nums">{formatMoney(row.deliveredRevenue)}</td>
+                            <td className="tabular-nums">{formatMoney(row.lost)}</td>
+                            <td className="tabular-nums">{formatMoney(row.waiting)}</td>
+                            <td className="tabular-nums">
+                              {row.spend > 0 ? formatMoney(row.spend) : "—"}
+                            </td>
+                            <td className="tabular-nums">
+                              {row.roas == null ? "Not available" : `${Math.round(row.roas * 100) / 100}×`}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </TableFrame>
+                </>
               )}
             </div>
             <div>
@@ -599,26 +915,26 @@ export function AnalyticsConsole() {
               {bundle.traffic.deliveredBySource.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No delivered orders in this range.</p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border">
-                  <table className="w-full text-left text-sm">
-                    <thead className="border-b bg-muted/40">
+                <TableFrame>
+                  <table>
+                    <thead>
                       <tr>
-                        <th className="px-3 py-2 font-medium">Source</th>
-                        <th className="px-3 py-2 font-medium">Orders</th>
-                        <th className="px-3 py-2 font-medium">Delivered revenue</th>
+                        <th>Source</th>
+                        <th>Orders</th>
+                        <th>Delivered revenue</th>
                       </tr>
                     </thead>
                     <tbody>
                       {bundle.traffic.deliveredBySource.map((row) => (
                         <tr key={row.source} className="border-b last:border-0">
-                          <td className="px-3 py-2">{displaySource(row.source)}</td>
-                          <td className="px-3 py-2 tabular-nums">{row.orders}</td>
-                          <td className="px-3 py-2 tabular-nums">{formatMoney(row.deliveredRevenue)}</td>
+                          <td>{displaySource(row.source)}</td>
+                          <td className="tabular-nums">{row.orders}</td>
+                          <td className="tabular-nums">{formatMoney(row.deliveredRevenue)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
               )}
             </div>
           </TabsContent>
@@ -655,10 +971,17 @@ export function AnalyticsConsole() {
               <ul className="space-y-3">
                 {bundle.insights.map((card) => (
                   <li key={card.id}>
-                    <Card className="space-y-3 px-4 py-4">
+                    <Card
+                      className={cn(
+                        "admin-analytics-panel space-y-3 px-4 py-4",
+                        card.confidence === "HIGH"
+                          ? "admin-analytics-insight-high"
+                          : "admin-analytics-insight-medium"
+                      )}
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-2">
-                        <h2 className="text-lg font-semibold">{card.title}</h2>
-                        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">{card.title}</h2>
+                        <span className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
                           {card.confidence}
                         </span>
                       </div>
@@ -747,18 +1070,18 @@ export function AnalyticsConsole() {
               queryRows.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No rows.</p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border">
-                  <table className="w-full text-left text-sm">
-                    <thead className="border-b bg-muted/40">
+                <TableFrame>
+                  <table>
+                    <thead>
                       <tr>
-                        <th className="px-3 py-2 font-medium">Group</th>
-                        <th className="px-3 py-2 font-medium">Value</th>
+                        <th>Group</th>
+                        <th>Value</th>
                       </tr>
                     </thead>
                     <tbody>
                       {queryRows.map((row) => (
                         <tr key={row.label} className="border-b last:border-0">
-                          <td className="px-3 py-2">
+                          <td>
                             <button
                               type="button"
                               className="hover:underline"
@@ -767,7 +1090,7 @@ export function AnalyticsConsole() {
                               {row.label}
                             </button>
                           </td>
-                          <td className="px-3 py-2 tabular-nums">
+                          <td className="tabular-nums">
                             {metric === "deliveryRate" || metric === "cancellationRate"
                               ? formatRate(row.value)
                               : metric === "ordersPlaced" || metric === "ordersDelivered"
@@ -780,13 +1103,13 @@ export function AnalyticsConsole() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
               )
             ) : null}
             {reports.length > 0 ? (
               <div>
                 <h2 className="mb-2 text-lg font-semibold">Saved reports</h2>
-                <ul className="divide-y rounded-lg border">
+                <ul className="admin-analytics-panel divide-y">
                   {reports.map((r) => (
                     <li key={r.id} className="flex min-h-11 items-center justify-between gap-3 px-3 py-2">
                       <button
@@ -814,42 +1137,57 @@ export function AnalyticsConsole() {
       ) : null}
 
       {drillTitle ? (
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">{drillTitle}</h2>
+        <section className="admin-analytics-panel">
+          <div className="admin-analytics-panel-head flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">{drillTitle}</h2>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setDrillTitle(null);
+                setDrillOrders([]);
+              }}
+            >
+              Close
+            </Button>
+          </div>
+          <div className="p-3 sm:p-4">
           {drillLoading ? (
-            <p className="text-sm text-muted-foreground">Loading orders…</p>
+            <p className="text-sm text-[var(--g-taupe)]">Loading orders…</p>
           ) : drillOrders.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No orders in this total.</p>
+            <p className="text-sm text-[var(--g-taupe)]">No orders in this total.</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b bg-muted/40">
+            <TableFrame>
+              <table>
+                <thead>
                   <tr>
-                    <th className="px-3 py-2 font-medium">Order</th>
-                    <th className="px-3 py-2 font-medium">Date</th>
-                    <th className="px-3 py-2 font-medium">Status</th>
-                    <th className="px-3 py-2 font-medium">City</th>
-                    <th className="px-3 py-2 font-medium">Total</th>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>City</th>
+                    <th>Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {drillOrders.map((o) => (
-                    <tr key={o.orderId} className="border-b last:border-0">
-                      <td className="px-3 py-2 font-medium">
+                    <tr key={o.orderId}>
+                      <td className="font-medium">
                         <Link href={`/admin/orders/${encodeURIComponent(o.orderId)}`} className="hover:underline">
                           {o.orderId}
                         </Link>
                       </td>
-                      <td className="px-3 py-2">{formatWhen(o.createdAt)}</td>
-                      <td className="px-3 py-2">{STATUS_LABEL[o.status] ?? o.status}</td>
-                      <td className="px-3 py-2">{o.city}</td>
-                      <td className="px-3 py-2 tabular-nums">{formatPrice(o.total)}</td>
+                      <td>{formatWhen(o.createdAt)}</td>
+                      <td>{STATUS_LABEL[o.status] ?? o.status}</td>
+                      <td>{o.city}</td>
+                      <td className="tabular-nums">{formatPrice(o.total)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableFrame>
           )}
+          </div>
         </section>
       ) : null}
     </div>

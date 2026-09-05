@@ -25,13 +25,17 @@ import {
   invoiceTemplateOverrides,
   type InvoiceTemplate,
 } from "@/lib/invoice-template-rules";
+import { parseAdSpendStore, type AdSpendStore } from "@/lib/db/analytics-profit-rules";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import {
   normalizeHomeSections,
+  placeSectionBefore,
   type HomeSectionEntry,
 } from "@/lib/db/home-section-rules";
-import type { ShopType } from "@/lib/categories";
+import { normalizeLifestyleShop } from "@/lib/db/lifestyle-shop-rules";
+import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
+import { SHOPPER_BRAND, shouldReplaceBrandName } from "@/lib/brand";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { Product, SiteSettings } from "@/lib/types";
 
@@ -677,9 +681,62 @@ export async function reorderAdminHeroSlides(orderedIds: string[]) {
 }
 
 export async function getAdminSettings() {
+  await ensureShopperBrandSettings();
   const { data, error } = await db().from("site_settings").select("*").eq("id", 1).maybeSingle();
   if (error) throw error;
   return data;
+}
+
+export async function ensureShopperBrandSettings() {
+  const { data, error } = await db()
+    .from("site_settings")
+    .select("id, brand_name, seo, draft")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error || !data) return;
+
+  const liveName = String(data.brand_name ?? "");
+  const draft =
+    data.draft && typeof data.draft === "object"
+      ? { ...(data.draft as Record<string, unknown>) }
+      : null;
+  const draftName = typeof draft?.brandName === "string" ? draft.brandName : "";
+  const seo =
+    data.seo && typeof data.seo === "object"
+      ? { ...(data.seo as Record<string, unknown>) }
+      : {};
+  const seoTitle = String(seo.title ?? "");
+  const seoDescription = String(seo.description ?? "");
+
+  const replaceLive = shouldReplaceBrandName(liveName);
+  const replaceDraft = Boolean(draft) && shouldReplaceBrandName(draftName || liveName);
+  const replaceSeoTitle =
+    !seoTitle.trim() ||
+    shouldReplaceBrandName(seoTitle) ||
+    /accessories hub|voltgear/i.test(seoTitle);
+  const replaceSeoDescription =
+    !seoDescription.trim() || /accessories hub|voltgear/i.test(seoDescription);
+
+  if (!replaceLive && !replaceDraft && !replaceSeoTitle && !replaceSeoDescription) return;
+
+  const payload: Record<string, unknown> = {};
+  if (replaceLive) payload.brand_name = SHOPPER_BRAND.spokenName;
+  if (replaceDraft && draft) {
+    draft.brandName = SHOPPER_BRAND.spokenName;
+    payload.draft = draft;
+  }
+  if (replaceSeoTitle || replaceSeoDescription) {
+    payload.seo = {
+      ...seo,
+      title: replaceSeoTitle
+        ? "Buy n Try — Earbuds, Airbuds, Smartwatches & Chargers in Pakistan"
+        : seoTitle,
+      description: replaceSeoDescription
+        ? "Shop earbuds, airbuds, smartwatches, power banks and chargers at Buy n Try (buyntryy.com). Cash on delivery nationwide."
+        : seoDescription,
+    };
+  }
+  await db().from("site_settings").update(payload).eq("id", 1);
 }
 
 function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
@@ -932,6 +989,51 @@ export async function discardAdminInvoiceTemplate() {
   return { ok: true as const };
 }
 
+export async function getAnalyticsAdSpend(): Promise<AdSpendStore> {
+  const { data, error } = await db()
+    .from("site_settings")
+    .select("analytics_ad_spend, draft")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) {
+    const missing = missingSchemaColumn(error);
+    if (missing === "analytics_ad_spend") {
+      const fallback = await db().from("site_settings").select("draft").eq("id", 1).maybeSingle();
+      const draft =
+        fallback.data?.draft && typeof fallback.data.draft === "object"
+          ? (fallback.data.draft as Record<string, unknown>)
+          : null;
+      return parseAdSpendStore(draft?.analyticsAdSpend);
+    }
+    return parseAdSpendStore({});
+  }
+  const draft =
+    data?.draft && typeof data.draft === "object" ? (data.draft as Record<string, unknown>) : null;
+  if (data?.analytics_ad_spend) return parseAdSpendStore(data.analytics_ad_spend);
+  return parseAdSpendStore(draft?.analyticsAdSpend);
+}
+
+export async function saveAnalyticsAdSpend(store: AdSpendStore) {
+  const parsed = parseAdSpendStore(store);
+  const { error } = await db()
+    .from("site_settings")
+    .update({ analytics_ad_spend: parsed, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+  if (!error) return { ok: true as const };
+  const missing = missingSchemaColumn(error);
+  if (missing !== "analytics_ad_spend") {
+    return { ok: false as const, error: error.message, status: 500 };
+  }
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>), analyticsAdSpend: parsed }
+      : { analyticsAdSpend: parsed };
+  const { error: draftError } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
+  if (draftError) return { ok: false as const, error: draftError.message, status: 500 };
+  return { ok: true as const };
+}
+
 export async function discardAdminSettingsDraft() {
   const { error } = await db().from("site_settings").update({ draft: null }).eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
@@ -948,6 +1050,48 @@ export async function saveAdminHomeSections(sections: HomeSectionEntry[]) {
   revalidatePath("/");
   revalidatePath("/admin/home");
   return { ok: true as const, sections: normalized };
+}
+
+export async function saveAdminLifestyleShop(raw: unknown) {
+  const shop = normalizeLifestyleShop(raw);
+  const current = await getAdminSettings();
+  const enabled = normalizeHomeSections(current?.home_sections).map((section) =>
+    section.id === "lifestyle" ? { ...section, enabled: true } : section
+  );
+  const sections =
+    enabled[0]?.id === "lifestyle"
+      ? placeSectionBefore(enabled, "lifestyle", "reviews")
+      : enabled;
+
+  let payload: Record<string, unknown> = {
+    lifestyle_shop: shop,
+    home_sections: sections,
+  };
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const { error } = await db().from("site_settings").update(payload).eq("id", 1);
+    if (!error) {
+      revalidatePath("/");
+      revalidatePath("/admin/home");
+      return { ok: true as const, shop, sections };
+    }
+    const missing = missingSchemaColumn(error);
+    if (missing === "lifestyle_shop") {
+      return {
+        ok: false as const,
+        error:
+          "Lifestyle shop column is missing. Run migration 20260905070000_lifestyle_shop.sql in Supabase.",
+        status: 500,
+      };
+    }
+    if (missing && missing in payload) {
+      payload = omitColumn(payload, missing);
+      continue;
+    }
+    return { ok: false as const, error: error.message, status: 500 };
+  }
+
+  return { ok: false as const, error: "Could not save lifestyle shop.", status: 500 };
 }
 
 type TestimonialDoc = {
@@ -1213,7 +1357,25 @@ async function assignableCategoryRefs(): Promise<{ slug: string }[]> {
   }
 }
 
+export async function ensureFallbackShopTypes() {
+  const { data, error } = await db().from("categories").select("slug");
+  if (error) return;
+  const have = new Set((data ?? []).map((row) => String((row as { slug: string }).slug)));
+  const missing = FALLBACK_SHOP_TYPES.filter((type) => !have.has(type.slug));
+  if (!missing.length) return;
+  await db().from("categories").insert(
+    missing.map((type) => ({
+      name: type.name,
+      slug: type.slug,
+      description: type.description,
+      image_url: type.imageUrl ?? null,
+      sort_order: type.sortOrder,
+    }))
+  );
+}
+
 export async function listAdminShopTypes(): Promise<ShopType[]> {
+  await ensureFallbackShopTypes();
   const { data, error } = await db()
     .from("categories")
     .select("*")
@@ -1346,6 +1508,60 @@ export async function fetchProductCostRows(): Promise<
     category: String(r.category ?? ""),
     costPrice: r.cost_price != null && Number.isFinite(Number(r.cost_price)) ? Number(r.cost_price) : null,
   }));
+}
+
+export async function fetchProductCoachCatalog(): Promise<
+  { id: string; slug: string; name: string; price: number; costPrice: number | null }[]
+> {
+  const { data, error } = await db()
+    .from("products")
+    .select("id, slug, name, price, cost_price, is_demo")
+    .order("name");
+  if (error) throw error;
+  return (data ?? [])
+    .filter((row) => row.is_demo !== true)
+    .map((row) => ({
+      id: String(row.id),
+      slug: String(row.slug ?? ""),
+      name: String(row.name ?? ""),
+      price: Number(row.price) || 0,
+      costPrice:
+        row.cost_price != null && Number.isFinite(Number(row.cost_price)) ? Number(row.cost_price) : null,
+    }))
+    .filter((row) => row.slug);
+}
+
+export async function saveProductCosts(items: { slug: string; costPrice: number }[]) {
+  if (!items.length) return { ok: true as const, saved: 0 };
+  const slugs = [...new Set(items.map((item) => item.slug))];
+  const { data, error } = await db()
+    .from("products")
+    .select("id, slug, draft, is_demo")
+    .in("slug", slugs);
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  const costBySlug = new Map(items.map((item) => [item.slug, item.costPrice]));
+  let saved = 0;
+  for (const row of data ?? []) {
+    if (row.is_demo === true) continue;
+    const slug = String(row.slug ?? "");
+    const costPrice = costBySlug.get(slug);
+    if (costPrice == null) continue;
+    const draft =
+      row.draft && typeof row.draft === "object" && !Array.isArray(row.draft)
+        ? { ...(row.draft as Record<string, unknown>), costPrice }
+        : row.draft;
+    const { error: updateError } = await db()
+      .from("products")
+      .update({
+        cost_price: costPrice,
+        ...(draft !== row.draft ? { draft } : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", row.id);
+    if (updateError) return { ok: false as const, error: updateError.message, status: 500 };
+    saved += 1;
+  }
+  return { ok: true as const, saved };
 }
 
 export type SavedAnalyticsReport = {

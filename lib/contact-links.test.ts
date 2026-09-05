@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { telHref, whatsappHref } from "./contact-links";
+import { shopWhatsAppHref, telHref, whatsappHref } from "./contact-links";
 
 describe("whatsappHref", () => {
   it("builds wa.me from Pakistani mobiles", () => {
@@ -13,6 +13,17 @@ describe("whatsappHref", () => {
     assert.equal(whatsappHref(null), null);
     assert.equal(whatsappHref(""), null);
     assert.equal(whatsappHref("123"), null);
+  });
+});
+
+describe("shopWhatsAppHref", () => {
+  it("prefers the WhatsApp field, then phone", () => {
+    assert.equal(
+      shopWhatsAppHref({ whatsappNumber: "03001234567", phone: "03111111111" }),
+      "https://wa.me/923001234567"
+    );
+    assert.equal(shopWhatsAppHref({ phone: "03111111111" }), "https://wa.me/923111111111");
+    assert.equal(shopWhatsAppHref({}), null);
   });
 });
 

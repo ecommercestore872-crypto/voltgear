@@ -149,6 +149,7 @@ export interface SiteSettings {
   };
   seo?: { title?: string; description?: string };
   homeSections?: { id: string; enabled: boolean }[];
+  lifestyleShop?: import("./db/lifestyle-shop-rules").LifestyleShopConfig;
 }
 
 export type ContentBlock =

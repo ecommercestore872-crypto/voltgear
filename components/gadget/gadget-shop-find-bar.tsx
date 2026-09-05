@@ -55,7 +55,7 @@ export function GadgetShopFindBar({
 
   return (
     <div
-      className="sticky z-30 -mx-3 px-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8"
+      className="sticky z-30"
       style={{ top: "calc(var(--g-header-offset, 3.5rem) + var(--g-safe-top, 0px))" }}
     >
       <div className="gadget-glass rounded-2xl px-3 py-3 sm:rounded-[1.35rem] sm:px-4 sm:py-3.5">

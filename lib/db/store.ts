@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
+import { ensureFallbackShopTypes, ensureShopperBrandSettings } from "@/lib/db/admin-store";
 import {
   mapHero,
   mapHeroSlide,
@@ -207,6 +208,7 @@ export async function fetchCatalogFromDb(f: {
 
 export const fetchShopTypes = unstable_cache(
   async (): Promise<ShopType[]> => {
+    await ensureFallbackShopTypes();
     let dbTypes: ShopType[] = [];
     const { data, error } = await db()
       .from("categories")
@@ -279,6 +281,7 @@ export async function fetchActiveCategories(includeDemo = false): Promise<string
 }
 
 export async function fetchSiteSettings(): Promise<SiteSettings | null> {
+  await ensureShopperBrandSettings();
   const { data, error } = await db().from("site_settings").select("*").eq("id", 1).maybeSingle();
   if (error) throw error;
   return mapSettings(data as Record<string, unknown> | null);

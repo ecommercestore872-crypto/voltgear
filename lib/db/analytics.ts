@@ -10,7 +10,8 @@ import {
 } from "@/lib/db/analytics-rules";
 import { assembleAnalyticsBundle, type BundleOrder } from "@/lib/db/analytics-bundle-rules";
 import type { TrafficEvent, TrafficSession } from "@/lib/db/analytics-traffic-rules";
-import { fetchProductCostRows } from "@/lib/db/admin-store";
+import { fetchProductCoachCatalog, fetchProductCostRows, getAdminSettings, getAnalyticsAdSpend } from "@/lib/db/admin-store";
+import { parseAdSpendStore, spendForRange } from "@/lib/db/analytics-profit-rules";
 import { getAllOrders } from "@/lib/order-store";
 import { getServiceClient } from "@/lib/supabase/server";
 
@@ -60,15 +61,22 @@ async function fetchLiveEventRows(): Promise<Record<string, unknown>[]> {
   const db = getServiceClient();
   const rows: Record<string, unknown>[] = [];
   let from = 0;
+  let select = "session_id, name, occurred_at, properties, product_slug, path";
   for (;;) {
     const { data, error } = await db
       .from("analytics_events")
-      .select("session_id, name, occurred_at, properties")
+      .select(select)
       .eq("is_demo", false)
       .order("id")
       .range(from, from + PAGE_SIZE - 1);
-    if (error) return [];
-    const batch = (data ?? []) as Record<string, unknown>[];
+    if (error) {
+      if (from === 0 && select.includes("product_slug")) {
+        select = "session_id, name, occurred_at, properties";
+        continue;
+      }
+      return [];
+    }
+    const batch = (data ?? []) as unknown as Record<string, unknown>[];
     rows.push(...batch);
     if (batch.length < PAGE_SIZE) break;
     from += PAGE_SIZE;
@@ -120,6 +128,8 @@ async function loadFirstPartyTraffic(): Promise<{
       sessionId: String(row.session_id),
       name: String(row.name),
       occurredAt: String(row.occurred_at),
+      productSlug: asText(row.product_slug),
+      path: asText(row.path),
       properties:
         row.properties && typeof row.properties === "object" && !Array.isArray(row.properties)
           ? (row.properties as Record<string, unknown>)
@@ -147,10 +157,13 @@ export async function loadAnalyticsBundle(input: {
 }) {
   const preset = parseAnalyticsPreset(input.preset);
   const now = new Date();
-  const [orders, costs, traffic] = await Promise.all([
+  const [orders, costs, traffic, spendStore, catalog, settings] = await Promise.all([
     getAllOrders(),
     fetchProductCostRows(),
     loadFirstPartyTraffic(),
+    getAnalyticsAdSpend().catch(() => parseAdSpendStore({})),
+    fetchProductCoachCatalog().catch(() => []),
+    getAdminSettings().catch(() => null),
   ]);
   const range = resolveAnalyticsRange(preset, now, { from: input.from, to: input.to });
   const bundleOrders: BundleOrder[] = orders.map((order) => {
@@ -161,6 +174,14 @@ export async function loadAnalyticsBundle(input: {
       source: attrib?.source ?? null,
     };
   });
+  const shippingFee =
+    settings && typeof settings === "object" && "shipping_fee" in settings
+      ? Number((settings as { shipping_fee?: unknown }).shipping_fee) || 0
+      : 0;
+  const freeShippingThreshold =
+    settings && typeof settings === "object" && "free_shipping_threshold" in settings
+      ? Number((settings as { free_shipping_threshold?: unknown }).free_shipping_threshold) || 0
+      : 0;
   return assembleAnalyticsBundle({
     now,
     range,
@@ -168,14 +189,28 @@ export async function loadAnalyticsBundle(input: {
     costs,
     sessions: traffic.sessions,
     events: traffic.events,
+    spend: spendForRange(spendStore, range),
+    catalog,
+    shippingFee,
+    freeShippingThreshold,
+    packingFee: spendStore.packingFee,
+    codFee: spendStore.codFee,
   });
 }
 
 export async function runSafeAnalyticsQuery(raw: unknown) {
   const parsed = parseAnalyticsQuery(raw);
   if (!parsed.ok) return parsed;
-  const [orders, costs] = await Promise.all([getAllOrders(), fetchProductCostRows()]);
-  return { ok: true as const, rows: runAnalyticsQuery(parsed.query, orders, costs) };
+  const [orders, costs, traffic] = await Promise.all([
+    getAllOrders(),
+    fetchProductCostRows(),
+    loadFirstPartyTraffic(),
+  ]);
+  const withSource = orders.map((order) => {
+    const attrib = traffic.attribByOrderId.get(order.orderId);
+    return { ...order, source: attrib?.source ?? null };
+  });
+  return { ok: true as const, rows: runAnalyticsQuery(parsed.query, withSource, costs) };
 }
 
 export async function loadAnalyticsDrilldown(ids: string[]) {

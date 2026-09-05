@@ -396,7 +396,7 @@ export default function CheckoutPage() {
       </div>
 
       <div className="container mx-auto max-w-6xl px-4 lg:px-8 py-8 relative z-20 pb-16">
-        <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)]">
           {/* ── Left Content Column ─────────────────────────────────────────── */}
           <div className="flex flex-col gap-6">
             
@@ -411,18 +411,18 @@ export default function CheckoutPage() {
                 <div className="rounded-2xl border border-border bg-card overflow-hidden">
                   <ul className="divide-y divide-border">
                     {items.map((item) => (
-                      <li key={cartLineKey(item)} className="p-6 sm:p-8">
-                        <div className="flex gap-4 sm:gap-6">
+                      <li key={cartLineKey(item)} className="p-4 sm:p-6">
+                        <div className="flex gap-3 sm:gap-6">
                           {item.image ? (
                             <Image
                               src={item.image}
                               alt={item.name}
                               width={96}
                               height={96}
-                              className="h-24 w-24 shrink-0 rounded-lg border bg-muted object-cover"
+                              className="h-20 w-20 shrink-0 rounded-lg border bg-muted object-cover sm:h-24 sm:w-24"
                             />
                           ) : (
-                            <div className="h-24 w-24 shrink-0 rounded-lg border bg-muted" />
+                            <div className="h-20 w-20 shrink-0 rounded-lg border bg-muted sm:h-24 sm:w-24" />
                           )}
                           <div className="flex flex-1 flex-col pb-1">
                             <div className="flex items-start justify-between gap-2">

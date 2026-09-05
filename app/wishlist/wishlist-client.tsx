@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useWishlist } from "@/components/wishlist/wishlist-provider";
-import { ProductCard } from "@/components/product/product-card";
+import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
 import { TrustBar } from "@/components/sections/trust-bar";
 import type { Product } from "@/lib/types";
 import { 
@@ -94,7 +94,7 @@ export function WishlistClient({ products }: { products: Product[] }) {
         </div>
 
         {/* Product Grid & Injected Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="gadget-product-grid">
           {savedProducts.length === 0 ? (
             <div className="col-span-full py-20 text-center flex flex-col items-center justify-center bg-white rounded-[22px] border border-border shadow-[0_2px_12px_rgba(0,0,0,0.015)]">
                <Heart className="w-12 h-12 text-border mb-4" />
@@ -108,7 +108,7 @@ export function WishlistClient({ products }: { products: Product[] }) {
             <>
               {savedProducts.slice(0, 3).map(p => (
                 <div key={p.slug} className="h-full">
-                  <ProductCard product={p} />
+                  <GadgetProductCard product={p} />
                 </div>
               ))}
               
@@ -131,7 +131,7 @@ export function WishlistClient({ products }: { products: Product[] }) {
 
               {savedProducts.slice(3, 7).map(p => (
                  <div key={p.slug} className="h-full">
-                   <ProductCard product={p} />
+                   <GadgetProductCard product={p} />
                  </div>
               ))}
 
@@ -166,7 +166,7 @@ export function WishlistClient({ products }: { products: Product[] }) {
 
               {savedProducts.slice(7).map(p => (
                  <div key={p.slug} className="h-full">
-                   <ProductCard product={p} />
+                   <GadgetProductCard product={p} />
                  </div>
               ))}
             </>
@@ -177,10 +177,10 @@ export function WishlistClient({ products }: { products: Product[] }) {
         {recommended.length > 0 && (
           <div className="pt-12 mt-12 border-t border-border/60">
              <h2 className="text-2xl font-extrabold text-[#0D2F35] tracking-tight mb-8">You may also like</h2>
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+             <div className="gadget-product-grid">
                 {recommended.map(p => (
                    <div key={p.slug} className="h-full">
-                     <ProductCard product={p} />
+                     <GadgetProductCard product={p} />
                    </div>
                 ))}
              </div>

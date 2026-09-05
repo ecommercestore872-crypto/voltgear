@@ -10,9 +10,41 @@ import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "FAQs & Payments",
-  description: "Cash on delivery, payments, orders, shipping, and warranty answers.",
+  title: "FAQs & Payments | Buy n Try",
+  description:
+    "Cash on delivery, payments, orders, shipping, and warranty answers from Buy n Try (buyntryy.com).",
   alternates: { canonical: "/faq" },
+};
+
+const FAQ_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Do you offer cash on delivery?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Buy n Try offers cash on delivery on eligible orders in Pakistan. Pay the courier when the parcel arrives.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How do I track or change an order?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Use the Track order page with your order number. Contact Buy n Try quickly if you need to change the address or cancel.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is the delivery and return policy?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Shipping timelines, exchanges, refunds, and warranty coverage are listed on the Shipping & returns and Warranty pages.",
+      },
+    },
+  ],
 };
 
 export default async function FaqPage() {
@@ -52,6 +84,10 @@ export default async function FaqPage() {
         </a>
       </div>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+      />
       <div className="space-y-4">
         <GadgetSupportCard
           id="payments"

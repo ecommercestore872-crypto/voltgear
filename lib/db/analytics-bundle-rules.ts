@@ -1,5 +1,4 @@
 import {
-  addDaysYmd,
   buildCityPerformance,
   buildCustomerAnalytics,
   buildExecutiveSnapshot,
@@ -18,6 +17,18 @@ import {
   type ProductPerfRow,
   type YmdRange,
 } from "./analytics-rules";
+import {
+  buildProfitLayer,
+  priorYmdRange,
+  type AdSpendBySource,
+  type ProfitLayer,
+} from "./analytics-profit-rules";
+import {
+  buildCoach,
+  perfFromAnalytics,
+  type CoachBundle,
+  type CoachCatalogProduct,
+} from "./analytics-coach-rules";
 import {
   FULFILLMENT_MATURITY_HOURS,
   buildInsights,
@@ -66,7 +77,7 @@ export type AnalyticsBundle = {
   shopFunnel: ShopFunnelStep[] | null;
   insights: InsightCard[];
   retentionNotice: boolean;
-};
+} & ProfitLayer & { coach: CoachBundle };
 
 export type AssembleAnalyticsBundleInput = {
   now: Date;
@@ -75,6 +86,13 @@ export type AssembleAnalyticsBundleInput = {
   costs?: ProductCostRow[];
   sessions: TrafficSession[];
   events: TrafficEvent[];
+  spend?: AdSpendBySource;
+  catalog?: CoachCatalogProduct[];
+  shippingFee?: number;
+  budget?: number;
+  freeShippingThreshold?: number;
+  packingFee?: number;
+  codFee?: number;
 };
 
 function toAttributed(order: BundleOrder): AttributedOrder {
@@ -92,22 +110,6 @@ function deliveredInRange(orders: BundleOrder[], range: YmdRange): BundleOrder[]
   return liveOrders(orders).filter(
     (o) => o.status !== "cancelled" && isoInRange(firstReachedAt(o, "delivered"), range)
   ) as BundleOrder[];
-}
-
-function inclusiveDayCount(range: YmdRange): number {
-  const [ys, ms, ds] = range.start.split("-").map(Number);
-  const [ye, me, de] = range.end.split("-").map(Number);
-  const start = Date.UTC(ys, (ms ?? 1) - 1, ds ?? 1);
-  const end = Date.UTC(ye, (me ?? 1) - 1, de ?? 1);
-  return Math.round((end - start) / 86_400_000) + 1;
-}
-
-function priorYmdRange(range: YmdRange): YmdRange {
-  const days = inclusiveDayCount(range);
-  return {
-    start: addDaysYmd(range.start, -days),
-    end: addDaysYmd(range.start, -1),
-  };
 }
 
 function shopRates(funnel: ShopFunnelStep[]): BuildInsightsInput["shop"] {
@@ -277,10 +279,40 @@ export function assembleAnalyticsBundle(input: AssembleAnalyticsBundleInput): An
     priorMature: priorMatureCounts,
   });
 
+  const executive = buildExecutiveSnapshot(orders, range, costs);
+  const products = buildProductPerformance(orders, range, costs);
+  const profit = buildProfitLayer({
+    orders,
+    range,
+    costs,
+    sessions,
+    events,
+    spend: input.spend,
+  });
+  const defaultBudget = (input.spend ? Object.values(input.spend) : []).reduce(
+    (s, n) => s + Math.max(0, Number(n) || 0),
+    0
+  );
+  const coach = buildCoach({
+    catalog: input.catalog ?? [],
+    perf: perfFromAnalytics(products, profit.productConversion),
+    shippingFee: input.shippingFee ?? 0,
+    rtoRate: profit.rto.shippedCount > 0 ? profit.rto.count / profit.rto.shippedCount : 0,
+    shopDeliveryRate: executive.deliverySuccessRate,
+    sourceMoney: profit.sourceMoney,
+    budget: input.budget ?? defaultBudget,
+    orders,
+    range,
+    now,
+    freeShippingThreshold: input.freeShippingThreshold ?? 0,
+    packingFee: input.packingFee ?? 0,
+    codFee: input.codFee ?? 0,
+  });
+
   return {
     range,
-    executive: buildExecutiveSnapshot(orders, range, costs),
-    products: buildProductPerformance(orders, range, costs),
+    executive,
+    products,
     cities: buildCityPerformance(orders, range),
     customers: buildCustomerAnalytics(orders, range),
     funnel: buildOrderFunnel(orders, range),
@@ -296,5 +328,7 @@ export function assembleAnalyticsBundle(input: AssembleAnalyticsBundleInput): An
     shopFunnel,
     insights,
     retentionNotice: !trafficAvailable,
+    ...profit,
+    coach,
   };
 }

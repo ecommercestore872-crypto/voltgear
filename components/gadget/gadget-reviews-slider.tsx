@@ -256,7 +256,7 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
             <li
               key={`${item.customerName}-${i}`}
               data-review-card
-              className="w-[min(100%,18rem)] shrink-0 sm:w-[19rem]"
+              className="w-[min(85vw,18.5rem)] shrink-0 sm:w-[19rem]"
               aria-hidden={i >= items.length}
             >
               <blockquote className="gadget-review-card group flex h-full min-h-[14rem] flex-col rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-5 shadow-[0_4px_16px_rgba(31,54,38,0.04)] transition duration-500 ease-out hover:-translate-y-1 hover:border-[var(--g-sage)]/40 hover:shadow-[0_12px_32px_rgba(31,54,38,0.08)]">

@@ -64,10 +64,10 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
 
   return (
     <section
-      className="gadget-band-forest py-10 sm:py-14"
+      className="gadget-band-forest px-4 py-10 sm:py-14 lg:px-8"
       aria-labelledby="featured-product-heading"
     >
-      <div className="mx-auto max-w-5xl px-4 lg:px-8">
+      <div className="mx-auto max-w-6xl">
         <p className="gadget-eyebrow">Featured</p>
         <h2
           id="featured-product-heading"
@@ -83,10 +83,10 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
           <Link
             href={href}
             prefetch={false}
-            className="flex relative min-h-[16rem] bg-[var(--g-cream)] sm:min-h-[20rem] lg:min-h-0 h-full"
+            className="flex relative min-h-[14rem] bg-[var(--g-cream)] sm:min-h-[20rem] lg:min-h-0 h-full"
           >
             {image ? (
-               <div className="relative w-full h-full flex items-center justify-center p-8 sm:p-10 lg:p-8">
+               <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 lg:p-8">
                 <Image
                   src={image}
                   alt={product.name}

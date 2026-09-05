@@ -7,6 +7,24 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { GadgetArrivalCard } from "@/components/gadget/gadget-arrival-card";
 import type { Product } from "@/lib/types";
 
+function TitleWithAccent({ title }: { title: string }) {
+  const parts = title.trim().split(/\s+/);
+  const accent = parts.pop() || title;
+  const lead = parts.join(" ");
+  return (
+    <>
+      {lead ? <>{lead} </> : null}
+      <span className="relative inline-block text-[var(--g-charcoal)]">
+        {accent}
+        <span
+          className="absolute -bottom-1 left-0 h-[2.5px] w-full rounded-full bg-[var(--g-amber)]"
+          aria-hidden
+        />
+      </span>
+    </>
+  );
+}
+
 export function GadgetNewArrivals({
   products,
   title = "Best Sellers",
@@ -62,22 +80,22 @@ export function GadgetNewArrivals({
     <section
       className={
         tone === "clay"
-          ? "gadget-band-clay py-8 sm:py-10"
+          ? "gadget-band-clay px-4 py-8 sm:py-10 lg:px-8"
           : tone === "leaf"
-            ? "gadget-band-leaf py-8 sm:py-10"
-            : "py-8 sm:py-10"
+            ? "gadget-band-leaf px-4 py-8 sm:py-10 lg:px-8"
+            : "px-4 py-8 sm:py-10 lg:px-8"
       }
       aria-labelledby={heading}
     >
-      <div className="mx-auto max-w-6xl px-4 lg:px-8">
-        <div className="mb-4 flex items-end justify-between gap-3 sm:mb-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
           <h2
             id={heading}
-            className="gadget-section-rule gadget-h2 text-[var(--g-charcoal)] !text-xl sm:!text-2xl"
+            className="text-2xl font-bold tracking-tight text-[var(--g-charcoal)] sm:text-3xl"
           >
-            {title}
+            <TitleWithAccent title={title} />
           </h2>
-          <div className="flex items-center gap-2 pb-0.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label="Previous"
@@ -110,9 +128,9 @@ export function GadgetNewArrivals({
           className="overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{ scrollSnapType: "x proximity" }}
         >
-          <ul className="flex gap-3.5 pb-1 sm:gap-4">
+          <ul className="flex items-stretch gap-3.5 pb-1 sm:gap-4">
             {products.map((product) => (
-              <li key={product._id} data-rail-card className="snap-start">
+              <li key={product._id} data-rail-card className="flex shrink-0 snap-start">
                 <GadgetArrivalCard product={product} />
               </li>
             ))}

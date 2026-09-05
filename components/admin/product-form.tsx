@@ -253,6 +253,11 @@ export function ProductForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              Separate paragraphs with a blank line. Use <code># Heading</code>,{" "}
+              <code>- list item</code>, <code>**bold**</code>, or{" "}
+              <code>&gt; highlight</code> — the product page will style them.
+            </p>
           </div>
           
           <div className="pt-4 space-y-8 border-t">
@@ -394,6 +399,18 @@ export function ProductForm({
               }))
             }
           />
+          <div className="space-y-1.5">
+            <Label htmlFor="badge">Card tag</Label>
+            <Input
+              id="badge"
+              value={doc.badge ?? ""}
+              onChange={(e) => set("badge", e.target.value)}
+              placeholder="e.g. Budget Choice"
+            />
+            <p className="text-xs text-muted-foreground">
+              Small label on the product card. Leave empty to hide it.
+            </p>
+          </div>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

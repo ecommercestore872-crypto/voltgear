@@ -19,15 +19,16 @@ import {
   fetchTestimonials,
 } from "@/lib/db/store";
 import { isDemoSession } from "@/lib/demo";
+import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
 import {
-  gadgetDemoHeroBanners,
-  gadgetLifestyleFeatureImage,
-} from "@/lib/gadget-creatives";
+  homeLayoutIdsForLifestyle,
+  lifestyleShopHasContent,
+  normalizeLifestyleShop,
+} from "@/lib/db/lifestyle-shop-rules";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
-import { collectionHref, gadgetShopTypeLinks, product2Href, products2Href } from "@/lib/gadget-preview";
+import { collectionHref, gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
 import { fetchExtraCollectionRails, fetchProductsForHomeSlot } from "@/lib/db/collection-store";
 import {
-  enabledHomeSectionIds,
   normalizeHomeSections,
   type HomeSectionId,
 } from "@/lib/db/home-section-rules";
@@ -191,9 +192,10 @@ export async function GadgetHomePage() {
           .slice(0, 8);
 
   const demoBanners = gadgetDemoHeroBanners(products2Href);
-  const lifestyleImage = gadgetLifestyleFeatureImage(slides[0]?.imageUrl);
-  const layout = enabledHomeSectionIds(
-    normalizeHomeSections(settings?.homeSections ?? null)
+  const lifestyleShop = normalizeLifestyleShop(settings?.lifestyleShop);
+  const layout = homeLayoutIdsForLifestyle(
+    normalizeHomeSections(settings?.homeSections ?? null),
+    lifestyleShop
   );
   const trustItems = trust.map(({ key, title, detail, icon }) => ({
     key,
@@ -241,6 +243,7 @@ export async function GadgetHomePage() {
                   products={railProducts}
                   title="Best Sellers"
                   headingId="best-sellers-heading"
+                  viewAllHref={collectionHref("best-sellers")}
                   tone="leaf"
                 />
               </GadgetReveal>
@@ -259,7 +262,7 @@ export async function GadgetHomePage() {
                 <GadgetNewArrivals
                   products={bestOffers}
                   title="Best Offers"
-                  viewAllHref={`${products2Href()}?sort=price-asc`}
+                  viewAllHref={collectionHref("best-offers")}
                   headingId="best-offers-heading"
                   tone="clay"
                 />
@@ -267,22 +270,11 @@ export async function GadgetHomePage() {
             );
             break;
           case "lifestyle":
-            section = (
+            section = lifestyleShopHasContent(lifestyleShop) ? (
               <GadgetReveal key={id} delayMs={delayMs}>
-                <GadgetLifestyleShop
-                  tiles={categoryCards.slice(0, 4)}
-                  feature={{
-                    imageUrl: lifestyleImage,
-                    eyebrow: slides[0]?.subtitle || "Curated for you",
-                    title: slides[0]?.title || "Rethinking everyday tech",
-                    href: slides[0]
-                      ? product2Href(slides[0].product.slug)
-                      : products2Href(),
-                    cta: "Shop now",
-                  }}
-                />
+                <GadgetLifestyleShop shop={lifestyleShop} />
               </GadgetReveal>
-            );
+            ) : null;
             break;
           case "categories":
             section = (

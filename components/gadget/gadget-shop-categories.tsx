@@ -144,7 +144,7 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
             >
               {/* Circle Avatar Stage */}
               <div
-                className={`relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full shadow-md ring-2 ring-white/70 transition duration-300 group-hover:scale-105 group-hover:shadow-xl sm:h-24 sm:w-24 ${
+                className={`relative flex h-[5.5rem] w-[5.5rem] items-center justify-center overflow-hidden rounded-full shadow-md ring-2 ring-white/70 transition duration-300 group-hover:scale-105 group-hover:shadow-xl sm:h-28 sm:w-28 ${
                   ["bg-[var(--g-forest)]", "bg-[var(--g-sage)]", "bg-[var(--g-terracotta)]", "bg-[var(--g-forest-mid)]"][
                     idx % 4
                   ]
@@ -157,7 +157,7 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
                     fill
                     priority={idx < 4}
                     quality={90}
-                    sizes="(max-width: 640px) 80px, 96px"
+                    sizes="(max-width: 640px) 88px, 112px"
                     className="object-cover transition duration-300 group-hover:scale-110"
                   />
                 ) : tile.glyph ? (
@@ -168,7 +168,7 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
               </div>
 
               {/* Label */}
-              <span className="w-20 text-xs font-bold leading-snug text-[#1A202C] transition duration-300 group-hover:text-[var(--g-forest)] sm:w-24 sm:text-[13px]">
+              <span className="w-[5.5rem] text-xs font-bold leading-snug text-[#1A202C] transition duration-300 group-hover:text-[var(--g-forest)] sm:w-28 sm:text-[13px]">
                 {tile.label}
               </span>
             </Link>
