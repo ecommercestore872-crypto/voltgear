@@ -251,8 +251,19 @@ export function GadgetNavbar({
             className="group flex min-h-11 shrink-0 items-center"
             aria-label={`${brandName} home`}
           >
-            <ShopBrandMark logo={settings?.logo} name={brandName} compact className="sm:hidden" />
-            <ShopBrandMark logo={settings?.logo} name={brandName} className="hidden sm:inline-flex" />
+            <ShopBrandMark
+              logo={settings?.logo}
+              name={brandName}
+              compact
+              priority
+              className="sm:hidden"
+            />
+            <ShopBrandMark
+              logo={settings?.logo}
+              name={brandName}
+              priority
+              className="hidden sm:inline-flex"
+            />
           </Link>
 
           <nav aria-label="Primary" className="hidden items-center lg:flex">

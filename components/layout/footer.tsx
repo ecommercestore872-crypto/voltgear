@@ -1,7 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 
-import { imageUrl } from "@/lib/sanity/image";
+import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { FALLBACK_SHOP_TYPES, shopTypeLinks, type ShopType } from "@/lib/categories";
 import { Separator } from "@/components/ui/separator";
 import { getSocialIcon } from "@/components/icons/social-icons";
@@ -16,9 +15,6 @@ export function Footer({
 }) {
   const links = shopTypeLinks(shopTypes);
   const brandName = settings?.brandName || "Buy n Try";
-  const logoUrl = settings?.logo
-    ? imageUrl(settings.logo, { w: 120 })
-    : undefined;
 
   return (
     <footer className="border-t border-deep bg-deep text-white">
@@ -26,20 +22,7 @@ export function Footer({
         {/* Brand column */}
         <div className="space-y-5 lg:col-span-2 pr-10">
           <Link href="/" className="inline-flex min-h-11 w-fit items-center" aria-label={`${brandName} home`}>
-            {logoUrl ? (
-              <Image
-                src={logoUrl}
-                alt={brandName}
-                width={140}
-                height={40}
-                className="h-10 w-auto object-contain brightness-0 invert"
-              />
-            ) : (
-              <p className="text-xl font-bold tracking-tight">
-                {brandName}
-                <span className="text-white/40">.</span>
-              </p>
-            )}
+            <ShopBrandMark logo={settings?.logo} name={brandName} invert />
           </Link>
           <p className="text-sm text-white/70 leading-relaxed max-w-sm">
             {settings?.tagline ||

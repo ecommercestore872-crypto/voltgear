@@ -191,7 +191,7 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
             Invoice PDF
           </Link>
           . Footer subscribers are under Customers → Newsletter. Empty logo keeps the BNT
-          wordmark. Empty link lists hide that group on the shop.
+          seal in the navbar and footer. Empty link lists hide that group on the shop.
         </p>
         <ChromeLinkList
           title="Navbar links"

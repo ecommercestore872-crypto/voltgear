@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -23,11 +22,11 @@ import {
   Truck
 } from "lucide-react";
 
+import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { useCart } from "@/components/cart/cart-provider";
 import { MegaMenu } from "@/components/layout/mega-menu";
 import { FALLBACK_SHOP_TYPES, shopTypeLinks, type ShopType } from "@/lib/categories";
 import { trackSearch } from "@/lib/analytics";
-import { imageUrl } from "@/lib/sanity/image";
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -96,9 +95,6 @@ export function Navbar({
 
   const brandName = settings?.brandName || "Buy n Try";
   const links = shopTypeLinks(shopTypes);
-  const logoUrl = settings?.logo
-    ? imageUrl(settings.logo, { w: 256 })
-    : undefined;
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -120,20 +116,7 @@ export function Navbar({
       className="flex min-h-11 shrink-0 items-center group"
       aria-label={`${brandName} home`}
     >
-      {logoUrl ? (
-        <Image
-          src={logoUrl}
-          alt={brandName}
-          width={120}
-          height={32}
-          priority
-          className="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
-        />
-      ) : (
-        <span className="text-xl font-bold tracking-tight text-foreground">
-          {brandName}
-        </span>
-      )}
+      <ShopBrandMark logo={settings?.logo} name={brandName} compact priority />
     </Link>
   );
 

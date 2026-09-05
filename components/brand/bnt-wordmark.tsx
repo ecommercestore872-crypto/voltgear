@@ -1,55 +1,45 @@
 import { SHOPPER_BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
-function BntMonogram({ invert = false }: { invert?: boolean }) {
-  const face = invert ? "#F7EFE2" : "#1B3D29";
-  const ink = invert ? "#1B3D29" : "#F7EFE2";
-  const leather = "#C45E32";
-
+function BntSealMark({
+  compact = false,
+  priority = false,
+}: {
+  compact?: boolean;
+  priority?: boolean;
+}) {
   return (
-    <svg
-      viewBox="0 0 40 40"
-      className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
-      aria-hidden
-    >
-      <circle cx="20" cy="20" r="19" fill={face} />
-      <circle cx="20" cy="20" r="16.6" fill="none" stroke={ink} strokeWidth="0.7" opacity="0.45" />
-      <path
-        d="M11.2 8.4 a12.4 12.4 0 0 1 17.6 0"
-        fill="none"
-        stroke={leather}
-        strokeWidth="1.15"
-        strokeLinecap="round"
-      />
-      <text
-        x="20"
-        y="23.2"
-        textAnchor="middle"
-        fill={ink}
-        fontFamily="var(--font-gadget-sans), ui-sans-serif, system-ui, sans-serif"
-        fontSize="8.4"
-        fontWeight="650"
-        letterSpacing="2.4"
-      >
-        {SHOPPER_BRAND.seal}
-      </text>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element -- local brand asset; keep off next/image so chrome stays a client-safe img
+    <img
+      src={SHOPPER_BRAND.sealSrc}
+      alt=""
+      width={44}
+      height={44}
+      decoding={priority ? "sync" : "async"}
+      fetchPriority={priority ? "high" : "auto"}
+      className={cn(
+        "shrink-0 rounded-full object-cover",
+        compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-11 sm:w-11"
+      )}
+    />
   );
 }
 
 export function BntWordmark({
   invert = false,
   compact = false,
+  priority = false,
   className,
 }: {
   invert?: boolean;
   compact?: boolean;
+  priority?: boolean;
   className?: string;
 }) {
   return (
     <span className={cn("inline-flex items-center gap-3", className)}>
       <span className="inline-flex items-center gap-3" aria-hidden>
-        <BntMonogram invert={invert} />
+        <BntSealMark compact={compact} priority={priority} />
         <span
           className={cn(
             "h-8 w-px self-center sm:h-9",

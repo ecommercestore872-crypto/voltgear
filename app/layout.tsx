@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
+import { SHOPPER_BRAND } from "@/lib/brand";
 import { indexSiteUrl, organizationStructuredData } from "@/lib/seo-rules";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchShopTypes } from "@/lib/db/store";
@@ -114,6 +115,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: "/brand/bnt-seal.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export const revalidate = 60;
@@ -177,7 +185,9 @@ export default async function RootLayout({
     organizationStructuredData({
       siteUrl: SITE_URL,
       brandName,
-      logo: settings?.logo ? `${SITE_URL}/api/logo` : undefined,
+      logo: settings?.logo
+        ? `${SITE_URL}/api/logo`
+        : `${SITE_URL}${SHOPPER_BRAND.sealSrc}`,
       phone: settings?.phone || settings?.whatsappNumber,
       email: settings?.email,
       returnDays: settings?.returnWindowDays,
