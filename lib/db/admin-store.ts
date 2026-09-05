@@ -20,6 +20,11 @@ import { missingSchemaColumn, omitColumn } from "@/lib/db/product-column-fallbac
 import { sanitizeChromeLinks, validateChromeLists } from "@/lib/chrome-nav-rules";
 import { parseAutopilotConfig, type AutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
+import {
+  mergeInvoiceTemplate,
+  invoiceTemplateOverrides,
+  type InvoiceTemplate,
+} from "@/lib/invoice-template-rules";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import {
@@ -714,6 +719,7 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
     status: "published",
     draft: null,
     ...(doc.orderEmails ? { order_emails: parseOrderEmailConfig(doc.orderEmails) } : {}),
+    ...(doc.invoiceTemplate ? { invoice_template: mergeInvoiceTemplate(doc.invoiceTemplate) } : {}),
   };
 }
 
@@ -844,6 +850,80 @@ export async function discardAdminOrderEmails() {
       : {};
   if (!("orderEmails" in draft)) return { ok: true as const };
   delete draft.orderEmails;
+  const { error } = await db()
+    .from("site_settings")
+    .update({ draft: Object.keys(draft).length ? draft : null })
+    .eq("id", 1);
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  return { ok: true as const };
+}
+
+export function editorInvoiceTemplate(row: Record<string, unknown> | null): InvoiceTemplate {
+  const draft = row?.draft && typeof row.draft === "object" ? (row.draft as Record<string, unknown>) : null;
+  if (draft?.invoiceTemplate) return mergeInvoiceTemplate(draft.invoiceTemplate);
+  return mergeInvoiceTemplate(row?.invoice_template);
+}
+
+export async function saveAdminInvoiceTemplate(config: InvoiceTemplate | Partial<InvoiceTemplate>) {
+  const current = await getAdminSettings();
+  const parsed = invoiceTemplateOverrides(config);
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>), invoiceTemplate: parsed }
+      : { invoiceTemplate: parsed };
+  const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  return { ok: true as const };
+}
+
+async function stripInvoiceTemplateDraft() {
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>) }
+      : null;
+  if (!draft || !("invoiceTemplate" in draft)) return;
+  delete draft.invoiceTemplate;
+  await db()
+    .from("site_settings")
+    .update({ draft: Object.keys(draft).length ? draft : null })
+    .eq("id", 1);
+}
+
+export async function publishAdminInvoiceTemplate(config: InvoiceTemplate | Partial<InvoiceTemplate>) {
+  const parsed = invoiceTemplateOverrides(config);
+  let payload: Record<string, unknown> = {
+    invoice_template: parsed,
+    updated_at: new Date().toISOString(),
+  };
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const { error } = await db().from("site_settings").update(payload).eq("id", 1);
+    if (!error) {
+      if ("invoice_template" in payload) await stripInvoiceTemplateDraft();
+      revalidatePath("/", "layout");
+      return { ok: true as const };
+    }
+    const missing = missingSchemaColumn(error);
+    if (!missing || !(missing in payload)) {
+      return { ok: false as const, error: error.message, status: 500 };
+    }
+    payload = omitColumn(payload, missing);
+  }
+  return {
+    ok: false as const,
+    error: "Invoice template column is missing. Push migration 20260905080000_invoice_template.sql.",
+    status: 500,
+  };
+}
+
+export async function discardAdminInvoiceTemplate() {
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>) }
+      : {};
+  if (!("invoiceTemplate" in draft)) return { ok: true as const };
+  delete draft.invoiceTemplate;
   const { error } = await db()
     .from("site_settings")
     .update({ draft: Object.keys(draft).length ? draft : null })

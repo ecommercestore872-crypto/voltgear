@@ -138,6 +138,7 @@ export interface SiteSettings {
   footerCompanyLinks?: { label: string; href: string }[];
   footerCareLinks?: { label: string; href: string }[];
   orderEmails?: import("./order-email-cms-rules").OrderEmailConfig;
+  invoiceTemplate?: import("./invoice-template-rules").InvoiceTemplate;
   autopilot?: import("./autopilot/config").AutopilotConfig;
   announcement?: {
     enabled?: boolean;

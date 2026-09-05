@@ -1,32 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Printer } from "lucide-react";
+import { Download } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { invoiceFileTitle } from "@/lib/invoice-template-rules";
 
-export default function PrintButton() {
-  const [isClient, setIsClient] = useState(false);
-  
+export default function PrintButton({ orderId }: { orderId: string }) {
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
-    setIsClient(true);
-    // Auto trigger print dialogue if ?print=1 is present
-    if (window.location.search.includes("print=1")) {
-      const timer = setTimeout(() => {
-        window.print();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+    setReady(true);
+    const previous = document.title;
+    document.title = invoiceFileTitle(orderId);
+    const auto = window.location.search.includes("print=1");
+    const timer = auto
+      ? window.setTimeout(() => {
+          window.print();
+        }, 400)
+      : 0;
+    return () => {
+      document.title = previous;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [orderId]);
 
-  if (!isClient) return null;
+  if (!ready) return null;
 
   return (
-    <Button 
+    <Button
+      type="button"
       onClick={() => window.print()}
-      className="bg-[var(--g-forest)] hover:bg-[var(--g-forest)]/90 text-white shadow-sm font-bold tracking-wide transition-transform hover:-translate-y-0.5"
+      className="bg-[var(--g-forest)] text-[var(--g-cream)] hover:bg-[var(--g-forest)]/90"
     >
-      <Printer className="w-4 h-4 mr-2" />
-      Print / Save PDF
+      <Download className="mr-2 h-4 w-4" />
+      Download PDF
     </Button>
   );
 }

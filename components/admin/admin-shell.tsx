@@ -62,6 +62,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/analytics", label: "Analytics" },
       { href: "/admin/settings", label: "Settings" },
       { href: "/admin/order-emails", label: "Order emails" },
+      { href: "/admin/invoice", label: "Invoice" },
       { href: "/admin/autopilot/settings", label: "Autopilot" },
     ],
   },

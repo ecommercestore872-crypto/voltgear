@@ -149,6 +149,15 @@ export function OrderDetail({
 
           {/* PostEx Dispatch Actions */}
           <div className="flex items-center gap-2">
+            <Button asChild type="button" variant="outline">
+              <Link
+                href={`/order/${encodeURIComponent(order.orderId)}/invoice?print=1`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Download invoice
+              </Link>
+            </Button>
             <Button
               type="button"
               variant="outline"

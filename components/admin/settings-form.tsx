@@ -183,6 +183,10 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
           <Link href="/admin/order-emails" className="underline underline-offset-2">
             Order emails
           </Link>
+          {" · "}
+          <Link href="/admin/invoice" className="underline underline-offset-2">
+            Invoice PDF
+          </Link>
           . Footer subscribers are under Customers → Newsletter. Empty logo keeps the BNT
           wordmark. Empty link lists hide that group on the shop.
         </p>
