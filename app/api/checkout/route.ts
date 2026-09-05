@@ -5,11 +5,13 @@ import { fulfillOrderWithPostEx } from "@/lib/autopilot/dispatch-run";
 import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
 import { appendOrderNote, createOrder, enqueueEmailEvent, nextPublicOrderId } from "@/lib/order-store";
 import { fetchSiteSettings, getAllOrders, getOrderByPublicId } from "@/lib/db/store";
-import { resolveCheckout, CHECKOUT_PRICE_CHANGED_ERROR, GIFT_WRAP_FEE } from "@/lib/checkout-server";
+import { resolveCheckout, resolveShippingAndTotal, CHECKOUT_PRICE_CHANGED_ERROR, GIFT_WRAP_FEE } from "@/lib/checkout-server";
 import { isDemoRequest } from "@/lib/demo";
 import { attachOrderAttribution } from "@/lib/db/analytics-checkout";
 import { orderIsDemo } from "@/lib/db/demo-rules";
 import { applyPromoToTotals, normalizePromoCode } from "@/lib/db/promo-rules";
+import { applyDealsToCart, promoBlockedByDeal } from "@/lib/db/deal-rules";
+import { listProductDeals } from "@/lib/db/deal-store";
 import {
   countPriorOrdersForEmail,
   getPromoByCode,
@@ -102,11 +104,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: resolution.error }, { status: 400 });
     }
 
-    const { lines, subtotal, shipping, total } = resolution.checkout;
-
-    let finalShipping = shipping;
-    let finalTotal = total;
-    let discount = 0;
+    const { lines, subtotal } = resolution.checkout;
+    const gift = giftWrap === true;
+    let dealDiscount = 0;
+    try {
+      const deals = await listProductDeals();
+      dealDiscount = applyDealsToCart(
+        lines.map((line) => ({ slug: line.slug, quantity: line.quantity, price: line.price })),
+        deals
+      ).discount;
+    } catch (error) {
+      console.error("[checkout] deals", error);
+      dealDiscount = 0;
+    }
+    const merchandise = Math.max(0, Math.round((subtotal - dealDiscount) * 100) / 100);
+    const shipped = await resolveShippingAndTotal(merchandise, gift);
+    let finalShipping = shipped.shipping;
+    let finalTotal = shipped.total;
+    let discount = dealDiscount;
     let appliedPromo: string | null = null;
 
     const promoRaw = normalizePromoCode(body.promoCode);
@@ -119,11 +134,17 @@ export async function POST(request: Request) {
             { status: 400 }
           );
         }
+        if (promoBlockedByDeal(dealDiscount, promo.type)) {
+          return NextResponse.json(
+            { error: "A pair deal is already applied. Percent and rupee codes cannot stack on the same order." },
+            { status: 400 }
+          );
+        }
         const prior = await countPriorOrdersForEmail(customer.email);
         const applied = applyPromoToTotals(promo, {
-          subtotal,
-          shipping,
-          giftWrapFee: giftWrap === true ? GIFT_WRAP_FEE : 0,
+          subtotal: merchandise,
+          shipping: finalShipping,
+          giftWrapFee: gift ? GIFT_WRAP_FEE : 0,
           isFirstOrder: prior === 0,
         });
         if (!applied.ok) {
@@ -131,7 +152,7 @@ export async function POST(request: Request) {
         }
         finalShipping = applied.shipping;
         finalTotal = applied.total;
-        discount = applied.discount;
+        discount = Math.round((dealDiscount + (promo.type === "free_shipping" ? 0 : applied.discount)) * 100) / 100;
         appliedPromo = applied.code;
       } catch (error) {
         console.error("[checkout] promo", error);

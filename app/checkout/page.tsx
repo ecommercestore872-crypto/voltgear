@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { useCart, cartLineKey } from "@/components/cart/cart-provider";
+import { useDealQuote } from "@/components/deals/use-deal-quote";
 import { saveLastOrder } from "@/lib/review-reminder";
 import { formatPrice } from "@/lib/utils";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
@@ -90,6 +91,9 @@ export default function CheckoutPage() {
     removeItem,
     clearCart,
   } = useCart();
+  const dealQuote = useDealQuote(items);
+  const dealDiscount = dealQuote.discount;
+  const merchandise = Math.max(0, subtotal - dealDiscount);
   const config = useSiteConfig();
   const [gadget, setGadget] = useState(false);
   const shopHref = gadget ? products2Href() : "/products";
@@ -129,13 +133,14 @@ export default function CheckoutPage() {
 
   const GIFT_WRAP_FEE = 199;
   
-  const baseShipping = subtotal === 0 || subtotal >= config.freeShippingThreshold ? 0 : config.shippingFee;
-  const shipping = activePromo && !activePromo.error ? activePromo.shipping : baseShipping;
-  const appliedDiscount = activePromo && !activePromo.error ? activePromo.discount : 0;
-  const subDiscount = (activePromo && !activePromo.error && activePromo.shipping === baseShipping) ? appliedDiscount : 0;
+  const baseShipping = merchandise === 0 || merchandise >= config.freeShippingThreshold ? 0 : config.shippingFee;
+  const promoStacks = !(dealDiscount > 0);
+  const shipping = promoStacks && activePromo && !activePromo.error ? activePromo.shipping : baseShipping;
+  const appliedDiscount = promoStacks && activePromo && !activePromo.error ? activePromo.discount : 0;
+  const subDiscount = (promoStacks && activePromo && !activePromo.error && activePromo.shipping === baseShipping) ? appliedDiscount : 0;
   
-  const total = (subtotal + shipping + (giftWrap ? GIFT_WRAP_FEE : 0)) - subDiscount;
-  const hasPromo = !!activePromo && !activePromo.error;
+  const total = merchandise + shipping + (giftWrap ? GIFT_WRAP_FEE : 0) - subDiscount;
+  const hasPromo = promoStacks && !!activePromo && !activePromo.error;
 
   async function handleApplyPromo() {
     if (!promoInput.trim()) {
@@ -148,11 +153,18 @@ export default function CheckoutPage() {
       const res = await fetch("/api/promo/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoInput.trim(), subtotal, shipping: baseShipping }),
+        body: JSON.stringify({ code: promoInput.trim(), subtotal: merchandise, shipping: baseShipping }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, error: data.error || "Invalid promo code" });
+      } else if (dealDiscount > 0 && (data.type === "percent" || data.type === "fixed")) {
+        setActivePromo({
+          code: promoInput.trim(),
+          discount: 0,
+          shipping: baseShipping,
+          error: "A pair deal is already applied. Percent and rupee codes cannot stack.",
+        });
       } else {
         setActivePromo({ code: data.code, discount: data.discount, shipping: data.shipping });
         setPromoInput("");
@@ -163,13 +175,13 @@ export default function CheckoutPage() {
   }
 
   const shippingLabel = useMemo(() => {
-    if (subtotal === 0) return null;
+    if (merchandise === 0) return null;
     if (shipping === 0) return "Free";
-    const remaining = config.freeShippingThreshold - subtotal;
+    const remaining = config.freeShippingThreshold - merchandise;
     return remaining > 0
       ? `${formatPrice(shipping)} (add ${formatPrice(remaining)} more for free shipping)`
-      : "Free";
-  }, [subtotal, shipping, config.freeShippingThreshold]);
+      : formatPrice(shipping);
+  }, [merchandise, shipping, config.freeShippingThreshold]);
 
   async function placeOrder(e?: React.FormEvent<HTMLFormElement>) {
     if (e) e.preventDefault();
@@ -743,6 +755,12 @@ export default function CheckoutPage() {
                     <span>Subtotal ({items.reduce((acc, i) => acc + i.quantity, 0)} items)</span>
                     <span className="text-foreground">{formatPrice(subtotal)}</span>
                   </div>
+                  {dealDiscount > 0 ? (
+                    <div className="flex justify-between font-semibold text-[#13A387]">
+                      <span>Pair deal{dealQuote.applied[0] ? ` · ${dealQuote.applied[0].title}` : ""}</span>
+                      <span>− {formatPrice(dealDiscount)}</span>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between text-muted-foreground">
                     <span>Shipping</span>
                     <span className="font-bold text-foreground">{shippingLabel ?? "—"}</span>

@@ -27,6 +27,7 @@ import { formatPrice, cn } from "@/lib/utils";
 import { useCart, cartLineKey } from "@/components/cart/cart-provider";
 import { useSiteConfig } from "@/lib/use-site-config";
 import { CartUpsell } from "@/components/cart/cart-upsell";
+import { useDealQuote } from "@/components/deals/use-deal-quote";
 import {
   isGadgetPreviewPath,
   products2Href,
@@ -200,6 +201,8 @@ export function CartDrawer() {
   const shopHref = gadget ? products2Href() : "/products";
   const { items, isOpen, closeCart, subtotal, updateQuantity, removeItem, clearCart } =
     useCart();
+  const dealQuote = useDealQuote(items);
+  const merchandise = Math.max(0, subtotal - dealQuote.discount);
   const config = useSiteConfig();
   const [orderNote, setOrderNote] = useState("");
   const [confirmKey, setConfirmKey] = useState<string | null>(null);
@@ -395,7 +398,7 @@ export function CartDrawer() {
               <Separator className={gadget ? "bg-[var(--g-line)]" : undefined} />
               <div className="space-y-3 pt-3">
                 <FreeShippingBar
-                  subtotal={subtotal}
+                  subtotal={merchandise}
                   threshold={config.freeShippingThreshold}
                   gadget={gadget}
                 />
@@ -447,6 +450,16 @@ export function CartDrawer() {
                   </span>
                   <span className="gadget-display text-base font-bold tabular-nums text-[var(--g-charcoal)]">{formatPrice(subtotal)}</span>
                 </div>
+                {dealQuote.discount > 0 ? (
+                  <div className="flex items-center justify-between">
+                    <span className={cn("text-xs font-medium", gadget ? "text-[var(--g-forest)]" : "text-emerald-700")}>
+                      Pair deal
+                    </span>
+                    <span className="text-sm font-semibold tabular-nums text-[var(--g-forest)]">
+                      −{formatPrice(dealQuote.discount)}
+                    </span>
+                  </div>
+                ) : null}
                 {gadget ? (
                   <div className="space-y-2">
                     <Link

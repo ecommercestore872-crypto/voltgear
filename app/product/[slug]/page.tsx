@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { GadgetBuyBox } from "@/components/gadget/gadget-buy-box";
+import { GadgetDealPair } from "@/components/gadget/gadget-deal-pair";
 import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
 import { GadgetProductTabs } from "@/components/gadget/gadget-product-tabs";
 import { ReviewsSection } from "@/components/product/product-info-sections";
@@ -10,6 +11,8 @@ import { ProductViewTracker } from "@/components/product/product-view-tracker";
 import { applyGadgetStudioImages, applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { fetchApprovedReviews, fetchAllProducts, fetchProductBySlug, fetchSiteSettings } from "@/lib/db/store";
+import { publicDealsForSlug } from "@/lib/db/deal-rules";
+import { fetchDealCatalog, listProductDeals } from "@/lib/db/deal-store";
 import { isDemoSession } from "@/lib/demo";
 import { normalizeSettings } from "@/lib/site-config";
 import { imageUrl } from "@/lib/sanity/image";
@@ -71,13 +74,17 @@ export default async function Product2Page({ params }: { params: { slug: string 
   let related: Product[] = [];
   let settings = null;
   let approvedReviews: ProductReview[] = [];
+  let deals: Awaited<ReturnType<typeof listProductDeals>> = [];
+  let dealCatalog: Awaited<ReturnType<typeof fetchDealCatalog>> = [];
   try {
     product = await fetchProductBySlug(params.slug, demo);
     if (product) {
-      [related, settings, approvedReviews] = await Promise.all([
+      [related, settings, approvedReviews, deals, dealCatalog] = await Promise.all([
         fetchAllProducts(demo),
         fetchSiteSettings().catch(() => null),
         fetchApprovedReviews(product._id, demo),
+        listProductDeals().catch(() => []),
+        fetchDealCatalog().catch(() => []),
       ]);
     }
   } catch {
@@ -112,6 +119,13 @@ export default async function Product2Page({ params }: { params: { slug: string 
   const relatedProducts = related
     .filter((p) => p._id !== product._id && p.category === product.category)
     .slice(0, 4);
+  const pairBlocks = publicDealsForSlug(product.slug, deals, dealCatalog)
+    .map((row) => ({
+      percentOff: row.percentOff,
+      other: related.find((p) => p.slug === row.otherSlug) ?? null,
+    }))
+    .filter((row): row is { percentOff: number; other: Product } => Boolean(row.other))
+    .slice(0, 2);
 
   const siteUrl = indexSiteUrl();
   const productImg = product.images?.[0] ? imageUrl(product.images[0], { w: 800 }) : undefined;
@@ -192,6 +206,9 @@ export default async function Product2Page({ params }: { params: { slug: string 
         <div className="mt-6">
           <GadgetBuyBox product={product} config={config} />
         </div>
+        {pairBlocks.map((row) => (
+          <GadgetDealPair key={row.other.slug} percentOff={row.percentOff} other={row.other} />
+        ))}
         <div className="mt-10">
           <GadgetProductTabs product={product} />
         </div>
