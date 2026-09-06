@@ -22,10 +22,14 @@ export function cloudinaryImageUrl(
 ): string {
   if (!src) return "";
   let base = src.trim();
+  if (base.startsWith("/") && !base.startsWith("//")) return base;
+
+  const cloudName =
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME;
 
   if (!base.startsWith("http")) {
-    if (!CLOUDINARY_CLOUD_NAME) return base;
-    base = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${base}`;
+    if (!cloudName) return base;
+    base = `https://res.cloudinary.com/${cloudName}/image/upload/${base}`;
   }
 
   const marker = "/image/upload/";
