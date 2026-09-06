@@ -116,12 +116,56 @@ function resolveSubject(
   return custom ? interpolateEmailText(custom, vars) : fallback;
 }
 
+/** Resend's documented test sender until FROM_EMAIL is a verified domain. */
+export const RESEND_TEST_FROM_MAILBOX = "onboarding@resend.dev";
+
 export function defaultFromAddress(
   brand: string,
-  mailbox = "no-reply@voltgear.store"
+  mailbox = RESEND_TEST_FROM_MAILBOX
 ): string {
   const name = brand.trim() || "Buy n Try";
   return `${name} <${mailbox}>`;
+}
+
+export function resolveFromAddress(input: {
+  envFrom?: string | null;
+  brand?: string;
+}): string {
+  const env = (input.envFrom ?? "").trim();
+  if (env) return env;
+  return defaultFromAddress(input.brand || "Buy n Try");
+}
+
+export type ResendSendInput = {
+  from: string;
+  to: string[];
+  subject: string;
+  text: string;
+  html: string;
+  bcc?: string[];
+  replyTo?: string;
+};
+
+export function resendSendInput(input: {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  bcc?: string[];
+  replyTo?: string;
+}): ResendSendInput {
+  const payload: ResendSendInput = {
+    from: input.from,
+    to: [input.to],
+    subject: input.subject,
+    text: input.text,
+    html: input.html,
+  };
+  if (input.bcc?.length) payload.bcc = input.bcc;
+  const replyTo = input.replyTo?.trim();
+  if (replyTo) payload.replyTo = replyTo;
+  return payload;
 }
 
 export function resolveNotifyAddress(input: {

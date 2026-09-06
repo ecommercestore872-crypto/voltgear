@@ -14,6 +14,7 @@ import { normalizeLifestyleShop } from "@/lib/db/lifestyle-shop-rules";
 import { parseChromeLinks } from "@/lib/chrome-nav-rules";
 import { parseAutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig } from "@/lib/order-email-cms-rules";
+import { parseEmailSenderConfig } from "@/lib/email-sender-rules";
 import { mergeInvoiceTemplate } from "@/lib/invoice-template-rules";
 import { parseVariantOptions } from "@/lib/variant-options-rules";
 import { textToPortableText } from "@/lib/product-detail-copy";
@@ -159,6 +160,7 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     footerCompanyLinks: parseChromeLinks(row.footer_company_links) ?? undefined,
     footerCareLinks: parseChromeLinks(row.footer_care_links) ?? undefined,
     orderEmails: parseOrderEmailConfig(row.order_emails),
+    emailSenders: parseEmailSenderConfig(row.email_senders),
     invoiceTemplate: mergeInvoiceTemplate(row.invoice_template),
     autopilot: parseAutopilotConfig(row.autopilot),
     announcement: row.announcement as SiteSettings["announcement"],

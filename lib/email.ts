@@ -9,24 +9,30 @@
 import { fetchSiteSettings } from "@/lib/db/store";
 import { publicSiteUrl } from "@/lib/deploy-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
+import { Resend } from "resend";
+
 import {
   buildAdminNewOrderEmail,
   buildOrderConfirmationEmail,
   buildOrderStatusEmail,
-  defaultFromAddress,
   orderEmailFailureNote,
+  resendSendInput,
   resolveNotifyAddress,
   type NewOrderEmailResult,
   type OrderEmailPayload,
   type OrderStatusEmailPayload,
 } from "@/lib/email-rules";
+import {
+  resolvePurposeFromAddress,
+  type EmailSendPurpose,
+  type EmailSenderConfig,
+} from "@/lib/email-sender-rules";
 import type { OrderEmailConfig } from "@/lib/order-email-cms-rules";
 
 export type { OrderEmailPayload, OrderStatusEmailPayload };
 export { buildOrderConfirmationEmail, buildOrderStatusEmail, buildAdminNewOrderEmail };
 
 const BRAND_NAME = process.env.BRAND_NAME || SHOPPER_BRAND.spokenName;
-const FROM_EMAIL = process.env.FROM_EMAIL || defaultFromAddress(BRAND_NAME);
 
 function pkr(n: number): string {
   return `Rs ${n.toLocaleString("en-PK")}`;
@@ -60,39 +66,61 @@ async function loadOrderEmailConfig(): Promise<OrderEmailConfig | undefined> {
   }
 }
 
-async function deliver(message: EmailMessage): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
+async function loadEmailSenders(): Promise<EmailSenderConfig | undefined> {
+  try {
+    const settings = await fetchSiteSettings();
+    const cfg = settings?.emailSenders;
+    if (!cfg || Object.keys(cfg).length === 0) return undefined;
+    return cfg;
+  } catch {
+    return undefined;
+  }
+}
+
+async function deliver(message: EmailMessage, purpose: EmailSendPurpose): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
   const replyTo = notifyEmail() || message.replyTo;
-  const payload: Record<string, unknown> = {
-    from: FROM_EMAIL,
-    to: [message.to],
+  const senders = await loadEmailSenders();
+  const payload = resendSendInput({
+    from: resolvePurposeFromAddress({
+      purpose,
+      senders,
+      envFrom: process.env.FROM_EMAIL,
+      brand: BRAND_NAME,
+    }),
+    to: message.to,
     subject: message.subject,
     text: message.text,
     html: message.html,
-  };
-  if (message.bcc?.length) payload.bcc = message.bcc;
-  if (replyTo) payload.reply_to = replyTo;
+    bcc: message.bcc,
+    replyTo,
+  });
 
   if (!apiKey) {
-    console.info("[email][dev] would send:", JSON.stringify({ ...message, replyTo }, null, 2));
+    console.info("[email][dev] would send:", JSON.stringify({ ...message, replyTo, from: payload.from }, null, 2));
     return true;
   }
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    console.error(
-      `[email] send failed (${res.status}):`,
-      await res.text().catch(() => "")
-    );
+
+  // Resend Node.js SDK: emails.send returns { data, error } (camelCase params).
+  // Source: https://resend.com/docs/send-with-nextjs
+  const resend = new Resend(apiKey);
+  try {
+    const { error } = await resend.emails.send(payload);
+    if (error) {
+      console.error("[email] send failed:", error);
+      const detail = typeof error.message === "string" ? error.message : "";
+      if (/domain is not verified/i.test(detail)) {
+        console.error(
+          "[email] Verify the From domain at https://resend.com/domains then set FROM_EMAIL to an address on that domain."
+        );
+      }
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[email] send failed:", err);
     return false;
   }
-  return true;
 }
 
 /** Dark shell — marketing emails only (abandoned cart, win-back, review). */
@@ -176,7 +204,7 @@ export async function sendOrderStatusUpdateEmail(
   payload: OrderStatusEmailPayload
 ): Promise<boolean> {
   const config = await loadOrderEmailConfig();
-  return deliver({ to, ...buildOrderStatusEmail({ ...payload, email: to }, config) });
+  return deliver({ to, ...buildOrderStatusEmail({ ...payload, email: to }, config) }, "orderStatus");
 }
 
 export async function sendOrderConfirmationEmail(
@@ -185,11 +213,14 @@ export async function sendOrderConfirmationEmail(
   replyTo?: string
 ): Promise<boolean> {
   const config = await loadOrderEmailConfig();
-  return deliver({
-    to,
-    replyTo,
-    ...buildOrderConfirmationEmail({ ...payload, email: to }, config),
-  });
+  return deliver(
+    {
+      to,
+      replyTo,
+      ...buildOrderConfirmationEmail({ ...payload, email: to }, config),
+    },
+    "orderConfirmation"
+  );
 }
 
 export async function sendAdminNewOrderEmail(
@@ -199,10 +230,13 @@ export async function sendAdminNewOrderEmail(
   const dest = to.trim();
   if (!dest) return false;
   const config = await loadOrderEmailConfig();
-  return deliver({
-    to: dest,
-    ...buildAdminNewOrderEmail({ ...payload, email: payload.email }, config),
-  });
+  return deliver(
+    {
+      to: dest,
+      ...buildAdminNewOrderEmail({ ...payload, email: payload.email }, config),
+    },
+    "ownerNewOrder"
+  );
 }
 
 export async function notifyNewOrderEmails(
@@ -229,21 +263,21 @@ export async function sendPostPurchaseEmail(
   to: string,
   payload: OrderEmailPayload
 ): Promise<boolean> {
-  return deliver({ to, ...emailTemplates.postPurchase(payload) });
+  return deliver({ to, ...emailTemplates.postPurchase(payload) }, "reviewRequest");
 }
 
 export async function sendAbandonedCartEmail(
   to: string,
   payload: { name?: string; items: OrderEmailPayload["items"]; subtotal: number }
 ): Promise<boolean> {
-  return deliver({ to, ...emailTemplates.abandonedCart(payload) });
+  return deliver({ to, ...emailTemplates.abandonedCart(payload) }, "abandonedCart");
 }
 
 export async function sendWinbackEmail(
   to: string,
   payload: { name?: string }
 ): Promise<boolean> {
-  return deliver({ to, ...emailTemplates.winback(payload) });
+  return deliver({ to, ...emailTemplates.winback(payload) }, "winback");
 }
 
 /** Admin marketing send — one or many recipients (batched). */
@@ -273,12 +307,15 @@ export async function sendMarketingEmail(input: {
     const batch = input.recipients.slice(i, i + batchSize);
     await Promise.all(
       batch.map(async (to) => {
-        const ok = await deliver({
-          to,
-          subject: input.subject,
-          text: input.text,
-          html,
-        });
+        const ok = await deliver(
+          {
+            to,
+            subject: input.subject,
+            text: input.text,
+            html,
+          },
+          "marketing"
+        );
         if (ok) sent += 1;
         else failed.push({ email: to });
       })

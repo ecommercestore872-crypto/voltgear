@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -101,7 +102,11 @@ export function OrderEmailsForm({
         <p className="mt-1 text-sm text-muted-foreground">
           Shared look for the six order letters. Empty fields keep the current code defaults.
           Item tables, delivery address, Track button, and status notes are always added in
-          code. Marketing templates stay under Messaging.
+          code. From addresses:{" "}
+          <Link href="/admin/email-sending" className="underline underline-offset-2">
+            Email sending
+          </Link>
+          . Marketing templates stay under Messaging.
         </p>
       </div>
       <PublishBar

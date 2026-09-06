@@ -182,7 +182,11 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
         ))}
         <p className="sm:col-span-2 text-xs text-muted-foreground">
           New-order alerts go to <code>ORDER_NOTIFY_EMAIL</code> if set, otherwise this contact
-          email. Letter copy and layout:{" "}
+          email. From addresses per job:{" "}
+          <Link href="/admin/email-sending" className="underline underline-offset-2">
+            Email sending
+          </Link>
+          . Letter copy and layout:{" "}
           <Link href="/admin/order-emails" className="underline underline-offset-2">
             Order emails
           </Link>

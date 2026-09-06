@@ -21,6 +21,10 @@ import { sanitizeChromeLinks, validateChromeLists } from "@/lib/chrome-nav-rules
 import { parseAutopilotConfig, type AutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
 import {
+  parseEmailSenderConfig,
+  type EmailSenderConfig,
+} from "@/lib/email-sender-rules";
+import {
   mergeInvoiceTemplate,
   invoiceTemplateOverrides,
   type InvoiceTemplate,
@@ -776,6 +780,7 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
     status: "published",
     draft: null,
     ...(doc.orderEmails ? { order_emails: parseOrderEmailConfig(doc.orderEmails) } : {}),
+    ...(doc.emailSenders ? { email_senders: parseEmailSenderConfig(doc.emailSenders) } : {}),
     ...(doc.invoiceTemplate ? { invoice_template: mergeInvoiceTemplate(doc.invoiceTemplate) } : {}),
   };
 }
@@ -981,6 +986,88 @@ export async function discardAdminInvoiceTemplate() {
       : {};
   if (!("invoiceTemplate" in draft)) return { ok: true as const };
   delete draft.invoiceTemplate;
+  const { error } = await db()
+    .from("site_settings")
+    .update({ draft: Object.keys(draft).length ? draft : null })
+    .eq("id", 1);
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  return { ok: true as const };
+}
+
+export function editorEmailSenders(row: Record<string, unknown> | null): EmailSenderConfig {
+  const draft = row?.draft && typeof row.draft === "object" ? (row.draft as Record<string, unknown>) : null;
+  if (draft?.emailSenders) return parseEmailSenderConfig(draft.emailSenders);
+  return parseEmailSenderConfig(row?.email_senders);
+}
+
+export async function saveAdminEmailSenders(config: EmailSenderConfig) {
+  const current = await getAdminSettings();
+  const parsed = parseEmailSenderConfig(config);
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>), emailSenders: parsed }
+      : { emailSenders: parsed };
+  const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
+  if (error) return { ok: false as const, error: error.message, status: 500 };
+  return { ok: true as const };
+}
+
+async function stripEmailSendersDraft() {
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>) }
+      : null;
+  if (!draft || !("emailSenders" in draft)) return;
+  delete draft.emailSenders;
+  await db()
+    .from("site_settings")
+    .update({ draft: Object.keys(draft).length ? draft : null })
+    .eq("id", 1);
+}
+
+export async function publishAdminEmailSenders(config: EmailSenderConfig) {
+  const parsed = parseEmailSenderConfig(config);
+  let payload: Record<string, unknown> = {
+    email_senders: parsed,
+    updated_at: new Date().toISOString(),
+  };
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const { error } = await db().from("site_settings").update(payload).eq("id", 1);
+    if (!error) {
+      if (!("email_senders" in payload)) {
+        return {
+          ok: false as const,
+          error:
+            "Email sending column is missing. Push migration 20260906140000_email_senders.sql.",
+          status: 500,
+        };
+      }
+      await stripEmailSendersDraft();
+      revalidatePath("/", "layout");
+      return { ok: true as const };
+    }
+    const missing = missingSchemaColumn(error);
+    if (!missing || !(missing in payload)) {
+      return { ok: false as const, error: error.message, status: 500 };
+    }
+    payload = omitColumn(payload, missing);
+  }
+  return {
+    ok: false as const,
+    error: "Email sending column is missing. Push migration 20260906140000_email_senders.sql.",
+    status: 500,
+  };
+}
+
+export async function discardAdminEmailSenders() {
+  const current = await getAdminSettings();
+  const draft =
+    current?.draft && typeof current.draft === "object"
+      ? { ...(current.draft as Record<string, unknown>) }
+      : {};
+  if (!("emailSenders" in draft)) return { ok: true as const };
+  delete draft.emailSenders;
   const { error } = await db()
     .from("site_settings")
     .update({ draft: Object.keys(draft).length ? draft : null })

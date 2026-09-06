@@ -8,6 +8,8 @@ import {
   buildOrderStatusEmail,
   defaultFromAddress,
   orderEmailFailureNote,
+  resendSendInput,
+  resolveFromAddress,
   resolveNotifyAddress,
 } from "./email-rules";
 
@@ -146,8 +148,67 @@ describe("resolveNotifyAddress", () => {
 });
 
 describe("defaultFromAddress", () => {
-  it("uses the spoken brand as the display name", () => {
-    assert.equal(defaultFromAddress("Buy n Try"), "Buy n Try <no-reply@voltgear.store>");
+  it("uses the spoken brand and Resend's test mailbox until FROM_EMAIL is set", () => {
+    assert.equal(
+      defaultFromAddress("Buy n Try"),
+      "Buy n Try <onboarding@resend.dev>"
+    );
+  });
+});
+
+describe("resolveFromAddress", () => {
+  it("uses FROM_EMAIL when you set it later", () => {
+    assert.equal(
+      resolveFromAddress({
+        envFrom: "Buy n Try <noreply@buyntryy.com>",
+        brand: "Buy n Try",
+      }),
+      "Buy n Try <noreply@buyntryy.com>"
+    );
+  });
+
+  it("falls back to the Resend test sender when FROM_EMAIL is empty", () => {
+    assert.equal(
+      resolveFromAddress({ envFrom: "  ", brand: "Buy n Try" }),
+      "Buy n Try <onboarding@resend.dev>"
+    );
+  });
+});
+
+describe("resendSendInput", () => {
+  it("maps to Resend SDK camelCase fields", () => {
+    assert.deepEqual(
+      resendSendInput({
+        from: "Buy n Try <onboarding@resend.dev>",
+        to: "ali@example.com",
+        subject: "Order confirmed",
+        text: "Thanks",
+        html: "<p>Thanks</p>",
+        bcc: ["owner@shop.pk"],
+        replyTo: "owner@shop.pk",
+      }),
+      {
+        from: "Buy n Try <onboarding@resend.dev>",
+        to: ["ali@example.com"],
+        subject: "Order confirmed",
+        text: "Thanks",
+        html: "<p>Thanks</p>",
+        bcc: ["owner@shop.pk"],
+        replyTo: "owner@shop.pk",
+      }
+    );
+  });
+
+  it("omits empty bcc and replyTo", () => {
+    const payload = resendSendInput({
+      from: "Buy n Try <onboarding@resend.dev>",
+      to: "ali@example.com",
+      subject: "Hi",
+      text: "Hi",
+      html: "<p>Hi</p>",
+    });
+    assert.equal("bcc" in payload, false);
+    assert.equal("replyTo" in payload, false);
   });
 });
 
