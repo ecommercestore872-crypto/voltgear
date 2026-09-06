@@ -1,7 +1,8 @@
-import { SHOPPER_BRAND, shouldReplaceBrandName } from "./brand";
+import { SHOPPER_BRAND, resolveCustomerDisplayName, shouldReplaceBrandName } from "./brand";
 import type { OrderStatus } from "./types";
 
 import { publicSiteUrl } from "./deploy-rules";
+import { EMAIL_PALETTE, emailButtonHtml, emailSectionLabel } from "./email-layout";
 import {
   applyEmailWrapper,
   emailBodyToHtml,
@@ -17,6 +18,11 @@ export function resolveEmailBrandName(envBrand?: string | null): string {
 }
 
 const BRAND_NAME = resolveEmailBrandName(process.env.BRAND_NAME);
+
+function greetingName(raw?: string | null): string {
+  const display = resolveCustomerDisplayName(raw);
+  return display === "Customer" ? "there" : display;
+}
 
 export interface OrderEmailPayload {
   orderId: string;
@@ -70,13 +76,11 @@ export function trackUrl(orderId: string, email: string): string {
 }
 
 function trackButton(orderId: string, email: string, buttonColor?: string): string {
-  const bg = buttonColor?.trim() || "#18181b";
-  return `<p style="margin:24px 0 0"><a href="${trackUrl(
-    orderId,
-    email
-  )}" style="display:inline-block;background:${escapeHtml(
-    bg
-  )};color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px;font-weight:600">Track your order</a></p>`;
+  return emailButtonHtml({
+    href: trackUrl(orderId, email),
+    label: "Track your order",
+    color: buttonColor,
+  });
 }
 
 function emailVars(p: { name?: string; orderId: string; note?: string }) {
@@ -93,11 +97,13 @@ export function orderShell({
   body,
   footer,
   config,
+  audience = "shopper",
 }: {
   title: string;
   body: string;
   footer?: string;
   config?: OrderEmailConfig;
+  audience?: "shopper" | "owner";
 }): string {
   const foot =
     footer ??
@@ -108,6 +114,7 @@ export function orderShell({
     body,
     footer: config?.theme?.footer || foot,
     brand: BRAND_NAME,
+    audience,
   });
 }
 
@@ -225,37 +232,77 @@ function itemTable(p: OrderEmailPayload): string {
     .map((i) => {
       const label = `${escapeHtml(i.name ?? "")}${
         i.variantName ? ` — ${escapeHtml(i.variantName)}` : ""
-      } × ${i.quantity}`;
-      return `<tr><td style="padding:8px 0;border-bottom:1px solid #e4e4e7">${label}</td><td style="padding:8px 0;border-bottom:1px solid #e4e4e7;text-align:right;white-space:nowrap">${pkr(
+      }`;
+      return `<tr>
+<td style="padding:12px 0;border-bottom:1px solid ${EMAIL_PALETTE.line};font-size:14px;color:${EMAIL_PALETTE.ink}">${label}<br><span style="font-size:12px;color:${EMAIL_PALETTE.muted}">Qty ${i.quantity}</span></td>
+<td style="padding:12px 0;border-bottom:1px solid ${EMAIL_PALETTE.line};text-align:right;white-space:nowrap;font-size:14px;font-weight:600;color:${EMAIL_PALETTE.forest};vertical-align:top">${pkr(
         (i.price ?? 0) * (i.quantity ?? 1)
-      )}</td></tr>`;
+      )}</td>
+</tr>`;
     })
     .join("");
-  return `<p style="margin:0 0 8px;font-size:13px;color:#71717a">Order <strong style="color:#18181b">${escapeHtml(
+  return `${emailSectionLabel("Order")}
+<p style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:${EMAIL_PALETTE.forest}">${escapeHtml(
     p.orderId
-  )}</strong></p>
-<table style="width:100%;border-collapse:collapse">${rows}
-<tr><td style="padding-top:12px;font-weight:600">Total</td><td style="padding-top:12px;font-weight:600;text-align:right;white-space:nowrap">${pkr(
+  )}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">${rows}
+<tr>
+<td style="padding:16px 0 0;font-size:15px;font-weight:700;color:${EMAIL_PALETTE.ink}">Total due on delivery</td>
+<td style="padding:16px 0 0;font-size:18px;font-weight:700;text-align:right;white-space:nowrap;color:${EMAIL_PALETTE.forest}">${pkr(
     p.total
-  )}</td></tr></table>`;
+  )}</td>
+</tr></table>`;
 }
 
 export function buildAdminNewOrderEmail(
   p: OrderEmailPayload,
   config?: OrderEmailConfig
 ): BuiltEmail {
-  const name = escapeHtml(p.name || "Customer");
-  const vars = emailVars({ name: p.name || "Customer", orderId: p.orderId });
+  const displayName = resolveCustomerDisplayName(p.name);
+  const name = escapeHtml(displayName);
+  const vars = emailVars({ name: displayName, orderId: p.orderId });
   const custom = letterCopy(config, "owner").body?.trim();
-  const contact = `<p style="margin:0 0 8px"><strong>${name}</strong> · ${escapeHtml(p.email || "no email")}</p>
-<p style="margin:0 0 8px">${escapeHtml(p.phone || "")}</p>
-<p style="margin:0 0 16px">${escapeHtml([p.address, p.city, p.postal].filter(Boolean).join(", "))}</p>`;
+  const origin = publicSiteUrl();
+  const emailHref = p.email ? `mailto:${escapeHtml(p.email)}` : "";
+  const phoneHref = p.phone ? `tel:${escapeHtml(p.phone.replace(/[^\d+]/g, ""))}` : "";
+  const addressLine = [p.address, p.city, p.postal].filter(Boolean).join(", ");
+  const contact = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;background:${EMAIL_PALETTE.sand};border:1px solid ${EMAIL_PALETTE.line};border-radius:14px"><tr><td style="padding:18px 20px">
+${emailSectionLabel("Customer")}
+<p style="margin:0 0 10px;font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:700;color:${EMAIL_PALETTE.forest}">${name}</p>
+${
+  p.email
+    ? `<p style="margin:0 0 6px;font-size:14px"><a href="${emailHref}" style="color:${EMAIL_PALETTE.forest};text-decoration:none">${escapeHtml(
+        p.email
+      )}</a></p>`
+    : ""
+}
+${
+  p.phone
+    ? `<p style="margin:0 0 6px;font-size:14px"><a href="${phoneHref}" style="color:${EMAIL_PALETTE.forest};text-decoration:none">${escapeHtml(
+        p.phone
+      )}</a></p>`
+    : ""
+}
+${
+  addressLine
+    ? `<p style="margin:8px 0 0;font-size:14px;line-height:1.5;color:${EMAIL_PALETTE.muted}">${escapeHtml(
+        addressLine
+      )}</p>`
+    : ""
+}
+</td></tr></table>`;
   const intro = custom
     ? `${emailBodyToHtml(custom, vars)}${contact}`
-    : `<p style="margin:0 0 12px">A customer just placed a cash-on-delivery order.</p>
+    : `${emailSectionLabel("Payment")}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px"><tr><td style="background:${EMAIL_PALETTE.forest};border-radius:999px;padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${EMAIL_PALETTE.white}">CASH ON DELIVERY</td></tr></table>
+<p style="margin:0 0 20px">A customer just placed a cash-on-delivery order. Confirm the details below, then pack and dispatch.</p>
 ${contact}`;
 
-  const body = `${intro}${itemTable(p)}`;
+  const body = `${intro}${itemTable(p)}
+${emailButtonHtml({
+  href: `${origin}/admin/orders/${encodeURIComponent(p.orderId)}`,
+  label: "Open this order",
+})}`;
   const title = letterCopy(config, "owner").title?.trim() || "New customer order";
 
   return {
@@ -265,12 +312,13 @@ ${contact}`;
       `${BRAND_NAME} — New order ${p.orderId}`,
       vars
     ),
-    text: `New COD order ${p.orderId} from ${p.name || "a customer"} (${p.email || ""}). Total ${pkr(p.total)}.`,
+    text: `New COD order ${p.orderId} from ${displayName} (${p.email || ""}). Total ${pkr(p.total)}.`,
     html: orderShell({
       title,
       body,
       footer: `You received this email from ${BRAND_NAME} because a customer placed an order.`,
       config,
+      audience: "owner",
     }),
   };
 }
@@ -279,25 +327,31 @@ export function buildOrderConfirmationEmail(
   p: OrderEmailPayload,
   config?: OrderEmailConfig
 ): BuiltEmail {
-  const name = escapeHtml(p.name || "there");
-  const vars = emailVars({ name: p.name || "there", orderId: p.orderId });
+  const name = escapeHtml(greetingName(p.name));
+  const vars = emailVars({ name: greetingName(p.name), orderId: p.orderId });
   const custom = letterCopy(config, "confirmed").body?.trim();
   const intro = custom
     ? emailBodyToHtml(custom, vars)
-    : `<p style="margin:0 0 12px">Hi ${name}, thanks — we have your order.</p>
-<p style="margin:0 0 16px">Pay <strong>cash on delivery</strong> when it arrives. Please check the address below.</p>`;
+    : `<p style="margin:0 0 14px">Hi ${name}, thank you — ${BRAND_NAME} has your order.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 14px"><tr><td style="background:${EMAIL_PALETTE.forest};border-radius:999px;padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${EMAIL_PALETTE.white}">PAY CASH ON DELIVERY</td></tr></table>
+<p style="margin:0 0 20px">Please check the items and the address. If anything looks wrong, reply to this email before we dispatch.</p>`;
 
   const addressBits = [p.address, [p.city, p.postal].filter(Boolean).join(" "), p.phone].filter(
     (part) => Boolean(part && String(part).trim())
   ) as string[];
   const addressHtml = addressBits.length
-    ? `<p style="margin:16px 0 4px;color:#71717a;font-size:13px">Deliver to</p>
-<p style="margin:0">${addressBits.map((b) => escapeHtml(b)).join("<br>")}</p>`
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;background:${EMAIL_PALETTE.sand};border:1px solid ${EMAIL_PALETTE.line};border-radius:14px"><tr><td style="padding:18px 20px">
+${emailSectionLabel("Deliver to")}
+<p style="margin:0;font-size:15px;line-height:1.55;color:${EMAIL_PALETTE.ink}">${addressBits
+        .map((b) => escapeHtml(b))
+        .join("<br>")}</p>
+</td></tr></table>`
     : "";
 
   const body = `${intro}${itemTable(p)}
 ${addressHtml}
-${p.email ? trackButton(p.orderId, p.email, config?.theme?.button) : ""}`;
+${p.email ? trackButton(p.orderId, p.email, config?.theme?.button) : ""}
+<p style="margin:20px 0 0;font-size:13px;color:${EMAIL_PALETTE.muted}">A real person at ${BRAND_NAME} packed this catalogue. WhatsApp or email us if you want to change the address before it ships.</p>`;
 
   return {
     subject: resolveSubject(
@@ -306,7 +360,7 @@ ${p.email ? trackButton(p.orderId, p.email, config?.theme?.button) : ""}`;
       `${BRAND_NAME} — Order ${p.orderId} confirmed`,
       vars
     ),
-    text: `Hi ${p.name || "there"}, we have your order ${p.orderId}. Total ${pkr(
+    text: `Hi ${greetingName(p.name)}, we have your order ${p.orderId}. Total ${pkr(
       p.total
     )}. Pay cash on delivery. Track: ${p.email ? trackUrl(p.orderId, p.email) : ""}`,
     html: orderShell({
@@ -365,24 +419,24 @@ export function buildOrderStatusEmail(
 ): BuiltEmail {
   const copy = STATUS_COPY[p.status];
   const kind = statusKind(p.status);
-  const vars = emailVars({ name: p.name || "there", orderId: p.orderId, note: p.note });
+  const vars = emailVars({ name: greetingName(p.name), orderId: p.orderId, note: p.note });
   const custom = letterCopy(config, kind).body?.trim();
   const note = p.note?.trim();
   let body = custom
     ? emailBodyToHtml(custom, vars)
     : copy.body
-        .replaceAll("{name}", escapeHtml(p.name || "there"))
+        .replaceAll("{name}", escapeHtml(greetingName(p.name)))
         .replaceAll("{orderId}", escapeHtml(p.orderId));
   if (note) {
-    body += `<p style="margin:16px 0 0;padding:12px;border-left:3px solid #18181b;background:#f4f4f5;border-radius:6px">${escapeHtml(
+    body += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;background:${EMAIL_PALETTE.sand};border-left:4px solid ${EMAIL_PALETTE.gold};border-radius:0 12px 12px 0"><tr><td style="padding:14px 16px;font-size:14px;color:${EMAIL_PALETTE.ink}">${escapeHtml(
       note
-    )}</p>`;
+    )}</td></tr></table>`;
   }
   if (p.email) body += trackButton(p.orderId, p.email, config?.theme?.button);
 
   return {
     subject: resolveSubject(config, kind, `${copy.subject} · ${p.orderId}`, vars),
-    text: `Hi ${p.name || "there"}, your order ${p.orderId} is now: ${p.status}.${
+    text: `Hi ${greetingName(p.name)}, your order ${p.orderId} is now: ${p.status}.${
       note ? ` Note: ${note}` : ""
     }${p.email ? ` Track: ${trackUrl(p.orderId, p.email)}` : ""}`,
     html: orderShell({

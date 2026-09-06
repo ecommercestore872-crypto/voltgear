@@ -36,7 +36,7 @@ describe("buildOrderConfirmationEmail", () => {
     assert.match(msg.html, /cash on delivery/i);
     assert.equal(msg.html.includes("House 1, Street 2"), true);
     assert.equal(
-      msg.html.includes("/track?orderId=VG-TEST1&email=ali%40example.com"),
+      msg.html.includes("/track?orderId=VG-TEST1&amp;email=ali%40example.com"),
       true
     );
   });
@@ -51,7 +51,7 @@ describe("buildOrderConfirmationEmail", () => {
     assert.equal(msg.html.includes("Charger"), true);
     assert.equal(msg.html.includes("House 1, Street 2"), true);
     assert.match(msg.html, /#cc0000/);
-    assert.equal(msg.html.includes("cash on delivery"), false);
+    assert.equal(msg.html.includes("PAY CASH ON DELIVERY"), false);
   });
 });
 
@@ -71,7 +71,7 @@ describe("buildOrderStatusEmail", () => {
     assert.equal(msg.html.includes("03001234567"), false);
     assert.equal(msg.html.includes("House 1"), false);
     assert.equal(
-      msg.html.includes("/track?orderId=VG-TEST1&email=ali%40example.com"),
+      msg.html.includes("/track?orderId=VG-TEST1&amp;email=ali%40example.com"),
       true
     );
   });
@@ -91,7 +91,7 @@ describe("buildOrderStatusEmail", () => {
     assert.match(msg.html, /Packed for Ali Khan/);
     assert.equal(msg.html.includes("Tracking: PKG-1"), true);
     assert.equal(
-      msg.html.includes("/track?orderId=VG-TEST1&email=ali%40example.com"),
+      msg.html.includes("/track?orderId=VG-TEST1&amp;email=ali%40example.com"),
       true
     );
   });
@@ -107,6 +107,19 @@ describe("buildAdminNewOrderEmail", () => {
     assert.equal(msg.html.includes("03001234567"), true);
     assert.equal(msg.html.includes("VG-TEST1"), true);
     assert.match(msg.html, /because a customer placed an order/);
+    assert.match(msg.html, /bnt-seal\.png/);
+    assert.match(msg.html, /Staff alert/);
+    assert.match(msg.html, /Open this order/);
+    assert.equal(msg.html.includes("ECOMMERCE STORE"), false);
+  });
+
+  it("does not treat the shop placeholder name as the customer", () => {
+    const msg = buildAdminNewOrderEmail({
+      ...confirm,
+      name: "ECOMMERCE STORE",
+    });
+    assert.equal(msg.html.includes("ECOMMERCE STORE"), false);
+    assert.match(msg.html, />Customer</);
   });
 
   it("uses custom owner copy and still injects contact and items", () => {

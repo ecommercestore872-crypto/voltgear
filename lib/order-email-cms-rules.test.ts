@@ -26,6 +26,7 @@ describe("applyEmailWrapper", () => {
     });
     assert.match(html, /#111111/);
     assert.match(html, /Body/);
+    assert.match(html, /bnt-seal\.png/);
     assert.equal(html.includes("<p>broken</p>"), false);
   });
 

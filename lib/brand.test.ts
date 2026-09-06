@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { SHOPPER_BRAND, shouldReplaceBrandName } from "./brand";
+import { SHOPPER_BRAND, shouldReplaceBrandName, resolveCustomerDisplayName } from "./brand";
 import {
   DEFAULT_HOME_SECTIONS,
   HOME_SECTION_IDS,
@@ -15,6 +15,13 @@ describe("SHOPPER_BRAND", () => {
     assert.equal(SHOPPER_BRAND.tagline, "Buy it. Try it.");
     assert.equal(SHOPPER_BRAND.preferredWelcomeCode, "BNT10");
     assert.equal(SHOPPER_BRAND.fallbackStoreName, "Buy n Try");
+  });
+
+  it("treats leftover shop names as not a customer", () => {
+    assert.equal(shouldReplaceBrandName("ECOMMERCE STORE"), true);
+    assert.equal(shouldReplaceBrandName("e commerce store"), true);
+    assert.equal(resolveCustomerDisplayName("ECOMMERCE STORE"), "Customer");
+    assert.equal(resolveCustomerDisplayName("Ali Khan"), "Ali Khan");
   });
 
   it("replaces leftover Accessories Hub / VoltGear names with Buy n Try", () => {

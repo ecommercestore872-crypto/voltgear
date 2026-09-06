@@ -28,12 +28,19 @@ import {
   type EmailSendPurpose,
   type EmailSenderConfig,
 } from "@/lib/email-sender-rules";
-import type { OrderEmailConfig } from "@/lib/order-email-cms-rules";
+import { resolveCustomerDisplayName } from "@/lib/brand";
+import { applyPremiumEmailChrome, EMAIL_PALETTE, emailButtonHtml } from "@/lib/email-layout";
+import { escapeEmailHtml, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
 
 export type { OrderEmailPayload, OrderStatusEmailPayload };
 export { buildOrderConfirmationEmail, buildOrderStatusEmail, buildAdminNewOrderEmail };
 
 const BRAND_NAME = resolveEmailBrandName(process.env.BRAND_NAME);
+
+function shopperFirstName(raw?: string | null): string {
+  const display = resolveCustomerDisplayName(raw);
+  return display === "Customer" ? "there" : display;
+}
 
 function pkr(n: number): string {
   return `Rs ${n.toLocaleString("en-PK")}`;
@@ -124,16 +131,16 @@ async function deliver(message: EmailMessage, purpose: EmailSendPurpose): Promis
   }
 }
 
-/** Dark shell — marketing emails only (abandoned cart, win-back, review). */
-function shell({ title, body }: { title: string; body: string }): string {
-  return `<!doctype html>
-<html><body style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0f19;color:#e5e9f0;padding:24px;margin:0">
-<div style="max-width:560px;margin:0 auto;background:#111827;border:1px solid #1f2937;border-radius:12px;padding:24px">
-<h1 style="margin:0 0 4px;font-size:18px">${BRAND_NAME}</h1>
-<p style="color:#8b93a7;margin:0 0 20px">${title}</p>
-<div style="color:#e5e9f0;font-size:14px;line-height:1.6">${body}</div>
-<p style="color:#8b93a7;font-size:12px;margin-top:24px">You received this email from ${BRAND_NAME}. ${BRAND_NAME}, all rights reserved.</p>
-</div></body></html>`;
+/** Shared shop chrome — order letters, review, cart, win-back, and marketing. */
+function shell({ title, body, footer }: { title: string; body: string; footer?: string }): string {
+  return applyPremiumEmailChrome({
+    title,
+    body,
+    footer:
+      footer ||
+      `You received this email from ${BRAND_NAME}. ${BRAND_NAME}, Pakistan · cash on delivery.`,
+    brand: BRAND_NAME,
+  });
 }
 
 export const emailTemplates = {
@@ -146,14 +153,17 @@ export const emailTemplates = {
     const reviewUrl = `${
       publicSiteUrl()
     }${first?.slug ? `/write-review?product=${first.slug}` : "/write-review"}`;
+    const name = escapeEmailHtml(shopperFirstName(p.name));
     return {
       subject: `How did ${first?.name ?? "your order"} work out?`,
       text: `Hi ${p.name}, we hope you're enjoying your order. We'd love your feedback — reviews help other shoppers decide with confidence.`,
       html: shell({
-        title: "Share your experience",
-        body: `<p>Hi ${p.name}, we hope you're enjoying your ${BRAND_NAME} order.</p>
-<p>If you have a moment, please leave a review — real customer feedback is what helps other shoppers buy with confidence. You can even attach a photo of the product.</p>
-<p style="margin-top:20px"><a href="${reviewUrl}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px">Write a review</a></p>`,
+        title: "How did it feel at home?",
+        body: `<p style="margin:0 0 12px">Hi ${name}, we hope you're enjoying your ${escapeEmailHtml(
+          BRAND_NAME
+        )} order.</p>
+<p style="margin:0 0 8px">A short review — even one line — helps the next shopper try with confidence. You can attach a photo of the product as it arrived.</p>
+${emailButtonHtml({ href: reviewUrl, label: "Write a review" })}`,
       }),
     };
   },
@@ -163,10 +173,13 @@ export const emailTemplates = {
     items: { name: string; price: number; quantity: number }[];
     subtotal: number;
   }): Omit<EmailMessage, "to"> {
+    const name = p.name?.trim() ? escapeEmailHtml(shopperFirstName(p.name)) : "";
     const rows = p.items
       .map(
         (i) =>
-          `<tr><td style="padding:4px 0;border-bottom:1px solid #1f2937">${i.name} × ${i.quantity}</td><td style="text-align:right;color:#e5e9f0;white-space:nowrap">${pkr(
+          `<tr><td style="padding:12px 0;border-bottom:1px solid ${EMAIL_PALETTE.line}">${escapeEmailHtml(
+            i.name
+          )} × ${i.quantity}</td><td style="padding:12px 0;border-bottom:1px solid ${EMAIL_PALETTE.line};text-align:right;color:${EMAIL_PALETTE.forest};white-space:nowrap;font-weight:600">${pkr(
             i.price * i.quantity
           )}</td></tr>`
       )
@@ -175,24 +188,25 @@ export const emailTemplates = {
       subject: `Your ${BRAND_NAME} cart is waiting`,
       text: `Hi${p.name ? " " + p.name : ""}, you left items in your cart. Your order is ready whenever you are.`,
       html: shell({
-        title: "You left something behind",
-        body: `<p>Hi${p.name ? " " + p.name : ""}, your cart is still waiting for you.</p>
-<table style="width:100%;border-collapse:collapse">${rows}
-<tr><td style="padding-top:8px;font-weight:600">Subtotal</td><td style="text-align:right;font-weight:600;white-space:nowrap">${pkr(p.subtotal)}</td></tr></table>
-<p style="margin-top:20px"><a href="${publicSiteUrl()}/checkout" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px">Complete your order</a></p>`,
+        title: "Your cart is still waiting",
+        body: `<p style="margin:0 0 16px">Hi${name ? " " + name : ""}, you were a few taps from cash on delivery. The items are still reserved in your cart.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">${rows}
+<tr><td style="padding-top:14px;font-weight:700">Subtotal</td><td style="padding-top:14px;text-align:right;font-weight:700;white-space:nowrap;color:${EMAIL_PALETTE.forest}">${pkr(p.subtotal)}</td></tr></table>
+${emailButtonHtml({ href: `${publicSiteUrl()}/checkout`, label: "Complete your order" })}`,
       }),
     };
   },
 
   winback(p: { name?: string }): Omit<EmailMessage, "to"> {
+    const name = escapeEmailHtml(shopperFirstName(p.name));
     return {
       subject: `We miss you, ${p.name || "friend"}`,
-      text: "It's been a while since your last order. New arrivals are in — and free shipping is waiting.",
+      text: "It's been a while since your last order. New arrivals are in — and cash on delivery is still waiting.",
       html: shell({
-        title: "We miss you",
-        body: `<p>Hi ${p.name || "there"}, it's been a while.</p>
-<p>We've restocked and added new products since your last order. Come take a look.</p>
-<p style="margin-top:20px"><a href="${publicSiteUrl()}/products" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px">Shop new arrivals</a></p>`,
+        title: "We kept a place for you",
+        body: `<p style="margin:0 0 12px">Hi ${name}, it's been a while.</p>
+<p style="margin:0 0 8px">New watches, audio, and chargers are in. Pay cash on delivery — try it at home, same as last time.</p>
+${emailButtonHtml({ href: `${publicSiteUrl()}/products`, label: "Shop new arrivals" })}`,
       }),
     };
   },

@@ -1,3 +1,5 @@
+import { applyPremiumEmailChrome, resolveEmailLogoUrl } from "./email-layout";
+
 export type OrderEmailKind =
   | "confirmed"
   | "processing"
@@ -119,13 +121,15 @@ export function applyEmailWrapper(input: {
   body: string;
   footer: string;
   brand: string;
+  audience?: "shopper" | "owner";
 }): string {
   const wrapper = input.theme?.wrapperHtml?.trim() ?? "";
   const title = escapeEmailHtml(input.title);
+  const logoSrc = resolveEmailLogoUrl(input.theme?.logo);
   if (wrapperHtmlIsUsable(wrapper)) {
-    const logo = input.theme?.logo
-      ? `<img src="${escapeEmailHtml(input.theme.logo)}" alt="${escapeEmailHtml(input.brand)}" style="max-height:40px;max-width:180px" />`
-      : "";
+    const logo = `<img src="${escapeEmailHtml(logoSrc)}" alt="${escapeEmailHtml(
+      input.brand
+    )}" width="56" height="56" style="display:block;width:56px;height:56px;border-radius:50%;border:2px solid #c9a227" />`;
     return wrapper
       .replaceAll("{{title}}", title)
       .replaceAll("{{body}}", input.body)
@@ -133,22 +137,16 @@ export function applyEmailWrapper(input: {
       .replaceAll("{{footer}}", escapeEmailHtml(input.footer))
       .replaceAll("{{logo}}", logo);
   }
-  const bg = input.theme?.background || "#f4f4f5";
-  const card = input.theme?.card || "#ffffff";
-  const text = input.theme?.text || "#27272a";
-  const header = input.theme?.header || input.brand;
-  const logo = input.theme?.logo
-    ? `<p style="margin:0 0 12px"><img src="${escapeEmailHtml(input.theme.logo)}" alt="${escapeEmailHtml(input.brand)}" style="max-height:40px;max-width:180px" /></p>`
-    : "";
-  return `<!doctype html>
-<html><body style="margin:0;padding:16px;background:${escapeEmailHtml(bg)};color:#18181b;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
-<div style="max-width:560px;margin:0 auto;background:${escapeEmailHtml(card)};border:1px solid #e4e4e7;border-radius:12px;padding:24px">
-${logo}
-<p style="margin:0 0 8px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#71717a">${escapeEmailHtml(
-    header
-  )}</p>
-<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3">${title}</h1>
-<div style="font-size:15px;line-height:1.6;color:${escapeEmailHtml(text)}">${input.body}</div>
-<p style="margin:28px 0 0;font-size:12px;color:#71717a">${escapeEmailHtml(input.footer)}</p>
-</div></body></html>`;
+  return applyPremiumEmailChrome({
+    title: input.title,
+    body: input.body,
+    footer: input.footer,
+    brand: input.brand,
+    logo: input.theme?.logo,
+    background: input.theme?.background,
+    card: input.theme?.card,
+    text: input.theme?.text,
+    header: input.theme?.header,
+    audience: input.audience,
+  });
 }
