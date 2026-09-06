@@ -132,6 +132,16 @@ export function defaultFromAddress(
   return `${name} <${mailbox}>`;
 }
 
+/** Prefer FROM_EMAIL; accept RESEND_FROM_EMAIL if that name was used in Vercel. */
+export function envFromAddress(input?: {
+  fromEmail?: string | null;
+  resendFromEmail?: string | null;
+}): string {
+  const from = (input?.fromEmail ?? process.env.FROM_EMAIL ?? "").trim();
+  const alias = (input?.resendFromEmail ?? process.env.RESEND_FROM_EMAIL ?? "").trim();
+  return from || alias;
+}
+
 export function resolveFromAddress(input: {
   envFrom?: string | null;
   brand?: string;

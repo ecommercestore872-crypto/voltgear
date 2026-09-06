@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { EmailSendersForm } from "@/components/admin/email-senders-form";
 import { editorEmailSenders, getAdminSettings } from "@/lib/db/admin-store";
-import { resolveFromAddress, resolveEmailBrandName } from "@/lib/email-rules";
+import { envFromAddress, resolveFromAddress, resolveEmailBrandName } from "@/lib/email-rules";
 
 export const metadata: Metadata = {
   title: "Email sending",
@@ -18,7 +18,7 @@ export default async function AdminEmailSendingPage() {
   const config = editorEmailSenders(row);
   const hasDraft = Boolean(draft?.emailSenders);
   const fallbackFrom = resolveFromAddress({
-    envFrom: process.env.FROM_EMAIL,
+    envFrom: envFromAddress(),
     brand: resolveEmailBrandName(process.env.BRAND_NAME),
   });
   return (

@@ -16,6 +16,7 @@ import {
   buildOrderStatusEmail,
   orderEmailFailureNote,
   resendSendInput,
+  envFromAddress,
   resolveNotifyAddress,
   resolveEmailBrandName,
   type NewOrderEmailResult,
@@ -85,7 +86,7 @@ async function deliver(message: EmailMessage, purpose: EmailSendPurpose): Promis
     from: resolvePurposeFromAddress({
       purpose,
       senders,
-      envFrom: process.env.FROM_EMAIL,
+      envFrom: envFromAddress(),
       brand: BRAND_NAME,
     }),
     to: message.to,

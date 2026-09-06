@@ -7,6 +7,7 @@ import {
   buildOrderConfirmationEmail,
   buildOrderStatusEmail,
   defaultFromAddress,
+  envFromAddress,
   orderEmailFailureNote,
   resendSendInput,
   resolveFromAddress,
@@ -162,6 +163,28 @@ describe("resolveEmailBrandName", () => {
     assert.equal(resolveEmailBrandName("VoltGear"), "Buy n Try");
     assert.equal(resolveEmailBrandName("  "), "Buy n Try");
     assert.equal(resolveEmailBrandName("Buy n Try"), "Buy n Try");
+  });
+});
+
+describe("envFromAddress", () => {
+  it("prefers FROM_EMAIL over the Resend-named alias", () => {
+    assert.equal(
+      envFromAddress({
+        fromEmail: "Buy n Try <noreply@mail.buyntryy.com>",
+        resendFromEmail: "Buy n Try <onboarding@resend.dev>",
+      }),
+      "Buy n Try <noreply@mail.buyntryy.com>"
+    );
+  });
+
+  it("uses RESEND_FROM_EMAIL when FROM_EMAIL is empty", () => {
+    assert.equal(
+      envFromAddress({
+        fromEmail: "  ",
+        resendFromEmail: "Buy n Try <noreply@mail.buyntryy.com>",
+      }),
+      "Buy n Try <noreply@mail.buyntryy.com>"
+    );
   });
 });
 
