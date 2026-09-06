@@ -11,6 +11,7 @@ import {
   resendSendInput,
   resolveFromAddress,
   resolveNotifyAddress,
+  resolveEmailBrandName,
 } from "./email-rules";
 
 const confirm = {
@@ -153,6 +154,14 @@ describe("defaultFromAddress", () => {
       defaultFromAddress("Buy n Try"),
       "Buy n Try <onboarding@resend.dev>"
     );
+  });
+});
+
+describe("resolveEmailBrandName", () => {
+  it("drops leftover VoltGear so letters say Buy n Try", () => {
+    assert.equal(resolveEmailBrandName("VoltGear"), "Buy n Try");
+    assert.equal(resolveEmailBrandName("  "), "Buy n Try");
+    assert.equal(resolveEmailBrandName("Buy n Try"), "Buy n Try");
   });
 });
 

@@ -8,7 +8,6 @@
 
 import { fetchSiteSettings } from "@/lib/db/store";
 import { publicSiteUrl } from "@/lib/deploy-rules";
-import { SHOPPER_BRAND } from "@/lib/brand";
 import { Resend } from "resend";
 
 import {
@@ -18,6 +17,7 @@ import {
   orderEmailFailureNote,
   resendSendInput,
   resolveNotifyAddress,
+  resolveEmailBrandName,
   type NewOrderEmailResult,
   type OrderEmailPayload,
   type OrderStatusEmailPayload,
@@ -32,7 +32,7 @@ import type { OrderEmailConfig } from "@/lib/order-email-cms-rules";
 export type { OrderEmailPayload, OrderStatusEmailPayload };
 export { buildOrderConfirmationEmail, buildOrderStatusEmail, buildAdminNewOrderEmail };
 
-const BRAND_NAME = process.env.BRAND_NAME || SHOPPER_BRAND.spokenName;
+const BRAND_NAME = resolveEmailBrandName(process.env.BRAND_NAME);
 
 function pkr(n: number): string {
   return `Rs ${n.toLocaleString("en-PK")}`;

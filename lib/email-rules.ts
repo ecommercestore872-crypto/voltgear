@@ -1,4 +1,4 @@
-import { SHOPPER_BRAND } from "./brand";
+import { SHOPPER_BRAND, shouldReplaceBrandName } from "./brand";
 import type { OrderStatus } from "./types";
 
 import { publicSiteUrl } from "./deploy-rules";
@@ -11,7 +11,12 @@ import {
   type OrderEmailKind,
 } from "./order-email-cms-rules";
 
-const BRAND_NAME = process.env.BRAND_NAME || SHOPPER_BRAND.spokenName;
+export function resolveEmailBrandName(envBrand?: string | null): string {
+  if (shouldReplaceBrandName(envBrand)) return SHOPPER_BRAND.spokenName;
+  return (envBrand ?? "").trim();
+}
+
+const BRAND_NAME = resolveEmailBrandName(process.env.BRAND_NAME);
 
 export interface OrderEmailPayload {
   orderId: string;
