@@ -22,6 +22,7 @@ export function WishlistButton({ product }: { product: Product }) {
           price: product.price,
           image: product.images?.[0] ? imageUrl(product.images[0], { w: 128 }) : undefined,
           category: product.category,
+          ...(product.sku ? { sku: product.sku } : {}),
         });
       }}
       className={cn(

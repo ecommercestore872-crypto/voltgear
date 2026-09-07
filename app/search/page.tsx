@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { CatalogBreadcrumbs } from "@/components/catalog/catalog-breadcrumbs";
 import { CatalogView } from "@/components/catalog/catalog-view";
+import { SearchExecutedTracker } from "@/components/analytics/search-executed-tracker";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import {
   fetchCatalog,
@@ -89,6 +90,7 @@ export default async function SearchPage({
 
   return (
     <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
+      <SearchExecutedTracker query={q} />
       <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
         <CatalogBreadcrumbs items={breadcrumbs} />
         <CatalogView

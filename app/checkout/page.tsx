@@ -41,6 +41,12 @@ import { saveLastOrder } from "@/lib/review-reminder";
 import { cn, formatPrice } from "@/lib/utils";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import {
+  identifyTikTokCustomer,
+  isCheckoutPricingReadyForInitiateCheckout,
+  trackTikTokInitiateCheckout,
+  trackTikTokPurchase,
+} from "@/lib/tiktok-browser-events";
+import {
   checkoutValidationCategoryFromHttp,
   trackFirstParty,
   validationCategoryFromFieldName,
@@ -315,6 +321,22 @@ export default function CheckoutPage() {
       const orderQs = checkoutEmail
         ? `?email=${encodeURIComponent(checkoutEmail)}`
         : "";
+      const serverTotal = Number(data.total);
+      const purchaseTotal = Number.isFinite(serverTotal) ? serverTotal : total;
+      const serverLines = Array.isArray(data.lines) ? data.lines : [];
+      void identifyTikTokCustomer({
+        email: customer.email,
+        phone: customer.phone,
+      });
+      try {
+        trackTikTokPurchase({
+          orderId: data.orderId,
+          total: purchaseTotal,
+          lines: serverLines,
+        });
+      } catch {
+        // fail-open
+      }
       router.push(`/order/${data.orderId}${orderQs}`);
       trackPurchase(data.orderId, analyticsItems(), total);
       clearCart();
@@ -386,6 +408,37 @@ export default function CheckoutPage() {
       page_type: "checkout",
     });
   }, []);
+
+  useEffect(() => {
+    if (
+      !isCheckoutPricingReadyForInitiateCheckout({
+        hasItems: items.length > 0,
+        dealQuoteReady: dealQuote.ready,
+        promoLoading: Boolean(activePromo?.loading),
+      })
+    ) {
+      return;
+    }
+    try {
+      trackTikTokInitiateCheckout(
+        items.map((i) => ({
+          slug: i.slug,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          ...(i.variantSku ? { variantSku: i.variantSku } : {}),
+          ...(i.variantKey ? { variantKey: i.variantKey } : {}),
+        })),
+        total,
+        {
+          dealQuoteReady: dealQuote.ready,
+          promoLoading: Boolean(activePromo?.loading),
+        }
+      );
+    } catch {
+      // fail-open
+    }
+  }, [items, total, dealQuote.ready, activePromo?.loading]);
 
   useEffect(() => {
     if (step === 1) {

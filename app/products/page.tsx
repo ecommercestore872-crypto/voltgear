@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SearchExecutedTracker } from "@/components/analytics/search-executed-tracker";
 import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import {
@@ -84,7 +85,9 @@ export default async function Products2Page({
   const inStockFirst = sortProducts(list, sort);
 
   return (
-    <GadgetShopCatalog
+    <>
+      {q ? <SearchExecutedTracker query={q} /> : null}
+      <GadgetShopCatalog
       title="Shop electronics in Pakistan"
       description={shopMeta.description}
       products={inStockFirst}
@@ -97,5 +100,6 @@ export default async function Products2Page({
         { label: "All products" },
       ]}
     />
+    </>
   );
 }

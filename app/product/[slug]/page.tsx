@@ -198,6 +198,7 @@ export default async function Product2Page({ params }: { params: { slug: string 
         }
         category={product.category}
         productId={product._id}
+        sku={product.sku}
       />
       <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-[var(--g-taupe)]">

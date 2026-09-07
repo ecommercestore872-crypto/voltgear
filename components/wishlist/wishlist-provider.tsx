@@ -10,12 +10,29 @@ import {
   type ReactNode,
 } from "react";
 
+import { trackTikTokAddToWishlist } from "@/lib/tiktok-browser-events";
+
 export interface WishlistItem {
   slug: string;
   name: string;
   price: number;
   image?: string;
   category?: string;
+  sku?: string;
+}
+
+function trackWishlistAdd(item: WishlistItem) {
+  try {
+    trackTikTokAddToWishlist({
+      slug: item.slug,
+      name: item.name,
+      price: item.price,
+      ...(item.category ? { category: item.category } : {}),
+      ...(item.sku ? { sku: item.sku } : {}),
+    });
+  } catch {
+    // fail-open
+  }
 }
 
 interface WishlistContextValue {
@@ -50,6 +67,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback((item: WishlistItem) => {
     setItems((prev) => {
       if (prev.some((i) => i.slug === item.slug)) return prev;
+      queueMicrotask(() => trackWishlistAdd(item));
       return [...prev, item];
     });
   }, []);
@@ -58,17 +76,15 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     setItems((prev) => prev.filter((i) => i.slug !== slug));
   }, []);
 
-  const toggleItem = useCallback(
-    (item: WishlistItem) => {
-      setItems((prev) => {
-        if (prev.some((i) => i.slug === item.slug)) {
-          return prev.filter((i) => i.slug !== item.slug);
-        }
-        return [...prev, item];
-      });
-    },
-    []
-  );
+  const toggleItem = useCallback((item: WishlistItem) => {
+    setItems((prev) => {
+      if (prev.some((i) => i.slug === item.slug)) {
+        return prev.filter((i) => i.slug !== item.slug);
+      }
+      queueMicrotask(() => trackWishlistAdd(item));
+      return [...prev, item];
+    });
+  }, []);
 
   const hasItem = useCallback(
     (slug: string) => items.some((i) => i.slug === slug),

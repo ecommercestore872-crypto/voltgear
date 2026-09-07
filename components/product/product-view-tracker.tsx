@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import { trackViewItem } from "@/lib/analytics";
 import { trackFirstParty } from "@/lib/first-party-analytics";
+import { trackTikTokViewContent } from "@/lib/tiktok-browser-events";
 import type { RecentProduct } from "@/lib/recently-viewed";
 
 const STORAGE_KEY = "voltgear-recently-viewed";
@@ -16,6 +17,7 @@ export function ProductViewTracker({
   image,
   category,
   productId,
+  sku,
 }: {
   slug: string;
   name: string;
@@ -23,6 +25,7 @@ export function ProductViewTracker({
   image?: string;
   category: string;
   productId?: string;
+  sku?: string;
 }) {
   useEffect(() => {
     trackViewItem({ item_id: slug, item_name: name, price, quantity: 1 });
@@ -34,6 +37,17 @@ export function ProductViewTracker({
         product_id: productId,
         product_slug: slug,
       });
+    }
+    try {
+      trackTikTokViewContent({
+        slug,
+        name,
+        price,
+        category,
+        ...(sku ? { sku } : {}),
+      });
+    } catch {
+      // fail-open
     }
 
     try {
@@ -47,7 +61,7 @@ export function ProductViewTracker({
     } catch {
       // ignore
     }
-  }, [slug, name, price, image, category, productId]);
+  }, [slug, name, price, image, category, productId, sku]);
 
   return null;
 }

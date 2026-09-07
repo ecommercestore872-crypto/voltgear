@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { SearchExecutedTracker } from "@/components/analytics/search-executed-tracker";
 import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
 import { FALLBACK_SHOP_TYPES, findShopType } from "@/lib/categories";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
@@ -123,6 +124,7 @@ export default async function Products2CategoryPage({
           ]).replace(/</g, "\\u003c"),
         }}
       />
+      {q ? <SearchExecutedTracker query={q} /> : null}
       <GadgetShopCatalog
         title={title}
         description={hubCopy}

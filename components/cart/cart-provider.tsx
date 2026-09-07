@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { pageTypeFromPath, trackFirstParty } from "@/lib/first-party-analytics";
+import { trackTikTokAddToCart } from "@/lib/tiktok-browser-events";
 
 export interface CartItem {
   slug: string;
@@ -95,6 +96,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
+      // Hydration/restoration uses setItems from localStorage — never this path.
+      const qty = Number(quantity);
+      if (!Number.isFinite(qty) || qty <= 0) return;
       setItems((prev) => {
         const key = cartLineKey(item);
         const existing = prev.find((i) => cartLineKey(i) === key);
@@ -103,16 +107,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
             cartLineKey(i) === key
               ? {
                   ...i,
-                  quantity: i.quantity + quantity,
+                  quantity: i.quantity + qty,
                   productId: i.productId ?? item.productId,
                   variantId: i.variantId ?? item.variantId,
                 }
               : i
           );
         }
-        return [...prev, { ...item, quantity }];
+        return [...prev, { ...item, quantity: qty }];
       });
-      trackCartLine("add_to_cart", item, quantity);
+      trackCartLine("add_to_cart", item, qty);
+      try {
+        trackTikTokAddToCart({
+          slug: item.slug,
+          name: item.name,
+          price: item.price,
+          quantity: qty,
+          ...(item.variantSku ? { variantSku: item.variantSku } : {}),
+          ...(item.variantKey ? { variantKey: item.variantKey } : {}),
+        });
+      } catch {
+        // fail-open
+      }
     },
     []
   );

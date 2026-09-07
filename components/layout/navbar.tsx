@@ -26,7 +26,6 @@ import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { useCart } from "@/components/cart/cart-provider";
 import { MegaMenu } from "@/components/layout/mega-menu";
 import { FALLBACK_SHOP_TYPES, shopTypeLinks, type ShopType } from "@/lib/categories";
-import { trackSearch } from "@/lib/analytics";
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -51,9 +50,7 @@ function SearchForm({
       action="/search"
       role="search"
       className={cn("relative", className)}
-      onSubmit={(e) => {
-        const q = new FormData(e.currentTarget).get("q")?.toString().trim();
-        if (q) trackSearch(q);
+      onSubmit={() => {
         onDone?.();
       }}
     >
