@@ -4,6 +4,11 @@ import type { OrderStatus } from "./types";
 import { publicSiteUrl } from "./deploy-rules";
 import { EMAIL_PALETTE, emailButtonHtml, emailSectionLabel } from "./email-layout";
 import {
+  buildOrderBillLines,
+  resolveOrderSubtotal,
+  type OrderBillTotals,
+} from "./order-bill-rules";
+import {
   applyEmailWrapper,
   emailBodyToHtml,
   interpolateEmailText,
@@ -35,6 +40,11 @@ export interface OrderEmailPayload {
     variantName?: string;
   }[];
   total: number;
+  subtotal?: number;
+  shipping?: number;
+  discount?: number;
+  promoCode?: string | null;
+  giftWrapFee?: number;
   email?: string;
   phone?: string;
   address?: string;
@@ -227,8 +237,18 @@ export function bccList(to: string, notifyEmail?: string | null): string[] {
   return [notify];
 }
 
-function itemTable(p: OrderEmailPayload): string {
-  const rows = p.items
+function orderBillBox(p: OrderEmailPayload): string {
+  const bill: OrderBillTotals = {
+    orderId: p.orderId,
+    items: p.items,
+    subtotal: resolveOrderSubtotal(p),
+    shipping: p.shipping ?? 0,
+    discount: p.discount,
+    promoCode: p.promoCode,
+    giftWrapFee: p.giftWrapFee,
+    total: p.total,
+  };
+  const itemRows = p.items
     .map((i) => {
       const label = `${escapeHtml(i.name ?? "")}${
         i.variantName ? ` — ${escapeHtml(i.variantName)}` : ""
@@ -241,17 +261,46 @@ function itemTable(p: OrderEmailPayload): string {
 </tr>`;
     })
     .join("");
-  return `${emailSectionLabel("Order")}
-<p style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:${EMAIL_PALETTE.forest}">${escapeHtml(
+
+  const summaryRows = buildOrderBillLines(bill)
+    .map((line) => {
+      const amountLabel =
+        line.free && line.amount === 0
+          ? "Free"
+          : line.amount < 0
+            ? `− ${pkr(Math.abs(line.amount))}`
+            : pkr(line.amount);
+      const color =
+        line.tone === "deal"
+          ? EMAIL_PALETTE.forestMid
+          : line.tone === "strong"
+            ? EMAIL_PALETTE.forest
+            : EMAIL_PALETTE.ink;
+      const weight = line.tone === "strong" ? "700" : line.tone === "deal" ? "600" : "500";
+      const size = line.tone === "strong" ? "16px" : "13px";
+      const pad = line.key === "total" ? "14px 0 0" : "8px 0";
+      const border =
+        line.key === "total"
+          ? `border-top:1px solid ${EMAIL_PALETTE.line};`
+          : "";
+      return `<tr>
+<td style="padding:${pad};${border}font-size:${size};font-weight:${weight};color:${color}">${escapeHtml(
+        line.label
+      )}</td>
+<td style="padding:${pad};${border}text-align:right;white-space:nowrap;font-size:${size};font-weight:${weight};color:${color}">${amountLabel}</td>
+</tr>`;
+    })
+    .join("");
+
+  return `${emailSectionLabel("Order bill")}
+<p style="margin:0 0 14px;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:${EMAIL_PALETTE.forest}">${escapeHtml(
     p.orderId
   )}</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">${rows}
-<tr>
-<td style="padding:16px 0 0;font-size:15px;font-weight:700;color:${EMAIL_PALETTE.ink}">Total due on delivery</td>
-<td style="padding:16px 0 0;font-size:18px;font-weight:700;text-align:right;white-space:nowrap;color:${EMAIL_PALETTE.forest}">${pkr(
-    p.total
-  )}</td>
-</tr></table>`;
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:0 0 8px">${itemRows}</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:8px 0 0;background:${EMAIL_PALETTE.sand};border:1px solid ${EMAIL_PALETTE.line};border-radius:12px">
+<tr><td style="padding:14px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">${summaryRows}</table>
+</td></tr></table>`;
 }
 
 export function buildAdminNewOrderEmail(
@@ -298,7 +347,7 @@ ${
 <p style="margin:0 0 20px">A customer just placed a cash-on-delivery order. Confirm the details below, then pack and dispatch.</p>
 ${contact}`;
 
-  const body = `${intro}${itemTable(p)}
+  const body = `${intro}${orderBillBox(p)}
 ${emailButtonHtml({
   href: `${origin}/admin/orders/${encodeURIComponent(p.orderId)}`,
   label: "Open this order",
@@ -348,7 +397,7 @@ ${emailSectionLabel("Deliver to")}
 </td></tr></table>`
     : "";
 
-  const body = `${intro}${itemTable(p)}
+  const body = `${intro}${orderBillBox(p)}
 ${addressHtml}
 ${p.email ? trackButton(p.orderId, p.email, config?.theme?.button) : ""}
 <p style="margin:20px 0 0;font-size:13px;color:${EMAIL_PALETTE.muted}">A real person at ${BRAND_NAME} packed this catalogue. WhatsApp or email us if you want to change the address before it ships.</p>`;

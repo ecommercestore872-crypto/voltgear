@@ -1,259 +1,427 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Banknote, Calendar, Check, ClipboardList, Headphones, Home, Mail, MapPin, Package, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
-import { getOrderByPublicId } from "@/lib/db/store";
-import { formatPrice } from "@/lib/utils";
+import type { ReactNode } from "react";
+import {
+  ArrowRight,
+  Banknote,
+  Calendar,
+  Check,
+  ClipboardList,
+  Headphones,
+  Home,
+  Mail,
+  MapPin,
+  Package,
+  ShieldCheck,
+  ShoppingBag,
+  Truck,
+  X,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { getOrderByPublicId } from "@/lib/db/store";
+import {
+  buildOrderBillLines,
+  buildOrderProgressSteps,
+  resolveOrderSubtotal,
+} from "@/lib/order-bill-rules";
+import { formatPrice } from "@/lib/utils";
+import type { OrderStatus } from "@/lib/types";
 
-export default async function OrderSuccessPage({ params }: { params: { id: string } }) {
+const STEP_ICON: Partial<Record<OrderStatus, typeof Check>> = {
+  new: Check,
+  processing: Package,
+  shipped: Truck,
+  delivered: Home,
+  cancelled: X,
+};
+
+export default async function OrderSuccessPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const order = await getOrderByPublicId(params.id);
-  if (!order) {
-    return notFound();
-  }
+  if (!order) notFound();
 
-  const { customer, items, total, orderId, createdAt } = order;
+  const { customer, items = [], orderId, createdAt } = order;
+  const status = (order.status ?? "new") as OrderStatus;
   const isCod = order.payment === "cod";
+  const progress = buildOrderProgressSteps(status);
+  const billLines = buildOrderBillLines({
+    orderId,
+    items: items.map((i) => ({
+      name: i.name ?? "Item",
+      price: i.price ?? 0,
+      quantity: i.quantity ?? 1,
+      variantName: i.variantName,
+    })),
+    subtotal: resolveOrderSubtotal({ subtotal: order.subtotal, items }),
+    shipping: order.shipping ?? 0,
+    discount: order.discount,
+    promoCode: order.promoCode,
+    total: order.total ?? 0,
+  });
+  const cancelled = status === "cancelled";
 
   return (
-    <div className="min-h-screen bg-[var(--g-cream)] pt-8 pb-16 lg:pt-12 lg:pb-32 border-t border-[var(--g-line)] text-[var(--g-charcoal)] animate-premium-fade">
-      <div className="container mx-auto max-w-6xl px-4 lg:px-8 space-y-6">
-        
-        {/* Top section: Status & Progress */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_560px] items-stretch animate-premium-slide">
-           {/* Left: Thank You Banner */}
-           <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)]">
-                    <Check className="h-8 w-8 text-[var(--g-cream)] stroke-[2]" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)] mb-2">
-                    Thank you
-                 </p>
-                 <h1 className="gadget-display text-3xl tracking-tight text-[var(--g-charcoal)] sm:text-[34px]">Order confirmed</h1>
-                 <p className="mt-2 text-sm leading-relaxed text-[var(--g-taupe)] max-w-sm mx-auto sm:mx-0">
-                    Your order has been placed. We’ll get it ready to ship as soon as possible.
-                 </p>
-              </div>
-           </div>
+    <div className="min-h-screen border-t border-[var(--g-line)] bg-[var(--g-cream)] pb-16 pt-8 text-[var(--g-charcoal)] lg:pb-32 lg:pt-12">
+      <div className="container mx-auto max-w-6xl space-y-6 px-4 lg:px-8">
+        <div className="grid items-stretch gap-6 lg:grid-cols-[1fr_minmax(16rem,28rem)]">
+          <div className="flex flex-col items-center gap-6 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-6 sm:flex-row sm:items-start sm:p-8">
+            <div
+              className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${
+                cancelled ? "bg-[var(--g-danger,#b42318)]" : "bg-[var(--g-forest)]"
+              }`}
+            >
+              {cancelled ? (
+                <X className="h-8 w-8 text-[var(--g-cream)]" strokeWidth={2} />
+              ) : (
+                <Check className="h-8 w-8 text-[var(--g-cream)]" strokeWidth={2} />
+              )}
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
+                {cancelled ? "Order update" : "Thank you"}
+              </p>
+              <h1 className="gadget-display text-3xl tracking-tight text-[var(--g-charcoal)] sm:text-[34px]">
+                {cancelled ? "Order cancelled" : "Order confirmed"}
+              </h1>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--g-taupe)] sm:mx-0">
+                {cancelled
+                  ? "This order is cancelled. Nothing is due on delivery."
+                  : "Your order has been placed. We’ll get it ready to ship as soon as possible."}
+              </p>
+              <p className="mt-3 text-sm font-bold text-[var(--g-forest)]">
+                Status:{" "}
+                <span className="uppercase tracking-wide">
+                  {progress.find((s) => s.state === "current")?.label ?? status}
+                </span>
+              </p>
+            </div>
+          </div>
 
-           {/* Right: Progress Tracker */}
-           <div className="rounded-2xl bg-[var(--g-white)] border border-[var(--g-line)] p-8 shadow-sm flex items-center justify-center hover:shadow-md transition-shadow">
-              <div className="w-full max-w-[420px] mx-auto grid grid-cols-4 relative text-center">
-                 {/* Connecting Line */}
-                 <div className="absolute left-[12.5%] right-[12.5%] top-4 h-[2px] border-t-2 border-dashed border-[var(--g-line)] -z-10" />
-                 
-                 <div className="flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)] text-[var(--g-white)] flex items-center justify-center outline outline-[4px] outline-[var(--g-white)] shadow-sm shrink-0 relative animate-in pop-in duration-500">
-                       <Check className="w-4 h-4 stroke-[3]" />
-                       <div className="absolute -bottom-2 -right-2 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[var(--g-white)] animate-pulse" />
+          <div className="flex items-center justify-center rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 shadow-sm sm:p-8">
+            <div
+              className={`relative mx-auto grid w-full max-w-[420px] text-center ${
+                progress.length === 2 ? "grid-cols-2" : "grid-cols-4"
+              }`}
+            >
+              <div
+                className="absolute left-[12.5%] right-[12.5%] top-4 -z-10 h-[2px] border-t-2 border-dashed border-[var(--g-line)]"
+                aria-hidden
+              />
+              {progress.map((step) => {
+                const Icon = STEP_ICON[step.key] ?? Package;
+                const active = step.state === "current" || step.state === "complete";
+                return (
+                  <div
+                    key={step.key}
+                    className={`flex flex-col items-center gap-3 ${
+                      step.state === "upcoming" ? "opacity-40" : step.state === "complete" ? "opacity-90" : ""
+                    }`}
+                  >
+                    <div
+                      className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full outline outline-[4px] outline-[var(--g-white)] shadow-sm ${
+                        active
+                          ? "bg-[var(--g-forest)] text-[var(--g-white)]"
+                          : "border border-[var(--g-line)] bg-[var(--g-cream)] text-[var(--g-taupe)]"
+                      }`}
+                    >
+                      {step.state === "complete" || step.state === "current" ? (
+                        <Icon className="h-4 w-4" strokeWidth={step.key === "new" ? 3 : 2} />
+                      ) : (
+                        <Icon className="h-4 w-4" />
+                      )}
                     </div>
                     <div className="mt-1">
-                       <p className="text-xs font-bold text-[var(--g-charcoal)]">Confirmed</p>
-                       <p className="text-[10px] font-semibold text-[var(--g-forest)] mt-1">{new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      <p
+                        className={`text-xs font-bold ${
+                          active ? "text-[var(--g-charcoal)]" : "text-[var(--g-taupe)]"
+                        }`}
+                      >
+                        {step.label}
+                      </p>
+                      {step.state === "current" && step.key === "new" ? (
+                        <p className="mt-1 text-[10px] font-semibold text-[var(--g-forest)]">
+                          {new Date(createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </p>
+                      ) : null}
                     </div>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-default">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-cream)] text-[var(--g-taupe)] flex items-center justify-center outline outline-[3px] outline-[var(--g-white)] border border-[var(--g-line)] shadow-sm shrink-0">
-                       <Package className="w-4 h-4" />
-                    </div>
-                    <div className="mt-1">
-                       <p className="text-xs font-bold text-[var(--g-taupe)]">Processing</p>
-                       <p className="text-[10px] font-medium mt-1 leading-tight text-[var(--g-taupe)]/80">We’re preparing<br/>your order</p>
-                    </div>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-3 opacity-40 hover:opacity-100 transition-opacity cursor-default">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-cream)] text-[var(--g-taupe)] flex items-center justify-center outline outline-[3px] outline-[var(--g-white)] border border-[var(--g-line)] shadow-sm shrink-0">
-                       <Truck className="w-4 h-4" />
-                    </div>
-                    <div className="mt-1">
-                       <p className="text-xs font-bold text-[var(--g-taupe)]">Shipped</p>
-                       <p className="text-[10px] font-medium mt-1 leading-tight text-[var(--g-taupe)]/80">On the way to<br/>you</p>
-                    </div>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-3 opacity-30 hover:opacity-100 transition-opacity cursor-default">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-cream)] text-[var(--g-taupe)] flex items-center justify-center outline outline-[3px] outline-[var(--g-white)] border border-[var(--g-line)] shadow-sm shrink-0">
-                       <Home className="w-4 h-4" />
-                    </div>
-                    <div className="mt-1">
-                       <p className="text-xs font-bold text-[var(--g-taupe)]">Delivered</p>
-                       <p className="text-[10px] font-medium mt-1 leading-tight text-[var(--g-taupe)]/80">Get ready to<br/>enjoy!</p>
-                    </div>
-                 </div>
-
-              </div>
-           </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Middle section: Details & Items Grid */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_450px]">
-           {/* Order Details */}
-           <div className="rounded-2xl bg-[var(--g-white)] border border-[var(--g-line)] shadow-sm overflow-hidden flex flex-col relative transition-all hover:shadow-md">
-              <div className="border-b border-[var(--g-line)] p-5 flex items-center gap-3 bg-[var(--g-cream)]/50">
-                 <ClipboardList className="w-5 h-5 text-[var(--g-forest)]" strokeWidth={2.5}/>
-                 <h3 className="font-bold text-[15px] text-[var(--g-charcoal)]">Order Details</h3>
-              </div>
-              <div className="p-6 grid gap-y-7 gap-x-6 sm:grid-cols-2">
-                 <div className="flex gap-4 items-start group">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)]/5 border border-[var(--g-forest)]/10 flex items-center justify-center text-[var(--g-forest)] shrink-0 font-bold tracking-tight transition-transform group-hover:scale-110">#</div>
-                    <div className="mt-0.5">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">Order Number</p>
-                       <p className="text-[14px] font-bold text-[var(--g-forest)] mt-1 tracking-tight">{orderId}</p>
-                    </div>
-                 </div>
-                 <div className="flex gap-4 items-start group">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)]/5 border border-[var(--g-forest)]/10 flex items-center justify-center text-[var(--g-forest)] shrink-0 transition-transform group-hover:scale-110"><Mail className="w-4 h-4"/></div>
-                    <div className="mt-0.5">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">Confirmation Email</p>
-                       <div className="flex flex-wrap items-center gap-2 mt-1">
-                          <p className="text-[13px] font-bold text-[var(--g-charcoal)] truncate max-w-[150px] sm:max-w-none">{customer?.email || 'customer@example.com'}</p>
-                          <span className="text-[9px] font-bold bg-[var(--g-forest)]/10 text-[var(--g-forest)] px-1.5 py-0.5 rounded uppercase tracking-wider border border-[var(--g-forest)]/20 animate-pulse">Sent</span>
-                       </div>
-                       <p className="text-[11px] text-[var(--g-taupe)] mt-1">A confirmation has been sent.</p>
-                    </div>
-                 </div>
-                 <div className="flex gap-4 items-start group">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)]/5 border border-[var(--g-forest)]/10 flex items-center justify-center text-[var(--g-forest)] shrink-0 transition-transform group-hover:scale-110"><Calendar className="w-4 h-4"/></div>
-                    <div className="mt-0.5">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">Order Date</p>
-                       <p className="text-[13px] font-bold text-[var(--g-charcoal)] mt-1">{new Date(createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} &bull; {new Date(createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric'})}</p>
-                    </div>
-                 </div>
-                 <div className="flex gap-4 items-start group">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)]/5 border border-[var(--g-forest)]/10 flex items-center justify-center text-[var(--g-forest)] shrink-0 transition-transform group-hover:scale-110"><Truck className="w-4 h-4"/></div>
-                    <div className="mt-0.5">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">Estimated Delivery</p>
-                       <p className="text-[13px] font-bold text-[var(--g-charcoal)] mt-1">
-                          {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} &ndash; {new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                       </p>
-                       <p className="text-[11px] font-medium text-[var(--g-taupe)] mt-1">(2–4 Working Days)</p>
-                    </div>
-                 </div>
-                 <div className="flex gap-4 items-start group">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)]/5 border border-[var(--g-forest)]/10 flex items-center justify-center text-[var(--g-forest)] shrink-0 transition-transform group-hover:scale-110"><Banknote className="w-4 h-4"/></div>
-                    <div className="mt-0.5">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">Payment Method</p>
-                       <p className="text-[13px] font-bold text-[var(--g-charcoal)] mt-1">{isCod ? 'Cash on Delivery (COD)' : 'Prepaid'}</p>
-                    </div>
-                 </div>
-                 <div className="flex gap-4 items-start group">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)]/5 border border-[var(--g-forest)]/10 flex items-center justify-center text-[var(--g-forest)] shrink-0 transition-transform group-hover:scale-110"><MapPin className="w-4 h-4"/></div>
-                    <div className="mt-0.5">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">Shipping Address</p>
-                       <p className="text-[13px] font-bold text-[var(--g-charcoal)] mt-1 capitalize">{customer?.name || ''}</p>
-                       <p className="text-[12px] text-[var(--g-taupe)] mt-1 leading-snug">
-                          {customer?.address || ''}<br/>
-                          {customer?.city ? `${customer.city}, ` : ''}Pakistan
-                       </p>
-                    </div>
-                 </div>
-                 <div className="flex gap-4 sm:col-span-2 pt-6 border-t border-[var(--g-line)] items-start group">
-                    <div className="w-8 h-8 rounded-full bg-[var(--g-forest)]/5 border border-[var(--g-forest)]/10 flex items-center justify-center text-[var(--g-forest)] shrink-0 transition-transform group-hover:scale-110"><ShoppingBag className="w-4 h-4"/></div>
-                    <div className="mt-0.5">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">Total Amount</p>
-                       <p className="text-[20px] font-black text-[var(--g-forest)] mt-1 tabular-nums">{formatPrice(total ?? 0)}</p>
-                       <p className="text-[11px] font-medium text-[var(--g-taupe)] mt-1">(Inclusive of all taxes)</p>
-                    </div>
-                 </div>
-              </div>
-           </div>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)]">
+          <div className="flex flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-sm">
+            <div className="flex items-center gap-3 border-b border-[var(--g-line)] bg-[var(--g-cream)]/50 p-5">
+              <ClipboardList className="h-5 w-5 text-[var(--g-forest)]" strokeWidth={2.5} />
+              <h3 className="text-[15px] font-bold text-[var(--g-charcoal)]">Order details</h3>
+            </div>
+            <div className="grid gap-x-6 gap-y-7 p-6 sm:grid-cols-2">
+              <Detail
+                icon={<span className="text-sm font-bold">#</span>}
+                label="Order number"
+                value={orderId}
+                accent
+              />
+              <Detail
+                icon={<Mail className="h-4 w-4" />}
+                label="Confirmation email"
+                value={customer?.email || "—"}
+              />
+              <Detail
+                icon={<Calendar className="h-4 w-4" />}
+                label="Order date"
+                value={new Date(createdAt).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                })}
+              />
+              <Detail
+                icon={<Truck className="h-4 w-4" />}
+                label="Estimated delivery"
+                value={
+                  cancelled
+                    ? "—"
+                    : `${new Date(Date.now() + 3 * 86400000).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })} – ${new Date(Date.now() + 5 * 86400000).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}`
+                }
+                hint={cancelled ? undefined : "(2–4 working days)"}
+              />
+              <Detail
+                icon={<Banknote className="h-4 w-4" />}
+                label="Payment method"
+                value={isCod ? "Cash on Delivery (COD)" : "Prepaid"}
+              />
+              <Detail
+                icon={<MapPin className="h-4 w-4" />}
+                label="Shipping address"
+                value={customer?.name || ""}
+                hint={[customer?.address, customer?.city, "Pakistan"].filter(Boolean).join(", ")}
+              />
+            </div>
+          </div>
 
-           {/* Items Box Sidebar */}
-           <div className="flex flex-col gap-4">
-              <div className="rounded-2xl bg-[var(--g-white)] border border-[var(--g-line)] shadow-sm overflow-hidden flex flex-col flex-1 relative hover:shadow-md transition-shadow">
-                 <div className="border-b border-[var(--g-line)] p-5 flex items-center justify-between bg-[var(--g-cream)]/50">
-                    <div className="flex items-center gap-3">
-                       <ClipboardList className="w-5 h-5 text-[var(--g-forest)]" strokeWidth={2.5} />
-                       <h3 className="font-bold text-[14px] text-[var(--g-charcoal)]">Items in Your Order ({(items ?? []).length})</h3>
-                    </div>
-                 </div>
-                 <ul className="divide-y divide-[var(--g-line)] p-5 flex-1 max-h-[360px] overflow-y-auto custom-scrollbar">
-                    {!(items && items.length > 0) ? (
-                       <div className="text-center py-8 flex flex-col items-center justify-center">
-                          <span className="text-sm text-muted-foreground font-medium">No items found</span>
-                       </div>
-                    ) : (
-                       items.map((item, i) => (
-                          <li key={i} className="py-5 flex gap-4 first:pt-2 last:pb-1 group/item">
-                             <div className="flex flex-1 flex-col justify-center">
-                                <div className="flex items-start justify-between gap-4 w-full">
-                                   <div className="flex-1">
-                                      <p className="text-[13px] font-bold text-[var(--g-charcoal)] line-clamp-2 leading-relaxed tracking-tight group-hover/item:text-[var(--g-forest)] transition-colors">{item.name}</p>
-                                      {item.variantName ? (
-                                         <p className="text-[11.5px] font-medium text-[var(--g-taupe)] mt-1.5">{item.variantName}</p>
-                                      ) : null}
-                                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--g-cream)] border border-[var(--g-line)] mt-2">
-                                         <span className="text-[11px] font-semibold text-[var(--g-charcoal)]">Qty: {item.quantity}</span>
-                                      </div>
-                                   </div>
-                                   <span className="text-[14px] font-bold text-[var(--g-charcoal)] tabular-nums shrink-0">{formatPrice(item.price ?? 0)}</span>
-                                </div>
-                             </div>
-                          </li>
-                       ))
-                    )}
-                 </ul>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-sm">
+              <div className="flex items-center justify-between border-b border-[var(--g-line)] bg-[var(--g-cream)]/50 p-5">
+                <div className="flex items-center gap-3">
+                  <ClipboardList className="h-5 w-5 text-[var(--g-forest)]" strokeWidth={2.5} />
+                  <h3 className="text-[14px] font-bold text-[var(--g-charcoal)]">
+                    Items ({items.length})
+                  </h3>
+                </div>
               </div>
-           </div>
+              <ul className="max-h-[280px] flex-1 divide-y divide-[var(--g-line)] overflow-y-auto p-5">
+                {items.length === 0 ? (
+                  <li className="py-8 text-center text-sm text-muted-foreground">No items found</li>
+                ) : (
+                  items.map((item, i) => {
+                    const qty = item.quantity ?? 1;
+                    const line = (item.price ?? 0) * qty;
+                    return (
+                      <li key={`${item.slug ?? item.name}-${i}`} className="flex gap-4 py-4 first:pt-1 last:pb-1">
+                        <div className="min-w-0 flex-1">
+                          <p className="line-clamp-2 text-[13px] font-bold leading-snug text-[var(--g-charcoal)]">
+                            {item.name}
+                          </p>
+                          {item.variantName ? (
+                            <p className="mt-1 text-[11px] font-medium text-[var(--g-taupe)]">
+                              {item.variantName}
+                            </p>
+                          ) : null}
+                          <p className="mt-2 inline-flex rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] px-2 py-0.5 text-[11px] font-semibold">
+                            Qty: {qty}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-[14px] font-bold tabular-nums text-[var(--g-charcoal)]">
+                          {formatPrice(line)}
+                        </span>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+
+              <div className="border-t border-[var(--g-line)] bg-[var(--g-sand,#fffaf3)] p-5">
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--g-gold,#c9a227)]">
+                  Order bill
+                </p>
+                <div className="space-y-2.5">
+                  {billLines.map((line) => {
+                    const amount =
+                      line.free && line.amount === 0
+                        ? "Free"
+                        : line.amount < 0
+                          ? `− ${formatPrice(Math.abs(line.amount))}`
+                          : formatPrice(line.amount);
+                    return (
+                      <div
+                        key={line.key}
+                        className={`grid grid-cols-[minmax(0,1fr)_auto] gap-3 text-[13px] ${
+                          line.key === "total"
+                            ? "border-t border-[var(--g-line)] pt-3 text-base font-bold text-[var(--g-forest)]"
+                            : line.tone === "deal"
+                              ? "font-semibold text-[var(--g-sage)]"
+                              : "text-[var(--g-charcoal)]"
+                        }`}
+                      >
+                        <span className="min-w-0">{line.label}</span>
+                        <span className="shrink-0 text-right tabular-nums">{amount}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-[11px] text-[var(--g-taupe)]">Inclusive of all taxes · Pay on delivery</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Actions Row */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 py-8 animate-premium-fade">
-           <Button asChild size="lg" className="h-12 px-10 text-[14px] font-bold tracking-wide w-full sm:w-auto shadow-sm bg-[var(--g-forest)] hover:bg-[var(--g-forest)]/90 text-[var(--g-white)] rounded border border-[var(--g-forest)] transition-transform hover:-translate-y-0.5">
-              <Link href="/track">
-                 <Package className="w-4 h-4 mr-2" /> Track Your Order
-              </Link>
-           </Button>
-           <Button asChild size="lg" variant="outline" className="h-12 px-10 text-[14px] font-bold tracking-wide w-full sm:w-auto bg-[var(--g-white)] hover:bg-[var(--g-cream)] text-[var(--g-charcoal)] border-[var(--g-line)] shadow-sm rounded transition-transform hover:-translate-y-0.5">
-              <Link href="/products">
-                 <ShoppingBag className="w-4 h-4 mr-2 text-[var(--g-taupe)]" /> Continue Shopping
-              </Link>
-           </Button>
-        </div>
-        
-        <div className="flex items-center justify-center gap-5 text-[13px] font-semibold text-[var(--g-forest)] pt-2 animate-premium-fade">
-           <Link href={`/order/${orderId}/invoice?print=1`} target="_blank" className="flex items-center gap-1.5 hover:underline decoration-[var(--g-forest)]/30 underline-offset-4 transition-all"><ClipboardList className="w-4 h-4"/> Download Invoice</Link>
-           <span className="w-px h-3 bg-[var(--g-line)]" />
-           <Link href="/contact" className="flex items-center gap-1.5 hover:underline text-[var(--g-taupe)] decoration-[var(--g-taupe)]/30 underline-offset-4 transition-all"><Headphones className="w-4 h-4"/> Need help? <span className="text-[var(--g-forest)] font-bold ml-0.5 hover:underline decoration-[var(--g-forest)]/30">Contact Support</span></Link>
-        </div>
-
-        {/* Bottom Support Callouts */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 lg:mt-20 bg-[var(--g-white)] rounded-2xl border border-[var(--g-line)] shadow-sm p-4 sm:p-6 w-full divide-y md:divide-y-0 md:divide-x divide-[var(--g-line)] animate-premium-slide">
-           <div className="flex gap-5 p-2 md:p-4 pb-6 md:pb-4 group cursor-pointer">
-              <div className="w-12 h-12 rounded-full bg-[var(--g-cream)] text-[var(--g-forest)] flex items-center justify-center shrink-0 border border-[var(--g-line)] transition-transform group-hover:scale-110 group-hover:bg-[var(--g-forest)] group-hover:text-[var(--g-white)]">
-                 <Headphones className="w-5 h-5"/>
-              </div>
-              <div className="pt-0.5">
-                 <p className="text-[14px] font-bold text-[var(--g-charcoal)]">Need help?</p>
-                 <p className="text-[12px] text-[var(--g-taupe)] mt-1 mb-3 leading-relaxed max-w-[220px]">We’re here to help you with any questions.</p>
-                 <Link href="/contact" className="text-[12.5px] font-bold text-[var(--g-forest)] flex items-center hover:underline transition-colors">Contact Support <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-1" /></Link>
-              </div>
-           </div>
-           <div className="flex gap-5 p-2 md:p-4 py-6 md:py-4 group cursor-pointer">
-              <div className="w-12 h-12 rounded-full bg-[var(--g-cream)] text-[var(--g-forest)] flex items-center justify-center shrink-0 border border-[var(--g-line)] transition-transform group-hover:scale-110 group-hover:bg-[var(--g-forest)] group-hover:text-[var(--g-white)]">
-                 <ShieldCheck className="w-5 h-5"/>
-              </div>
-              <div className="pt-0.5">
-                 <p className="text-[14px] font-bold text-[var(--g-charcoal)]">Easy Returns</p>
-                 <p className="text-[12px] text-[var(--g-taupe)] mt-1 mb-3 leading-relaxed max-w-[220px]">7 days easy returns and 1 year warranty on all products.</p>
-                 <Link href="/warranty" className="text-[12.5px] font-bold text-[var(--g-forest)] flex items-center hover:underline transition-colors">Learn More <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-1" /></Link>
-              </div>
-           </div>
-           <div className="flex gap-5 p-2 md:p-4 pt-6 md:pt-4 group cursor-pointer mb-2">
-              <div className="w-12 h-12 rounded-full bg-[var(--g-cream)] text-[var(--g-charcoal)] flex items-center justify-center shrink-0 border border-[var(--g-line)] transition-all group-hover:scale-110 group-hover:bg-[#25D366] group-hover:text-white group-hover:border-[#25D366]">
-                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-              </div>
-              <div className="pt-0.5">
-                 <p className="text-[14px] font-bold text-[var(--g-charcoal)]">Chat with us on WhatsApp</p>
-                 <p className="text-[12px] text-[var(--g-taupe)] mt-1 mb-3 leading-relaxed max-w-[220px]">Get quick support on WhatsApp during business hours.</p>
-                 <Link href="https://wa.me/92300000000" className="text-[12.5px] font-bold text-[var(--g-charcoal)] group-hover:text-[#25D366] flex items-center hover:underline transition-colors">Chat Now <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-1" /></Link>
-              </div>
-           </div>
+        <div className="flex flex-col items-center justify-center gap-4 py-8 sm:flex-row">
+          <Button
+            asChild
+            size="lg"
+            className="h-12 w-full rounded border border-[var(--g-forest)] bg-[var(--g-forest)] px-10 text-[14px] font-bold tracking-wide text-[var(--g-white)] shadow-sm hover:bg-[var(--g-forest)]/90 sm:w-auto"
+          >
+            <Link href="/track">
+              <Package className="mr-2 h-4 w-4" /> Track your order
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="h-12 w-full rounded border-[var(--g-line)] bg-[var(--g-white)] px-10 text-[14px] font-bold tracking-wide text-[var(--g-charcoal)] shadow-sm hover:bg-[var(--g-cream)] sm:w-auto"
+          >
+            <Link href="/products">
+              <ShoppingBag className="mr-2 h-4 w-4 text-[var(--g-taupe)]" /> Continue shopping
+            </Link>
+          </Button>
         </div>
 
+        <div className="flex items-center justify-center gap-5 pt-2 text-[13px] font-semibold text-[var(--g-forest)]">
+          <Link
+            href={`/order/${orderId}/invoice?print=1`}
+            target="_blank"
+            className="flex items-center gap-1.5 underline-offset-4 hover:underline"
+          >
+            <ClipboardList className="h-4 w-4" /> Download invoice
+          </Link>
+          <span className="h-3 w-px bg-[var(--g-line)]" />
+          <Link
+            href="/contact"
+            className="flex items-center gap-1.5 text-[var(--g-taupe)] underline-offset-4 hover:underline"
+          >
+            <Headphones className="h-4 w-4" /> Need help?
+          </Link>
+        </div>
+
+        <div className="mt-12 grid w-full grid-cols-1 gap-6 divide-y divide-[var(--g-line)] rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 shadow-sm sm:p-6 md:mt-20 md:grid-cols-3 md:divide-x md:divide-y-0 lg:mt-20">
+          <SupportCard
+            icon={<Headphones className="h-5 w-5" />}
+            title="Need help?"
+            body="We’re here to help you with any questions."
+            href="/contact"
+            cta="Contact support"
+          />
+          <SupportCard
+            icon={<ShieldCheck className="h-5 w-5" />}
+            title="Easy returns"
+            body="7 days easy returns and 1 year warranty on all products."
+            href="/warranty"
+            cta="Learn more"
+          />
+          <SupportCard
+            icon={<Package className="h-5 w-5" />}
+            title="Track anytime"
+            body="Use your order number and email to see live status."
+            href="/track"
+            cta="Track order"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Detail({
+  icon,
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  hint?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--g-forest)]/10 bg-[var(--g-forest)]/5 text-[var(--g-forest)]">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">{label}</p>
+        <p
+          className={`mt-1 break-words text-[13px] font-bold ${
+            accent ? "text-[var(--g-forest)]" : "text-[var(--g-charcoal)]"
+          }`}
+        >
+          {value || "—"}
+        </p>
+        {hint ? <p className="mt-1 text-[12px] leading-snug text-[var(--g-taupe)]">{hint}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function SupportCard({
+  icon,
+  title,
+  body,
+  href,
+  cta,
+}: {
+  icon: ReactNode;
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <div className="flex gap-5 p-2 pb-6 md:p-4 md:pb-4">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] text-[var(--g-forest)]">
+        {icon}
+      </div>
+      <div className="min-w-0 pt-0.5">
+        <p className="text-[14px] font-bold text-[var(--g-charcoal)]">{title}</p>
+        <p className="mb-3 mt-1 max-w-[220px] text-[12px] leading-relaxed text-[var(--g-taupe)]">{body}</p>
+        <Link
+          href={href}
+          className="flex items-center text-[12.5px] font-bold text-[var(--g-forest)] hover:underline"
+        >
+          {cta} <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+        </Link>
       </div>
     </div>
   );

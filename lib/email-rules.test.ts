@@ -35,10 +35,25 @@ describe("buildOrderConfirmationEmail", () => {
     assert.equal(msg.html.includes("Charger"), true);
     assert.match(msg.html, /cash on delivery/i);
     assert.equal(msg.html.includes("House 1, Street 2"), true);
+    assert.match(msg.html, /Order bill|Total due on delivery/);
     assert.equal(
       msg.html.includes("/track?orderId=VG-TEST1&amp;email=ali%40example.com"),
       true
     );
+  });
+
+  it("shows shipping and discount in the bill box", () => {
+    const msg = buildOrderConfirmationEmail({
+      ...confirm,
+      subtotal: 1999,
+      shipping: 199,
+      discount: 100,
+      promoCode: "BNT10",
+      total: 2098,
+    });
+    assert.match(msg.html, /Shipping/);
+    assert.match(msg.html, /Discount \(BNT10\)/);
+    assert.match(msg.html, /Total due on delivery/);
   });
 
   it("uses custom subject and body and still injects items and track", () => {

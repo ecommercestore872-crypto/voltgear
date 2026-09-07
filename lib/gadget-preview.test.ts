@@ -58,6 +58,7 @@ describe("shouldUseGadgetChrome", () => {
   it("keeps preview routes, checkout, and session continuity pages", () => {
     assert.equal(shouldUseGadgetChrome("/"), true);
     assert.equal(shouldUseGadgetChrome("/home2"), true);
+    assert.equal(shouldUseGadgetChrome("/order/VG-1"), true);
     assert.equal(shouldUseGadgetChrome("/checkout"), false);
     assert.equal(shouldUseGadgetChrome("/checkout", { search: "from=gadget" }), true);
     assert.equal(shouldUseGadgetChrome("/checkout", { sessionActive: true }), true);

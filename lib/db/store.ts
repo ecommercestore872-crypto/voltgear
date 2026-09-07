@@ -508,6 +508,8 @@ function mapOrder(row: Record<string, unknown>, items: OrderItem[], history: Ord
     payment: row.payment ? String(row.payment) : "cod",
     subtotal: Number(row.subtotal ?? 0),
     shipping: Number(row.shipping ?? 0),
+    discount: Number(row.discount ?? 0) || undefined,
+    promoCode: row.promo_code ? String(row.promo_code) : null,
     total: Number(row.total ?? 0),
     status: (row.status as OrderStatus) ?? "new",
     statusUpdatedAt: row.status_updated_at ? String(row.status_updated_at) : undefined,

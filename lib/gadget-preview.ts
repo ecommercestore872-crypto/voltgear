@@ -73,6 +73,8 @@ export function shouldUseGadgetChrome(
   opts?: { search?: string; sessionActive?: boolean }
 ): boolean {
   if (isGadgetPreviewPath(pathname)) return true;
+  // Order confirmation / invoice entry always uses Buy n Try cream+forest chrome.
+  if (pathname === "/order" || pathname.startsWith("/order/")) return true;
   const params = new URLSearchParams(opts?.search ?? "");
   const fromGadget = params.get("from") === "gadget";
   const session = Boolean(opts?.sessionActive) || fromGadget;

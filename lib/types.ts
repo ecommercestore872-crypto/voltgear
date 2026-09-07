@@ -234,6 +234,8 @@ export interface Order {
   payment?: string;
   subtotal?: number;
   shipping?: number;
+  discount?: number;
+  promoCode?: string | null;
   total?: number;
   status?: OrderStatus;
   statusUpdatedAt?: string;
