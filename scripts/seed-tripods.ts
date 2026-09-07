@@ -56,7 +56,7 @@ async function ensureTripodCategory() {
       slug: "tripod",
       name: "Tripods & Stands",
       description:
-        "Camera, phone and studio light tripods for creators — cash on delivery from Buy n Try.",
+        "Camera and phone tripods for creators — overhead, boom-arm, AI tracking and full-size stands. Cash on delivery from Buy n Try.",
       image_url: imageUrl,
       sort_order: 7,
     },
@@ -146,43 +146,23 @@ async function seed() {
     }
   }
 
-  // Unpublish other former selfie-stick / tripod SKUs that are not in this catalog.
+  // Unpublish non-catalog tripod SKUs (previous Plokama floor stands, etc.).
   const { data: candidates } = await supabase
     .from("products")
     .select("id, slug, category, status")
-    .or("category.eq.tripod,category.eq.selfie-stick");
+    .eq("category", "tripod");
 
   for (const row of candidates ?? []) {
     if (KEEP.has(row.slug)) continue;
-    // Leave the six selfie sticks alone.
-    if (row.category === "selfie-stick" && row.status === "published") continue;
-    if (row.category === "tripod" || KEEP.has(row.slug) === false) {
-      // Unpublish any non-kept product currently tagged tripod, or leftover
-      // unpublished camera tripods still sitting under selfie-stick.
-      if (
-        row.category === "tripod" ||
-        [
-          "stand-380a-portable-tripod",
-          "unme-pyp-j1004-universal-tripod",
-          "candac-dc-320-flexible-tripod",
-          "candac-6360-professional-tripod",
-          "jmary-kp-2207-portable-camera-tripod",
-          "plokama-auto-a20-ai-smart-tracking-tripod",
-          "bluks-bx-391-heavy-duty-tripod",
-          "studio-heavy-duty-2-1m-tripod-stand",
-        ].includes(row.slug)
-      ) {
-        const { error } = await supabase
-          .from("products")
-          .update({ status: "unpublished", category: "tripod" })
-          .eq("id", row.id);
-        console.log(
-          error
-            ? `Failed cleaning ${row.slug}: ${error.message}`
-            : `Unpublished non-catalog tripod: ${row.slug}`
-        );
-      }
-    }
+    const { error } = await supabase
+      .from("products")
+      .update({ status: "unpublished" })
+      .eq("id", row.id);
+    console.log(
+      error
+        ? `Failed cleaning ${row.slug}: ${error.message}`
+        : `Unpublished non-catalog tripod: ${row.slug}`
+    );
   }
 
   const { data: live } = await supabase

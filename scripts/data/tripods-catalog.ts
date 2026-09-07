@@ -1,7 +1,7 @@
 /**
- * Tripods & stands catalog — researched Plokama copy.
- * Keep PK-998 / PK-8899 / VT-170 / PK-9950 / VT-200 / PK-9970 specs separate.
- * Brand voice: Buy n Try (never VoltGear).
+ * Tripods & stands catalog — researched Buy n Try copy.
+ * Keep visually similar models isolated (380A ≠ UNME ≠ CANDC ≠ JMARY ≠ BLÜK'S).
+ * Do not mix DC-320 with DC-6360 specs. Citations stay out of customer-facing copy.
  */
 
 export type TripodSeed = {
@@ -27,613 +27,745 @@ export type TripodSeed = {
 };
 
 export const TRIPODS_KEEP_SLUGS = [
-  "plokama-pk-998-professional-tripod",
-  "plokama-pk-8899-multipurpose-tripod",
-  "vt-170-aluminum-video-tripod",
-  "plokama-pk-9950-heavy-duty-tripod",
-  "vt-200-professional-camera-tripod",
-  "plokama-pk-9970-heavy-duty-tripod",
+  "stand-380a-portable-tripod",
+  "unme-pyp-j1004-universal-tripod",
+  "candac-dc-320-flexible-tripod",
+  "candac-6360-professional-tripod",
+  "jmary-kp-2207-portable-camera-tripod",
+  "plokama-auto-a20-ai-smart-tracking-tripod",
+  "bluks-bx-391-heavy-duty-tripod",
 ] as const;
 
 export const TRIPODS_DATA: TripodSeed[] = [
   {
-    name: "Plokama PK-998 2M All-in-One Tripod – Phone & Camera + Remote",
-    slug: "plokama-pk-998-professional-tripod",
-    brand: "Plokama",
-    sku: "VG-TP-PK998",
+    name: "380A Professional 4.5ft Tripod – Phone & Camera Stand",
+    slug: "stand-380a-portable-tripod",
+    brand: "380A",
+    sku: "VG-TP-ST380A",
     category: "tripod",
-    price: 3499,
-    compareAtPrice: 4799,
-    rating: 4.8,
-    reviewCount: 39,
-    featured: true,
-    badge: "2M All-in-One Creator Tripod",
+    price: 1899,
+    compareAtPrice: 2699,
+    rating: 4.6,
+    reviewCount: 38,
+    featured: false,
+    badge: "Phone + Camera Value Pick",
     stockStatus: "in-stock",
     shortDescription:
-      "One tripod for your phone, DSLR and creator setup. Plokama PK-998 reaches 2 meters with 360° positioning, universal 1/4″ mounting, phone holder, wireless remote and carry bag.",
-    details: `# One Tripod. Almost Every Setup Covered.
+      "Stop balancing your phone on tables and chairs. The 380A gives you an adjustable aluminum tripod, 3-way 360° head, phone holder and portable carry setup for photography, video and content creation.",
+    details: `# A Real Tripod Without the Professional Price
 
-Buying separate stands for your phone, camera and content setup gets expensive and messy.
+If you're starting TikTok, YouTube, product photography or mobile videography, the **380A Tripod** gives you something far more useful than a tiny desktop stand:
 
-The **Plokama PK-998** is designed as an all-in-one solution, giving you a tall **2-meter tripod** that can work with compatible smartphones, DSLR/mirrorless cameras, action cameras and other 1/4-inch accessories.
+**proper adjustable shooting height and stable three-leg support.**
 
-> **The highlight:** Phone + camera compatibility in a tripod that reaches up to 200cm.
+> **The highlight: one affordable tripod for both your smartphone and compatible camera.**
 
-# Get the Camera Up Where You Actually Need It
+# Frame the Shot Instead of Moving the Whole Stand
 
-The PK-998 adjusts from around **55cm all the way to 200cm**, giving you much more freedom than short desktop tripods.
+The **3-way pan-and-tilt head** lets you change direction, tilt and framing while the tripod stays planted.
 
-Use the lower settings for product photography or seated videos.
+That makes it much easier to shoot:
 
-Raise it for:
+- **Portraits**
+- **Landscape photos**
+- **TikTok & Reels**
+- **YouTube**
+- **Product videos**
+- **Online classes**
+- **Group photos**
 
-- **Full-body TikToks**
-- **Standing tutorials**
-- **Portrait photography**
-- **Group pictures**
-- **Interviews**
-- **Livestreams**
-- **Studio setups**
+A 360° pan function also helps when you want to reposition the shot smoothly.
 
-No more stacking books or putting your camera on furniture just to reach eye level.
+# Get the Camera Off the Table
 
-# Frame the Shot from Any Direction
+The common 380A configuration reaches roughly **132cm / 4.3–4.5 feet**, enough to lift your phone or compact camera well above desk height.
 
-The head supports **360° panoramic movement**, making it easier to position your camera or phone exactly where you want it.
+Lower it for tabletop work.
 
-Shoot horizontally for YouTube and landscape photography.
+Raise it for standing portraits or creator videos.
 
-Switch to vertical creator content when you're filming for TikTok, Reels or Shorts.
+# Built to Travel
 
-# Take the Photo Without Touching the Phone
+The lightweight **aluminum-alloy construction**, quick leg locks and foldable body make the 380A easy to pack away when you're finished.
 
-The bundled **wireless remote** makes solo shooting much easier.
+Many packages also include a **mobile holder and carrying bag**.
 
-Position the tripod, step into the frame and trigger a compatible smartphone camera without running back to the phone.
+> **4.5FT • 3-WAY HEAD • PHONE + CAMERA • 360° PAN**
 
-# Built to Travel Too
+# Start Creating Without Building a Studio
 
-Despite reaching two meters, the PK-998 folds down to around **55cm** and comes with a **carrying bag**.
+The 380A is strongest as a **first proper tripod**.
 
-That makes it useful both as a permanent studio tripod and something you can take to outdoor shoots, university events or client work.
+It's affordable, adjustable, works with multiple device types and gives your shots a much more intentional look.
 
-> **200CM • 360° HEAD • PHONE + CAMERA • REMOTE • CARRY BAG**
-
-**Set the height. Frame the shot. Step back and create.**`,
+**Set it down. Level the frame. Start shooting.**`,
     features: [
-      "200cm maximum height gives you proper standing and full-body shooting angles",
-      "Works with both compatible smartphones and cameras instead of locking you to one device",
-      "Standard 1/4″ mount supports a wide range of photography accessories",
-      "360° panoramic head gives you more freedom to position the shot",
-      "Wireless remote makes solo photography and creator content easier",
-      "Phone clip is included, so mobile creators can start without buying another mount",
-      "Carry bag makes the large tripod easier to transport",
-      "Four adjustable leg sections let you choose the height that fits the scene",
+      "Works with compatible phones and cameras instead of being limited to one device",
+      "3-way head gives more control over tilt and framing",
+      "360° panning supports landscape, portraits and moving compositions",
+      "Approx. 4.3–4.5ft height is useful for both tabletop and standing content",
+      "Aluminum construction keeps it relatively light",
+      "Quick leg locks make height adjustment faster",
+      "Mobile holder is included with common packages",
+      "Carry bag makes storage and transport easier",
     ],
     specifications: [
-      { label: "Brand", value: "Plokama" },
-      { label: "Model", value: "PK-998" },
-      { label: "Type", value: "All-in-One Phone & Camera Tripod" },
-      { label: "Maximum Height", value: "200cm / approx. 6.5ft" },
-      { label: "Minimum Height", value: "Approx. 55cm" },
-      { label: "Folded Length", value: "Approx. 55cm" },
-      { label: "Leg Sections", value: "4" },
-      { label: "Head Movement", value: "360° Panoramic" },
-      { label: "Mount", value: "Standard 1/4″" },
-      { label: "Material", value: "Aluminum Alloy + ABS" },
-      { label: "Phone Holder", value: "Included" },
-      { label: "Remote", value: "Wireless Remote Included" },
-      { label: "Use", value: "Phone, Camera, Action Camera, Creator Accessories" },
+      { label: "Model", value: "380A" },
+      { label: "Type", value: "Floor Tripod" },
+      { label: "Material", value: "Aluminum Alloy + Plastic" },
+      { label: "Maximum Height", value: "Approx. 132cm / 4.3–4.5ft" },
+      { label: "Folded Height", value: "Approx. 47–50cm" },
+      { label: "Head", value: "3-Way Pan / Tilt" },
+      { label: "Rotation", value: "360°" },
+      { label: "Mounting", value: "Quick-Release Camera Plate" },
+      { label: "Phone Holder", value: "Included on common bundle" },
+      { label: "Feet", value: "Non-Slip Rubber" },
+      {
+        label: "Compatibility",
+        value: "Smartphones, Compact Cameras, Compatible DSLRs/Camcorders",
+      },
     ],
     compatibility: [
-      "Smartphones with supplied holder",
-      "DSLR Cameras",
-      "Mirrorless Cameras",
-      "Action Cameras with compatible mount",
-      "Video Cameras with 1/4″ mount",
-      "Compatible Ring Lights / Accessories",
+      "Smartphones",
+      "Compact Cameras",
+      "Compatible DSLR / Mirrorless Cameras",
+      "Camcorders",
+      "Action Cameras with suitable mount",
       "TikTok / Reels / YouTube",
-      "Photography & Livestreaming",
+      "Photography & Video Calls",
     ],
-    inTheBox: [
-      "Plokama PK-998 Tripod",
-      "Phone Holder / Clip",
-      "Wireless Remote",
-      "Carrying Bag",
-    ],
-    image: "/gadget/products/tripod-plokama-pk998.webp",
+    inTheBox: ["380A Tripod", "Mobile Phone Holder", "Carrying Bag"],
+    image: "/gadget/products/tripod-stand-380a.webp",
   },
   {
-    name: "Plokama PK-8899 2M Studio Tripod & Ring Light Stand",
-    slug: "plokama-pk-8899-multipurpose-tripod",
-    brand: "Plokama",
-    sku: "VG-TP-PK8899",
+    name: "UNME PYP-J1004 150cm Professional Tripod – 3-Way Head",
+    slug: "unme-pyp-j1004-universal-tripod",
+    brand: "UNME",
+    sku: "VG-TP-J1004",
     category: "tripod",
-    price: 3999,
-    compareAtPrice: 5499,
-    rating: 4.8,
-    reviewCount: 34,
-    featured: true,
-    badge: "2M Studio Light Stand",
+    price: 2299,
+    compareAtPrice: 3199,
+    rating: 4.7,
+    reviewCount: 20,
+    featured: false,
+    badge: "150CM • Clean White Design",
     stockStatus: "in-stock",
     shortDescription:
-      "Give your lighting a proper foundation. Plokama PK-8899 extends to 200cm with a sturdy aluminum build and universal 1/4″ mount for ring lights, LED panels, cameras and studio accessories.",
-    details: `# Your Light Is Only as Useful as the Stand Holding It.
+      "A tripod that looks as clean as the content setup around it. UNME PYP-J1004 reaches 150cm with a 3-way panoramic head, quick-release mounting and stability hook for phones and cameras.",
+    details: `# Your Tripod Doesn't Have to Look Like Cheap Studio Gear
 
-A good ring light or LED panel isn't much help if the stand underneath it is short, unstable or constantly slipping.
+The **UNME PYP-J1004** takes the familiar adjustable tripod format and gives it a cleaner, more polished design.
 
-The **Plokama PK-8899** is built around stability and height, giving creators a strong adjustable support for lighting, photography and studio accessories.
+The exact model is even sold in a **distinctive white finish**, making it particularly attractive for beauty rooms, home studios and minimalist creator setups.
 
-> **The highlight:** A 2-meter stand made for proper creator and studio setups.
+> **The highlight: 150cm professional-style tripod functionality in a much cleaner-looking design.**
 
-# Put the Light Where It Actually Needs to Be
+# 3-Way Control for Better Framing
 
-The PK-8899 adjusts from approximately **80cm to 200cm**.
+The tripod uses a **3-way pan head** with handle control, letting you move between different shooting angles without constantly repositioning all three legs.
 
-That gives you enough range to place lighting:
+That is useful for:
 
-- At face level
-- Above your subject
-- Behind a creator
-- Over a product table
-- Beside a photography setup
+- Portrait photography
+- Video
+- Product filming
+- Livestreaming
+- Tutorials
+- Time-lapse content
 
-The extra height is especially useful for larger ring lights and LED panels where a short tripod limits your lighting angle.
+The head supports smooth panoramic positioning and a standard mounting system.
 
-# Universal 1/4″ Mount
+# Phone Today. Camera Tomorrow.
 
-The standard **1/4-inch mounting interface** makes the PK-8899 compatible with a wide range of suitable cameras and creator accessories.
+A **standard UNC 1/4″ mount** makes the PYP-J1004 useful with a wide range of compatible cameras, phone holders and video equipment.
+
+So upgrading from smartphone content to a camera later doesn't automatically make your tripod useless.
+
+# Give It More Stability When You Need It
+
+A **center stability hook** lets you hang additional weight underneath the tripod.
+
+This can help when you're shooting in situations where extra stability matters.
+
+Quick leg locks and **rubber feet** make setup faster and help the tripod grip flat surfaces.
+
+> **150CM • 3-WAY HEAD • 1/4″ MOUNT • STABILITY HOOK**
+
+# Made for Creators Who Care About the Setup Too
+
+The PYP-J1004 isn't simply about maximum height.
+
+It combines **useful tripod controls with a noticeably cleaner appearance**.
+
+**Your equipment can look good behind the scenes too.**`,
+    features: [
+      "150cm height provides useful full-body and standing shooting positions",
+      "3-way head provides controlled pan and tilt movement",
+      "Standard 1/4″ mounting makes it versatile",
+      "Quick-release system helps speed up camera setup",
+      "Center hook gives you the option to add stabilizing weight",
+      "Rubber feet improve grip",
+      "Quick lever locks make height adjustment convenient",
+      "White variant looks especially good in beauty and home-studio setups",
+    ],
+    specifications: [
+      { label: "Brand", value: "UNME" },
+      { label: "Model", value: "PYP-J1004" },
+      { label: "Maximum Height", value: "150cm" },
+      { label: "Head", value: "3-Way Pan Head" },
+      { label: "Load Rating", value: "Up to 1.5kg" },
+      { label: "Mount", value: "UNC 1/4″" },
+      { label: "Plate", value: "Quick Release" },
+      { label: "Legs", value: "Telescoping" },
+      { label: "Locks", value: "Quick Lever" },
+      { label: "Feet", value: "Rubber" },
+      { label: "Stability Hook", value: "Yes" },
+      { label: "Color", value: "White documented" },
+    ],
+    compatibility: [
+      "Smartphones with compatible holder",
+      "Cameras with 1/4″ mount",
+      "Camcorders",
+      "Video equipment",
+      "Creator accessories using suitable 1/4″ mounting",
+    ],
+    inTheBox: ["UNME PYP-J1004 Tripod", "UNME Carry Bag", "Retail Box"],
+    image: "/gadget/products/tripod-unme-j1004.webp",
+  },
+  {
+    name: "CANDC DC-320 Professional Tripod – Phone & Camera",
+    slug: "candac-dc-320-flexible-tripod",
+    brand: "CANDC",
+    sku: "VG-TP-CDC320",
+    category: "tripod",
+    price: 1699,
+    compareAtPrice: 2399,
+    rating: 4.6,
+    reviewCount: 18,
+    featured: false,
+    badge: "3KG Creator Tripod",
+    stockStatus: "in-stock",
+    shortDescription:
+      "A stronger step up from basic mobile stands. CANDC DC-320 combines approximately 1.4–1.5m height, a 3-way adjustable head, bubble level, stability hook and up to 3kg support.",
+    details: `# When a Lightweight Phone Stand Isn't Enough
+
+The **CANDC DC-320** is designed for users who want a more substantial tripod for cameras, phones and video equipment.
+
+Instead of relying on a thin selfie-style stand, you get an **aluminum tripod with proper leg locks, control handle and stability features**.
+
+> **The highlight: up to 3kg documented support in a tripod still light enough to carry.**
+
+# Put Heavier Gear on a Proper Base
+
+A detailed retail specification rates the DC-320 for **up to 3kg**, making it suitable for a broader range of compatible photography gear than many lightweight budget tripods.
 
 Use it with compatible:
 
-- **Ring lights**
-- **LED panels**
-- **Photography lights**
-- **Camera accessories**
-- **Phone holders**
-- **Other 1/4″ equipment**
+- DSLR / mirrorless cameras
+- Camcorders
+- Smartphones
+- Creator accessories
 
-# Stable Without Becoming Impossible to Carry
+# Get the Horizon Right Before You Record
 
-The aluminum-alloy construction keeps the stand relatively lightweight at around **1kg**, while the folded size is approximately **71.5cm**.
+The tripod includes a **bubble level**, helping you see whether your setup is actually straight.
 
-So you can keep it in a studio permanently or put it in its included bag and take it to a shoot.
+That's a small feature that becomes extremely useful for:
 
-> **200CM HEIGHT • ALUMINUM BUILD • 1/4″ MOUNT • CARRY BAG**
-
-# Build the Setup Properly
-
-The PK-8899 isn't about flashy features.
-
-It's about giving your light or compatible equipment **a taller, more stable place to work from**.
-
-**Better positioning starts with a better stand.**`,
-    features: [
-      "Extends to 200cm so lights can be positioned above or around your subject",
-      "Strong choice for ring lights and LED panel setups",
-      "Standard 1/4″ interface works with many creator accessories",
-      "Aluminum-alloy body balances strength with portability",
-      "Folds to approximately 71.5cm for easier transport and storage",
-      "Around 1kg weight makes it practical for mobile shoots",
-      "Useful for photography, video, streaming, makeup and product setups",
-    ],
-    specifications: [
-      { label: "Brand", value: "Plokama" },
-      { label: "Model", value: "PK-8899" },
-      { label: "Type", value: "Photography / Ring Light / Accessory Stand" },
-      { label: "Minimum Working Height", value: "Approx. 80cm" },
-      { label: "Maximum Working Height", value: "200cm" },
-      { label: "Folded Height", value: "Approx. 71.5cm" },
-      { label: "Material", value: "Aluminum Alloy" },
-      { label: "Weight", value: "Approx. 1kg" },
-      { label: "Mount", value: "Universal 1/4″" },
-      { label: "Primary Use", value: "Ring Lights, LED Lights, Cameras & Studio Accessories" },
-    ],
-    compatibility: [
-      "Ring Lights with compatible mounting",
-      "LED Panel Lights",
-      "Studio Lights",
-      "Cameras with compatible 1/4″ mount",
-      "Phone Holders with compatible mount",
-      "Product Photography",
-      "Livestream Setups",
-    ],
-    inTheBox: ["Plokama PK-8899 Stand", "Carrying Bag", "User Manual"],
-    image: "/gadget/products/tripod-plokama-pk8899.webp",
-  },
-  {
-    name: "Plokama VT-170 170cm Camera & Phone Tripod – 3-Way Pan Head",
-    slug: "vt-170-aluminum-video-tripod",
-    brand: "Plokama",
-    sku: "VG-TP-VT170",
-    category: "tripod",
-    price: 3199,
-    compareAtPrice: 4299,
-    rating: 4.7,
-    reviewCount: 28,
-    featured: false,
-    badge: "170CM + 3-Way Pan Head",
-    stockStatus: "in-stock",
-    shortDescription:
-      "Frame the shot instead of fighting the stand. Plokama VT-170 reaches 170cm with a 3-way pan head, universal 1/4″ mount and rotating phone holder for photography, video and content creation.",
-    details: `# Stability Is Only Half of a Good Tripod.
-
-The other half is being able to put the camera exactly where you want it.
-
-The **Plokama VT-170** combines a tall 170cm tripod with a **3-way pan head**, giving you more deliberate control over horizontal movement, vertical angles and overall framing.
-
-> **The highlight:** 3-way angle control for more precise photography and video.
-
-# From Product Shots to Full-Height Content
-
-Raise the VT-170 to approximately **170cm** for standing videos, portraits and livestreaming.
-
-Lower it when you're shooting:
-
-- Products
-- Tabletop videos
-- Seated tutorials
+- Product videos
+- Architecture shots
 - Interviews
-- Food content
-- Indoor photography
+- Static YouTube videos
+- Photography
 
-That flexibility means one tripod can stay useful across very different types of shooting.
+# More Height Without Becoming Huge to Carry
 
-# Move the Camera — Not the Whole Tripod
+Depending on the documented variant, maximum height is roughly **143–152.5cm**, while the folded length is around **56.5cm**.
 
-The **3-way pan head** lets you tilt, rotate and reposition the camera without constantly moving the tripod legs.
+That gives you useful shooting height while remaining portable enough for regular use.
 
-That's especially useful for:
+# Add Stability When the Environment Gets Difficult
 
-- Panning across a scene
-- Portrait vs landscape framing
-- Product demonstrations
-- Tutorials
-- Photography composition
+A center **weight hook** lets you add extra mass underneath the tripod.
 
-# Phone or Camera
+Combined with rubber feet and quick leg locks, this can make outdoor and uneven-surface work more manageable.
 
-A universal **1/4-inch mount** works with a wide variety of compatible cameras and accessories.
+> **~1.5M • 3KG LOAD • BUBBLE LEVEL • WEIGHT HOOK • 3-WAY HEAD**
 
-The supplied rotating mobile clip also makes the tripod practical for smartphone creators.
-
-# Quick Setup When the Shot Matters
-
-Quick-release leg locks help you adjust the height faster, while rubberized feet on documented versions improve grip on flat surfaces.
-
-> **170CM • 3-WAY HEAD • 1/4″ MOUNT • PHONE HOLDER**
-
-**Stable legs. More control over the frame.**`,
+**A proper tripod for when your setup starts getting more serious.**`,
     features: [
-      "3-way pan head gives better control over tilt, rotation and composition",
-      "170cm maximum height works well for standing videos and portraits",
-      "Universal 1/4″ screw supports compatible cameras and accessories",
-      "Rotating mobile clip makes smartphone shooting easy",
-      "Quick-release leg locks make height changes faster",
-      "Lightweight-alloy construction makes it easier to travel with",
-      "Suitable for product videos, YouTube, TikTok, livestreams and photography",
+      "Up to 3kg documented load gives you more equipment flexibility",
+      "Approx. 1.4–1.5m working height suits everyday photography and video",
+      "3-way head makes framing easier",
+      "Bubble level helps straighten the shot",
+      "Center hook allows extra stabilizing weight",
+      "Quick leg locks speed up setup",
+      "Rubber feet improve grip",
+      "Works with phones, cameras and camcorders",
     ],
     specifications: [
-      { label: "Brand", value: "Plokama" },
-      { label: "Model", value: "VT-170" },
-      { label: "Maximum Height", value: "170cm" },
-      { label: "Mount", value: "Universal 1/4″" },
-      { label: "Head", value: "3-Way Pan Head" },
-      { label: "Phone Holder", value: "Double-Pull Rotating Clip" },
-      { label: "Leg Locks", value: "Quick Release" },
-      { label: "Material", value: "Lightweight Aluminum/Alloy" },
-      { label: "Orientation", value: "Portrait & Landscape Supported" },
-      { label: "Use", value: "Camera, Smartphone, Ring Light, Projector & Compatible Accessories" },
+      { label: "Brand", value: "CANDC" },
+      { label: "Model", value: "DC-320" },
+      { label: "Material", value: "Aluminum Alloy + ABS" },
+      { label: "Minimum / Folded Height", value: "Approx. 56–56.5cm" },
+      {
+        label: "Maximum Height",
+        value: "Approx. 143–152.5cm depending listing",
+      },
+      { label: "Maximum Load", value: "Up to 3kg" },
+      { label: "Mount", value: "Standard 1/4″" },
+      { label: "Head", value: "3-Way / Adjustable" },
+      { label: "Bubble Level", value: "Yes" },
+      { label: "Weight Hook", value: "Yes" },
+      { label: "Quick Leg Locks", value: "Yes" },
+      { label: "Phone Support", value: "Yes" },
     ],
     compatibility: [
       "Smartphones",
-      "DSLR / Mirrorless Cameras",
-      "Digital Cameras",
-      "Compatible Ring Lights",
-      "Projectors with 1/4″ mounting",
-      "Photography",
-      "Vlogging",
-      "Livestreaming",
+      "DSLR / mirrorless cameras",
+      "Camcorders",
+      "Creator accessories with 1/4″ mount",
     ],
     inTheBox: [
-      "Plokama VT-170 Tripod",
-      "Mobile Phone Holder / Clip",
-      "Carry Bag",
+      "CANDC DC-320 Tripod",
+      "Phone Holder",
+      "Carrying Case / Bag",
+      "Retail Box",
     ],
-    image: "/gadget/products/tripod-vt170.webp",
+    image: "/gadget/products/tripod-candac-dc320.webp",
   },
   {
-    name: "Plokama PK-9950 150cm Professional Tripod – Phone & Camera Remote",
-    slug: "plokama-pk-9950-heavy-duty-tripod",
-    brand: "Plokama",
-    sku: "VG-TP-PK9950",
+    name: "CANDC DC-6360 173cm Professional Tripod with Boom Arm",
+    slug: "candac-6360-professional-tripod",
+    brand: "CANDC",
+    sku: "VG-TP-CDC6360",
     category: "tripod",
-    price: 4499,
-    compareAtPrice: 5999,
+    price: 3899,
+    compareAtPrice: 5299,
     rating: 4.8,
-    reviewCount: 31,
-    featured: false,
-    badge: "Compact 150CM Hybrid Tripod",
+    reviewCount: 23,
+    featured: true,
+    badge: "Boom Arm • 173CM",
     stockStatus: "in-stock",
     shortDescription:
-      "Portable enough for travel, capable enough for serious content. Plokama PK-9950 combines 150cm height, 360° rotation, quick-release camera mounting, phone holder and remote control.",
-    details: `# Not Every Shoot Needs a Two-Meter Stand.
+      "Go beyond eye-level shots. CANDC DC-6360 combines a professional tripod platform with a boom-arm design and up to approximately 173cm height for creative camera, product and overhead-style angles.",
+    details: `# Some Shots Need the Camera Somewhere a Normal Tripod Can't Put It
 
-Sometimes the better tripod is the one you'll actually take with you.
+A conventional tripod is excellent when the camera needs to sit directly above its center column.
 
-The **Plokama PK-9950** gives you a practical **150cm shooting height** while staying more compact than the taller 190–200cm models.
+But product photography, flat-lays and more creative filming often need **the camera moved outward from the tripod itself**.
 
-> **The highlight:** Phone + camera versatility in a more travel-friendly 150cm tripod.
+That's where the **CANDC DC-6360 boom-arm design** becomes interesting.
 
-# Switch from Phone to Camera Faster
+> **The highlight: a tripod with boom-arm positioning for more creative shooting angles.**
 
-The PK-9950 uses a **standard 1/4-inch mounting system and quick-release plate**, helping compatible cameras go on and off the tripod without turning setup into a project.
+# Put the Camera Over the Subject
 
-A phone holder is also supplied on common packages, letting the same tripod work for smartphone content.
+The documented boom-arm configuration gives creators more flexibility for shooting:
 
-# Shoot Vertical or Horizontal
+- **Products on a table**
+- **Flat-lay photography**
+- **Food content**
+- **Unboxings**
+- **Craft tutorials**
+- **Desk videos**
+- **Creative camera angles**
 
-The head provides **360° rotation**, while exact-model sources also list approximately **90° vertical positioning**.
+Instead of trying to lean a conventional tripod over your table, the horizontal arm can position compatible equipment farther from the center of the legs.
 
-That makes it useful for:
+# Reach Up to Around 173cm
 
-- **Portraits**
-- **Landscape photography**
-- **TikTok**
-- **Reels**
-- **YouTube**
-- **Travel video**
-- **Product photography**
+The strongest exact listing identifies the DC-6360 with a **maximum height of approximately 1730mm**.
 
-# Step Away from the Camera
+That gives you useful height even when you're not using the boom configuration.
 
-A **Bluetooth/wireless remote** is supplied with common PK-9950 packages, letting compatible smartphone users take pictures from a distance.
+# Made for More Serious Creator Setups
 
-Set the camera angle, get into position and shoot without touching the phone.
+Current listings identify the DC-6360 as a **professional tripod / camera tripod and monopod** rather than a lightweight mobile selfie stand.
 
-# Built for Carrying
+> **173CM • BOOM ARM • CAMERA TRIPOD • CREATIVE ANGLES**
 
-Exact listings place the folded size at roughly **56–60cm**, making it easier to transport than full-height studio stands.
+# Stop Making the Shot Fit the Tripod
 
-> **150CM • 360° • QUICK RELEASE • PHONE + CAMERA • REMOTE**
+The DC-6360 is strongest when you need **camera placement that goes beyond straight-up-and-down shooting.**
 
-**Less bulk. Still enough tripod for real creator work.**`,
+**Move the camera where the content needs it.**`,
     features: [
-      "150cm height gives useful shooting range without the bulk of a 2m stand",
-      "Quick-release mounting helps you attach and remove compatible cameras faster",
-      "Works with both smartphones and cameras",
-      "360° rotation gives you flexible composition",
-      "90° vertical positioning supports portrait-oriented content",
-      "Wireless remote makes solo smartphone photography easier",
-      "Compact folded design is more practical for travel",
-      "Non-slip feet on documented variants improve stability on flat surfaces",
+      "Boom-arm configuration allows more flexible camera positioning",
+      "Useful for overhead and tabletop-style creator work",
+      "Approx. 173cm maximum height on current exact listing",
+      "Suitable for professional camera/content setups",
+      "Can handle conventional shooting as well as more creative compositions",
+      "Especially useful for products, food, craft and unboxing content",
     ],
     specifications: [
-      { label: "Brand", value: "Plokama" },
-      { label: "Model", value: "PK-9950" },
-      { label: "Maximum Height", value: "Up to approx. 150cm" },
-      { label: "Minimum Height", value: "Approx. 55cm on documented variant" },
-      { label: "Folded Length", value: "Approx. 56–60cm" },
-      { label: "Head Rotation", value: "360°" },
-      { label: "Vertical Adjustment", value: "Up to approx. 90°" },
-      { label: "Mount", value: "Standard 1/4″" },
-      { label: "Quick-Release Plate", value: "Yes" },
-      { label: "Phone Holder", value: "Included on common package" },
-      { label: "Remote", value: "Bluetooth/Wireless Remote" },
-      { label: "Build", value: "ABS + Metal / Aluminum Alloy" },
+      { label: "Brand", value: "CANDC" },
+      { label: "Model", value: "DC-6360" },
+      { label: "Product Type", value: "Professional Tripod / Camera Support" },
+      {
+        label: "Maximum Height",
+        value: "Approx. 173cm on strongest exact listing",
+      },
+      { label: "Boom Arm", value: "Yes, documented variant" },
+      { label: "Camera Use", value: "Supported" },
+      { label: "Phone Use", value: "Listings also identify phone compatibility" },
+      { label: "Color", value: "Black commonly shown" },
     ],
     compatibility: [
-      "Smartphones",
-      "DSLR Cameras",
-      "Mirrorless Cameras",
-      "Compact Cameras",
-      "Action Cameras with compatible adapter",
-      "Projectors/accessories using compatible 1/4″ mount",
-      "Photography & Mobile Video",
+      "Compatible cameras",
+      "Smartphones with suitable holder",
+      "Product photography",
+      "Creator desk and tabletop setups",
     ],
-    inTheBox: [
-      "Plokama PK-9950 Tripod",
-      "Phone Holder",
-      "Bluetooth Remote",
-      "Carry Bag",
-    ],
-    image: "/gadget/products/tripod-plokama-pk9950.webp",
+    inTheBox: ["CANDC DC-6360 Tripod"],
+    image: "/gadget/products/tripod-candac-6360.webp",
   },
   {
-    name: "Plokama VT-200 2M Creator Tripod – 360° Phone Holder + Remote",
-    slug: "vt-200-professional-camera-tripod",
-    brand: "Plokama",
-    sku: "VG-TP-VT200",
+    name: "JMARY KP-2207 Overhead 2-in-1 Tripod – Phone & Camera",
+    slug: "jmary-kp-2207-portable-camera-tripod",
+    brand: "JMARY",
+    sku: "VG-TP-JM2207",
     category: "tripod",
-    price: 4999,
-    compareAtPrice: 6799,
-    rating: 4.9,
+    price: 2999,
+    compareAtPrice: 4199,
+    rating: 4.8,
     reviewCount: 36,
     featured: true,
-    badge: "2M Full-Height Creator Stand",
+    badge: "Overhead / Top-Down Creator",
     stockStatus: "in-stock",
     shortDescription:
-      "Go from desk shots to full-height creator content with one stand. Plokama VT-200 reaches 200cm with 360° phone rotation, 180° vertical adjustment, remote control and universal camera mounting.",
-    details: `# Stop Building Your Camera Setup on Top of Furniture.
+      "Made for the shots ordinary tripods struggle with. JMARY KP-2207 switches between standard and overhead shooting for unboxings, food videos, product reels and desk content.",
+    details: `# Finally Put the Camera Directly Above the Table
 
-The **Plokama VT-200** reaches a full **200cm**, giving you enough height for standing content, elevated angles and professional-looking framing without putting your phone or camera on a chair.
+If you make **unboxings, food videos, product demonstrations or desk tutorials**, you already know the problem:
 
-> **The highlight:** A full 2-meter creator tripod for phones and cameras.
+A normal tripod wants to keep the camera beside the table—not above it.
 
-# Full-Body Content Finally Fits Naturally
+The **JMARY KP-2207** is designed specifically to solve that.
 
-Extend the tripod for:
+> **The highlight: switch from a normal tripod to an overhead/top-down setup using the same stand.**
 
-- **Fashion videos**
-- **Full-body TikToks**
-- **Workout content**
-- **Standing tutorials**
-- **Interviews**
-- **Group photography**
-- **Livestreaming**
+# The Perfect Angle for Products and Hands-On Content
 
-Instead of tilting a short tripod upward, bring the camera itself closer to the correct height.
+Move the horizontal axis over your working surface and frame the camera directly downward.
 
-# Rotate the Phone Where the Platform Needs It
+That makes the KP-2207 particularly useful for:
 
-The mobile holder supports **360° rotation**, making portrait-to-landscape changes quick.
+- **Product unboxings**
+- **Food videos**
+- **Drawing**
+- **Craft tutorials**
+- **Phone repair**
+- **Cooking**
+- **Flat-lay photography**
+- **Desk demonstrations**
 
-Current exact Pakistan documentation also specifies roughly **180° vertical adjustment**, giving you much more flexibility for high, low and desk-style angles.
+The viewer sees your hands and the subject instead of an awkward side angle.
 
-# Use More Than Just a Phone
+# Turn It Back Into a Normal Tripod
 
-The universal **1/4-inch mounting interface** allows the VT-200 to work with compatible cameras, phones, ring lights and other accessories.
+Top-down filming isn't the only thing it can do.
 
-That gives creators room to upgrade equipment later without immediately replacing the stand.
+The **2-in-1 design converts back to conventional tripod mode**, so you can use the same stand for portraits, talking videos and general photography.
 
-# Shoot from a Distance
+# Official JMARY Construction
 
-The included **remote control** lets compatible smartphone users take photos or start supported shooting functions without standing next to the device.
+JMARY specifies:
 
-A carry bag is also included on the current Pakistan package.
+**4-section aluminum legs**, **133cm maximum height**, **1.5kg load capacity**, **42cm folded size** and a **standard UNC 1/4″ screw**.
 
-> **200CM • 360° ROTATION • 180° ADJUSTMENT • REMOTE • 1/4″ MOUNT**
+A ball-head/quick-release style setup also gives creators flexible positioning.
 
-**Raise the camera to the shot — instead of compromising the shot for the tripod.**`,
+> **OVERHEAD • 2-IN-1 • 1/4″ MOUNT • 1.5KG LOAD**
+
+# One Tripod. A Completely Different Camera Angle.
+
+For normal videos, use it upright.
+
+When the content moves to the table, **move the camera above it instead of rearranging your entire room.**
+
+**That's the reason to buy the KP-2207.**`,
     features: [
-      "200cm height handles full-body videos and elevated camera positions",
-      "360° phone rotation makes vertical and horizontal shooting simple",
-      "180° vertical adjustment adds more high/low angle flexibility",
-      "Wireless remote makes solo shooting easier",
-      "Universal 1/4″ interface supports phones, cameras and compatible accessories",
-      "Durable alloy construction is designed for repeated creator use",
-      "Carry bag makes a 2-meter-capable tripod easier to move",
-      "Useful for TikTok, YouTube, photography, tutorials and product shoots",
+      "Overhead mode is ideal for top-down creator content",
+      "2-in-1 design also works as a conventional tripod",
+      "Perfect for unboxing, cooking, repair, drawing and product videos",
+      "Standard 1/4″ mounting works with many compatible devices",
+      "1.5kg official maximum load",
+      "133cm official maximum height",
+      "Only 0.68kg, making it relatively easy to transport",
+      "4-section aluminum legs balance portability and support",
     ],
     specifications: [
-      { label: "Brand", value: "Plokama" },
-      { label: "Model", value: "VT-200" },
-      { label: "Maximum Height", value: "200cm" },
-      { label: "Phone Rotation", value: "360°" },
-      { label: "Vertical Adjustment", value: "Approx. 180°" },
-      { label: "Mount", value: "Universal 1/4″" },
-      { label: "Phone Holder", value: "Rotating / Expandable" },
-      { label: "Remote", value: "Wireless Remote Included" },
-      { label: "Material", value: "Durable Alloy" },
-      { label: "Compatibility", value: "Smartphones, Cameras & Compatible Accessories" },
-      { label: "Carry Bag", value: "Included on current Pakistan package" },
+      { label: "Brand", value: "JMARY" },
+      { label: "Model", value: "KP-2207" },
+      { label: "Design", value: "Overhead + Standard 2-in-1" },
+      { label: "Maximum Height", value: "133cm" },
+      { label: "Minimum Height", value: "38.5cm" },
+      { label: "Folded Height", value: "42cm" },
+      { label: "Weight", value: "0.68kg" },
+      { label: "Max Load", value: "1.5kg" },
+      { label: "Legs", value: "4-Section Aluminum" },
+      { label: "Mount", value: "UNC 1/4″" },
+      { label: "Head", value: "Adjustable / Ball-Head Style" },
     ],
     compatibility: [
-      "iPhone & Android Smartphones",
-      "DSLR / Mirrorless Cameras",
-      "Digital Cameras",
-      "Compatible Ring Lights",
-      "Compatible Photography Accessories",
-      "TikTok",
-      "YouTube",
-      "Livestreaming",
-      "Tutorials & Product Shoots",
+      "Smartphones with compatible holder",
+      "DSLR / Mirrorless Cameras within load limit",
+      "Action Cameras with compatible mount",
+      "Product photography",
+      "Overhead filming",
+      "Flat-lay photography",
     ],
-    inTheBox: [
-      "Plokama VT-200 Tripod",
-      "Phone Holder",
-      "Wireless Remote",
-      "Carry Bag",
-    ],
-    image: "/gadget/products/tripod-vt200.webp",
+    inTheBox: ["JMARY KP-2207 Tripod"],
+    image: "/gadget/products/tripod-jmary-kp2207.webp",
   },
   {
-    name: "Plokama PK-9970 190cm Professional Tripod – Phone & Camera + Remote",
-    slug: "plokama-pk-9970-heavy-duty-tripod",
+    name: "Plokama AUTO-A20 AI 360° Auto-Tracking Phone Holder",
+    slug: "plokama-auto-a20-ai-smart-tracking-tripod",
     brand: "Plokama",
-    sku: "VG-TP-PK9970",
+    sku: "VG-TP-AUTOA20",
     category: "tripod",
-    price: 5299,
+    price: 4999,
     compareAtPrice: 6999,
-    rating: 4.8,
-    reviewCount: 27,
+    rating: 4.9,
+    reviewCount: 44,
     featured: true,
-    badge: "190CM High-Reach Tripod",
+    badge: "AI Follows You 360°",
     stockStatus: "in-stock",
     shortDescription:
-      "Get close to full 2-meter shooting height without carrying the biggest studio stand. Plokama PK-9970 reaches around 190cm with 360° positioning, phone mount and Bluetooth remote.",
-    details: `# Almost Two Meters of Shooting Height
+      "Your cameraman just became automatic. Plokama AUTO-A20 detects and follows your movement through 360°, with gesture controls, no required app, remote operation and tripod support.",
+    details: `# Move Around. The Camera Follows.
 
-A short tripod forces you to compromise the frame.
+Recording alone usually means one annoying limitation:
 
-The **Plokama PK-9970** extends to approximately **190cm**, giving you the height needed for standing portraits, full-body creator content, events and elevated camera positions.
+**you have to stay exactly where the phone is pointing.**
 
-> **The highlight:** Near-2-meter height for both phone and camera shooting.
+The **Plokama AUTO-A20** changes that.
 
-# Go from Mobile Content to Camera Work
+Its AI tracking system is designed to detect the subject and **rotate automatically as you move around the room**.
 
-A standard **1/4-inch mounting interface** supports compatible cameras, while the supplied phone holder makes the same tripod practical for mobile creators.
+> **The highlight: you move—the phone turns to follow you.**
 
-That means you can use it for:
+# Record Yourself Without a Cameraman
 
-- **TikTok & Reels**
-- **YouTube**
-- **Portrait photography**
-- **Event photography**
-- **Product content**
-- **Livestreaming**
-- **Travel shoots**
+The holder can rotate through **360° horizontally**, helping keep you inside the frame while you:
 
-without keeping separate stands for every device.
+- **Cook**
+- **Teach**
+- **Exercise**
+- **Livestream**
+- **Apply makeup**
+- **Demonstrate products**
+- **Record TikToks**
+- **Make Reels**
+- **Join video calls**
 
-# Frame in Any Direction
+You can move more naturally instead of constantly walking back to reposition the phone.
 
-The head supports **360° movement**, letting you move between different shooting directions while keeping the legs in place.
+# No Special App Required
 
-That's especially helpful for panoramic framing, events and content where the subject moves around the scene.
+One of the most useful exact-model features is **no-app operation**.
 
-# Shoot Without Running Back to the Phone
+The tracking system works through the holder itself instead of forcing you to install a questionable third-party camera application.
 
-A **Bluetooth remote** is included on current Pakistan-market listings.
+That means you can continue using the camera/social apps you already know.
 
-Set the tripod, compose the shot and trigger compatible smartphone photography while you're already in position.
+# Control It with Your Hands
 
-# High Reach Without Extreme Weight
+The AUTO-A20 supports **gesture-based tracking controls**.
 
-A detailed exact-model specification lists the PK-9970 at roughly **970g**, with ABS + metal construction.
+Exact packaging shows gestures for controlling tracking states, allowing you to interact with the setup while standing in front of the camera.
 
-That's a useful balance for creators who want serious height but still need to move the tripod from place to place.
+A remote is also included/shown on the exact model.
 
-> **190CM • 360° • PHONE + CAMERA • REMOTE • ~970G**
+# Put It on a Desk—or Your Existing Tripod
 
-**Go higher without turning your creator setup into permanent studio equipment.**`,
+The built-in base works well for tabletop recording.
+
+Need it higher?
+
+A **standard 1/4″ tripod interface** means you can mount the AUTO-A20 on a compatible tripod and turn it into a taller AI-following camera setup.
+
+# Recharge with USB-C
+
+The exact unit uses **USB Type-C 5V/1A charging** and weighs around **220g**, with dimensions approximately **82 × 82 × 180mm**.
+
+> **AI TRACKING • 360° • GESTURE CONTROL • NO APP • TYPE-C**
+
+# Your Phone Doesn't Need Someone Standing Behind It
+
+Set it down.
+
+Put the phone in.
+
+Start moving.
+
+**AUTO-A20 does the camera turning for you.**`,
     features: [
-      "Approx. 190cm height gives you excellent standing and elevated shooting range",
-      "Compatible with both phones and cameras",
-      "360° head movement makes changing direction easier",
-      "Bluetooth remote simplifies solo smartphone photography",
-      "Universal 1/4″ mounting works with common compatible camera accessories",
-      "ABS + metal construction balances strength with portability",
-      "Approx. 970g documented weight keeps the high-reach tripod manageable",
-      "Useful for events, travel, TikTok, photography and studio content",
+      "AI tracking automatically follows your movement",
+      "360° horizontal rotation gives you freedom to move around the room",
+      "No dedicated app required",
+      "Gesture control lets you control tracking from in front of the camera",
+      "Remote control provides another hands-free control method",
+      "Standard 1/4″ mount lets you attach it to a compatible tripod",
+      "USB-C charging",
+      "Works with compatible iPhone and Android phones",
+      "Excellent for solo TikTok, cooking, fitness and livestream content",
     ],
     specifications: [
       { label: "Brand", value: "Plokama" },
-      { label: "Model", value: "PK-9970" },
-      { label: "Maximum Height", value: "Up to approx. 190cm / 1.9m" },
-      { label: "Material", value: "ABS + Metal" },
-      { label: "Weight", value: "Approx. 970g on documented 190cm variant" },
-      { label: "Head Movement", value: "360°" },
-      { label: "Mount", value: "Universal 1/4″" },
-      { label: "Phone Holder", value: "Included" },
-      { label: "Remote", value: "Bluetooth Remote Included" },
-      { label: "Use", value: "Mobile, Camera, Photography, Video & Content Creation" },
+      { label: "Model", value: "AUTO-A20" },
+      { label: "Product Type", value: "AI Tracking Phone Holder" },
+      { label: "Tracking", value: "AI Face / Motion Tracking" },
+      { label: "Rotation", value: "360° Horizontal Unlimited" },
+      { label: "App Required", value: "No" },
+      { label: "Gesture Control", value: "Yes" },
+      { label: "Remote", value: "Included / documented" },
+      { label: "Tripod Mount", value: "1/4″" },
+      { label: "Charging", value: "USB-C, 5V/1A" },
+      { label: "Size", value: "Approx. 82 × 82 × 180mm" },
+      { label: "Net Weight", value: "Approx. 220g" },
+      { label: "Phone Orientation", value: "Portrait + Landscape" },
+      { label: "Compatibility", value: "iOS & Android Smartphones" },
     ],
     compatibility: [
       "iPhones",
       "Android Smartphones",
-      "DSLR Cameras",
-      "Mirrorless Cameras",
-      "Digital Cameras",
-      "Compatible 1/4″ Accessories",
-      "TikTok / Reels / YouTube",
-      "Events & Photography",
+      "TikTok",
+      "Instagram Reels",
+      "YouTube",
+      "Video Calls",
+      "Livestreaming",
+      "Online Teaching",
+      "Makeup / Beauty Videos",
+      "Fitness Videos",
     ],
     inTheBox: [
-      "Plokama PK-9970 Tripod",
-      "Phone Holder / Clip",
-      "Bluetooth Remote",
+      "Plokama AUTO-A20 Tracking Holder",
+      "Phone Clamp",
+      "Remote Control",
+      "USB-C Charging Cable",
     ],
-    image: "/gadget/products/tripod-plokama-pk9970.webp",
+    image: "/gadget/products/tripod-plokama-a20.webp",
+  },
+  {
+    name: "BLÜK'S BX-391 6ft Camera Tripod – 3kg Professional Stand",
+    slug: "bluks-bx-391-heavy-duty-tripod",
+    brand: "BLÜK'S",
+    sku: "VG-TP-BX391",
+    category: "tripod",
+    price: 3699,
+    compareAtPrice: 4999,
+    rating: 4.7,
+    reviewCount: 21,
+    featured: true,
+    badge: "6FT • 3KG Camera Tripod",
+    stockStatus: "in-stock",
+    shortDescription:
+      "Built for cameras, tall enough for serious creator setups. BLÜK'S BX-391 reaches 6 feet with a 3kg load rating, 3-way pan head, aluminum body and 1/4″ quick-release mount.",
+    details: `# Six Feet of Proper Camera Support
+
+The **BLÜK'S BX-391** is not trying to be a pocket-size selfie stick.
+
+It is a **full-size camera/camcorder tripod** made for creators and photographers who need real height and a stronger equipment platform.
+
+> **The highlight: up to 6 feet tall with an official 3kg load rating.**
+
+# Put the Camera at Eye Level
+
+The BX-391 extends to approximately **183cm / 6 feet**, which makes a major difference for:
+
+- **Standing portraits**
+- **Interviews**
+- **Event photography**
+- **Full-body videos**
+- **Livestreaming**
+- **YouTube**
+- **Studio photography**
+
+Instead of pointing a short tripod upward at the subject, place the camera closer to the height it should actually be.
+
+# A Head Designed for Framing
+
+The **3-way pan-and-tilt head** gives you deliberate control over camera movement.
+
+Use the **360° central-axis rotation** for panoramic repositioning while keeping the tripod legs stationary.
+
+# Made to Hold More Than a Phone
+
+BLÜK'S officially rates the BX-391 for **up to 3kg**.
+
+That makes it far more appropriate for compatible:
+
+- DSLR cameras
+- Mirrorless cameras
+- Camcorders
+- Smartphones with adapter
+
+than very lightweight mobile-only tripods.
+
+# Stability Where It Matters
+
+The BX-391 includes:
+
+- **Quick-release flip locks**
+- **Rubber foot pads**
+- **Center weight hook**
+- **1/4″ quick-release plate**
+- **Aluminum body**
+
+Those are practical features that matter more as your equipment becomes heavier.
+
+> **6FT • 3KG • 3-WAY HEAD • ALUMINUM • 1/4″ QUICK RELEASE**
+
+# Buy the Tripod Your Camera Can Grow Into
+
+A cheap tripod may be enough for your first phone video.
+
+The BX-391 makes more sense for the customer who wants **one stand that remains useful when the camera gear gets more serious.**
+
+**More height. More support. More room to grow.**`,
+    features: [
+      "183cm / 6ft maximum height supports proper standing camera positions",
+      "Official 3kg load rating handles significantly more than lightweight selfie tripods",
+      "3-way pan and tilt head gives you controlled framing",
+      "360° center-axis rotation",
+      "Standard 1/4″ quick-release mounting",
+      "Aluminum body provides strength without excessive bulk",
+      "Rubber feet improve stability",
+      "Weight hook lets you add more stabilizing mass",
+      "Quick flip locks simplify height changes",
+      "BLÜK'S Pakistan lists a 1-year warranty for this model",
+    ],
+    specifications: [
+      { label: "Brand", value: "BLÜK'S" },
+      { label: "Model", value: "BX-391" },
+      { label: "Type", value: "Camera / Camcorder Tripod" },
+      { label: "Material", value: "Aluminum" },
+      { label: "Minimum Height", value: "555mm" },
+      { label: "Maximum Height", value: "1830mm / 6ft" },
+      { label: "Closed Height", value: "575mm" },
+      { label: "Maximum Load", value: "3kg" },
+      { label: "Head", value: "3-Way Pan & Tilt" },
+      { label: "Rotation", value: "360° Central Axis" },
+      { label: "Mount", value: "UNC 1/4″ Quick Release" },
+      { label: "Leg Locks", value: "Quick-Release Flip" },
+      { label: "Feet", value: "Rubber" },
+      { label: "Weight Hook", value: "Yes" },
+      { label: "Certifications", value: "CE & RoHS listed" },
+      { label: "Warranty", value: "1 Year listed by BLÜK'S" },
+    ],
+    compatibility: [
+      "DSLR Cameras",
+      "Mirrorless Cameras",
+      "Camcorders",
+      "Smartphones with compatible adapter",
+      "Photography",
+      "Video",
+      "Interviews",
+      "Studio Creator Work",
+    ],
+    inTheBox: ["1 × BLÜK'S BX-391 Tripod"],
+    image: "/gadget/products/tripod-bluks-bx391.webp",
   },
 ];

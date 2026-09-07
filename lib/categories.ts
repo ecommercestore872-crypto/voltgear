@@ -54,7 +54,8 @@ export const FALLBACK_SHOP_TYPES: ShopType[] = [
   {
     name: "Tripods & Stands",
     slug: "tripod",
-    description: "Camera, phone and studio light tripods for creators and photography.",
+    description:
+      "Camera and phone tripods for creators — overhead, boom-arm, AI tracking and full-size stands.",
     imageUrl: "/categories/selfie-stick.png",
     sortOrder: 7,
   },

@@ -90,7 +90,7 @@ const CATEGORY_HUB_BLURBS: Record<string, string> = {
   "selfie-stick":
     "Buy Bluetooth selfie sticks in Pakistan at Buy n Try. Compact sticks with remote and tripod modes — cash on delivery from buyntryy.com.",
   tripod:
-    "Shop camera and phone tripods in Pakistan at Buy n Try. Plokama stands for creators, photography and studio lights — cash on delivery from buyntryy.com.",
+    "Shop camera and phone tripods in Pakistan at Buy n Try. Overhead, boom-arm, AI tracking and full-size camera stands — cash on delivery from buyntryy.com.",
   microphones:
     "Shop wireless lavalier and lapel mics in Pakistan at Buy n Try. Creator audio with cash on delivery nationwide.",
 };
