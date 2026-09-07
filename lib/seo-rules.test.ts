@@ -48,7 +48,7 @@ describe("categorySearchMeta", () => {
     assert.ok(meta.keywords.includes("buyntry"));
   });
 
-  it("covers adapters and tripod queries for charger and selfie stick hubs", () => {
+  it("covers adapters, selfie sticks, and dedicated tripod hubs", () => {
     const charger = categorySearchMeta({
       slug: "charger",
       name: "Chargers & Adapters",
@@ -59,10 +59,17 @@ describe("categorySearchMeta", () => {
 
     const sticks = categorySearchMeta({
       slug: "selfie-stick",
-      name: "Selfie Sticks & Tripods",
+      name: "Selfie Sticks",
     });
-    assert.ok(sticks.keywords.includes("tripod"));
     assert.ok(sticks.keywords.includes("selfie stick"));
+    assert.equal(sticks.keywords.includes("tripod"), false);
+
+    const tripods = categorySearchMeta({
+      slug: "tripod",
+      name: "Tripods & Stands",
+    });
+    assert.ok(tripods.keywords.includes("tripod"));
+    assert.ok(tripods.keywords.includes("camera tripod"));
   });
 });
 
