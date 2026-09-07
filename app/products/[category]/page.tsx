@@ -11,7 +11,7 @@ import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
-import { categorySearchMeta, categoryStructuredData, indexSiteUrl } from "@/lib/seo-rules";
+import { categoryHubCopy, categoryRelatedGuide, categorySearchMeta, categoryStructuredData, indexSiteUrl } from "@/lib/seo-rules";
 
 export const revalidate = 60;
 
@@ -29,7 +29,7 @@ export async function generateMetadata({
     description: shop?.description,
   });
   return {
-    title: meta.title,
+    title: { absolute: meta.title },
     description: meta.description,
     keywords: meta.keywords,
     alternates: { canonical: `/products/${params.category}` },
@@ -81,7 +81,6 @@ export default async function Products2CategoryPage({
   }
 
   const title = shop?.name || params.category.replace(/-/g, " ");
-  const description = shop?.description || "Curated picks in this category.";
 
   const q = (searchParams.q || "").trim();
   const qLower = q.toLowerCase();
@@ -97,15 +96,12 @@ export default async function Products2CategoryPage({
   }
 
   const sorted = sortProducts(list, sort);
-  const seo = categorySearchMeta({
-    slug: params.category,
-    name: title,
-    description,
-  });
+  const hubCopy = categoryHubCopy({ slug: params.category, name: title });
   const structured = categoryStructuredData({
     siteUrl: indexSiteUrl(),
     name: title,
     path: `/products/${params.category}`,
+    description: hubCopy,
     items: sorted.slice(0, 20).map((product) => ({
       name: product.name,
       path: `/product/${product.slug}`,
@@ -117,18 +113,23 @@ export default async function Products2CategoryPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([structured.collection, structured.itemList, structured.breadcrumb]),
+          __html: JSON.stringify([
+            structured.collection,
+            structured.itemList,
+            structured.breadcrumb,
+          ]).replace(/</g, "\\u003c"),
         }}
       />
       <GadgetShopCatalog
         title={title}
-        description={seo.description}
+        description={hubCopy}
         products={sorted}
         shopTypes={shopTypes}
         activeCategory={params.category}
         query={q}
         sort={sort}
         config={config}
+        guideLink={categoryRelatedGuide(params.category)}
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Shop", href: products2Href() },

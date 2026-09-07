@@ -21,6 +21,7 @@ export function GadgetShopCatalog({
   breadcrumbs,
   basePath: catalogBasePath,
   flattenGrid,
+  guideLink,
 }: {
   title: string;
   description: string;
@@ -33,6 +34,7 @@ export function GadgetShopCatalog({
   breadcrumbs: { label: string; href?: string }[];
   basePath?: string;
   flattenGrid?: boolean;
+  guideLink?: { href: string; label: string } | null;
 }) {
   const trust: { icon: typeof Wallet; label: string; detail: string }[] = [];
   if (config.codEnabled) {
@@ -107,6 +109,16 @@ export function GadgetShopCatalog({
           <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--g-taupe)] sm:text-[15px]">
             {description}
           </p>
+          {guideLink ? (
+            <p className="mt-2 text-sm">
+              <Link
+                href={guideLink.href}
+                className="font-semibold text-[var(--g-forest)] underline-offset-2 hover:underline"
+              >
+                Read: {guideLink.label}
+              </Link>
+            </p>
+          ) : null}
         </div>
       </div>
 

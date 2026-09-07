@@ -15,6 +15,11 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [...SEARCH_CRAWL_DISALLOW],
       },
       {
+        userAgent: ["Bingbot", "BingPreview"],
+        allow: "/",
+        disallow: [...SEARCH_CRAWL_DISALLOW],
+      },
+      {
         userAgent: adsenseCrawlers.userAgent,
         allow: adsenseCrawlers.allow,
       },

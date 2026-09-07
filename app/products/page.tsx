@@ -9,17 +9,25 @@ import {
 import { isDemoSession } from "@/lib/demo";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { getSettings } from "@/lib/sanity/settings";
+import { shopCatalogSearchMeta } from "@/lib/seo-rules";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
 
 export const revalidate = 60;
 
+const shopMeta = shopCatalogSearchMeta();
+
 export const metadata: Metadata = {
-  title: "Shop electronics accessories in Pakistan",
-  description:
-    "Shop smartwatches, earbuds and airbuds, power banks, chargers, tripods, and more at Buy n Try (buyntryy.com). Cash on delivery nationwide.",
+  title: { absolute: shopMeta.title },
+  description: shopMeta.description,
+  keywords: shopMeta.keywords,
   alternates: { canonical: "/products" },
+  openGraph: {
+    title: shopMeta.title,
+    description: shopMeta.description,
+    type: "website",
+  },
 };
 
 function hasImage(p: Product) {
@@ -74,8 +82,8 @@ export default async function Products2Page({
 
   return (
     <GadgetShopCatalog
-      title="Shop all"
-      description="Curated tech with COD, clear pricing, and warranty-backed picks — find it fast and buy in a few taps."
+      title="Shop electronics in Pakistan"
+      description={shopMeta.description}
       products={inStockFirst}
       shopTypes={shopTypes}
       query={q}

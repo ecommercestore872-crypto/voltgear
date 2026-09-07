@@ -79,17 +79,24 @@ export const metadata: Metadata = {
   description:
     "Buy authentic tripods, wireless earbuds, smartwatches, power banks and chargers at Buy n Try. Try it at home — cash on delivery nationwide.",
   keywords: [
+    "Buy n Try",
+    "buyntry",
+    "buyntryy",
+    "buy n try",
+    "BNT",
     "tripods in Pakistan",
+    "selfie stick Pakistan",
     "best earbuds in Pakistan",
     "airbuds in Pakistan",
     "buy airbuds online Pakistan",
     "smartwatches in Pakistan",
     "power banks Pakistan",
     "fast chargers Pakistan",
+    "adapters Pakistan",
+    "GaN charger Pakistan",
     "wireless microphones Pakistan",
     "ring lights Pakistan",
-    "Buy n Try",
-    "buyntryy",
+    "cash on delivery electronics Pakistan",
   ],
   openGraph: {
     type: "website",
@@ -97,14 +104,14 @@ export const metadata: Metadata = {
     siteName: "Buy n Try",
     title: "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
     description:
-      "Buy authentic tripods, earbuds, smartwatches and chargers. Try it at home — cash on delivery nationwide.",
+      "Buy authentic tripods, earbuds, smartwatches, chargers and adapters. Try it at home — cash on delivery nationwide. buyntryy.com",
     url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
     title: "Buy n Try — Electronics Accessories in Pakistan",
     description:
-      "Buy authentic tripods in Pakistan, wireless earbuds, smartwatches, power banks & fast chargers.",
+      "Buy authentic tripods, wireless earbuds, smartwatches, power banks, adapters & fast chargers in Pakistan.",
   },
   robots: {
     index: true,
@@ -130,6 +137,11 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: {
+      ...(process.env.BING_SITE_VERIFICATION
+        ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+        : {}),
+    },
   },
   other: {
     "google-adsense-account": BUY_N_TRY_ADSENSE_PUB_ID,

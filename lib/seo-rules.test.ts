@@ -4,12 +4,16 @@ import { describe, it } from "node:test";
 import {
   CANONICAL_PUBLIC_ORIGIN,
   SEARCH_CRAWL_DISALLOW,
+  brandSearchAliases,
+  categoryHubCopy,
+  categoryRelatedGuide,
   categorySearchMeta,
   categoryStructuredData,
   indexSiteUrl,
   llmsTxt,
   organizationStructuredData,
   productStructuredData,
+  shopCatalogSearchMeta,
   websiteStructuredData,
 } from "./seo-rules";
 
@@ -32,10 +36,71 @@ describe("categorySearchMeta", () => {
       description: "Immersive sound. All-day comfort.",
     });
     assert.match(meta.title, /Earbuds/i);
-    assert.equal(meta.title.includes("|"), false);
+    assert.match(meta.title, /Pakistan/i);
+    assert.match(meta.title, /Buy n Try/);
     assert.match(meta.description, /airbuds/i);
+    assert.match(meta.description, /cash on delivery/i);
     assert.match(meta.description, /buyntryy\.com/);
     assert.ok(meta.keywords.includes("airbuds"));
+    assert.ok(meta.keywords.includes("buyntry"));
+  });
+
+  it("covers adapters and tripod queries for charger and selfie stick hubs", () => {
+    const charger = categorySearchMeta({
+      slug: "charger",
+      name: "Chargers & Adapters",
+    });
+    assert.ok(charger.keywords.includes("adapters"));
+    assert.ok(charger.keywords.includes("GaN charger"));
+    assert.match(charger.title, /Adapters|Chargers/);
+
+    const sticks = categorySearchMeta({
+      slug: "selfie-stick",
+      name: "Selfie Sticks & Tripods",
+    });
+    assert.ok(sticks.keywords.includes("tripod"));
+    assert.ok(sticks.keywords.includes("selfie stick"));
+  });
+});
+
+describe("categoryHubCopy", () => {
+  it("writes a Pakistan shopping intro for category landings", () => {
+    const copy = categoryHubCopy({
+      slug: "charger",
+      name: "Chargers & Adapters",
+    });
+    assert.match(copy, /Pakistan/i);
+    assert.match(copy, /adapter|charger/i);
+    assert.match(copy, /Buy n Try|buyntryy/i);
+    assert.ok(copy.length >= 80);
+    assert.ok(copy.length <= 320);
+  });
+});
+
+describe("brandSearchAliases", () => {
+  it("lists spellings people type when looking for the store", () => {
+    const aliases = brandSearchAliases();
+    for (const name of ["Buy n Try", "buyntry", "buyntryy", "buy n try", "BNT"]) {
+      assert.ok(aliases.includes(name), name);
+    }
+  });
+});
+
+describe("categoryRelatedGuide", () => {
+  it("links charger and earbuds hubs to buying guides", () => {
+    assert.equal(categoryRelatedGuide("charger")?.href, "/blog/65w-gan-charger-pakistan-guide");
+    assert.equal(categoryRelatedGuide("earbuds")?.href, "/blog/best-tws-earbuds-pakistan-2026");
+    assert.equal(categoryRelatedGuide("unknown"), null);
+  });
+});
+
+describe("shopCatalogSearchMeta", () => {
+  it("positions the full shop for electronics accessories in Pakistan", () => {
+    const meta = shopCatalogSearchMeta();
+    assert.match(meta.title, /Pakistan/i);
+    assert.match(meta.title, /Buy n Try/);
+    assert.match(meta.description, /cash on delivery/i);
+    assert.ok(meta.keywords.includes("buyntry"));
   });
 });
 
@@ -106,6 +171,8 @@ describe("websiteStructuredData", () => {
     assert.equal(data.url, "https://buyntryy.com/");
     assert.ok(data.alternateName.includes("BNT"));
     assert.ok(data.alternateName.includes("buyntryy.com"));
+    assert.ok(data.alternateName.includes("buyntry"));
+    assert.ok(data.alternateName.includes("buy n try"));
     assert.equal(data.potentialAction.target, "https://buyntryy.com/search?q={search_term_string}");
   });
 
@@ -140,5 +207,7 @@ describe("llmsTxt", () => {
     assert.match(text, /buyntryy\.com/);
     assert.match(text, /\/products\/earbuds/);
     assert.match(text, /\/blog/);
+    assert.match(text, /buyntry/i);
+    assert.match(text, /adapters|chargers|earbuds/i);
   });
 });
