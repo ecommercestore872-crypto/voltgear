@@ -5,6 +5,7 @@ import { Children, useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { FirstPartyTracker } from "@/components/analytics/first-party-tracker";
+import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
 import { CookieConsentBar } from "@/components/legal/cookie-consent-bar";
@@ -84,6 +85,7 @@ export function AppChrome({
   return (
     <CartProvider>
       <WishlistProvider>
+        <TikTokPixel />
         {gadget ? (
           <div className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}>
             <FirstPartyTracker />

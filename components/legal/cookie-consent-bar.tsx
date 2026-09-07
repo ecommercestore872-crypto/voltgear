@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export const COOKIE_CONSENT_STORAGE_KEY = "bnt-cookie-consent";
+export const COOKIE_CONSENT_CHANGE_EVENT = "bnt-cookie-consent-change";
+export type CookieConsentChoice = "all" | "essential";
 
-type Choice = "all" | "essential";
-
-function readChoice(): Choice | null {
+function readChoice(): CookieConsentChoice | null {
   if (typeof window === "undefined") return null;
   const raw = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
   return raw === "all" || raw === "essential" ? raw : null;
@@ -16,7 +16,7 @@ function readChoice(): Choice | null {
 
 export function CookieConsentBar() {
   const pathname = usePathname();
-  const [choice, setChoice] = useState<Choice | null | "unknown">("unknown");
+  const [choice, setChoice] = useState<CookieConsentChoice | null | "unknown">("unknown");
 
   useEffect(() => {
     setChoice(readChoice());
@@ -31,9 +31,12 @@ export function CookieConsentBar() {
   }
   if (choice === "unknown" || choice) return null;
 
-  function save(next: Choice) {
+  function save(next: CookieConsentChoice) {
     window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, next);
     setChoice(next);
+    window.dispatchEvent(
+      new CustomEvent(COOKIE_CONSENT_CHANGE_EVENT, { detail: next })
+    );
   }
 
   return (
@@ -45,7 +48,7 @@ export function CookieConsentBar() {
       <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-relaxed text-[var(--g-charcoal)]">
           We use essential cookies for your cart and checkout. Analytics and advertising cookies
-          (including Google) are used only if you allow them. Details:{" "}
+          (including Google and TikTok) are used only if you allow them. Details:{" "}
           <Link href="/privacy-policy" className="font-semibold text-[var(--g-forest)] underline-offset-2 hover:underline">
             Privacy
           </Link>{" "}
