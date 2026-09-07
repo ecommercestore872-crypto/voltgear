@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -38,7 +38,7 @@ import { Label } from "@/components/ui/label";
 import { useCart, cartLineKey } from "@/components/cart/cart-provider";
 import { useDealQuote } from "@/components/deals/use-deal-quote";
 import { saveLastOrder } from "@/lib/review-reminder";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import {
   checkoutValidationCategoryFromHttp,
@@ -61,6 +61,44 @@ const STEPS = [
   { label: "Review" },
   { label: "Complete" },
 ] as const;
+
+const SUMMARY_CARD =
+  "min-w-0 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm sm:rounded-2xl sm:p-5";
+
+function SummaryPriceRow({
+  label,
+  value,
+  tone = "muted",
+}: {
+  label: ReactNode;
+  value: ReactNode;
+  tone?: "muted" | "deal" | "strong";
+}) {
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-0.5 text-[13px] leading-snug">
+      <span
+        className={cn(
+          "min-w-0 break-words",
+          tone === "deal" && "font-semibold text-[var(--g-sage)]",
+          tone === "muted" && "text-muted-foreground",
+          tone === "strong" && "font-semibold text-foreground"
+        )}
+      >
+        {label}
+      </span>
+      <span
+        className={cn(
+          "shrink-0 text-right tabular-nums",
+          tone === "deal" && "font-semibold text-[var(--g-sage)]",
+          tone === "muted" && "font-semibold text-foreground",
+          tone === "strong" && "font-bold text-foreground"
+        )}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
 
 type PaymentMethod = "cod";
 
@@ -743,65 +781,75 @@ export default function CheckoutPage() {
 
           </div>
 
-          {/* ── Order summary sidebar (Figma Matched) ────────────────────────── */}
-          <aside className="w-full space-y-6 lg:sticky lg:top-8 lg:self-start">
-             
-             {/* Main Summary Block */}
-             <div className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
-                <h2 className="text-[17px] font-bold text-foreground border-b pb-4 mb-4">Order Summary</h2>
-                
-                <div className="space-y-3 text-[13px] font-medium border-b pb-4 mb-4">
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal ({items.reduce((acc, i) => acc + i.quantity, 0)} items)</span>
-                    <span className="text-foreground">{formatPrice(subtotal)}</span>
-                  </div>
+          {/* ── Order summary sidebar ────────────────────────────────────────── */}
+          <aside className="w-full space-y-4 lg:sticky lg:top-8 lg:self-start sm:space-y-5">
+             <div className={SUMMARY_CARD}>
+                <h2 className="mb-3 border-b border-[var(--g-line)] pb-3 text-base font-bold text-foreground sm:mb-4 sm:pb-4 sm:text-[17px]">
+                  Order Summary
+                </h2>
+
+                <div className="space-y-2.5 border-b border-[var(--g-line)] pb-3.5 sm:space-y-3 sm:pb-4">
+                  <SummaryPriceRow
+                    label={`Subtotal (${items.reduce((acc, i) => acc + i.quantity, 0)} items)`}
+                    value={formatPrice(subtotal)}
+                  />
                   {dealDiscount > 0 ? (
-                    <div className="flex justify-between font-semibold text-[#13A387]">
-                      <span>Pair deal{dealQuote.applied[0] ? ` · ${dealQuote.applied[0].title}` : ""}</span>
-                      <span>− {formatPrice(dealDiscount)}</span>
-                    </div>
+                    <SummaryPriceRow
+                      tone="deal"
+                      label={
+                        <>
+                          Pair deal
+                          {dealQuote.applied[0] ? (
+                            <span className="font-medium"> · {dealQuote.applied[0].title}</span>
+                          ) : null}
+                        </>
+                      }
+                      value={`− ${formatPrice(dealDiscount)}`}
+                    />
                   ) : null}
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Shipping</span>
-                    <span className="font-bold text-foreground">{shippingLabel ?? "—"}</span>
-                  </div>
-                  {activePromo && (
-                    <div className="flex font-semibold items-center justify-between text-[#13A387] py-2 border-b">
-                      <span>Discount (Promo applied)</span>
-                      <span className="font-bold">- {formatPrice(appliedDiscount)}</span>
-                    </div>
-                  )}
-                  {giftWrap && (
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Gift Wrap</span>
-                      <span className="text-foreground font-bold">{formatPrice(GIFT_WRAP_FEE)}</span>
-                    </div>
-                  )}
+                  <SummaryPriceRow label="Shipping" value={shippingLabel ?? "—"} />
+                  {activePromo ? (
+                    <SummaryPriceRow
+                      tone="deal"
+                      label="Promo discount"
+                      value={`− ${formatPrice(appliedDiscount)}`}
+                    />
+                  ) : null}
+                  {giftWrap ? (
+                    <SummaryPriceRow
+                      tone="strong"
+                      label="Gift wrap"
+                      value={formatPrice(GIFT_WRAP_FEE)}
+                    />
+                  ) : null}
                 </div>
 
-                <div className="flex items-end justify-between mb-2">
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground">Total</h3>
-                    <p className="text-[10px] text-muted-foreground">(Inclusive of all taxes)</p>
+                <div className="mt-3.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 sm:mt-4">
+                  <div className="min-w-0">
+                    <h3 className="text-base font-bold text-foreground sm:text-lg">Total</h3>
+                    <p className="text-[10px] leading-snug text-muted-foreground">
+                      Inclusive of all taxes
+                    </p>
                   </div>
-                  <span className="text-2xl font-black text-primary tracking-tight">
+                  <span className="shrink-0 text-right text-xl font-black tracking-tight text-primary tabular-nums sm:text-2xl">
                     {formatPrice(total)}
                   </span>
                 </div>
 
-                {hasPromo && step === 2 && (
-                  <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F0F7F6] border border-primary/20 p-3 text-xs font-bold text-primary">
-                     <Banknote className="h-4 w-4 shrink-0" />
-                     You will save {formatPrice(appliedDiscount)} on this order!
+                {hasPromo && step === 2 ? (
+                  <div className="mt-3.5 flex items-start gap-2 rounded-lg border border-primary/20 bg-[var(--g-cream)] p-3 text-xs font-bold text-primary sm:mt-4">
+                     <Banknote className="mt-0.5 h-4 w-4 shrink-0" />
+                     <span className="min-w-0 leading-snug">
+                       You will save {formatPrice(appliedDiscount)} on this order!
+                     </span>
                   </div>
-                )}
+                ) : null}
              </div>
 
-             {/* Promo Code Entry */}
              {step === 2 && (
-               <div className="min-w-0 rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
-                 <h3 className="text-[13px] font-bold text-foreground mb-3">Have a Promo Code?</h3>
-                 <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+               <div className={SUMMARY_CARD}>
+                 <h3 className="mb-3 text-[13px] font-bold text-foreground">Have a promo code?</h3>
+                 <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
                     <Input
                        placeholder="Enter promo code"
                        value={promoInput}
@@ -810,91 +858,96 @@ export default function CheckoutPage() {
                        className="h-11 min-w-0 flex-1"
                        disabled={activePromo?.loading}
                     />
-                    <Button variant="default" onClick={handleApplyPromo} disabled={activePromo?.loading || !promoInput.trim()} className="h-11 w-full shrink-0 px-5 font-bold shadow-sm sm:w-auto">
+                    <Button
+                      variant="default"
+                      onClick={handleApplyPromo}
+                      disabled={activePromo?.loading || !promoInput.trim()}
+                      className="h-11 w-full shrink-0 px-5 font-bold shadow-sm sm:w-auto"
+                    >
                       {activePromo?.loading ? "Applying..." : "Apply"}
                     </Button>
                  </div>
-                 {activePromo?.error && <p className="mt-2 text-xs font-semibold text-destructive">{activePromo.error}</p>}
-                 {activePromo && !activePromo.error && (
-                   <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-                     <span className="text-xs font-bold text-primary">Applied: {activePromo.code}</span>
-                     <button type="button" onClick={() => setActivePromo(null)} className="text-xs font-semibold text-muted-foreground hover:text-foreground">Remove</button>
+                 {activePromo?.error ? (
+                   <p className="mt-2 text-xs font-semibold text-destructive">{activePromo.error}</p>
+                 ) : null}
+                 {activePromo && !activePromo.error ? (
+                   <div className="mt-3 flex min-w-0 items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+                     <span className="min-w-0 truncate text-xs font-bold text-primary">
+                       Applied: {activePromo.code}
+                     </span>
+                     <button
+                       type="button"
+                       onClick={() => setActivePromo(null)}
+                       className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                     >
+                       Remove
+                     </button>
                    </div>
-                 )}
+                 ) : null}
                </div>
              )}
 
-             {/* Notice banner for changes */}
-             {priceChanged && (
+             {priceChanged ? (
                <div className="rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-sm text-amber-800">
                  <div className="flex items-start gap-3">
                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                   <div>
-                     <p className="font-semibold">Prices changed directly on server while processing.</p>
-                     <p className="mt-1 text-xs">Your order summary updated. Please review before placing order again.</p>
+                   <div className="min-w-0">
+                     <p className="font-semibold">Prices updated while processing.</p>
+                     <p className="mt-1 text-xs leading-snug">
+                       Review the summary before placing your order again.
+                     </p>
                    </div>
                  </div>
                </div>
-             )}
+             ) : null}
 
-             {/* Sidebar Trust Badges & Submit Button only available on Step 2 Review */}
              {step === 2 && (
-               <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-6">
-                 <div className="space-y-4 border-b pb-6 mb-6">
-                    <div className="flex items-start gap-4">
-                       <div className="w-8 h-8 rounded-full bg-secondary text-primary flex items-center justify-center shrink-0 border">
-                         <ShieldCheck className="w-4 h-4" />
-                       </div>
-                       <div>
-                         <p className="text-[11px] font-bold uppercase text-foreground">1 Year Warranty</p>
-                         <p className="text-[10px] text-muted-foreground mt-0.5">On all products</p>
-                       </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                       <div className="w-8 h-8 rounded-full bg-secondary text-primary flex items-center justify-center shrink-0 border">
-                         <RotateCcw className="w-4 h-4" />
-                       </div>
-                       <div>
-                         <p className="text-[11px] font-bold uppercase text-foreground">7 Days Easy Returns</p>
-                         <p className="text-[10px] text-muted-foreground mt-0.5">Hassle-free returns</p>
-                       </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                       <div className="w-8 h-8 rounded-full bg-secondary text-primary flex items-center justify-center shrink-0 border">
-                         <Banknote className="w-4 h-4" />
-                       </div>
-                       <div>
-                         <p className="text-[11px] font-bold uppercase text-foreground">Cash on Delivery</p>
-                         <p className="text-[10px] text-muted-foreground mt-0.5">Pay when you receive</p>
-                       </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                       <div className="w-8 h-8 rounded-full bg-secondary text-primary flex items-center justify-center shrink-0 border">
-                         <Lock className="w-4 h-4" />
-                       </div>
-                       <div>
-                         <p className="text-[11px] font-bold uppercase text-foreground">Secure Payments</p>
-                         <p className="text-[10px] text-muted-foreground mt-0.5">100% safe & secure</p>
-                       </div>
-                    </div>
+               <div className={SUMMARY_CARD}>
+                 <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
+                    {[
+                      { icon: ShieldCheck, title: "1 Year Warranty", detail: "On all products" },
+                      { icon: RotateCcw, title: "7 Days Easy Returns", detail: "Hassle-free returns" },
+                      { icon: Banknote, title: "Cash on Delivery", detail: "Pay when you receive" },
+                      { icon: Lock, title: "Secure Checkout", detail: "100% safe & secure" },
+                    ].map((item) => (
+                      <div key={item.title} className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] text-primary">
+                          <item.icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold uppercase tracking-wide text-foreground">
+                            {item.title}
+                          </p>
+                          <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+                            {item.detail}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                  </div>
 
-                 <Button 
-                   onClick={() => placeOrder()} 
+                 <Button
+                   onClick={() => placeOrder()}
                    disabled={placing || Boolean(placedOrder)}
-                   className="w-full text-[15px] font-bold h-12 shadow-md gap-2"
+                   className="h-12 w-full gap-2 text-[15px] font-bold shadow-md"
                  >
-                    {placing ? <Loader2 className="animate-spin w-4 h-4" /> : <Lock className="w-4 h-4 shrink-0" />}
+                    {placing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4 shrink-0" />}
                     {placing ? "Processing..." : "Place Order"}
                  </Button>
 
-                 <p className="text-[10px] text-muted-foreground mt-4 text-center leading-relaxed">
-                   By placing your order, you agree to our <br/>
-                   <Link href="/terms" className="text-primary font-bold underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary font-bold underline">Privacy Policy</Link>.
+                 <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground sm:mt-4">
+                   By placing your order, you agree to our{" "}
+                   <Link href="/terms" className="font-bold text-primary underline">
+                     Terms of Service
+                   </Link>{" "}
+                   and{" "}
+                   <Link href="/privacy" className="font-bold text-primary underline">
+                     Privacy Policy
+                   </Link>
+                   .
                  </p>
                </div>
              )}
-
           </aside>
         </div>
       </div>
