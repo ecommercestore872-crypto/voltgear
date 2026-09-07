@@ -16,7 +16,6 @@ import {
   fetchSiteSettings,
   fetchTestimonials,
 } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
 import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
 import {
   homeLayoutIdsForLifestyle,
@@ -41,7 +40,8 @@ function hasUsableImage(product: Product) {
 
 /** Shared Biometic homepage used by live `/` (and formerly `/home2`). */
 export async function GadgetHomePage() {
-  const demo = isDemoSession();
+  // Public ISR path — never read demo cookies here (that opts the whole tree into dynamic).
+  const demo = false;
   let products: Product[] = [];
   let testimonials: Testimonial[] = [];
   let slides: Awaited<ReturnType<typeof fetchHeroSlides>> = [];

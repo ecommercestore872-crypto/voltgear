@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
-import { headers } from "next/headers";
 import { Suspense } from "react";
 
 import { AppChrome } from "@/components/layout/app-chrome";
@@ -15,7 +14,6 @@ import {
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchShopTypes } from "@/lib/db/store";
 import { getSettings, resolveFonts } from "@/lib/sanity/settings";
-import { pathnameFromHeaders } from "@/lib/storefront-layout-rules";
 import { normalizeSettings } from "@/lib/site-config";
 import { themeCssVars, themePreviewScript } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -162,19 +160,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const hdrs = headers();
-  const pathname = pathnameFromHeaders({
-    "x-pathname": hdrs.get("x-pathname"),
-    "next-url": hdrs.get("next-url"),
-  });
-  const skipStorefrontFetch = pathname.startsWith("/admin");
-
-  const settings: SiteSettings | null = skipStorefrontFetch
-    ? null
-    : await getSettings().catch(() => null);
-  const shopTypes = skipStorefrontFetch
-    ? FALLBACK_SHOP_TYPES
-    : await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
+  // Avoid headers()/cookies() here — they force every page dynamic and kill CDN/ISR caching.
+  const settings: SiteSettings | null = await getSettings().catch(() => null);
+  const shopTypes = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
   const config = normalizeSettings(settings);
 
   if (settings?.seo?.title) {
@@ -191,10 +179,16 @@ export default async function RootLayout({
   const { heading, body } = resolveFonts(settings);
   const brandVars = themeCssVars(settings);
   const brandName = settings?.brandName || "Buy n Try";
+  let clarityHost = "";
+  try {
+    clarityHost = new URL(SITE_URL).host;
+  } catch {
+    clarityHost = "";
+  }
   const loadClarity = shouldLoadClarity({
     id: CLARITY_ID,
-    isAdmin: !pathname || pathname.startsWith("/admin"),
-    host: hdrs.get("x-forwarded-host") || hdrs.get("host") || "",
+    isAdmin: false,
+    host: clarityHost,
   });
 
   const jsonLd = [
@@ -220,6 +214,9 @@ export default async function RootLayout({
       className={cn(heading.variable, body.variable)}
     >
       <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://zeuhfqevqjkbzwdaxjuv.supabase.co" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

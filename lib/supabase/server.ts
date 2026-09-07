@@ -20,8 +20,14 @@ export function getServiceClient(): SupabaseClient {
   cached = createClient(env.url, env.serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
-      fetch: (input: RequestInfo | URL, init?: RequestInit) =>
-        fetch(input, { ...init, cache: "no-store" }),
+      // Cache GETs briefly for ISR/storefront speed; keep mutations fresh.
+      fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+        const method = (init?.method || "GET").toUpperCase();
+        if (method !== "GET" && method !== "HEAD") {
+          return fetch(input, { ...init, cache: "no-store" });
+        }
+        return fetch(input, { ...init, next: { revalidate: 60 } });
+      },
     },
   });
   return cached;

@@ -10,10 +10,9 @@ import { ReviewsSection } from "@/components/product/product-info-sections";
 import { ProductViewTracker } from "@/components/product/product-view-tracker";
 import { applyGadgetStudioImages, applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
-import { fetchApprovedReviews, fetchAllProducts, fetchProductBySlug, fetchSiteSettings } from "@/lib/db/store";
+import { fetchApprovedReviews, fetchCatalogProducts, fetchProductBySlug, fetchSiteSettings } from "@/lib/db/store";
 import { publicDealsForSlug } from "@/lib/db/deal-rules";
 import { fetchDealCatalog, listProductDeals } from "@/lib/db/deal-store";
-import { isDemoSession } from "@/lib/demo";
 import { normalizeSettings } from "@/lib/site-config";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product, ProductReview } from "@/lib/types";
@@ -27,7 +26,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const product = await fetchProductBySlug(params.slug, isDemoSession()).catch(() => null);
+  const product = await fetchProductBySlug(params.slug, false).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
   
   const title = `${product.name} — Buy in Pakistan | Buy n Try`;
@@ -74,7 +73,6 @@ export async function generateMetadata({
 }
 
 export default async function Product2Page({ params }: { params: { slug: string } }) {
-  const demo = isDemoSession();
   let product: Product | null = null;
   let related: Product[] = [];
   let settings = null;
@@ -82,12 +80,12 @@ export default async function Product2Page({ params }: { params: { slug: string 
   let deals: Awaited<ReturnType<typeof listProductDeals>> = [];
   let dealCatalog: Awaited<ReturnType<typeof fetchDealCatalog>> = [];
   try {
-    product = await fetchProductBySlug(params.slug, demo);
+    product = await fetchProductBySlug(params.slug, false);
     if (product) {
       [related, settings, approvedReviews, deals, dealCatalog] = await Promise.all([
-        fetchAllProducts(demo),
+        fetchCatalogProducts(),
         fetchSiteSettings().catch(() => null),
-        fetchApprovedReviews(product._id, demo),
+        fetchApprovedReviews(product._id, false),
         listProductDeals().catch(() => []),
         fetchDealCatalog().catch(() => []),
       ]);
@@ -228,7 +226,7 @@ export default async function Product2Page({ params }: { params: { slug: string 
             product={product}
             reviews={product.reviews ?? []}
             rating={product.rating}
-            includeDemo={demo}
+            includeDemo={false}
           />
         </div>
 

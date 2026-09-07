@@ -11,17 +11,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(apexPublicUrl(pathname, search), 308);
   }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-pathname", request.nextUrl.pathname);
-  const next = NextResponse.next({ request: { headers: requestHeaders } });
-
   const { pathname } = request.nextUrl;
   if (!pathname.startsWith("/admin") || pathname.startsWith("/admin/login")) {
-    return next;
+    return NextResponse.next();
   }
 
   const cookie = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (cookie === getAdminSecret()) return next;
+  if (cookie === getAdminSecret()) return NextResponse.next();
 
   const url = request.nextUrl.clone();
   url.pathname = "/admin/login";

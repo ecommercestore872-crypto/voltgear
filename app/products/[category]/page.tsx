@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
-import { SearchExecutedTracker } from "@/components/analytics/search-executed-tracker";
-import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
+import { GadgetShopCatalogClient } from "@/components/gadget/gadget-shop-catalog-client";
 import { FALLBACK_SHOP_TYPES, findShopType } from "@/lib/categories";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
-import { fetchAllProducts, fetchShopTypes } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
+import { fetchCatalogProducts, fetchShopTypes } from "@/lib/db/store";
 import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
-import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
-import { categoryHubCopy, categoryRelatedGuide, categorySearchMeta, categoryStructuredData, indexSiteUrl, storeAlternatesLanguages } from "@/lib/seo-rules";
+import {
+  categoryHubCopy,
+  categoryRelatedGuide,
+  categorySearchMeta,
+  categoryStructuredData,
+  indexSiteUrl,
+  storeAlternatesLanguages,
+} from "@/lib/seo-rules";
 
 export const revalidate = 60;
 
@@ -41,38 +46,18 @@ export async function generateMetadata({
   };
 }
 
-function hasImage(p: Product) {
-  return Boolean(p.images?.[0] || p.cloudinaryImages?.[0]);
-}
-
-function sortProducts(list: Product[], sort: string) {
-  const sorted = [...list].sort((a, b) => {
-    if (sort === "price-asc") return a.price - b.price;
-    if (sort === "price-desc") return b.price - a.price;
-    return (
-      Number(!getStockState(a.stockStatus).soldOut) -
-        Number(!getStockState(b.stockStatus).soldOut) ||
-      Number(b.featured) - Number(a.featured)
-    );
-  });
-  return sorted;
-}
-
 export default async function Products2CategoryPage({
   params,
-  searchParams,
 }: {
   params: { category: string };
-  searchParams: { q?: string; sort?: string };
 }) {
-  const demo = isDemoSession();
   let products: Product[] = [];
   let shopTypes = FALLBACK_SHOP_TYPES;
   const settings = await getSettings().catch(() => null);
   const config = normalizeSettings(settings);
 
   try {
-    const [p, types] = await Promise.all([fetchAllProducts(demo), fetchShopTypes()]);
+    const [p, types] = await Promise.all([fetchCatalogProducts(), fetchShopTypes()]);
     products = applyGadgetStudioImagesList(p);
     shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
   } catch {
@@ -85,28 +70,14 @@ export default async function Products2CategoryPage({
   }
 
   const title = shop?.name || params.category.replace(/-/g, " ");
-
-  const q = (searchParams.q || "").trim();
-  const qLower = q.toLowerCase();
-  const sort = searchParams.sort || "featured";
-
-  let list = products.filter((p) => p.category === params.category && hasImage(p));
-  if (qLower) {
-    list = list.filter(
-      (p) =>
-        p.name.toLowerCase().includes(qLower) ||
-        (p.shortDescription || "").toLowerCase().includes(qLower)
-    );
-  }
-
-  const sorted = sortProducts(list, sort);
+  const categoryProducts = products.filter((p) => p.category === params.category);
   const hubCopy = categoryHubCopy({ slug: params.category, name: title });
   const structured = categoryStructuredData({
     siteUrl: indexSiteUrl(),
     name: title,
     path: `/products/${params.category}`,
     description: hubCopy,
-    items: sorted.slice(0, 20).map((product) => ({
+    items: categoryProducts.slice(0, 20).map((product) => ({
       name: product.name,
       path: `/product/${product.slug}`,
     })),
@@ -124,23 +95,23 @@ export default async function Products2CategoryPage({
           ]).replace(/</g, "\\u003c"),
         }}
       />
-      {q ? <SearchExecutedTracker query={q} /> : null}
-      <GadgetShopCatalog
-        title={title}
-        description={hubCopy}
-        products={sorted}
-        shopTypes={shopTypes}
-        activeCategory={params.category}
-        query={q}
-        sort={sort}
-        config={config}
-        guideLink={categoryRelatedGuide(params.category)}
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Shop", href: products2Href() },
-          { label: title },
-        ]}
-      />
+      <Suspense fallback={<div className="min-h-[50vh] bg-[var(--g-cream)]" aria-hidden />}>
+        <GadgetShopCatalogClient
+          title={title}
+          description={hubCopy}
+          products={products}
+          shopTypes={shopTypes}
+          activeCategory={params.category}
+          config={config}
+          flattenGrid
+          guideLink={categoryRelatedGuide(params.category)}
+          breadcrumbs={[
+            { label: "Home", href: "/" },
+            { label: "Shop", href: products2Href() },
+            { label: title },
+          ]}
+        />
+      </Suspense>
     </>
   );
 }

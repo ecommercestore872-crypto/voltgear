@@ -22,6 +22,7 @@ export function GadgetShopCatalog({
   basePath: catalogBasePath,
   flattenGrid,
   guideLink,
+  maxPerCategory,
 }: {
   title: string;
   description: string;
@@ -35,6 +36,8 @@ export function GadgetShopCatalog({
   basePath?: string;
   flattenGrid?: boolean;
   guideLink?: { href: string; label: string } | null;
+  /** When grouping the all-products page, cap cards per category for faster first paint. */
+  maxPerCategory?: number;
 }) {
   const trust: { icon: typeof Wallet; label: string; detail: string }[] = [];
   if (config.codEnabled) {
@@ -185,7 +188,13 @@ export function GadgetShopCatalog({
                   groups[catSlug].products.push(p);
                 }
 
-                return Object.values(groups).map((group) => (
+                return Object.values(groups).map((group) => {
+                  const visible =
+                    typeof maxPerCategory === "number" && maxPerCategory > 0
+                      ? group.products.slice(0, maxPerCategory)
+                      : group.products;
+                  const hiddenCount = group.products.length - visible.length;
+                  return (
                   <section key={group.slug} id={`category-${group.slug}`} className="scroll-mt-24">
                     <div className="mb-3.5 flex items-center justify-between border-b border-[var(--g-line)] pb-2.5">
                       <div className="flex items-center gap-2.5">
@@ -204,14 +213,25 @@ export function GadgetShopCatalog({
                       </Link>
                     </div>
                     <ul className="gadget-product-grid">
-                      {group.products.map((p) => (
+                      {visible.map((p) => (
                         <li key={p._id} className="min-w-0">
                           <GadgetArrivalCard product={p} isGrid />
                         </li>
                       ))}
                     </ul>
+                    {hiddenCount > 0 ? (
+                      <div className="mt-4 text-center">
+                        <Link
+                          href={categoryHref(group.slug)}
+                          className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--g-forest)] hover:underline"
+                        >
+                          See {hiddenCount} more in {group.name}
+                        </Link>
+                      </div>
+                    ) : null}
                   </section>
-                ));
+                  );
+                });
               })()}
             </div>
           )

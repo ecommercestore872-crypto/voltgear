@@ -65,6 +65,10 @@ const PRODUCT_EMBED = `
   product_reviews ( name, rating, review_date, comment, verified, image, is_demo )
 `;
 
+/** Card/rail fields only — keeps catalog HTML and RSC payloads small for conversion speed. */
+const CATALOG_PRODUCT_EMBED =
+  "id, name, slug, category, price, compare_at_price, cloudinary_images, short_description, sku, brand, stock_status, quantity, rating, review_count, featured, badge, is_demo, status, created_at, product_images ( url, sort_order, source ), product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )";
+
 function db() {
   return getServiceClient();
 }
@@ -93,13 +97,36 @@ export async function fetchAllProducts(includeDemo = false): Promise<Product[]> 
     .filter(Boolean) as Product[];
 }
 
+async function loadCatalogProducts(): Promise<Product[]> {
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db().from("products").select(CATALOG_PRODUCT_EMBED as "*").eq("status", LIVE),
+      false
+    ).order("created_at", { ascending: false })
+  );
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>))
+    .filter(Boolean) as Product[];
+}
+
+/** Cached slim catalog for shop grids — safe for ISR (no demo cookie / no fat PDP fields). */
+export const fetchCatalogProducts = unstable_cache(
+  loadCatalogProducts,
+  ["catalog-products-slim"],
+  { revalidate: 60 }
+);
+
 const HOMEPAGE_PRODUCT_LIMIT = 36;
 
 /** Slim catalog for the homepage — avoids a second full-catalog + analytics pass. */
 export async function fetchHomepageProducts(includeDemo = false): Promise<Product[]> {
   const { data, error } = await execDemoQuery(() =>
     demoFilter(
-      db().from("products").select(PRODUCT_EMBED).eq("status", LIVE),
+      db()
+        .from("products")
+        .select((includeDemo ? PRODUCT_EMBED : CATALOG_PRODUCT_EMBED) as "*")
+        .eq("status", LIVE),
       includeDemo
     )
       .order("featured", { ascending: false })
