@@ -57,6 +57,7 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
         price: v.price ?? current.price,
         image: current.images?.[0] ? imageUrl(current.images[0], { w: 128 }) : undefined,
         productId: current._id,
+        ...(current.sku ? { sku: current.sku } : {}),
         variantKey: v._key,
         variantId: v._key,
         variantName: v.name,
@@ -70,6 +71,7 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
       price: current.price,
       image: current.images?.[0] ? imageUrl(current.images[0], { w: 128 }) : undefined,
       productId: current._id,
+      ...(current.sku ? { sku: current.sku } : {}),
     };
   }, [current]);
 
@@ -105,6 +107,7 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
           price: v?.price ?? i.product.price,
           image: i.product.images?.[0] ? imageUrl(i.product.images[0], { w: 128 }) : undefined,
           productId: i.product._id,
+          ...(i.product.sku ? { sku: i.product.sku } : {}),
           ...(v
             ? {
                 variantKey: v._key,

@@ -122,6 +122,7 @@ export function QuickViewButton({ product }: { product: Product }) {
                     price: defaultVariant?.price ?? product.price,
                     image: image ? imageUrl(image, { w: 128 }) : undefined,
                     productId: product._id,
+                    ...(product.sku ? { sku: product.sku } : {}),
                     ...(defaultVariant
                       ? {
                           variantKey: defaultVariant._key,

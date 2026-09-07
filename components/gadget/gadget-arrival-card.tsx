@@ -65,6 +65,7 @@ export function GadgetArrivalCard({
       name: product.name,
       price: product.price,
       image: image || undefined,
+      ...(product.sku ? { sku: product.sku } : {}),
     });
     trackAddToCart({
       item_id: product.slug,

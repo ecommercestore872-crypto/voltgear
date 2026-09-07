@@ -45,6 +45,7 @@ export function BuyNow({
           price,
           image: itemImage,
           productId: product._id,
+          ...(product.sku ? { sku: product.sku } : {}),
           ...(variant && (product.variants?.length ?? 0) > 0
             ? {
                 variantKey: variant._key,

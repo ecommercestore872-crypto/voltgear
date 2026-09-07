@@ -109,6 +109,7 @@ export function GadgetBuyBox({
         name: product.name,
         price,
         image: itemImage,
+        ...(product.sku ? { sku: product.sku } : {}),
         ...(variant && hasVariants
           ? {
               variantKey: variant._key,

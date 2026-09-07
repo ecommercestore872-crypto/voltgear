@@ -29,6 +29,7 @@ export function AddToCart({ product }: { product: Product }) {
           ? imageUrl(product.images[0], { w: 128 })
           : undefined,
         productId: product._id,
+        ...(product.sku ? { sku: product.sku } : {}),
       },
       quantity
     );

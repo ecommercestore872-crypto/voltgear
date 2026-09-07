@@ -207,6 +207,8 @@ export interface OrderItem {
   name?: string;
   price?: number;
   quantity?: number;
+  /** Product-level SKU when resolved (API snapshot); not a separate DB column. */
+  sku?: string;
   variantKey?: string;
   variantName?: string;
   variantSku?: string;

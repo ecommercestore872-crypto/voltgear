@@ -258,6 +258,7 @@ export default function CheckoutPage() {
             name: i.name,
             price: i.price,
             quantity: i.quantity,
+            ...(i.sku ? { sku: i.sku } : {}),
             ...(i.variantKey ? { variantKey: i.variantKey } : {}),
             ...(i.variantName ? { variantName: i.variantName } : {}),
             ...(i.variantSku ? { variantSku: i.variantSku } : {}),
@@ -420,21 +421,22 @@ export default function CheckoutPage() {
       return;
     }
     try {
-      trackTikTokInitiateCheckout(
-        items.map((i) => ({
-          slug: i.slug,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-          ...(i.variantSku ? { variantSku: i.variantSku } : {}),
-          ...(i.variantKey ? { variantKey: i.variantKey } : {}),
-        })),
-        total,
-        {
-          dealQuoteReady: dealQuote.ready,
-          promoLoading: Boolean(activePromo?.loading),
-        }
-      );
+        trackTikTokInitiateCheckout(
+          items.map((i) => ({
+            slug: i.slug,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+            ...(i.sku ? { sku: i.sku } : {}),
+            ...(i.variantSku ? { variantSku: i.variantSku } : {}),
+            ...(i.variantKey ? { variantKey: i.variantKey } : {}),
+          })),
+          total,
+          {
+            dealQuoteReady: dealQuote.ready,
+            promoLoading: Boolean(activePromo?.loading),
+          }
+        );
     } catch {
       // fail-open
     }

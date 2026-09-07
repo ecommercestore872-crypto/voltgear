@@ -217,6 +217,7 @@ export async function resolveCheckout(
       price: unitPrice,
       quantity,
       lineTotal,
+      ...(product.sku ? { sku: product.sku } : {}),
       ...(resolvedVariant
         ? {
             variantKey: resolvedVariant._key ?? variantKey,

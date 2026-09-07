@@ -76,6 +76,7 @@ export function CartUpsell({ excludeSlugs }: { excludeSlugs: string[] }) {
                     price: v?.price ?? p.price,
                     image: img ? imageUrl(img, { w: 128 }) : undefined,
                     productId: p._id,
+                    ...(p.sku ? { sku: p.sku } : {}),
                     ...(v
                       ? {
                           variantKey: v._key,

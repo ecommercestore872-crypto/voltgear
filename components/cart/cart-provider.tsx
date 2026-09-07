@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { pageTypeFromPath, trackFirstParty } from "@/lib/first-party-analytics";
+import { mergeRetainedSku } from "@/lib/cart-sku-rules";
 import { trackTikTokAddToCart } from "@/lib/tiktok-browser-events";
 
 export interface CartItem {
@@ -19,6 +20,8 @@ export interface CartItem {
   price: number;
   image?: string;
   quantity: number;
+  /** Product-level SKU when known (TikTok content_id); optional for legacy carts. */
+  sku?: string;
   variantKey?: string;
   variantName?: string;
   variantSku?: string;
@@ -110,6 +113,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   quantity: i.quantity + qty,
                   productId: i.productId ?? item.productId,
                   variantId: i.variantId ?? item.variantId,
+                  sku: mergeRetainedSku(i.sku, item.sku),
+                  variantSku: mergeRetainedSku(i.variantSku, item.variantSku),
                 }
               : i
           );
@@ -123,6 +128,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           name: item.name,
           price: item.price,
           quantity: qty,
+          ...(item.sku ? { sku: item.sku } : {}),
           ...(item.variantSku ? { variantSku: item.variantSku } : {}),
           ...(item.variantKey ? { variantKey: item.variantKey } : {}),
         });

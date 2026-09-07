@@ -114,6 +114,7 @@ export function PurchaseSection({
         price,
         image: itemImage,
         productId: product._id,
+        ...(product.sku ? { sku: product.sku } : {}),
         ...(variant && hasVariants
           ? {
               variantKey: variant._key,

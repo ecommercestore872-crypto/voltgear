@@ -38,6 +38,7 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
       name: product.name,
       price,
       image: itemImage,
+      ...(product.sku ? { sku: product.sku } : {}),
       ...(defaultVariant
         ? {
             variantKey: defaultVariant._key,
