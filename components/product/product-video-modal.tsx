@@ -66,7 +66,7 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
 
             <div className="p-4 bg-gradient-to-b from-black/80 to-transparent absolute top-0 inset-x-0 z-10 text-white space-y-0.5 pointer-events-none">
               <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
-                <Sparkles className="h-3 w-3" /> VoltGear Verified Demo
+                <Sparkles className="h-3 w-3" /> Buy n Try Verified Demo
               </span>
               <h3 className="text-sm font-bold truncate pr-10 max-w-full">{productName}</h3>
             </div>

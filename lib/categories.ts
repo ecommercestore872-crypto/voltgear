@@ -45,18 +45,25 @@ export const FALLBACK_SHOP_TYPES: ShopType[] = [
     sortOrder: 5,
   },
   {
-    name: "Selfie Sticks & Tripods",
+    name: "Selfie Sticks",
     slug: "selfie-stick",
-    description: "Portable wireless bluetooth selfie sticks, extendable tripods & gimbals.",
+    description: "Portable wireless Bluetooth selfie sticks with remote and tripod modes.",
     imageUrl: "/categories/selfie-stick.png",
     sortOrder: 6,
+  },
+  {
+    name: "Tripods & Stands",
+    slug: "tripod",
+    description: "Camera, phone and studio light tripods for creators and photography.",
+    imageUrl: "/categories/selfie-stick.png",
+    sortOrder: 7,
   },
   {
     name: "Microphones & Audio",
     slug: "microphones",
     description: "Wireless lavalier microphones, studio noise-canceling mic systems & lapels.",
     imageUrl: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=600&auto=format&fit=crop",
-    sortOrder: 7,
+    sortOrder: 8,
   },
 ];
 

@@ -44,7 +44,7 @@ export function NewsletterBlock() {
           </div>
 
           <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 mb-4">
-            Join the VoltGear VIP Club
+            Join the Buy n Try VIP Club
           </h2>
           <p className="text-base text-slate-500 mb-8 max-w-lg mx-auto leading-relaxed">
             Get exclusive early access to tech deals, new premium arrivals, and a welcome gift delivered straight to your inbox.

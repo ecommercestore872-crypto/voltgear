@@ -55,12 +55,17 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
   "selfie-stick": [
     "selfie stick",
     "selfie sticks",
+    "bluetooth selfie stick",
+    "selfie stick Pakistan",
+  ],
+  tripod: [
     "tripod",
     "tripods",
+    "camera tripod",
     "phone tripod",
-    "bluetooth selfie stick",
-    "gimbal",
-    "selfie stick Pakistan",
+    "light stand",
+    "ring light stand",
+    "tripod Pakistan",
   ],
   microphones: [
     "microphone",
@@ -83,7 +88,9 @@ const CATEGORY_HUB_BLURBS: Record<string, string> = {
   "ring-light":
     "Shop LED ring lights in Pakistan at Buy n Try. Creator lighting with cash on delivery so you can check brightness before you pay.",
   "selfie-stick":
-    "Buy selfie sticks and phone tripods in Pakistan at Buy n Try. Bluetooth options with cash on delivery from buyntryy.com.",
+    "Buy Bluetooth selfie sticks in Pakistan at Buy n Try. Compact sticks with remote and tripod modes — cash on delivery from buyntryy.com.",
+  tripod:
+    "Shop camera and phone tripods in Pakistan at Buy n Try. Plokama stands for creators, photography and studio lights — cash on delivery from buyntryy.com.",
   microphones:
     "Shop wireless lavalier and lapel mics in Pakistan at Buy n Try. Creator audio with cash on delivery nationwide.",
 };

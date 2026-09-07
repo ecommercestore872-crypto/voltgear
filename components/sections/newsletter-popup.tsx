@@ -118,7 +118,7 @@ export function NewsletterPopup() {
           ) : (
             <>
               <h3 className="mt-4 text-xl font-bold">
-                Join the VoltGear Newsletter
+                Join the Buy n Try Newsletter
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 Get exclusive deals, new arrivals, and tips delivered to your inbox.
