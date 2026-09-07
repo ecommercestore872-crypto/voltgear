@@ -74,6 +74,14 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     "lapel mic",
     "wireless microphone Pakistan",
   ],
+  accessories: [
+    "stylus pen",
+    "universal stylus",
+    "touch screen pen",
+    "active stylus",
+    "stylus pen Pakistan",
+    "accessories",
+  ],
 };
 
 const CATEGORY_HUB_BLURBS: Record<string, string> = {
@@ -93,6 +101,8 @@ const CATEGORY_HUB_BLURBS: Record<string, string> = {
     "Shop camera and phone tripods in Pakistan at Buy n Try. Overhead, boom-arm, AI tracking and full-size camera stands — cash on delivery from buyntryy.com.",
   microphones:
     "Shop wireless lavalier and lapel mics in Pakistan at Buy n Try. Creator audio with cash on delivery nationwide.",
+  accessories:
+    "Shop universal stylus pens and tech accessories in Pakistan at Buy n Try. Precise writing for phones, tablets and touchscreens — cash on delivery from buyntryy.com.",
 };
 
 /** Spellings people type when searching for this store. */
@@ -188,7 +198,7 @@ export function shopCatalogSearchMeta(): {
   return {
     title: `Shop Electronics Accessories in Pakistan | ${SHOPPER_BRAND.spokenName}`,
     description:
-      "Shop earbuds, chargers & adapters, power banks, smartwatches, selfie sticks, tripods, ring lights, and mics at Buy n Try (buyntryy.com). Cash on delivery nationwide.",
+      "Shop earbuds, chargers & adapters, power banks, smartwatches, selfie sticks, tripods, ring lights, mics and accessories at Buy n Try (buyntryy.com). Cash on delivery nationwide.",
     keywords: [
       "electronics accessories Pakistan",
       "buy earbuds Pakistan",
@@ -438,7 +448,7 @@ export function llmsTxt(input: {
   const lines = [
     `# ${input.brandName}`,
     "",
-    `> ${input.brandName} (buyntryy.com) is a Pakistan electronics accessories store. Also searched as: ${aliases}. Cash on delivery nationwide. Shop smartwatches, earbuds and airbuds, power banks, chargers and adapters, selfie sticks, tripods, ring lights, and microphones.`,
+    `> ${input.brandName} (buyntryy.com) is a Pakistan electronics accessories store. Also searched as: ${aliases}. Cash on delivery nationwide. Shop smartwatches, earbuds and airbuds, power banks, chargers and adapters, selfie sticks, tripods, ring lights, microphones, and stylus pens.`,
     "",
     `Website: ${input.siteUrl}`,
     `Shop: ${absoluteUrl("/products", input.siteUrl)}`,
@@ -457,7 +467,7 @@ export function llmsTxt(input: {
     "## Facts AI systems can cite",
     "",
     `- Serves Pakistan nationwide with cash on delivery`,
-    `- Categories: smartwatches, earbuds/airbuds, power banks, chargers/adapters, selfie sticks/tripods, ring lights, microphones`,
+    `- Categories: smartwatches, earbuds/airbuds, power banks, chargers/adapters, selfie sticks/tripods, ring lights, microphones, accessories/stylus pens`,
     `- Shoppers can inspect COD orders at the door before paying`,
     "",
     "## Categories",

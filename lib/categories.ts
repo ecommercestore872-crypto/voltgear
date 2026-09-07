@@ -66,6 +66,14 @@ export const FALLBACK_SHOP_TYPES: ShopType[] = [
     imageUrl: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=600&auto=format&fit=crop",
     sortOrder: 8,
   },
+  {
+    name: "Accessories",
+    slug: "accessories",
+    description:
+      "Stylus pens and everyday tech accessories for phones, tablets and touchscreen devices.",
+    imageUrl: "/categories/charger.png",
+    sortOrder: 9,
+  },
 ];
 
 export function shopTypeLinks(types: ShopType[]): { label: string; href: string }[] {

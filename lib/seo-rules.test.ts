@@ -70,6 +70,13 @@ describe("categorySearchMeta", () => {
     });
     assert.ok(tripods.keywords.includes("tripod"));
     assert.ok(tripods.keywords.includes("camera tripod"));
+
+    const accessories = categorySearchMeta({
+      slug: "accessories",
+      name: "Accessories",
+    });
+    assert.ok(accessories.keywords.includes("stylus pen"));
+    assert.ok(accessories.keywords.includes("universal stylus"));
   });
 });
 
