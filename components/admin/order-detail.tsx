@@ -78,6 +78,12 @@ export function OrderDetail({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (status === "cancelled" && order.status !== "cancelled") {
+      const okCancel = window.confirm(
+        "Cancel this order? Inventory will be restored and the customer may get a cancellation email."
+      );
+      if (!okCancel) return;
+    }
     setSaving(true);
     setError(null);
     setOk(null);

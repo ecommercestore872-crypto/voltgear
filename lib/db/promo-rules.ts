@@ -8,6 +8,9 @@ export type PromoCodeRecord = {
   active: boolean;
   startsAt: string | null;
   endsAt: string | null;
+  /** Optional cap; null/undefined = unlimited. */
+  maxUsage?: number | null;
+  usageCount?: number;
 };
 
 export type PromoApplyResult =
@@ -117,6 +120,15 @@ export function applyPromoToTotals(
   if (!valid.ok) return valid;
   if (promo.firstOrderOnly && !input.isFirstOrder) {
     return { ok: false, error: "This code is for first orders only." };
+  }
+  const maxUsage = promo.maxUsage;
+  if (
+    maxUsage != null &&
+    Number.isFinite(maxUsage) &&
+    maxUsage > 0 &&
+    (promo.usageCount ?? 0) >= maxUsage
+  ) {
+    return { ok: false, error: "This code has reached its usage limit." };
   }
 
   const gift = input.giftWrapFee ?? 0;

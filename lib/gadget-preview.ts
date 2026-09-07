@@ -60,7 +60,13 @@ export function isGadgetContinuityPath(pathname: string): boolean {
     pathname === "/terms-of-service" ||
     pathname.startsWith("/terms-of-service/") ||
     pathname === "/about" ||
-    pathname.startsWith("/about/")
+    pathname.startsWith("/about/") ||
+    pathname === "/wishlist" ||
+    pathname.startsWith("/wishlist/") ||
+    pathname === "/write-review" ||
+    pathname.startsWith("/write-review/") ||
+    pathname === "/cookies" ||
+    pathname.startsWith("/cookies/")
   );
 }
 
@@ -73,36 +79,27 @@ export function shouldUseGadgetChrome(
   opts?: { search?: string; sessionActive?: boolean }
 ): boolean {
   if (isGadgetPreviewPath(pathname)) return true;
-  // Order confirmation / invoice entry always uses Buy n Try cream+forest chrome.
+  // Order confirmation / invoice + shared shopper pages always use Buy n Try chrome.
   if (pathname === "/order" || pathname.startsWith("/order/")) return true;
+  if (isGadgetContinuityPath(pathname)) return true;
   const params = new URLSearchParams(opts?.search ?? "");
   const fromGadget = params.get("from") === "gadget";
-  const session = Boolean(opts?.sessionActive) || fromGadget;
   if (isCheckoutPath(pathname)) {
     if (fromGadget) return true;
     return Boolean(opts?.sessionActive);
   }
-  if (isGadgetContinuityPath(pathname)) return session;
   return false;
 }
 
 export function syncGadgetPreviewSession(pathname: string, search = ""): void {
   if (typeof window === "undefined") return;
   try {
-    if (isGadgetPreviewPath(pathname)) {
+    if (isGadgetPreviewPath(pathname) || isGadgetContinuityPath(pathname)) {
       sessionStorage.setItem(GADGET_SESSION_KEY, "1");
       return;
     }
     if (isCheckoutPath(pathname) && new URLSearchParams(search).get("from") === "gadget") {
       sessionStorage.setItem(GADGET_SESSION_KEY, "1");
-      return;
-    }
-    const liveProduct = pathname.startsWith("/product/") && !pathname.startsWith("/product2");
-    const liveCatalog =
-      pathname === "/products" ||
-      (pathname.startsWith("/products/") && !pathname.startsWith("/products2"));
-    if (liveProduct || liveCatalog) {
-      sessionStorage.removeItem(GADGET_SESSION_KEY);
     }
   } catch {
     /* private mode / blocked storage */

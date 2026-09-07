@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 
 import { createContactSubmission } from "@/lib/db/inbox-store";
+import { takePublicPostLimit } from "@/lib/public-api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
+    const limited = takePublicPostLimit(request, "contact");
+    if (!limited.ok) {
+      return NextResponse.json({ error: limited.error }, { status: limited.status });
+    }
+
     const body = await request.json().catch(() => null);
     const result = await createContactSubmission({
       name: body?.name,

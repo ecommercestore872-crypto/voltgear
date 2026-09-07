@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { getPromoByCode, countPriorOrdersForEmail } from "@/lib/db/promo-store";
 import { applyPromoToTotals } from "@/lib/db/promo-rules";
+import { takePublicPostLimit } from "@/lib/public-api-guard";
 
 export async function POST(request: Request) {
   try {
+    const limited = takePublicPostLimit(request, "promo");
+    if (!limited.ok) {
+      return NextResponse.json({ ok: false, error: limited.error }, { status: limited.status });
+    }
+
     const body = await request.json();
     const { code, subtotal, shipping } = body;
     const email =

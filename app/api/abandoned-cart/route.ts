@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { enqueueEmailEvent } from "@/lib/order-store";
+import { takePublicPostLimit } from "@/lib/public-api-guard";
 import type { OrderItem } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -12,6 +13,11 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: Request) {
   try {
+    const limited = takePublicPostLimit(request, "abandoned");
+    if (!limited.ok) {
+      return NextResponse.json({ error: limited.error }, { status: limited.status });
+    }
+
     const body = await request.json();
     const { email, name, items, subtotal } = body as {
       email?: string;

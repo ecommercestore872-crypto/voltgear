@@ -26,6 +26,10 @@ function mapRow(row: Record<string, unknown>): PromoCodeRow {
     startsAt: row.starts_at != null ? String(row.starts_at) : null,
     endsAt: row.ends_at != null ? String(row.ends_at) : null,
     usageCount: Number(row.usage_count ?? 0),
+    maxUsage:
+      row.max_usage != null && Number.isFinite(Number(row.max_usage))
+        ? Number(row.max_usage)
+        : null,
   };
 }
 

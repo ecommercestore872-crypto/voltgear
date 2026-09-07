@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getOrdersByEmail } from "@/lib/order-store";
 import { submitReview } from "@/lib/db/store";
 import { isDemoRequest } from "@/lib/demo";
+import { takePublicPostLimit } from "@/lib/public-api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,11 @@ interface ReviewBody {
 
 export async function POST(request: Request) {
   try {
+    const limited = takePublicPostLimit(request, "review");
+    if (!limited.ok) {
+      return NextResponse.json({ error: limited.error }, { status: limited.status });
+    }
+
     const body: ReviewBody = await request.json();
     const { slug, rating, name, email, comment, image, category, productName } =
       body;

@@ -78,4 +78,12 @@ describe("applyPromoToTotals", () => {
     );
     assert.equal(r.ok, false);
   });
+
+  it("blocks codes that hit maxUsage", () => {
+    const r = applyPromoToTotals(
+      { ...base, maxUsage: 10, usageCount: 10 },
+      { subtotal: 1000, shipping: 0, isFirstOrder: true }
+    );
+    assert.equal(r.ok, false);
+  });
 });

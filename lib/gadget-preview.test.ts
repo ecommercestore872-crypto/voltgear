@@ -40,7 +40,7 @@ describe("product2Href", () => {
 });
 
 describe("isGadgetContinuityPath", () => {
-  it("covers cart, search, compare, and support pages", () => {
+  it("covers cart, search, compare, support, wishlist, and review pages", () => {
     assert.equal(isGadgetContinuityPath("/cart"), true);
     assert.equal(isGadgetContinuityPath("/search"), true);
     assert.equal(isGadgetContinuityPath("/compare"), true);
@@ -50,23 +50,27 @@ describe("isGadgetContinuityPath", () => {
     assert.equal(isGadgetContinuityPath("/contact"), true);
     assert.equal(isGadgetContinuityPath("/faq"), true);
     assert.equal(isGadgetContinuityPath("/shipping-returns"), true);
+    assert.equal(isGadgetContinuityPath("/wishlist"), true);
+    assert.equal(isGadgetContinuityPath("/write-review"), true);
+    assert.equal(isGadgetContinuityPath("/cookies"), true);
     assert.equal(isGadgetContinuityPath("/products"), false);
   });
 });
 
 describe("shouldUseGadgetChrome", () => {
-  it("keeps preview routes, checkout, and session continuity pages", () => {
+  it("keeps preview routes, continuity pages, and gated checkout", () => {
     assert.equal(shouldUseGadgetChrome("/"), true);
     assert.equal(shouldUseGadgetChrome("/home2"), true);
     assert.equal(shouldUseGadgetChrome("/order/VG-1"), true);
     assert.equal(shouldUseGadgetChrome("/checkout"), false);
     assert.equal(shouldUseGadgetChrome("/checkout", { search: "from=gadget" }), true);
     assert.equal(shouldUseGadgetChrome("/checkout", { sessionActive: true }), true);
-    assert.equal(shouldUseGadgetChrome("/cart"), false);
-    assert.equal(shouldUseGadgetChrome("/cart", { sessionActive: true }), true);
-    assert.equal(shouldUseGadgetChrome("/search", { sessionActive: true }), true);
-    assert.equal(shouldUseGadgetChrome("/blog", { sessionActive: true }), true);
-    assert.equal(shouldUseGadgetChrome("/products", { sessionActive: true }), true);
+    assert.equal(shouldUseGadgetChrome("/cart"), true);
+    assert.equal(shouldUseGadgetChrome("/wishlist"), true);
+    assert.equal(shouldUseGadgetChrome("/write-review"), true);
+    assert.equal(shouldUseGadgetChrome("/search"), true);
+    assert.equal(shouldUseGadgetChrome("/blog"), true);
+    assert.equal(shouldUseGadgetChrome("/products"), true);
     assert.equal(shouldUseGadgetChrome("/collections/summer-picks"), true);
     assert.equal(checkoutHref(true), "/checkout?from=gadget");
     assert.equal(checkoutHref(false), "/checkout");

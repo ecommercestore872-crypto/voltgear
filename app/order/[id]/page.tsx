@@ -72,6 +72,9 @@ export default async function OrderSuccessPage({
     shipping: order.shipping ?? 0,
     discount: order.discount,
     promoCode: order.promoCode,
+    giftWrapFee: /\bgift wrap requested\b/i.test(customer?.note ?? "")
+      ? 199
+      : 0,
     total: order.total ?? 0,
   });
   const cancelled = status === "cancelled";
