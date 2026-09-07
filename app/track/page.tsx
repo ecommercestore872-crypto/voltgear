@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: "Track Your Order",
   description:
     "Check the status of your Buy n Try order — confirmation, shipping and delivery updates.",
+  robots: { index: false, follow: false },
+  alternates: { canonical: "/track" },
 };
 
 export const revalidate = 60;

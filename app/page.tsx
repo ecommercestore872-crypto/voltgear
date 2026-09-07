@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { GadgetHomePage } from "@/components/gadget/gadget-home-page";
 import { fetchSiteSettings } from "@/lib/db/store";
+import { storeAlternatesLanguages } from "@/lib/seo-rules";
 import type { SiteSettings } from "@/lib/types";
 
 export const revalidate = 60;
@@ -22,8 +23,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { absolute: title },
     description,
-    alternates: { canonical: "/" },
-    openGraph: { title, description, type: "website" },
+    alternates: {
+      canonical: "/",
+      languages: storeAlternatesLanguages("/").languages,
+    },
+    openGraph: { title, description, type: "website", url: "https://buyntryy.com/" },
     twitter: { card: "summary_large_image", title, description },
   };
 }

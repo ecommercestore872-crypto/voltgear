@@ -11,7 +11,7 @@ import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
-import { categoryHubCopy, categoryRelatedGuide, categorySearchMeta, categoryStructuredData, indexSiteUrl } from "@/lib/seo-rules";
+import { categoryHubCopy, categoryRelatedGuide, categorySearchMeta, categoryStructuredData, indexSiteUrl, storeAlternatesLanguages } from "@/lib/seo-rules";
 
 export const revalidate = 60;
 
@@ -32,7 +32,10 @@ export async function generateMetadata({
     title: { absolute: meta.title },
     description: meta.description,
     keywords: meta.keywords,
-    alternates: { canonical: `/products/${params.category}` },
+    alternates: {
+      canonical: `/products/${params.category}`,
+      languages: storeAlternatesLanguages(`/products/${params.category}`).languages,
+    },
     openGraph: { title: meta.title, description: meta.description, type: "website" },
   };
 }

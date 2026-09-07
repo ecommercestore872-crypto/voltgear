@@ -12,6 +12,7 @@ import type { Page } from "@/lib/types";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { publicSiteUrl } from "@/lib/deploy-rules";
 import { sortBlogPostsForHome } from "@/lib/blog-desk-rules";
+import { storeAlternatesLanguages } from "@/lib/seo-rules";
 
 export const metadata: Metadata = {
   title: "Buying guides: earbuds, GaN chargers, power banks",
@@ -23,7 +24,10 @@ export const metadata: Metadata = {
     "20000mAh power bank",
     "cash on delivery electronics",
   ],
-  alternates: { canonical: "/blog" },
+  alternates: {
+    canonical: "/blog",
+    languages: storeAlternatesLanguages("/blog").languages,
+  },
   openGraph: {
     title: "Buy n Try buying guides",
     description:

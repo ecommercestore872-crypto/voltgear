@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   CANONICAL_PUBLIC_ORIGIN,
   SEARCH_CRAWL_DISALLOW,
+  apexPublicUrl,
   brandSearchAliases,
   categoryHubCopy,
   categoryRelatedGuide,
@@ -14,6 +15,8 @@ import {
   organizationStructuredData,
   productStructuredData,
   shopCatalogSearchMeta,
+  shouldRedirectWwwHost,
+  storeAlternatesLanguages,
   websiteStructuredData,
 } from "./seo-rules";
 
@@ -179,7 +182,21 @@ describe("websiteStructuredData", () => {
   it("keeps Googlebot on the same crawl blocks as every other bot", () => {
     assert.ok(SEARCH_CRAWL_DISALLOW.includes("/admin/"));
     assert.ok(SEARCH_CRAWL_DISALLOW.includes("/checkout/"));
-    assert.equal(SEARCH_CRAWL_DISALLOW.includes("/brand/"), false);
+    assert.ok(SEARCH_CRAWL_DISALLOW.includes("/cart"));
+    assert.ok(SEARCH_CRAWL_DISALLOW.includes("/search"));
+    assert.ok(SEARCH_CRAWL_DISALLOW.includes("/track"));
+    assert.equal(SEARCH_CRAWL_DISALLOW.includes("/brand/" as never), false);
+  });
+});
+
+describe("shouldRedirectWwwHost", () => {
+  it("forces www onto the apex host for one canonical domain", () => {
+    assert.equal(shouldRedirectWwwHost("www.buyntryy.com"), true);
+    assert.equal(shouldRedirectWwwHost("buyntryy.com"), false);
+    assert.equal(shouldRedirectWwwHost("localhost:3000"), false);
+    assert.equal(apexPublicUrl("/products/charger"), "https://buyntryy.com/products/charger");
+    assert.deepEqual(storeAlternatesLanguages("/products").languages["en-PK"], "https://buyntryy.com/products");
+    assert.ok(storeAlternatesLanguages("/").languages["x-default"].includes("buyntryy.com"));
   });
 });
 
@@ -209,5 +226,7 @@ describe("llmsTxt", () => {
     assert.match(text, /\/blog/);
     assert.match(text, /buyntry/i);
     assert.match(text, /adapters|chargers|earbuds/i);
+    assert.match(text, /sitemap\.xml/);
+    assert.match(text, /not buyntryparts/i);
   });
 });

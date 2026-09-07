@@ -9,7 +9,7 @@ import {
 import { isDemoSession } from "@/lib/demo";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { getSettings } from "@/lib/sanity/settings";
-import { shopCatalogSearchMeta } from "@/lib/seo-rules";
+import { shopCatalogSearchMeta, storeAlternatesLanguages } from "@/lib/seo-rules";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
@@ -22,7 +22,10 @@ export const metadata: Metadata = {
   title: { absolute: shopMeta.title },
   description: shopMeta.description,
   keywords: shopMeta.keywords,
-  alternates: { canonical: "/products" },
+  alternates: {
+    canonical: "/products",
+    languages: storeAlternatesLanguages("/products").languages,
+  },
   openGraph: {
     title: shopMeta.title,
     description: shopMeta.description,

@@ -7,7 +7,7 @@ import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
-import { indexSiteUrl, organizationStructuredData, websiteStructuredData } from "@/lib/seo-rules";
+import { indexSiteUrl, organizationStructuredData, storeAlternatesLanguages, websiteStructuredData } from "@/lib/seo-rules";
 import {
   BUY_N_TRY_ADSENSE_PUB_ID,
   adsenseHeadScriptSrc,
@@ -125,6 +125,7 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE_URL,
+    languages: storeAlternatesLanguages("/").languages,
   },
   icons: {
     icon: [

@@ -30,7 +30,7 @@ export async function generateMetadata({
   const product = await fetchProductBySlug(params.slug, isDemoSession()).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
   
-  const title = `${product.name} — Buy in Pakistan`;
+  const title = `${product.name} — Buy in Pakistan | Buy n Try`;
   const description =
     product.shortDescription ||
     `Buy ${product.name} at Buy n Try (buyntryy.com) with cash on delivery nationwide.`;
@@ -39,7 +39,7 @@ export async function generateMetadata({
   const firstImg = product.images?.[0] ? imageUrl(product.images[0], { w: 800 }) : undefined;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: [
       product.name,
@@ -48,6 +48,7 @@ export async function generateMetadata({
       "buy online Pakistan",
       "Buy n Try",
       "buyntryy",
+      "cash on delivery",
     ],
     openGraph: {
       type: "website",
@@ -64,6 +65,10 @@ export async function generateMetadata({
     },
     alternates: {
       canonical: url,
+      languages: {
+        "en-PK": url,
+        "x-default": url,
+      },
     },
   };
 }
@@ -178,7 +183,9 @@ export default async function Product2Page({ params }: { params: { slug: string 
     <div className="gadget-scroll-pad-cta bg-[var(--g-cream)] text-[var(--g-charcoal)] lg:pb-10">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([productJsonLd, breadcrumbJsonLd]) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([productJsonLd, breadcrumbJsonLd]).replace(/</g, "\\u003c"),
+        }}
       />
       <ProductViewTracker
         slug={product.slug}
