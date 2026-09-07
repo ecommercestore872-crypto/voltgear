@@ -18,6 +18,7 @@ import {
 } from "@/lib/db/publish";
 import { missingSchemaColumn, omitColumn } from "@/lib/db/product-column-fallback";
 import { sanitizeChromeLinks, validateChromeLists } from "@/lib/chrome-nav-rules";
+import { sanitizeBlogSections } from "@/lib/blog-safety-rules";
 import { parseAutopilotConfig, type AutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
 import {
@@ -327,7 +328,7 @@ type PageDoc = {
   author?: string;
   sections?: unknown[];
   keywords?: string[];
-  seo?: { title?: string; description?: string };
+  seo?: { title?: string; description?: string; featured?: boolean; homeOrder?: number };
   isDemo?: boolean;
 };
 
@@ -392,7 +393,7 @@ export async function publishAdminPage(id: string, doc: PageDoc) {
       cover_image_url: doc.coverImage ?? null,
       published_at: doc.publishedAt || new Date().toISOString(),
       author: doc.author ?? null,
-      sections: doc.sections ?? [],
+      sections: doc.sections ? sanitizeBlogSections(doc.sections) : [],
       keywords: doc.keywords ?? [],
       seo: doc.seo ?? null,
       is_demo: Boolean(doc.isDemo),

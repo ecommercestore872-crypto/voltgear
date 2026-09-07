@@ -183,7 +183,12 @@ export interface Page {
   author?: string;
   sections?: ContentBlock[];
     keywords?: string[];
-    seo?: { title?: string; description?: string };
+    seo?: {
+      title?: string;
+      description?: string;
+      featured?: boolean;
+      homeOrder?: number;
+    };
     isDemo?: boolean;
 }
 

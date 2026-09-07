@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
+import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
+import { sortBlogPostsForHome } from "@/lib/blog-desk-rules";
 import type { Page } from "@/lib/types";
 import { imageUrl } from "@/lib/sanity/image";
 
@@ -15,37 +17,6 @@ export type BlogCardPost = {
   coverImage?: string;
   publishedAt?: string;
 };
-
-const FALLBACK_POSTS: BlogCardPost[] = [
-  {
-    slug: "gaming-earbuds-travel",
-    title: "Gaming Earbuds for Travel: Compact and Portable Gaming Solutions",
-    excerpt:
-      "Looking for the best gaming earbuds for travel? Check out these compact, portable options that deliver immersive sound on the go.",
-    publishedAt: "2024-03-21",
-  },
-  {
-    slug: "watch-face-studio-guide",
-    title: "How To Create Watch Faces Using The Watch Face Studio",
-    excerpt:
-      "Learn how to design custom watch faces with Watch Face Studio — a step-by-step guide for beginners and enthusiasts.",
-    publishedAt: "2024-03-18",
-  },
-  {
-    slug: "anc-headphones-productivity",
-    title: "ANC for Work: How Noise-Cancelling Headphones Can Boost Productivity",
-    excerpt:
-      "Discover how active noise cancellation helps you focus deeper, cut distractions, and get more done every day.",
-    publishedAt: "2024-03-12",
-  },
-  {
-    slug: "gps-smartwatch-parents-guide",
-    title: "A Parent's Guide to GPS Smartwatches: What to Look For",
-    excerpt:
-      "Choosing a GPS watch for your child? Here’s what matters — safety features, battery life, and comfort.",
-    publishedAt: "2024-03-05",
-  },
-];
 
 function formatDate(iso?: string) {
   if (!iso) return null;
@@ -81,27 +52,10 @@ function coverGradient(i: number) {
 export function GadgetBlogSection({ posts }: { posts: Page[] }) {
   const [tab, setTab] = useState<"popular" | "latest">("popular");
 
-  const source = useMemo(() => {
-    const real = toCards(posts);
-    return real.length ? real : FALLBACK_POSTS;
-  }, [posts]);
-
-  const usingFallback = posts.length === 0;
-
   const visible = useMemo(() => {
-    const list = [...source];
-    if (tab === "latest") {
-      list.sort((a, b) => {
-        const ta = a.publishedAt ? Date.parse(a.publishedAt) : 0;
-        const tb = b.publishedAt ? Date.parse(b.publishedAt) : 0;
-        return tb - ta;
-      });
-    } else {
-      // “Popular”: prefer posts with covers, then keep a stable alternate order
-      list.sort((a, b) => Number(Boolean(b.coverImage)) - Number(Boolean(a.coverImage)));
-    }
-    return list.slice(0, 8);
-  }, [source, tab]);
+    const ranked = sortBlogPostsForHome(posts.length ? posts : FALLBACK_BLOG_POSTS, tab);
+    return toCards(ranked).slice(0, 8);
+  }, [posts, tab]);
 
   return (
     <section
@@ -159,7 +113,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
           <ul className="flex w-max gap-4 pb-1 sm:gap-5">
             {visible.map((post, i) => {
               const date = formatDate(post.publishedAt);
-              const href = usingFallback ? "/blog" : `/blog/${post.slug}`;
+              const href = `/blog/${post.slug}`;
               return (
                 <li key={`${tab}-${post.slug}`} className="w-[min(78vw,18.25rem)] shrink-0">
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(31,54,38,0.1)]">
@@ -209,7 +163,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
                       <div className="flex-1" />
                       <Link
                         href={href}
-                        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] text-[13px] font-semibold text-[var(--g-charcoal)] transition hover:border-[var(--g-forest)] hover:text-[var(--g-forest)]"
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] text-[13px] font-semibold text-[var(--g-charcoal)] transition hover:border-[var(--g-forest)] hover:text-[var(--g-forest)]"
                       >
                         Read article
                         <span className="sr-only">: {post.title}</span>

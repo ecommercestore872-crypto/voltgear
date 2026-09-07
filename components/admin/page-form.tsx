@@ -3,13 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { BlogSectionEditor } from "@/components/admin/blog-section-editor";
+import { MediaField } from "@/components/admin/media-field";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { blogSeoDefaults, validateBlogDoc } from "@/lib/blog-desk-rules";
+import { sanitizeBlogSections } from "@/lib/blog-safety-rules";
 import { slugify, type PublishStatus } from "@/lib/db/publish";
+import type { ContentBlock } from "@/lib/types";
 
 type PageRow = {
   id: string;
@@ -21,58 +26,83 @@ type PageRow = {
   author?: string;
   sections?: unknown;
   keywords?: string[];
-  seo?: { title?: string; description?: string };
+  seo?: { title?: string; description?: string; featured?: boolean; homeOrder?: number };
   status?: PublishStatus;
   draft?: Record<string, unknown> | null;
   is_demo?: boolean;
+  published_at?: string;
 };
 
-function fromRow(row?: PageRow | null) {
+function fromRow(row?: PageRow | null, desk?: "blog" | "page") {
   const draft = row?.draft as Record<string, unknown> | undefined;
+  const seo = (draft?.seo as PageRow["seo"]) ?? row?.seo;
+  const rawSections = draft?.sections ?? row?.sections ?? [];
   return {
     title: String(draft?.title ?? row?.title ?? ""),
     slug: String(draft?.slug ?? row?.slug ?? ""),
-    pageType: String(draft?.pageType ?? row?.page_type ?? "static"),
+    pageType: desk === "blog" ? "blog" : String(draft?.pageType ?? row?.page_type ?? "static"),
     excerpt: String(draft?.excerpt ?? row?.excerpt ?? ""),
     coverImage: String(draft?.coverImage ?? row?.cover_image_url ?? ""),
-    author: String(draft?.author ?? row?.author ?? ""),
-    sectionsText: JSON.stringify(draft?.sections ?? row?.sections ?? [], null, 2),
+    author: String(draft?.author ?? row?.author ?? "Buy n Try editors"),
+    sections: (Array.isArray(rawSections) ? rawSections : []) as ContentBlock[],
+    sectionsText: JSON.stringify(rawSections ?? [], null, 2),
     keywords: ((draft?.keywords as string[]) ?? row?.keywords ?? []).join(", "),
-    seoTitle: String((draft?.seo as { title?: string } | undefined)?.title ?? row?.seo?.title ?? ""),
-    seoDescription: String(
-      (draft?.seo as { description?: string } | undefined)?.description ?? row?.seo?.description ?? ""
-    ),
+    seoTitle: String(seo?.title ?? ""),
+    seoDescription: String(seo?.description ?? ""),
+    featured: Boolean(seo?.featured),
+    homeOrder: String(seo?.homeOrder ?? ""),
+    publishedAt: String(draft?.publishedAt ?? row?.published_at ?? "").slice(0, 16),
     isDemo: Boolean(draft?.isDemo ?? row?.is_demo),
   };
 }
 
-export function PageForm({ page }: { page?: PageRow | null }) {
+export function PageForm({
+  page,
+  desk = "page",
+}: {
+  page?: PageRow | null;
+  desk?: "blog" | "page";
+}) {
   const router = useRouter();
   const isNew = !page;
-  const [form, setForm] = useState(() => fromRow(page));
+  const [form, setForm] = useState(() => fromRow(page, desk));
+  const isBlog = desk === "blog" || form.pageType === "blog";
+  const listHref = desk === "blog" ? "/admin/blog" : "/admin/pages";
   const [status, setStatus] = useState<PublishStatus>(page?.status ?? "draft");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function doc() {
-    let sections: unknown[] = [];
-    try {
-      sections = JSON.parse(form.sectionsText || "[]");
-    } catch {
-      throw new Error("Sections must be valid JSON.");
+    let sections: ContentBlock[] = isBlog ? form.sections : [];
+    if (!isBlog) {
+      try {
+        sections = JSON.parse(form.sectionsText || "[]");
+      } catch {
+        throw new Error("Sections must be valid JSON.");
+      }
     }
-    return {
+    const keywords = form.keywords.split(",").map((s) => s.trim()).filter(Boolean);
+    const seo = {
+      ...blogSeoDefaults({ title: form.seoTitle || form.title, excerpt: form.seoDescription || form.excerpt }),
+      title: (form.seoTitle || form.title).trim(),
+      description: (form.seoDescription || form.excerpt).trim(),
+      ...(form.featured ? { featured: true } : {}),
+      ...(form.homeOrder ? { homeOrder: Number(form.homeOrder) } : {}),
+    };
+    const payload = {
       title: form.title,
       slug: form.slug,
-      pageType: form.pageType === "blog" ? "blog" : "static",
+      pageType: isBlog ? "blog" : form.pageType === "blog" ? "blog" : "static",
       excerpt: form.excerpt,
       coverImage: form.coverImage,
       author: form.author,
-      sections,
-      keywords: form.keywords.split(",").map((s) => s.trim()).filter(Boolean),
-      seo: { title: form.seoTitle, description: form.seoDescription },
+      publishedAt: form.publishedAt ? new Date(form.publishedAt).toISOString() : undefined,
+      sections: isBlog ? sanitizeBlogSections(sections) : sections,
+      keywords,
+      seo,
       isDemo: form.isDemo,
     };
+    return payload;
   }
 
   async function run(action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete") {
@@ -80,19 +110,23 @@ export function PageForm({ page }: { page?: PageRow | null }) {
     setError(null);
     try {
       const payload = doc();
+      if (isBlog && (action === "publish" || action === "create")) {
+        const check = validateBlogDoc(payload);
+        if (!check.ok && action === "publish") throw new Error(check.error);
+      }
       if (action === "create") {
         const json = await adminFetch("/api/admin/pages", {
           method: "POST",
           body: JSON.stringify({ doc: payload }),
         });
-        router.replace(`/admin/pages/${json.id}`);
+        router.replace(`${listHref}/${json.id}`);
         return;
       }
       if (!page?.id) return;
       if (action === "delete") {
         if (!confirm("Delete this page?")) return;
         await adminFetch(`/api/admin/pages/${page.id}`, { method: "DELETE" });
-        router.replace("/admin/pages");
+        router.replace(listHref);
         return;
       }
       await adminFetch(`/api/admin/pages/${page.id}`, {
@@ -113,7 +147,9 @@ export function PageForm({ page }: { page?: PageRow | null }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{isNew ? "New page" : form.title || "Edit page"}</h1>
+        <h1 className="text-2xl font-semibold">
+          {isNew ? (desk === "blog" ? "New blog guide" : "New page") : form.title || "Edit"}
+        </h1>
         {!isNew && (
           <Button variant="destructive" onClick={() => run("delete")}>
             Delete
@@ -153,24 +189,39 @@ export function PageForm({ page }: { page?: PageRow | null }) {
           <Label>Slug</Label>
           <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} />
         </div>
-        <div className="space-y-1.5">
-          <Label>Type</Label>
-          <select
-            className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={form.pageType}
-            onChange={(e) => setForm((f) => ({ ...f, pageType: e.target.value }))}
-          >
-            <option value="static">Static</option>
-            <option value="blog">Blog</option>
-          </select>
-        </div>
+        {desk === "page" ? (
+          <div className="space-y-1.5">
+            <Label>Type</Label>
+            <select
+              className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.pageType}
+              onChange={(e) => setForm((f) => ({ ...f, pageType: e.target.value }))}
+            >
+              <option value="static">Static</option>
+              <option value="blog">Blog</option>
+            </select>
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <Label>Publish date</Label>
+            <Input
+              type="datetime-local"
+              value={form.publishedAt}
+              onChange={(e) => setForm((f) => ({ ...f, publishedAt: e.target.value }))}
+            />
+          </div>
+        )}
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Excerpt</Label>
           <Textarea value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} />
         </div>
-        <div className="space-y-1.5">
-          <Label>Cover image URL</Label>
-          <Input value={form.coverImage} onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))} />
+        <div className="sm:col-span-2 space-y-1.5">
+          <MediaField
+            label="Cover photo"
+            hint="Upload a wide photo (16:9 works best on cards and Google)."
+            urls={form.coverImage ? [form.coverImage] : []}
+            onChange={(urls) => setForm((f) => ({ ...f, coverImage: urls.at(-1) ?? "" }))}
+          />
         </div>
         <div className="space-y-1.5">
           <Label>Author</Label>
@@ -189,8 +240,33 @@ export function PageForm({ page }: { page?: PageRow | null }) {
         </div>
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Keywords (comma separated)</Label>
-          <Input value={form.keywords} onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))} />
+          <Input
+            value={form.keywords}
+            onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
+            placeholder="best earbuds in Pakistan, TWS under 5000, ENC vs ANC"
+          />
         </div>
+        {isBlog ? (
+          <>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.featured}
+                onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))}
+              />
+              Pin on homepage Popular
+            </label>
+            <div className="space-y-1.5">
+              <Label>Homepage order (1 = first)</Label>
+              <Input
+                type="number"
+                min={1}
+                value={form.homeOrder}
+                onChange={(e) => setForm((f) => ({ ...f, homeOrder: e.target.value }))}
+              />
+            </div>
+          </>
+        ) : null}
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input
             type="checkbox"
@@ -200,13 +276,22 @@ export function PageForm({ page }: { page?: PageRow | null }) {
           Demo — guests never see this page
         </label>
         <div className="sm:col-span-2 space-y-1.5">
-          <Label>Body sections (JSON)</Label>
-          <Textarea
-            rows={12}
-            className="font-mono text-xs"
-            value={form.sectionsText}
-            onChange={(e) => setForm((f) => ({ ...f, sectionsText: e.target.value }))}
-          />
+          {isBlog ? (
+            <BlogSectionEditor
+              sections={form.sections}
+              onChange={(sections) => setForm((f) => ({ ...f, sections }))}
+            />
+          ) : (
+            <>
+              <Label>Body sections (JSON)</Label>
+              <Textarea
+                rows={12}
+                className="font-mono text-xs"
+                value={form.sectionsText}
+                onChange={(e) => setForm((f) => ({ ...f, sectionsText: e.target.value }))}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

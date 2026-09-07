@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { COOKIE_CONSENT_STORAGE_KEY } from "@/components/legal/cookie-consent-bar";
 import { allowsAdsenseDisplayAds } from "@/lib/adsense-placement";
 import { resolveAdsensePublisherId } from "@/lib/adsense-policy";
+import { BLOG_AD_MIN_HEIGHT_PX } from "@/lib/blog-safety-rules";
 
 interface AdSenseUnitProps {
   slot?: string;
@@ -55,18 +56,24 @@ export function AdSenseUnit({
     <aside
       className={`mt-10 overflow-hidden border-t border-[var(--g-line)] pt-8 text-center ${className}`}
       aria-label="Advertisement"
+      data-nosnippet
     >
       <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-taupe)]">
         Advertisement
       </p>
-      <ins
-        className="adsbygoogle"
-        style={{ display: "block" }}
-        data-ad-client={ids.scriptClient}
-        data-ad-slot={slot}
-        data-ad-format={format}
-        data-full-width-responsive={responsive ? "true" : "false"}
-      />
+      <div
+        className="mx-auto w-full max-w-[728px]"
+        style={{ minHeight: BLOG_AD_MIN_HEIGHT_PX }}
+      >
+        <ins
+          className="adsbygoogle"
+          style={{ display: "block", minHeight: BLOG_AD_MIN_HEIGHT_PX }}
+          data-ad-client={ids.scriptClient}
+          data-ad-slot={slot}
+          data-ad-format={format}
+          data-full-width-responsive={responsive ? "true" : "false"}
+        />
+      </div>
     </aside>
   );
 }

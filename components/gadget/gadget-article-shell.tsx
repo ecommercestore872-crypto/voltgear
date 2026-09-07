@@ -46,8 +46,15 @@ export function GadgetArticleShell({
       </div>
       <article className="mx-auto max-w-3xl px-4 py-10 lg:px-8">
         {coverUrl ? (
-          <div className="relative mb-8 aspect-[16/9] w-full overflow-hidden rounded-2xl border border-[var(--g-line)]">
-            <Image src={coverUrl} alt="" fill sizes="768px" className="object-cover" />
+          <div className="relative mb-8 aspect-[16/9] w-full overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)]">
+            <Image
+              src={coverUrl}
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+            />
           </div>
         ) : null}
         <div className="gadget-prose [&_a]:text-[var(--g-forest)] [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-[var(--g-charcoal)] [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_li]:text-[var(--g-taupe)] [&_p]:mt-4 [&_p]:leading-relaxed [&_p]:text-[var(--g-taupe)]">

@@ -235,6 +235,7 @@ export function llmsTxt(input: {
     `Shop: ${absoluteUrl("/products", input.siteUrl)}`,
     `About: ${absoluteUrl("/about", input.siteUrl)}`,
     `FAQ: ${absoluteUrl("/faq", input.siteUrl)}`,
+    `Guides: ${absoluteUrl("/blog", input.siteUrl)}`,
     `Contact: ${absoluteUrl("/contact", input.siteUrl)}`,
     "",
     "## Categories",

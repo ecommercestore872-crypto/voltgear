@@ -1,10 +1,12 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Check, Lightbulb, ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/sections/contact-form";
 import { FAQAccordion } from "@/components/sections/faq-accordion";
 import { ProductCard } from "@/components/product/product-card";
+import { safeBlogHref } from "@/lib/blog-safety-rules";
 import { imageUrl } from "@/lib/sanity/image";
 import type { ContentBlock } from "@/lib/types";
 
@@ -20,7 +22,7 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
               return (
                 <h4
                   key={i}
-                  className="mt-6 text-lg font-bold tracking-tight"
+                  className="mt-6 text-lg font-bold tracking-tight text-[var(--g-charcoal,inherit)]"
                 >
                   {block.text}
                 </h4>
@@ -29,14 +31,14 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
             return block.level === "h3" ? (
               <h3
                 key={i}
-                className="mt-8 text-xl font-bold tracking-tight"
+                className="mt-8 text-xl font-bold tracking-tight text-[var(--g-charcoal,inherit)]"
               >
                 {block.text}
               </h3>
             ) : (
               <h2
                 key={i}
-                className="mt-8 text-2xl font-bold tracking-tight"
+                className="mt-8 text-2xl font-bold tracking-tight text-[var(--g-charcoal,inherit)]"
               >
                 {block.text}
               </h2>
@@ -45,7 +47,7 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
             return (
               <p
                 key={i}
-                className="mt-4 leading-relaxed text-muted-foreground"
+                className="mt-4 leading-relaxed text-[var(--g-taupe,hsl(var(--muted-foreground)))]"
               >
                 {block.text}
               </p>
@@ -55,7 +57,7 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
             return block.type === "number" ? (
               <ol
                 key={i}
-                className="mt-4 list-decimal space-y-2 pl-5 text-muted-foreground"
+                className="mt-4 list-decimal space-y-2 pl-5 text-[var(--g-taupe,hsl(var(--muted-foreground)))]"
               >
                 {block.items.map((item, j) => (
                   <li key={j} className="leading-relaxed">
@@ -66,7 +68,7 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
             ) : (
               <ul
                 key={i}
-                className="mt-4 list-disc space-y-2 pl-5 text-muted-foreground"
+                className="mt-4 list-disc space-y-2 pl-5 text-[var(--g-taupe,hsl(var(--muted-foreground)))]"
               >
                 {block.items.map((item, j) => (
                   <li key={j} className="leading-relaxed">
@@ -77,31 +79,32 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
             );
           case "callout":
             return (
-              <div
+              <aside
                 key={i}
+                role="note"
                 className="mt-6 flex gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4"
               >
-                <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
                 <div>
                   {block.title && (
-                    <p className="font-semibold">{block.title}</p>
+                    <p className="font-semibold text-[var(--g-charcoal,inherit)]">{block.title}</p>
                   )}
-                  <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-0.5 text-sm leading-relaxed text-[var(--g-taupe,hsl(var(--muted-foreground)))]">
                     {block.text}
                   </p>
                 </div>
-              </div>
+              </aside>
             );
           case "relatedProducts":
             if (!block.products?.length) return null;
             return (
               <div key={i} className="mt-10">
-                <p className="flex items-center gap-2 text-lg font-bold tracking-tight">
-                  <ShoppingBag className="h-5 w-5 text-primary" />
+                <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight">
+                  <ShoppingBag className="h-5 w-5 text-primary" aria-hidden />
                   {block.heading || "Related products"}
-                </p>
+                </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  <Check className="mr-1 inline h-3.5 w-3.5 text-primary" />
+                  <Check className="mr-1 inline h-3.5 w-3.5 text-primary" aria-hidden />
                   Pair them with your order — available in the store.
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -150,22 +153,39 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
                 {block.text}
               </blockquote>
             );
-          case "cta":
-            return block.label && block.href ? (
+          case "cta": {
+            const href = safeBlogHref(block.href);
+            if (!block.label || !href) return null;
+            const internal = href.startsWith("/");
+            return (
               <div key={i} className="mt-8">
                 <Button asChild size="lg">
-                  <a href={block.href}>
-                    {block.label}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
+                  {internal ? (
+                    <Link href={href}>
+                      {block.label}
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                    </Link>
+                  ) : (
+                    <a href={href} rel="noopener noreferrer" target="_blank">
+                      {block.label}
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                    </a>
+                  )}
                 </Button>
               </div>
-            ) : null;
+            );
+          }
           case "faq":
             return block.items?.length ? (
-              <div key={i} className="mt-8">
+              <section key={i} className="mt-8" aria-labelledby={`blog-faq-${i}`}>
+                <h2
+                  id={`blog-faq-${i}`}
+                  className="text-2xl font-bold tracking-tight text-[var(--g-charcoal,inherit)]"
+                >
+                  Frequently asked questions
+                </h2>
                 <FAQAccordion items={block.items} />
-              </div>
+              </section>
             ) : null;
           case "contactForm":
             return (

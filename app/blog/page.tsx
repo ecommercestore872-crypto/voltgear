@@ -10,13 +10,24 @@ import { imageUrl } from "@/lib/sanity/image";
 import type { Page } from "@/lib/types";
 
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
+import { publicSiteUrl } from "@/lib/deploy-rules";
+import { sortBlogPostsForHome } from "@/lib/blog-desk-rules";
 
 export const metadata: Metadata = {
-  title: "Blog & Buying Guides",
-  description: "Electronics buying guides, tech news and tips from Buy n Try.",
+  title: "Buying guides: earbuds, GaN chargers, power banks",
+  description:
+    "Pakistan-first guides to TWS earbuds, 65W GaN chargers, 20,000mAh power banks, AMOLED watches, and cash on delivery. Written for how people here actually shop.",
+  keywords: [
+    "best earbuds in Pakistan 2026",
+    "65W GaN charger Pakistan",
+    "20000mAh power bank",
+    "cash on delivery electronics",
+  ],
+  alternates: { canonical: "/blog" },
   openGraph: {
-    title: "Blog & Buying Guides | Buy n Try",
-    description: "Electronics buying guides, tech news and tips from Buy n Try.",
+    title: "Buy n Try buying guides",
+    description:
+      "Practical Pakistan guides for earbuds, GaN chargers, power banks, and COD.",
     type: "website",
   },
 };
@@ -34,19 +45,42 @@ export default async function BlogPage() {
   if (posts.length === 0) {
     posts = FALLBACK_BLOG_POSTS;
   }
+  posts = sortBlogPostsForHome(posts, "popular");
+  const siteUrl = publicSiteUrl();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Buy n Try buying guides",
+    url: `${siteUrl}/blog`,
+    description:
+      "Pakistan-first guides to TWS earbuds, 65W GaN chargers, power banks, and cash on delivery electronics.",
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.seo?.title || post.title,
+      url: `${siteUrl}/blog/${post.slug}`,
+      datePublished: post.publishedAt,
+      description: post.seo?.description || post.excerpt,
+    })),
+  };
 
   return (
     <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <div className="border-b border-[var(--g-line)]">
         <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
             Blog
           </p>
           <h1 className="gadget-display mt-3 text-4xl tracking-[-0.03em] text-[var(--g-charcoal)] sm:text-5xl">
-            Guides, news &amp; tips
+            Pakistan buying guides
           </h1>
           <p className="mt-3 max-w-xl text-sm text-[var(--g-taupe)] sm:text-base">
-            Practical picks and how-tos for chargers, audio, and everyday tech.
+            How to pick TWS earbuds, 65W GaN chargers, 20,000mAh power banks, and calling watches when you are paying cash on delivery.
           </p>
         </div>
       </div>
@@ -108,7 +142,7 @@ export default async function BlogPage() {
           </div>
         ) : (
           <p className="rounded-2xl border border-dashed border-[var(--g-line)] bg-[var(--g-white)] p-12 text-center text-[var(--g-taupe)]">
-            No blog posts yet. Create posts in Admin (Page Type: Blog).
+            No blog posts yet. Publish a guide in Admin → Blog.
           </p>
         )}
       </div>

@@ -139,5 +139,6 @@ describe("llmsTxt", () => {
     assert.match(text, /Buy n Try/);
     assert.match(text, /buyntryy\.com/);
     assert.match(text, /\/products\/earbuds/);
+    assert.match(text, /\/blog/);
   });
 });

@@ -18,6 +18,7 @@ import { parseEmailSenderConfig } from "@/lib/email-sender-rules";
 import { mergeInvoiceTemplate } from "@/lib/invoice-template-rules";
 import { parseVariantOptions } from "@/lib/variant-options-rules";
 import { textToPortableText } from "@/lib/product-detail-copy";
+import { normalizePageSeo } from "@/lib/blog-desk-rules";
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -225,7 +226,7 @@ export function mapPage(row: Record<string, unknown> | null): Page | null {
     author: row.author ? String(row.author) : undefined,
     sections: Array.isArray(row.sections) ? (row.sections as Page["sections"]) : undefined,
     keywords: Array.isArray(row.keywords) ? (row.keywords as string[]) : undefined,
-    seo: row.seo as Page["seo"],
+    seo: normalizePageSeo(row.seo),
     isDemo: Boolean(row.is_demo),
   };
 }

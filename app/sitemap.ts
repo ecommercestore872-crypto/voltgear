@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { fetchSitemapCollections } from "@/lib/db/collection-store";
 import { fetchShopTypes, fetchSitemapPages, fetchSitemapProducts } from "@/lib/db/store";
 import { indexSiteUrl } from "@/lib/seo-rules";
@@ -76,7 +77,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       entry(`${baseUrl}/product/${prod.slug}`, prod._updatedAt, "weekly", 0.7)
     );
 
-  const blogRoutes = blogs.map((post) =>
+  const sitemapBlogs =
+    blogs.length > 0
+      ? blogs
+      : FALLBACK_BLOG_POSTS.map((post) => ({
+          slug: post.slug,
+          _updatedAt: post.publishedAt,
+        }));
+  const blogRoutes = sitemapBlogs.map((post) =>
     entry(`${baseUrl}/blog/${post.slug}`, post._updatedAt, "weekly", 0.55)
   );
 

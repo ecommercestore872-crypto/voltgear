@@ -1,289 +1,406 @@
-import type { Page } from "@/lib/types";
+import type { ContentBlock, Page } from "@/lib/types";
+
+function h2(text: string): ContentBlock {
+  return { _type: "heading", level: "h2", text };
+}
+function h3(text: string): ContentBlock {
+  return { _type: "heading", level: "h3", text };
+}
+function p(text: string): ContentBlock {
+  return { _type: "paragraph", text };
+}
+function bullets(...items: string[]): ContentBlock {
+  return { _type: "list", type: "bullet", items };
+}
+function note(title: string, text: string): ContentBlock {
+  return { _type: "callout", title, text };
+}
+function shop(label: string, href: string): ContentBlock {
+  return { _type: "cta", label, href };
+}
+function faq(...items: { question: string; answer: string }[]): ContentBlock {
+  return { _type: "faq", items };
+}
+
+function guide(
+  partial: Omit<Page, "pageType"> & { featured?: boolean; homeOrder?: number }
+): Page {
+  const { featured, homeOrder, seo, ...rest } = partial;
+  return {
+    ...rest,
+    pageType: "blog",
+    seo: {
+      title: seo?.title ?? rest.title.slice(0, 60),
+      description: seo?.description ?? (rest.excerpt ?? "").slice(0, 160),
+      ...(featured ? { featured: true } : {}),
+      ...(homeOrder != null ? { homeOrder } : {}),
+    },
+  };
+}
 
 export const FALLBACK_BLOG_POSTS: Page[] = [
-  {
-    title: "Best Fast Chargers in Pakistan (2026 Ultimate Buying Guide)",
-    slug: "best-fast-chargers-pakistan-2026-guide",
-    pageType: "blog",
-    publishedAt: "2026-03-01T10:00:00Z",
+  guide({
+    title: "Best TWS earbuds in Pakistan 2026: what is actually worth Rs 5,000",
+    slug: "best-tws-earbuds-pakistan-2026",
+    publishedAt: "2026-09-06T08:00:00Z",
     author: "Buy n Try editors",
+    coverImage: "/blog/cover-tws-earbuds.webp",
+    featured: true,
+    homeOrder: 1,
     excerpt:
-      "Confused between 20W PD, GaN technology, and Quick Charge 3.0? Learn how to choose safe, ultra-fast chargers for iPhone and Android devices in Pakistan.",
+      "A Pakistan-first TWS buying guide: ENC vs ANC, gaming lag, battery that survives a Karachi commute, and how to buy on cash on delivery without getting a sealed fake.",
+    keywords: [
+      "best earbuds in Pakistan 2026",
+      "TWS earbuds under 5000",
+      "best wireless earbuds Pakistan",
+      "ANC vs ENC earbuds",
+    ],
     seo: {
-      title: "Best Fast Chargers in Pakistan (2026 Buying Guide) | Buy n Try",
+      title: "Best TWS earbuds in Pakistan 2026",
       description:
-        "Comprehensive guide to choosing 20W PD & GaN fast chargers in Pakistan. Protect your battery health while charging at peak speeds.",
+        "How to pick TWS earbuds in Pakistan in 2026 by price, ENC, lag, and COD. Written for commutes, calls, and load-shedding, not spec-sheet hype.",
     },
     sections: [
-      {
-        _type: "heading",
-        level: "h2",
-        text: "Understanding Fast Charging Technologies in Pakistan",
-      },
-      {
-        _type: "paragraph",
-        text: "Modern smartphones require higher wattage power adapters to recharge quickly without degrading battery longevity. In Pakistan, phone manufacturers often exclude wall adapters from device boxes, leaving consumers to navigate options ranging from standard 5W bricks to 65W GaN (Gallium Nitride) fast chargers.",
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "Key Wattage Ratings to Look For",
-      },
-      {
-        _type: "list",
-        items: [
-          "20W PD (Power Delivery): Ideal for iPhone 13, 14, 15, and 16 series, charging 0% to 50% in ~30 minutes.",
-          "25W & 33W PPS: Designed for Samsung Galaxy S-series and Redmi devices requiring Programmable Power Supply protocol.",
-          "65W GaN Chargers: Multi-port compact chargers capable of powering a laptop (MacBook/Dell) and phone simultaneously.",
-        ],
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "Battery Protection Features",
-      },
-      {
-        _type: "paragraph",
-        text: "Always select chargers equipped with Over-Voltage Protection (OVP), Temperature Monitoring, and Short Circuit Protection. Certified fast chargers safeguard your device against local voltage fluctuations common in Pakistani power grids.",
-      },
+      h2("The question people actually type"),
+      p("If you open Chrome or Bing and start typing “best earbuds in Pakistan”, the suggestions fill in the year, the price, and “under 5000” before you finish the sentence. That is not an accident. Most of us are not shopping for a flagship. We want a pair that stays in on a bike, survives a sweaty July, and does not die before we reach home."),
+      p("This guide is the one I wish someone had handed me the last time a cousin asked for “the AirPods ones but desi price.” I work at a shop that sells this stuff on cash on delivery. I hear the returns. I hear the WhatsApp voice notes that sound like they were recorded inside a steel tiffin. I am not going to crown one secret model that will be out of stock next week. I will show you how to read a listing so you stop wasting a trip."),
+      h2("Price bands that match how Pakistan actually shops"),
+      p("Ignore global “under $50” charts. In rupees, the useful splits look like this in 2026:"),
+      bullets(
+        "Under Rs 2,500: Bluetooth works, bass is there, calls are a gamble. Fine for YouTube on the bus if you accept they may last a year.",
+        "Rs 2,500 to 5,000: This is the real market. Bluetooth 5.3, ENC on the mics, 20 to 30 hours with the case, IPX4 or IPX5. Most of the “best TWS earbuds Pakistan” searches should live here.",
+        "Rs 5,000 to 12,000: Honest ANC, better tips, less hiss. Only spend here if you sit in a generator-loud office or a long intercity bus.",
+        "Above Rs 12,000: Import-tax territory. Buy if you already know the brand. Do not buy because a thumbnail said “Pro Max”."
+      ),
+      note(
+        "What we see at the door",
+        "The most common COD return in this range is not “sound is bad.” It is “left bud died in two weeks” or “box looks reprint.” If the seller will not let you open the box before you pay, walk away."
+      ),
+      h2("ENC vs ANC, in one kitchen test"),
+      p("ANC (active noise cancellation) uses extra mics and a chip to hush the world for you. ENC (environmental noise cancellation) tries to hush the world for the person you are calling. Pakistani listings mash both words together. They are not the same."),
+      p("Do this before you keep a pair: stand near a running exhaust fan or the street, start a WhatsApp call, and ask the other person “can you hear the fan?” If they say you sound like you are in a bathroom, ENC is marketing. If they say you sound normal and a bit dry, that pair is doing the job most people here actually need."),
+      h3("Gaming mode is a latency number, not a sticker"),
+      p("“40 ms gaming” on a graphic means nothing if the listing never says which codec it uses after the first 10 minutes. PubG Mobile on a mid-range Android phone will still pop if the buds drop to SBC. If you play, test a match in the driveway before the rider leaves. If gunshots arrive late, send them back."),
+      h2("Battery claims versus a real day"),
+      p("A case that says 30 hours usually means 5 to 6 hours in the buds plus four refills, at moderate volume, with ANC off. Turn on ANC and a bright finding-the-buds light and you lose a third. For a Karachi-to-office day with two calls and a playlist, I want at least one full refill left in the case at 9 pm. If the case is empty by maghrib, the listing lied or the cells are tired."),
+      h2("Fit beats drivers"),
+      p("A 13 mm driver in a shell that falls out at the first speed breaker is a paperweight. Look for at least two extra silicone tips in the box. If your ear canal is small, the “one size” buds from generic lots will hurt by afternoon. That is why so many people bounce between TWS and a neckband. A neckband is not outdated here. It is a fit strategy."),
+      shop("Browse earbuds we actually stock", "/products/earbuds"),
+      h2("How to buy on cash on delivery without getting burned"),
+      bullets(
+        "Open the box in front of the rider. Check both buds power on and the case LED behaves.",
+        "Match the print on the inner tray with the sleeve. Misaligned logos are the cheapest tell.",
+        "Ask for the warranty card and a readable invoice with the shop name, not a first-name scribble.",
+        "If the shop says “company sealed, cannot open,” that is not a premium service. That is a way to dump copies."
+      ),
+      h2("A 60-second shortlist method"),
+      p("Write three words on your notes app: calls, commute, or game. Pick one as the job. Then filter every listing against that job only. If the job is calls, ignore RGB lights. If the job is commute, ignore “Hi-Fi studio.” If you try to buy one pair that is a studio monitor, a gym buddy, and a gaming headset, you will return it."),
+      faq(
+        {
+          question: "What are the best earbuds in Pakistan under 5000 in 2026?",
+          answer:
+            "In the under-Rs 5,000 band, buy for ENC call quality, Bluetooth 5.3, and a case that still has charge at night. Skip names you cannot warranty locally. Open the box on COD before you pay.",
+        },
+        {
+          question: "Is ANC worth it on budget TWS earbuds?",
+          answer:
+            "Cheap ANC often hisses and kills battery. Pay for ANC only if you sit in constant noise. For most Pakistani buyers, ENC that makes WhatsApp calls clear is the better spend.",
+        },
+        {
+          question: "TWS or neckband for motorbike use?",
+          answer:
+            "If buds fall out at 40 km/h, a neckband is the honest answer. TWS only wins if the tips seal and you can still hear enough traffic to stay safe.",
+        }
+      ),
     ],
-  },
-  {
-    title: "Top Wireless Earbuds Under Rs. 5,000 in Pakistan",
-    slug: "top-wireless-earbuds-under-5000-pakistan",
-    pageType: "blog",
-    publishedAt: "2026-02-24T12:00:00Z",
-    author: "Buy n Try audio desk",
-    excerpt:
-      "Find the best budget TWS earbuds featuring low latency gaming mode, ENC clear calling, deep bass drivers, and long battery life.",
-    seo: {
-      title: "Top Wireless Earbuds Under Rs. 5,000 in Pakistan | Buy n Try",
-      description:
-        "Detailed comparison of budget wireless earbuds in Pakistan under 5k PKR. ANC, battery test, latency, and call quality compared.",
-    },
-    sections: [
-      {
-        _type: "heading",
-        level: "h2",
-        text: "What to Expect in Budget TWS Earbuds Under PKR 5,000",
-      },
-      {
-        _type: "paragraph",
-        text: "The budget TWS market in Pakistan has advanced rapidly. Today, earbuds priced under Rs. 5,000 offer features that were previously exclusive to premium flagships, including Environmental Noise Cancellation (ENC) for calls and Bluetooth 5.3 stability.",
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "Must-Have Features for Daily Use",
-      },
-      {
-        _type: "list",
-        items: [
-          "Battery Playtime: Aim for at least 5 to 6 hours per earbud charge, plus 24+ hours from the charging case.",
-          "Low Latency (Game Mode): Essential for mobile gamers playing PUBG or Free Fire without audio lag.",
-          "IPX5 Water Resistance: Protection against sweat during workouts and rain bursts.",
-        ],
-      },
-    ],
-  },
-  {
-    title: "How to Choose the Right Tripod for Mobile Photography & Vlogging",
-    slug: "how-to-choose-tripod-vlogging-mobile-photography",
-    pageType: "blog",
-    publishedAt: "2026-02-15T09:00:00Z",
-    author: "Content Creator Desk",
-    excerpt:
-      "From Ring Light tripods to flexible Gorilla tripods and heavy-duty 7-foot stands, discover which tripod suits your vlogging setup.",
-    seo: {
-      title: "How to Choose the Right Tripod for Vlogging & Photography | Buy n Try",
-      description:
-        "Complete guide to selecting mobile tripods in Pakistan. Ring lights, Gorilla tripods, 7-foot stands, and Bluetooth shutter setups.",
-    },
-    sections: [
-      {
-        _type: "heading",
-        level: "h2",
-        text: "Selecting the Ideal Stand for Your Creative Needs",
-      },
-      {
-        _type: "paragraph",
-        text: "Whether filming TikTok reels, YouTube talking-head clips, or still photos, a tripod stops handshake and keeps the frame where you put it. In Pakistan the useful split is: table-top / gorilla legs for desks, 5–7 ft stands for standing shots, and ring-light tripods when you need face light and a phone clamp in one piece.",
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "What to check before you buy",
-      },
-      {
-        _type: "list",
-        items: [
-          "Phone clamp width: must fit your case, not only a bare phone.",
-          "Weight and lock: cheap centre columns slip; look for a collar you can tighten by hand.",
-          "Head type: a ball head is faster for reels; a pan head is easier for product shots.",
-          "Bluetooth shutter: useful, but a clamp that actually holds the phone matters more.",
-        ],
-      },
-      {
-        _type: "paragraph",
-        text: "If you shoot mostly indoors, a ring-light tripod is enough. If you shoot outdoors or at events, a taller stand with a wider footprint is safer in wind. We stock both types so you can match the stand to the job instead of buying a 7-foot pole for a desk.",
-      },
-    ],
-  },
-  {
-    title: "Smartwatch Features Explained: Health Metrics, Battery & AMOLED Screens",
-    slug: "smartwatch-features-explained-health-battery-amoled",
-    pageType: "blog",
-    publishedAt: "2026-02-05T14:30:00Z",
+  }),
+  guide({
+    title: "65W GaN charger in Pakistan: one brick for phone and laptop",
+    slug: "65w-gan-charger-pakistan-guide",
+    publishedAt: "2026-09-05T08:00:00Z",
     author: "Buy n Try editors",
+    coverImage: "/blog/cover-gan-charger.webp",
+    featured: true,
+    homeOrder: 2,
     excerpt:
-      "Learn how Bluetooth calling, SpO2 blood oxygen sensors, HD vs AMOLED displays, and IP68 ratings work in modern smartwatches.",
+      "Why 65W GaN chargers took over Pakistani desks in 2026, how to read PD and PPS, and how to stop buying a hot 20W brick that cannot feed a laptop.",
+    keywords: [
+      "best GaN charger Pakistan",
+      "65W GaN charger",
+      "fast charger Pakistan",
+      "USB-C PD charger",
+    ],
     seo: {
-      title: "Smartwatch Features Explained: Health Metrics & Battery | Buy n Try",
+      title: "65W GaN charger in Pakistan 2026",
       description:
-        "Understand smartwatch specifications before buying in Pakistan. AMOLED display benefits, health tracking accuracy, and battery life.",
+        "A clear 65W GaN charger guide for Pakistan: PD vs PPS, multi-port split, heat, and whether one brick can charge a laptop and a phone.",
     },
     sections: [
-      {
-        _type: "heading",
-        level: "h2",
-        text: "Demystifying Smartwatch Specifications",
-      },
-      {
-        _type: "paragraph",
-        text: "Smartwatches in this market mix three jobs: a clock you glance at, a Bluetooth dialler, and a health gadget. Specs on the box are easy to over-read. Battery life, display type, and whether calling actually works with your phone matter more than a long list of sport modes.",
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "Display, battery, and calling",
-      },
-      {
-        _type: "paragraph",
-        text: "AMOLED stays readable in shade and looks sharp for watch faces; IPS or TFT is fine if you want a lower price and can accept dimmer outdoor use. Bluetooth calling needs a stable phone link and a microphone that is not buried in the strap — try a call in a quiet room before you rely on it outdoors. SpO2 and heart-rate numbers are estimates, not a clinic visit.",
-      },
-      {
-        _type: "paragraph",
-        text: "Charge habits: a watch that lasts 2–3 days with always-on display off is typical. If a listing promises 15 days, that figure is usually with most sensors off. We describe battery in real use on each product page rather than repeating the factory maximum.",
-      },
+      h2("The brick that replaced the travel pouch"),
+      p("Two years ago a student bag in Lahore had a laptop brick, a 20W phone cube, and a mystery cable that only worked on Tuesdays. In 2026 the search that keeps coming up is “65W GaN charger Pakistan.” People want one small plug that can sit on a hostel extension lead and feed a USB-C laptop plus a phone."),
+      p("GaN is Gallium Nitride. In plain language: the charger can push more watts without turning into a hand warmer the size of a soap dish. That matters here because our sockets are crowded, our summers are rude, and a plastic 65W charger that is actually a 20W chip with a fat shell will cook itself."),
+      h2("Wattage is not a personality"),
+      bullets(
+        "20W PD: Fine for most iPhones. It will not meaningfully charge a USB-C laptop.",
+        "25W to 45W PPS: The Samsung and many Xiaomi phones want PPS, not just “PD” written on the box.",
+        "65W: The first wattage that can charge a 14-inch USB-C laptop at a useful speed and still have leftover for a phone if the ports are designed honestly.",
+        "100W: Only if you carry a bigger laptop or two people share one brick. You pay in size and price."
+      ),
+      h3("The two-port lie"),
+      p("A “65W 2-port” charger often means 65W on port A alone. Plug two devices and it may split 45/20 or even 30/20. Read the tiny table on the back. If there is no table, assume the second device will crawl. I have watched a “65W” unit drop a notebook to 15W the moment a phone joined. That is not GaN magic. That is a missing controller."),
+      h2("Heat, voltage, and Pakistani sockets"),
+      p("If the charger is too hot to hold after 20 minutes, unplug it. Good GaN runs warm, not painful. Also look for over-voltage and short-circuit claims that are printed, not only in a Facebook caption. Our line voltage moves. A charger that only ever lived in a 110V demo video is not automatically safe on a 220V board with a loose socket."),
+      note(
+        "Cable first",
+        "A 65W charger on a thin no-name cable is a 15W charger. Use a marked USB-C to C cable that says 60W or 5A. The free cable in a random lot is why people say “GaN is fake.”"
+      ),
+      shop("See chargers in the shop", "/products/charger"),
+      h2("Who should not buy 65W"),
+      p("If you only charge one Android phone at night and never carry a laptop, a honest 25W or 33W PPS cube is enough and stays cheaper. 65W is for people who already carry two devices or who are tired of leaving a laptop brick at the office."),
+      faq(
+        {
+          question: "Can a 65W GaN charger charge a laptop in Pakistan?",
+          answer:
+            "Yes, if the laptop takes USB-C PD and the charger can actually deliver 65W on that port alone. Check the port table. A 65W label with two devices plugged in may split much lower.",
+        },
+        {
+          question: "Is GaN safer than a normal charger?",
+          answer:
+            "GaN itself is just a semiconductor. Safety is the protection circuit and the cable. Buy a unit that stays only warm, has printed protections, and a proper C-to-C cable.",
+        },
+        {
+          question: "20W vs 65W for iPhone?",
+          answer:
+            "iPhone is happy at 20W. Buy 65W only if you also charge a USB-C laptop or a second phone from the same brick.",
+        }
+      ),
     ],
-  },
-  {
-    title: "Wireless Microphones for Content Creators in Pakistan (Type-C & Lightning)",
-    slug: "wireless-microphones-content-creators-pakistan-guide",
-    pageType: "blog",
-    publishedAt: "2026-01-20T11:15:00Z",
-    author: "Content Creator Desk",
-    excerpt:
-      "Upgrade your audio quality for vlogs, interviews, and reels with plug-and-play wireless lapel microphones.",
-    seo: {
-      title: "Wireless Microphones for Content Creators in Pakistan | Buy n Try",
-      description:
-        "Compare wireless lavalier microphones in Pakistan. Noise reduction, dual transmitter setups, Type-C & iPhone compatibility.",
-    },
-    sections: [
-      {
-        _type: "heading",
-        level: "h2",
-        text: "Why Clear Audio Matters More Than Video Resolution",
-      },
-      {
-        _type: "paragraph",
-        text: "Viewers forgive average video; they do not stay for muffled audio. A wireless lapel mic with a phone dongle (USB-C or Lightning) is the fastest upgrade for reels, interviews, and product explainers filmed on a phone.",
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "What actually matters in a kit",
-      },
-      {
-        _type: "list",
-        items: [
-          "Connector: USB-C for most Android phones; Lightning for older iPhones. A kit that includes both saves a second order.",
-          "Two transmitters: useful for interviews; one is enough for talking-head.",
-          "Noise reduction: helps fans and street noise; it cannot fix a mic stuffed under a collar.",
-          "Charging case: if you film daily, dead dongles are the usual failure mode.",
-        ],
-      },
-      {
-        _type: "paragraph",
-        text: "Clip the mic on the sternum, not the shoulder, and keep the phone within a few metres. If you need shop stock, filter the catalogue for microphones or open the product page and check the connector photo before checkout.",
-      },
-    ],
-  },
-  {
-    title: "Power Bank Buying Guide for Pakistan: Capacity, Ports, and Safety",
-    slug: "power-bank-buying-guide-pakistan",
-    pageType: "blog",
-    publishedAt: "2026-01-08T10:00:00Z",
+  }),
+  guide({
+    title: "20,000mAh power bank in Pakistan: what the number means on a load-shedding day",
+    slug: "20000mah-power-bank-pakistan",
+    publishedAt: "2026-09-04T08:00:00Z",
     author: "Buy n Try editors",
+    coverImage: "/blog/cover-power-bank.webp",
+    featured: true,
+    homeOrder: 3,
     excerpt:
-      "mAh numbers are not the whole story. How to pick a power bank that actually refills a phone in Pakistani heat and load-shedding.",
+      "How to read 20,000mAh, 22.5W, and dual-cable claims when WAPDA goes, and why a heavy brick can still give you only one and a half phone charges.",
+    keywords: [
+      "20000mAh power bank Pakistan",
+      "65W power bank",
+      "best power bank Pakistan 2026",
+      "power bank mAh explained",
+    ],
     seo: {
-      title: "Power Bank Buying Guide for Pakistan | Buy n Try",
+      title: "20,000mAh power bank guide Pakistan",
       description:
-        "Choose power banks in Pakistan by usable capacity, USB-C PD, cable included, and basic safety — not only the mAh printed on the box.",
+        "What 20,000mAh really gives you in Pakistan, how 22.5W and 65W banks differ, and how to test a power bank on cash on delivery.",
     },
     sections: [
-      {
-        _type: "heading",
-        level: "h2",
-        text: "Read capacity as usable energy, not the sticker",
-      },
-      {
-        _type: "paragraph",
-        text: "A 10,000 mAh pack at 3.7 V is not 10,000 mAh at 5 V into your phone. Conversion loss and heat mean you should expect roughly one to two full charges for a modern phone from a 10,000 mAh pack, and more from 20,000 mAh if the ports support your phone’s fast-charge protocol.",
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "Ports and cables",
-      },
-      {
-        _type: "paragraph",
-        text: "USB-C in and out is the least frustrating setup: one cable charges the pack and the phone. Dual-cable packs that already include USB-C and Lightning save you hunting for a lead in a bag. Avoid mystery ‘66W’ claims with a single USB-A port and no protocol named.",
-      },
-      {
-        _type: "paragraph",
-        text: "Do not leave a swelling pack in a car in June. If a listing on our shop shows PD or PPS, that is the protocol we packed. Cash on delivery still applies on eligible orders if you want to try the pack at home.",
-      },
+      h2("mAh is a tank size, not a promise"),
+      p("“20,000mAh power bank Pakistan” is one of those searches that spikes every summer. The number feels huge. Then the lights go for three hours and your phone still dies at 9 pm. The tank is real. The hose and the heat are what steal the water."),
+      p("A 20,000mAh cell pack at 3.7V is about 74 watt-hours. Your phone battery is often 5,000mAh at a similar voltage. In a clean lab you might get three full fills. In a 38°C bus with a 22.5W boost circuit, conversion loss, and a cheap cable, many people see closer to two fills. If a listing says “charges iPhone 8 times,” they counted a phone from 2017 or they counted in their dreams."),
+      h2("22.5W versus 65W banks"),
+      p("22.5W is the sweet spot for phones that speak VOOC, SuperVOOC-ish clones, or Samsung PPS in this market. 65W banks exist and they will feed some USB-C laptops for a bit, but they are heavier and they get warm. If you only carry a phone and earbuds, 22.5W at 20,000mAh is the honest daily driver. If you edit on a USB-C notebook in a café that “has wifi” and one working socket, 65W starts to make sense."),
+      h3("Built-in cables"),
+      p("Dual-cable banks are popular here because everyone loses a cable. The trap is a short, thin built-in lead that only does 5V/2A even when the USB-C port on the same bank can do 22.5W. Test both. Keep the faster port for the phone you care about."),
+      h2("How I test a bank when the rider is still at the gate"),
+      bullets(
+        "Weigh it in your hand. A 20,000mAh pack that feels like a TV remote is not 20,000mAh.",
+        "Plug your phone, start a screen-on timer, and watch whether watts jump or sit at 5W.",
+        "Feel the back after five minutes. Warm is fine. Burning is a return.",
+        "Ask for a bill that names the capacity. “Power bank black” is how disputes die."
+      ),
+      shop("Shop power banks", "/products/power-bank"),
+      h2("Airline and bus notes"),
+      p("Most airlines treat under 100Wh as cabin-only. 20,000mAh is usually under that line, but print the Wh on a note in your bag. On a Daewoo or motorway bus, keep the bank where you can see it. A glowing pack in a closed backpack under a seat is how scare stories start."),
+      faq(
+        {
+          question: "How many charges is a 20,000mAh power bank?",
+          answer:
+            "For a modern 5,000mAh phone in Pakistani heat, plan on about two full charges, sometimes a bit more if you keep the screen off. Listings that promise six or eight charges are counting tiny old phones or ignoring conversion loss.",
+        },
+        {
+          question: "Is a 65W power bank worth it in Pakistan?",
+          answer:
+            "Yes if you also charge a USB-C laptop. No if you only top up a phone. The extra watts add weight and heat you will feel in June.",
+        },
+        {
+          question: "Can I take a 20,000mAh power bank on a plane?",
+          answer:
+            "Usually in carry-on, not checked baggage, if it stays under 100Wh. Confirm with your airline and keep the capacity label visible.",
+        }
+      ),
     ],
-  },
-  {
-    title: "How Cash on Delivery Works at Buy n Try",
-    slug: "how-cash-on-delivery-works-buy-n-try",
-    pageType: "blog",
-    publishedAt: "2025-12-18T09:30:00Z",
+  }),
+  guide({
+    title: "AMOLED calling smartwatch in Pakistan: which features survive the heat",
+    slug: "amoled-calling-smartwatch-pakistan",
+    publishedAt: "2026-09-03T08:00:00Z",
     author: "Buy n Try editors",
+    coverImage: "/blog/cover-smartwatch.webp",
+    featured: false,
+    homeOrder: 4,
     excerpt:
-      "What happens after you place a COD order: confirmation, packing, courier, payment at the door, and how to track it.",
+      "Calling, AMOLED brightness, GPS, and battery life for Pakistani summers. What to ignore on a “Samsung style” listing and what to test on COD.",
+    keywords: [
+      "AMOLED smartwatch Pakistan",
+      "calling smartwatch",
+      "best smartwatch Pakistan 2026",
+      "smartwatch battery life",
+    ],
     seo: {
-      title: "How Cash on Delivery Works at Buy n Try",
+      title: "AMOLED calling smartwatch Pakistan",
       description:
-        "Step-by-step COD on buyntryy.com — confirmation calls, delivery windows, paying the courier, and tracking your parcel in Pakistan.",
+        "How to choose an AMOLED calling smartwatch in Pakistan: brightness in sun, BT calling, fake GPS, and battery that lasts more than a day.",
     },
     sections: [
-      {
-        _type: "heading",
-        level: "h2",
-        text: "From checkout to the door",
-      },
-      {
-        _type: "paragraph",
-        text: "You add items, enter a reachable phone and address, and place the order. There is no card step for standard COD. We may call or WhatsApp to confirm the address. After confirmation we pack and hand the parcel to the courier.",
-      },
-      {
-        _type: "heading",
-        level: "h3",
-        text: "Payment and tracking",
-      },
-      {
-        _type: "paragraph",
-        text: "Pay the amount on the label when the rider hands you the parcel. Keep the packaging if you might exchange or claim warranty. Track status with your order number on the Track order page. If the status stalls for several working days, contact us with that number rather than opening a second order.",
-      },
-      {
-        _type: "paragraph",
-        text: "Refusing a parcel you confirmed, without a defect, wastes a dispatch. If you need to cancel, message us as soon as you can — before the courier scan if possible. Shipping and return rules are on the Shipping & returns page.",
-      },
+      h2("The listing that says Ultra"),
+      p("Search “smartwatch Pakistan” and you will get a wall of metallic cases that borrowed someone else’s design language. Some of those watches are fine daily drivers. Some are a bright screen glued to a battery the size of a coin. The job of this guide is to separate the features that still work in 40°C sun from the ones that only work in the product photo."),
+      h2("Calling that is not a party trick"),
+      p("Bluetooth calling is the feature people here actually use: leave the phone in a bag, take a Jazz or Zong call from the wrist. It needs a speaker you can hear on a sidewalk and a mic that does not make you sound underwater. Test this at the door. If you have to shout “hello? hello?” twice, it is a notification watch, not a calling watch."),
+      h3("AMOLED in Pakistani noon"),
+      p("AMOLED is worth paying for if the brightness holds outdoors. A dim AMOLED is just a prettier indoor watch. Stand in the street, raise your wrist, and read the time without cupping your hand. If you cannot, the panel is not the reason to buy it."),
+      h2("Battery stories"),
+      p("“21 days” on a box usually means the watch sleeps in a drawer with heart-rate off. Daily calling, AOD, and GPS will bring most of these watches to one or two days. That is still better than an Apple Watch habit if you hate a charger every night. Decide your honesty number: I treat “7 days claimed” as “2 days if I use it.”"),
+      bullets(
+        "Always-on display: pretty, expensive in battery. Turn it off for a week and note the difference.",
+        "GPS: many “GPS” watches are phone-GPS. Walk a block with the phone in another room. If the track is a straight line through buildings, it is not onboard GPS.",
+        "Health numbers: fun, not clinical. Do not pick a medicine dose from a wrist SpO2 reading."
+      ),
+      shop("Browse smartwatches", "/products/smartwatch"),
+      h2("Straps, sweat, and returns"),
+      p("A metal strap in July will annoy you. Ask if a silicone strap is in the box. And please open the watch before you pay. We have seen “working” units that boot a logo and then freeze. Thirty seconds of tapping the crown in front of the rider saves a week of arguing."),
+      faq(
+        {
+          question: "What smartwatch features are worth paying for in Pakistan?",
+          answer:
+            "A screen you can read in sun, Bluetooth calling you can hear on a street, and battery that lasts more than a day with those two on. Fancy sport modes are extra.",
+        },
+        {
+          question: "Does a cheap AMOLED watch have real GPS?",
+          answer:
+            "Often no. Many use the phone’s GPS. Test a walk with the phone away from the watch before you keep it.",
+        },
+        {
+          question: "Can I swim with a calling smartwatch?",
+          answer:
+            "Only if the listing states a real water rating and you accept that the speaker may suffer. Sweat and wudu are the realistic daily test, not a pool ad.",
+        }
+      ),
     ],
-  },
+  }),
+  guide({
+    title: "Earbuds for WhatsApp calls in Pakistan: ENC that works on a bike",
+    slug: "earbuds-for-calls-pakistan",
+    publishedAt: "2026-09-02T08:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-call-earbuds.webp",
+    featured: false,
+    homeOrder: 5,
+    excerpt:
+      "If your calls sound like a kitchen extractor, the buds failed the only test that matters. How to pick ENC earbuds for WhatsApp, Zoom, and roadside conversations.",
+    keywords: [
+      "earbuds for calling Pakistan",
+      "ENC earbuds",
+      "best earbuds for WhatsApp",
+      "earbuds for bike",
+    ],
+    seo: {
+      title: "Earbuds for WhatsApp calls in Pakistan",
+      description:
+        "A practical ENC guide for Pakistani calls: bike noise, office fans, WhatsApp tests, and why bass-heavy TWS often fail at speech.",
+    },
+    sections: [
+      h2("Music buds are not call buds"),
+      p("Most “best earbuds” listicles start with bass. Then you join a Zoom from a small office with a pedestal fan and your manager asks you to type instead. Call quality is a microphone problem. The driver that thumps a qawwali track can still hide your voice behind wind."),
+      p("I keep a boring test: call a person who will be honest, walk to the gate, and talk at a normal volume. If they hear more Honda than human, the ENC is a sticker. If they hear you and a little street, that is a win in this country."),
+      h2("What to look at on the spec sheet"),
+      bullets(
+        "More than one mic per bud. A single hole next to the stem is rarely enough.",
+        "A dedicated “call” or “ENC” claim that is not copy-pasted into every colorway.",
+        "Tips that seal. A leaky tip makes the mics work harder and you sound thin.",
+        "A neckband option if you take long client calls. Stability beats fashion when a bike hits a rut."
+      ),
+      h3("Safety on two wheels"),
+      p("Do not isolate so hard that you miss a horn. For a motorbike, I want ENC on the call and enough open sound that a wagon can still announce itself. That is why I tell riders to use one bud if the pair seals too well. Being reachable is not worth a bumper."),
+      shop("Shop audio for daily use", "/products/earbuds"),
+      h2("Office and generator noise"),
+      p("A UPS or generator in the next room is a low drone. Cheap ENC sometimes removes your voice with it. If you take paid calls, test in the actual room, not the quiet corridor. The five minutes you spend doing that is cheaper than a week of “you’re breaking up.”"),
+      faq(
+        {
+          question: "What are the best earbuds for calls in Pakistan?",
+          answer:
+            "The best pair is the one that passes a live WhatsApp test at your gate. Prefer multi-mic ENC and a stable fit over bass charts. Return them on COD if the other person hears more traffic than you.",
+        },
+        {
+          question: "Why do I sound robotic on calls?",
+          answer:
+            "Aggressive ENC and a bad seal. Try a smaller tip and a firmware-free pair that is not crushing the background so hard it clips your consonants.",
+        }
+      ),
+    ],
+  }),
+  guide({
+    title: "Cash on delivery for electronics in Pakistan: how to inspect before you pay",
+    slug: "cash-on-delivery-electronics-pakistan",
+    publishedAt: "2026-09-01T08:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-cod-box.webp",
+    featured: false,
+    homeOrder: 6,
+    excerpt:
+      "COD is why people try a charger at home. It is also how sealed copies travel. A doorstep checklist for phones accessories, plus how Buy n Try expects you to open the box.",
+    keywords: [
+      "cash on delivery Pakistan",
+      "COD electronics",
+      "buy electronics online Pakistan",
+      "inspect parcel before payment",
+    ],
+    seo: {
+      title: "COD for electronics in Pakistan",
+      description:
+        "How cash on delivery should work for chargers, earbuds, and watches in Pakistan: open the box, test power, keep the invoice, refuse sealed-only deliveries.",
+    },
+    sections: [
+      h2("Why COD still wins"),
+      p("People do not love counting notes at the door because it is charming. They love it because a picture on a screen has lied to them before. Cash on delivery, done honestly, is a chance to see the charger, the buds, the watch, before the rider leaves. That is the whole point of “try it at home.”"),
+      p("The broken version of COD is “company sealed, pay first.” That is just an online order with extra steps. If you cannot open it, you are not inspecting it."),
+      h2("The doorstep checklist we tell our own buyers"),
+      bullets(
+        "Count the items against the invoice. A missing cable is not a small thing on a 65W charger.",
+        "Power on. Earbuds should pair. A watch should reach the home screen. A bank should show a lamp.",
+        "Look at print quality. Soft, shiny logos on cheap card are the usual copy tell.",
+        "Keep the invoice. Warranty arguments without a bill become stories, not claims.",
+        "If something is wrong, refuse the parcel. Do not “pay and we will replace later” unless you already trust the shop with your number."
+      ),
+      note(
+        "How we run it",
+        "At Buy n Try, cash on delivery means you can open the kit and see it work. We would rather the rider wait two minutes than process a week of back-and-forth. If a listing on our site says try it at home, that is the rule, not a slogan."
+      ),
+      shop("Shop with cash on delivery", "/products"),
+      h2("What COD does not protect you from"),
+      p("It does not protect you from changing your mind three days later because a friend found a cheaper thumbnail. It does not replace a warranty if you drop the watch in a sink. It does protect you from paying for a dead left bud that never turned on. Use it for that."),
+      h2("For the nervous first order"),
+      p("Start with one item, not a bundle. Be home. Have your phone charged so you can test pairing. Have change. Riders are not ATMs. And write the order number on the invoice photo before the bike leaves. That photo has saved more conversations than any chat template."),
+      faq(
+        {
+          question: "Can I open a COD parcel before paying in Pakistan?",
+          answer:
+            "You should, for electronics. A shop that forbids opening is asking you to skip the only inspection you get. Pay after the device powers on and matches the invoice.",
+        },
+        {
+          question: "Is cash on delivery safe for earbuds and chargers?",
+          answer:
+            "Safer than paying online to a stranger, if you inspect. Test pairing and charging at the door. Keep the bill. Refuse copies and dead-on-arrival units.",
+        },
+        {
+          question: "What if I am not home?",
+          answer:
+            "Reschedule. A neighbour signing for a sealed charger they cannot test is how most “it was already dead” fights begin.",
+        }
+      ),
+    ],
+  }),
 ];
