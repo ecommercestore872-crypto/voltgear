@@ -387,33 +387,52 @@ export function shouldFireViewContentOnce(contentId: string): boolean {
 }
 shouldFireViewContentOnce.reset = () => viewContentRecent.clear();
 
-export function shouldFireInitiateCheckout(
+export function isInitiateCheckoutMarked(
   fingerprint: string,
   store?: StringStore | Map<string, string>
 ): boolean {
   const fp = fingerprint.trim();
-  if (!fp) return false;
+  if (!fp) return true;
   const key = initiateCheckoutDedupeKey(fp);
   const s =
     store ??
-    (typeof sessionStorage !== "undefined"
-      ? sessionStorage
-      : memoryStore());
+    (typeof sessionStorage !== "undefined" ? sessionStorage : memoryStore());
   try {
-    if (s instanceof Map) {
-      if (s.has(key)) return false;
-      s.set(key, "1");
-      return true;
-    }
-    if (s.getItem(key)) return false;
-    s.setItem(key, "1");
-    return true;
+    if (s instanceof Map) return s.has(key);
+    return Boolean(s.getItem(key));
   } catch {
-    return true;
+    return false;
   }
 }
+
+export function markInitiateCheckout(
+  fingerprint: string,
+  store?: StringStore | Map<string, string>
+): void {
+  const fp = fingerprint.trim();
+  if (!fp) return;
+  const key = initiateCheckoutDedupeKey(fp);
+  const s =
+    store ??
+    (typeof sessionStorage !== "undefined" ? sessionStorage : memoryStore());
+  try {
+    if (s instanceof Map) s.set(key, "1");
+    else s.setItem(key, "1");
+  } catch {
+    // ignore
+  }
+}
+
+export function shouldFireInitiateCheckout(
+  fingerprint: string,
+  store?: StringStore | Map<string, string>
+): boolean {
+  if (isInitiateCheckoutMarked(fingerprint, store)) return false;
+  markInitiateCheckout(fingerprint, store);
+  return true;
+}
 shouldFireInitiateCheckout.reset = () => {
-  /* no-op for sessionStorage; tests pass Map */
+  /* tests use Map */
 };
 
 const PURCHASE_PREFIX = "tiktok_purchase:";
@@ -424,39 +443,88 @@ export function shouldFirePurchaseOnce(
 ): boolean {
   const id = orderId.trim();
   if (!id) return false;
-  const key = `${PURCHASE_PREFIX}${id}`;
-  const s =
-    store ??
-    (typeof sessionStorage !== "undefined"
-      ? sessionStorage
-      : memoryStore());
-  try {
-    if (s instanceof Map) {
-      if (s.has(key)) return false;
-      s.set(key, "1");
-      return true;
-    }
-    if (s.getItem(key)) return false;
-    s.setItem(key, "1");
-    return true;
-  } catch {
-    return true;
-  }
+  if (isPurchaseMarked(id, store)) return false;
+  markPurchase(id, store);
+  return true;
 }
 shouldFirePurchaseOnce.reset = () => {
   /* tests use Map */
 };
 
+export function isPurchaseMarked(
+  orderId: string,
+  store?: StringStore | Map<string, string>
+): boolean {
+  const id = orderId.trim();
+  if (!id) return true;
+  const key = `${PURCHASE_PREFIX}${id}`;
+  const s =
+    store ??
+    (typeof sessionStorage !== "undefined" ? sessionStorage : memoryStore());
+  try {
+    if (s instanceof Map) return s.has(key);
+    return Boolean(s.getItem(key));
+  } catch {
+    return false;
+  }
+}
+
+export function markPurchase(
+  orderId: string,
+  store?: StringStore | Map<string, string>
+): void {
+  const id = orderId.trim();
+  if (!id) return;
+  const key = `${PURCHASE_PREFIX}${id}`;
+  const s =
+    store ??
+    (typeof sessionStorage !== "undefined" ? sessionStorage : memoryStore());
+  try {
+    if (s instanceof Map) s.set(key, "1");
+    else s.setItem(key, "1");
+  } catch {
+    // ignore
+  }
+}
+
 function safeTrack(
   event: string,
   payload: Record<string, unknown>,
-  eventId: string
+  eventId: string,
+  onSuccess?: () => void
 ): string | null {
   try {
     if (!readBrowserGate()) return null;
-    const ttq = getTtq();
-    if (!ttq?.track) return null;
-    ttq.track(event, payload, { event_id: eventId });
+
+    const send = (): boolean => {
+      if (!readBrowserGate()) return false;
+      const ttq = getTtq();
+      if (!ttq?.track) return false;
+      ttq.track(event, payload, { event_id: eventId });
+      try {
+        onSuccess?.();
+      } catch {
+        // ignore
+      }
+      return true;
+    };
+
+    if (send()) return eventId;
+
+    // Base Pixel Script may mount after PDP/checkout effects (consent race).
+    if (typeof window === "undefined") return null;
+    let attempts = 0;
+    const maxAttempts = 50;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      try {
+        if (send() || attempts >= maxAttempts || !readBrowserGate()) {
+          window.clearInterval(timer);
+        }
+      } catch {
+        window.clearInterval(timer);
+      }
+    }, 100);
     return eventId;
   } catch {
     return null;
@@ -525,14 +593,22 @@ export function trackTikTokInitiateCheckout(
   valueOverride?: number,
   options?: { dealQuoteReady?: boolean; promoLoading?: boolean }
 ): string | null {
-  const plan = planTikTokInitiateCheckout({
-    items,
-    total: typeof valueOverride === "number" ? valueOverride : Number.NaN,
-    dealQuoteReady: options?.dealQuoteReady ?? true,
-    promoLoading: options?.promoLoading,
+  if (
+    !isCheckoutPricingReadyForInitiateCheckout({
+      hasItems: items.length > 0,
+      dealQuoteReady: options?.dealQuoteReady ?? true,
+      promoLoading: options?.promoLoading,
+    })
+  ) {
+    return null;
+  }
+  const fingerprint = checkoutCartFingerprint(items);
+  if (isInitiateCheckoutMarked(fingerprint)) return null;
+  const payload = buildInitiateCheckoutPayload(items, valueOverride);
+  if (!payload) return null;
+  return safeTrack("InitiateCheckout", payload, newTikTokEventId(), () => {
+    markInitiateCheckout(fingerprint);
   });
-  if (!plan.fired || !plan.payload) return null;
-  return safeTrack("InitiateCheckout", plan.payload, newTikTokEventId());
 }
 
 export function trackTikTokPurchase(input: {
@@ -550,8 +626,13 @@ export function trackTikTokPurchase(input: {
 }): string | null {
   const payload = buildPurchasePayload(input);
   if (!payload) return null;
-  if (!shouldFirePurchaseOnce(input.orderId)) return null;
-  return safeTrack("Purchase", payload, purchaseEventId(input.orderId));
+  if (isPurchaseMarked(input.orderId)) return null;
+  return safeTrack(
+    "Purchase",
+    payload,
+    purchaseEventId(input.orderId),
+    () => markPurchase(input.orderId)
+  );
 }
 
 /** Advanced Matching — hashed fields only; omit missing; never invent external_id. */
@@ -561,17 +642,44 @@ export async function identifyTikTokCustomer(input: {
 }): Promise<boolean> {
   try {
     if (!readBrowserGate()) return false;
-    const ttq = getTtq();
-    if (!ttq?.identify) return false;
 
-    const payload: Record<string, string> = {};
     const email = input.email ? normalizeTikTokEmail(input.email) : null;
     const phone = input.phone ? normalizeTikTokPhone(input.phone) : null;
+    const payload: Record<string, string> = {};
     if (email) payload.email = await sha256Hex(email);
     if (phone) payload.phone_number = await sha256Hex(phone);
     if (!Object.keys(payload).length) return false;
-    ttq.identify(payload);
-    return true;
+
+    const send = (): boolean => {
+      if (!readBrowserGate()) return false;
+      const ttq = getTtq();
+      if (!ttq?.identify) return false;
+      ttq.identify(payload);
+      return true;
+    };
+
+    if (send()) return true;
+    if (typeof window === "undefined") return false;
+    return await new Promise((resolve) => {
+      let attempts = 0;
+      const timer = window.setInterval(() => {
+        attempts += 1;
+        try {
+          if (send()) {
+            window.clearInterval(timer);
+            resolve(true);
+            return;
+          }
+          if (attempts >= 50 || !readBrowserGate()) {
+            window.clearInterval(timer);
+            resolve(false);
+          }
+        } catch {
+          window.clearInterval(timer);
+          resolve(false);
+        }
+      }, 100);
+    });
   } catch {
     return false;
   }
