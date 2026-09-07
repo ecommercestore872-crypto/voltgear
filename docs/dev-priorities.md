@@ -6,9 +6,9 @@ Single tracker for this store. Status lives here only.
 
 ## Active task
 
-**T-12a** — Admin Biometic theme · 🟡 In Progress  
-Spec: `docs/superpowers/specs/2026-09-01-t12a-admin-biometic-theme-design.md`  
-Then: rest of **T-12** (easier layout) → **T-15**
+**T-15** — First-party traffic analytics · 🟡 In Progress (resume)  
+Next: **T-10** — Homepage sections CRUD  
+Paused: **T-12a** theme PR #4 · rest of **T-12**
 
 ## Program
 
