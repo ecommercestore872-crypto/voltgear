@@ -9,19 +9,24 @@ function BntSealMark({
   priority?: boolean;
 }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- local brand asset; keep off next/image so chrome stays a client-safe img
-    <img
-      src={SHOPPER_BRAND.sealSrc}
-      alt=""
-      width={44}
-      height={44}
-      decoding={priority ? "sync" : "async"}
-      fetchPriority={priority ? "high" : "auto"}
+    <span
       className={cn(
-        "shrink-0 rounded-full object-cover",
+        "shop-brand-shine shrink-0 rounded-full",
         compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-11 sm:w-11"
       )}
-    />
+      aria-hidden
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- local brand asset; keep off next/image so chrome stays a client-safe img */}
+      <img
+        src={SHOPPER_BRAND.sealSrc}
+        alt=""
+        width={44}
+        height={44}
+        decoding={priority ? "sync" : "async"}
+        fetchPriority={priority ? "high" : "auto"}
+        className="h-full w-full rounded-full object-cover"
+      />
+    </span>
   );
 }
 

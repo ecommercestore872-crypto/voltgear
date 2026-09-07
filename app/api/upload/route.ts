@@ -7,6 +7,7 @@ import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_FOLDER,
 } from "@/lib/cloudinary";
+import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
 
 function isConfigured(value: string | undefined): boolean {
   return !!value && !value.startsWith("your-");
@@ -21,8 +22,36 @@ cloudinary.config({
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MAX_BYTES = 5 * 1024 * 1024;
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
+const uploadLimiter = createMemoryRateLimiter({
+  limit: 8,
+  windowMs: 60_000,
+  maxKeys: 5_000,
+});
+
+function clientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
+  return request.headers.get("x-real-ip") || "unknown";
+}
+
 export async function POST(request: Request) {
   try {
+    const ip = clientIp(request);
+    if (!uploadLimiter.take({ ip })) {
+      return NextResponse.json(
+        { error: "Too many uploads. Please wait a minute and try again." },
+        { status: 429 }
+      );
+    }
+
     if (
       !isConfigured(CLOUDINARY_CLOUD_NAME) ||
       !isConfigured(CLOUDINARY_API_KEY) ||
@@ -47,12 +76,32 @@ export async function POST(request: Request) {
       );
     }
 
+    const mimeType = file.type || "";
+    if (!ALLOWED_TYPES.has(mimeType)) {
+      return NextResponse.json(
+        { error: "Only JPEG, PNG, WebP, or GIF images are allowed." },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > MAX_BYTES) {
+      return NextResponse.json(
+        { error: "Image must be 5 MB or smaller." },
+        { status: 400 }
+      );
+    }
+
+    // Public uploads are for reviews only — never accept arbitrary folders.
+    const safeFolder =
+      typeof folder === "string" && folder.startsWith("reviews")
+        ? folder.slice(0, 64)
+        : "reviews";
+
     const buffer = Buffer.from(await file.arrayBuffer());
-    const mimeType = file.type || "image/png";
     const base64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
     const result = await cloudinary.uploader.upload(base64, {
-      folder,
+      folder: safeFolder,
       resource_type: "image",
       ...(removeBackground
         ? {

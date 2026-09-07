@@ -22,19 +22,41 @@ export async function POST(req: NextRequest) {
     }
 
     const customer = order.customer || {};
-    const address = [customer.address, customer.city].filter(Boolean).join(", ");
+    const phone = typeof customer.phone === "string" ? customer.phone.trim() : "";
+    const address = typeof customer.address === "string" ? customer.address.trim() : "";
+    const city = typeof customer.city === "string" ? customer.city.trim() : "";
+
+    if (!phone || phone.length < 10) {
+      return NextResponse.json(
+        { error: "Order is missing a valid customer phone. Fix the order before booking PostEx." },
+        { status: 400 }
+      );
+    }
+    if (!address || address.length < 5) {
+      return NextResponse.json(
+        { error: "Order is missing a delivery address. Fix the order before booking PostEx." },
+        { status: 400 }
+      );
+    }
+    if (!city) {
+      return NextResponse.json(
+        { error: "Order is missing a city. Fix the order before booking PostEx." },
+        { status: 400 }
+      );
+    }
+
+    const deliveryAddress = [address, city].filter(Boolean).join(", ");
     const itemsDescription = (order.items || [])
       .map((i) => `${i.name || "Item"} x${i.quantity || 1}`)
       .join("; ");
 
-    // Call PostEx API
     const result = await createPostExOrder({
       orderRefNumber: order.orderId,
       invoicePayment: order.total || 0,
-      customerName: customer.name || "Customer",
-      customerPhone: customer.phone || "03000000000",
-      deliveryAddress: address || "Lahore, Pakistan",
-      cityName: customer.city || "Lahore",
+      customerName: (customer.name || "").trim() || "Customer",
+      customerPhone: phone,
+      deliveryAddress,
+      cityName: city,
       orderDetail: itemsDescription || "Electronics Accessories",
       items: order.items?.length || 1,
     });
@@ -43,7 +65,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    // Save tracking number and update status in Supabase
     const { error: dbError } = await getServiceClient()
       .from("orders")
       .update({

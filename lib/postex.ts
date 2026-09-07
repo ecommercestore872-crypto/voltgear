@@ -26,7 +26,7 @@ const POSTEX_BASE_URL =
   process.env.POSTEX_API_BASE_URL || "https://api.postex.pk/services/integration/api";
 
 function getPostExToken(): string {
-  const token = process.env.POSTEX_API_TOKEN || process.env.NEXT_PUBLIC_POSTEX_API_TOKEN;
+  const token = process.env.POSTEX_API_TOKEN;
   return token ? token.trim() : "";
 }
 

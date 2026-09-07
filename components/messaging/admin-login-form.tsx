@@ -7,7 +7,6 @@ import { Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { setAdminToken } from "@/lib/admin-token";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -22,12 +21,12 @@ export function AdminLoginForm() {
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Login failed");
-      setAdminToken(json.token);
       router.replace("/admin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed.");

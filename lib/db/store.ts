@@ -560,22 +560,6 @@ export async function createOrderRow(input: {
   promoCode?: string | null;
   isDemo?: boolean;
 }): Promise<string | null> {
-  const row: Record<string, unknown> = {
-    order_id: input.orderId,
-    customer: input.customer,
-    payment: input.payment,
-    subtotal: input.subtotal,
-    shipping: input.shipping,
-    total: input.total,
-    status: "new",
-    is_demo: Boolean(input.isDemo),
-  };
-  if (input.discount != null && input.discount > 0) {
-    row.discount = input.discount;
-  }
-  if (input.promoCode) {
-    row.promo_code = input.promoCode;
-  }
   const rpcItems = input.items.map((i) => ({
     slug: i.slug,
     name: i.name,
@@ -610,50 +594,8 @@ export async function createOrderRow(input: {
     );
   }
 
-  const rpcMissing =
-    !rpcError ||
-    rpcError.code === "PGRST202" ||
-    rpcError.code === "42883" ||
-    rpcError.message?.includes("could not find");
-
-  if (rpcError && !rpcMissing) {
-    console.error("[order] checkout_place_order failed:", rpcError);
-    throw new Error("ATOMIC_INFRA_ERROR");
-  }
-
-  let { data, error } = await db().from("orders").insert(row).select("id").single();
-  if (isMissingIsDemoColumn(error)) {
-    demoColumnMissing = true;
-    const rest = { ...row };
-    delete (rest as { is_demo?: boolean }).is_demo;
-    ({ data, error } = await db().from("orders").insert(rest).select("id").single());
-  }
-  if (error) {
-    if (error.code === "23505") return null;
-    console.error("[order] create failed:", error);
-    return null;
-  }
-  if (!data) return null;
-  if (input.items.length) {
-    const { error: itemErr } = await db().from("order_items").insert(
-      input.items.map((i) => ({
-        order_id: data.id,
-        slug: i.slug,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-        variant_key: i.variantKey,
-        variant_name: i.variantName,
-        variant_sku: i.variantSku,
-        line_total: i.lineTotal,
-      }))
-    );
-    if (itemErr) {
-      console.error("[order] items failed:", itemErr);
-      return null;
-    }
-  }
-  return input.orderId;
+  console.error("[order] checkout_place_order failed or missing:", rpcError);
+  throw new Error("ATOMIC_INFRA_ERROR");
 }
 
 export async function cancelOrderRestoreInventoryRow(orderId: string, note: string): Promise<{ ok: boolean, error?: string }> {
@@ -667,10 +609,11 @@ export async function cancelOrderRestoreInventoryRow(orderId: string, note: stri
   }
 
   if (error && (error.code === 'PGRST202' || error.message?.includes('could not find') || error.code === '42883')) {
-    console.warn("[order] Atomic cancellation RPC unavailable, falling back to legacy status update");
-    const updated = await updateOrderStatusRow(orderId, 'cancelled', note);
-    if (!updated) return { ok: false, error: "Failed to update status" };
-    return { ok: true };
+    console.error("[order] cancel_order_restore_inventory RPC missing — refusing status-only cancel");
+    return {
+      ok: false,
+      error: "Inventory restore is unavailable. Apply the latest Supabase migration and try again.",
+    };
   }
 
   if (error?.message?.includes('BUSINESS_ERROR:')) {

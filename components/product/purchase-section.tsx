@@ -18,6 +18,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GadgetProductWatchLinks } from "@/components/gadget/gadget-product-watch-links";
 import { BuyNow } from "@/components/product/buy-now";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { StarRating } from "@/components/product/star-rating";
@@ -320,18 +321,7 @@ export function PurchaseSection({
                  <Share2 className="w-4 h-4 text-foreground/50 group-hover:text-primary transition-colors" /> Share
                </button>
              </div>
-             <div className="flex items-center gap-3">
-               {product.instagramUrl && (
-                 <a href={product.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors" title="Watch on Instagram">
-                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                 </a>
-               )}
-               {product.tiktokUrl && (
-                 <a href={product.tiktokUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-black/5 text-black hover:bg-black/10 transition-colors" title="Watch on TikTok">
-                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.34 2.88 2.88 0 0 1 2.31-4.52 2.66 2.66 0 0 1 1.04.2v-3.26a5.61 5.61 0 0 0-1.12-.11 6.34 6.34 0 0 0-6.19 7.42 6.3 6.3 0 0 0 7.82 5.2 6.37 6.37 0 0 0 4.67-6.22v-6.9a8.17 8.17 0 0 0 4.66 1.76V7.05a5 5 0 0 1-.77-.36z" /></svg>
-                 </a>
-               )}
-             </div>
+             <GadgetProductWatchLinks product={product} />
           </div>
         </div>
 

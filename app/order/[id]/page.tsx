@@ -19,7 +19,9 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { OrderEmailGate } from "@/components/order/order-email-gate";
 import { getOrderByPublicId } from "@/lib/db/store";
+import { shopperLookupNotFound } from "@/lib/db/order-rules";
 import {
   buildOrderBillLines,
   buildOrderProgressSteps,
@@ -38,11 +40,21 @@ const STEP_ICON: Partial<Record<OrderStatus, typeof Check>> = {
 
 export default async function OrderSuccessPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams?: { email?: string };
 }) {
   const order = await getOrderByPublicId(params.id);
   if (!order) notFound();
+
+  const email = typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+  if (!email) {
+    return <OrderEmailGate orderId={params.id} />;
+  }
+  if (shopperLookupNotFound(order, email)) {
+    notFound();
+  }
 
   const { customer, items = [], orderId, createdAt } = order;
   const status = (order.status ?? "new") as OrderStatus;
@@ -319,7 +331,7 @@ export default async function OrderSuccessPage({
 
         <div className="flex items-center justify-center gap-5 pt-2 text-[13px] font-semibold text-[var(--g-forest)]">
           <Link
-            href={`/order/${orderId}/invoice?print=1`}
+            href={`/order/${orderId}/invoice?email=${encodeURIComponent(email)}&print=1`}
             target="_blank"
             className="flex items-center gap-1.5 underline-offset-4 hover:underline"
           >

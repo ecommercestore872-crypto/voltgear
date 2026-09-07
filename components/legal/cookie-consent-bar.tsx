@@ -40,7 +40,7 @@ export function CookieConsentBar() {
     <div
       role="dialog"
       aria-label="Cookie notice"
-      className="fixed inset-x-0 bottom-0 z-[80] border-t border-[var(--g-line)] bg-[var(--g-cream)] px-4 py-3 shadow-[0_-8px_24px_rgba(31,54,38,0.12)] sm:px-6"
+      className="fixed inset-x-0 bottom-0 z-[80] border-t border-[var(--g-line)] bg-[var(--g-cream)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(31,54,38,0.12)] sm:px-6"
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-relaxed text-[var(--g-charcoal)]">

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useEffect, useState, type ReactNode } from "react";
+import { useMemo, useEffect, useState, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -168,6 +168,11 @@ export default function CheckoutPage() {
       }
     | null
   >(null);
+  const idempotencyKeyRef = useRef(
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
 
   const GIFT_WRAP_FEE = 199;
   
@@ -191,7 +196,12 @@ export default function CheckoutPage() {
       const res = await fetch("/api/promo/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoInput.trim(), subtotal: merchandise, shipping: baseShipping }),
+        body: JSON.stringify({
+          code: promoInput.trim(),
+          subtotal: merchandise,
+          shipping: baseShipping,
+          email: customer.email?.trim().toLowerCase() || undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -232,7 +242,10 @@ export default function CheckoutPage() {
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKeyRef.current,
+        },
         body: JSON.stringify({
           items: items.map((i) => ({
             slug: i.slug,
@@ -253,6 +266,7 @@ export default function CheckoutPage() {
           total, // actual final total including pseudo promos could break backend signature check in real app if api doesn't support promo, but keeping identical
           giftWrap,
           giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
+          idempotencyKey: idempotencyKeyRef.current,
           ...(activePromo?.code && !activePromo.error ? { promoCode: activePromo.code } : {}),
         }),
       });
@@ -297,7 +311,11 @@ export default function CheckoutPage() {
       }
       setPlacedOrder(data.orderId);
       // Wait for navigation
-      router.push(`/order/${data.orderId}`);
+      const checkoutEmail = customer.email?.trim().toLowerCase() ?? "";
+      const orderQs = checkoutEmail
+        ? `?email=${encodeURIComponent(checkoutEmail)}`
+        : "";
+      router.push(`/order/${data.orderId}${orderQs}`);
       trackPurchase(data.orderId, analyticsItems(), total);
       clearCart();
       const first = items[0];
@@ -305,8 +323,8 @@ export default function CheckoutPage() {
         saveLastOrder({
           at: Date.now(),
           orderId: data.orderId,
-          email: customer.email?.trim().toLowerCase() ?? "",
-          name: customer.fullName?.trim() ?? "",
+          email: checkoutEmail,
+          name: customer.name?.trim() ?? "",
           product: { slug: first.slug, name: first.name },
         });
       }
@@ -937,11 +955,11 @@ export default function CheckoutPage() {
 
                  <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground sm:mt-4">
                    By placing your order, you agree to our{" "}
-                   <Link href="/terms" className="font-bold text-primary underline">
+                   <Link href="/terms-of-service" className="font-bold text-primary underline">
                      Terms of Service
                    </Link>{" "}
                    and{" "}
-                   <Link href="/privacy" className="font-bold text-primary underline">
+                   <Link href="/privacy-policy" className="font-bold text-primary underline">
                      Privacy Policy
                    </Link>
                    .

@@ -9,7 +9,7 @@ import {
   toShopperTrackPayload,
 } from "@/lib/db/order-rules";
 import { sendOrderStatusUpdateEmail } from "@/lib/email";
-import { getOrderById, updateOrderStatus } from "@/lib/order-store";
+import { cancelOrder, getOrderById } from "@/lib/order-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,11 +50,14 @@ export async function POST(
     );
   }
 
-  const updated = await updateOrderStatus(
-    orderId,
-    "cancelled",
-    SHOPPER_CANCEL_NOTE
-  );
+  const cancelRes = await cancelOrder(orderId, SHOPPER_CANCEL_NOTE);
+  if (!cancelRes.ok) {
+    return NextResponse.json(
+      { error: cancelRes.error || "Could not cancel the order. Please try again." },
+      { status: 500 }
+    );
+  }
+  const updated = await getOrderById(orderId);
   if (!updated) {
     return NextResponse.json(
       { error: "Could not cancel the order. Please try again." },

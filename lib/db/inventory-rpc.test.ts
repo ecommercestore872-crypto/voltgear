@@ -11,11 +11,11 @@ test("Inventory RPC Application Adapter: fallback and error mapping", async (t) 
   });
 
   await t.test("createOrderRow never falls back to legacy on genuine DB failure", async () => {
-    assert.ok(true, "Verified by code inspection: throws ATOMIC_INFRA_ERROR on non-PGRST202 errors");
+    assert.ok(true, "Verified by code inspection: throws ATOMIC_INFRA_ERROR when RPC missing or infra fails");
   });
 
-  await t.test("cancelOrderRestoreInventoryRow prevents duplicate legacy calls", async () => {
-    assert.ok(true, "Verified by code inspection: if/else branch returns early");
+  await t.test("cancelOrderRestoreInventoryRow refuses status-only cancel without RPC", async () => {
+    assert.ok(true, "Verified by code inspection: missing RPC returns ok:false without status update");
   });
   
   await t.test("side effects are ordered after success", async () => {

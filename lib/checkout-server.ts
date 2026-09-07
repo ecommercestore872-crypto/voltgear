@@ -1,6 +1,7 @@
 import { fetchProductBySlug, fetchSiteSettings } from "@/lib/db/store";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
+import { decideStockAction } from "@/lib/db/stock-rules";
 import type { OrderItem, Product, ProductVariant, SiteSettings } from "@/lib/types";
 
 /**
@@ -21,6 +22,8 @@ export const CHECKOUT_ERRORS = {
     "One of your items is no longer available. Please remove it and try again.",
   soldOut:
     "One of your items is sold out. Please remove it and try again.",
+  insufficientStock:
+    "One of your items does not have enough units left. Please lower the quantity.",
   invalidQuantity:
     "One of your items has an invalid quantity. Please try again.",
 } as const;
@@ -167,6 +170,10 @@ export async function resolveCheckout(
       if (!getStockState(stockSource).purchasable) {
         return { ok: false, error: CHECKOUT_ERRORS.soldOut };
       }
+      const stockDecision = decideStockAction(product.quantity, quantity);
+      if (stockDecision === "insufficient" || stockDecision === "invalid") {
+        return { ok: false, error: CHECKOUT_ERRORS.insufficientStock };
+      }
       unitPrice =
         product.colorEnabled || product.sizeEnabled
           ? asNumber(product.price, 0)
@@ -177,6 +184,10 @@ export async function resolveCheckout(
       }
       if (!getStockState(product.stockStatus).purchasable) {
         return { ok: false, error: CHECKOUT_ERRORS.soldOut };
+      }
+      const stockDecision = decideStockAction(product.quantity, quantity);
+      if (stockDecision === "insufficient" || stockDecision === "invalid") {
+        return { ok: false, error: CHECKOUT_ERRORS.insufficientStock };
       }
       unitPrice = asNumber(product.price, 0);
     }

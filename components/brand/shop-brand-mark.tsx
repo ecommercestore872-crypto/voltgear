@@ -29,17 +29,21 @@ export function ShopBrandMark({
     );
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={name}
-      decoding={priority ? "sync" : "async"}
-      fetchPriority={priority ? "high" : "auto"}
+    <span
       className={cn(
-        "w-auto object-contain object-left",
+        "shop-brand-shine inline-flex w-auto",
         compact ? "h-8 sm:h-9" : "h-9 sm:h-10",
         className
       )}
-    />
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={name}
+        decoding={priority ? "sync" : "async"}
+        fetchPriority={priority ? "high" : "auto"}
+        className="h-full w-auto object-contain object-left"
+      />
+    </span>
   );
 }

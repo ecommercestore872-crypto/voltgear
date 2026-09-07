@@ -35,7 +35,7 @@ describe("pipVideoForProduct", () => {
     assert.equal(pip.kind, "file");
     assert.equal(pip.playSrc, "https://cdn.example.com/demo.mp4");
     assert.equal(pip.openHref, "https://www.instagram.com/reel/abc123/");
-    assert.equal(pip.openLabel, "Open Instagram");
+    assert.equal(pip.openLabel, "Watch on Instagram");
   });
 
   it("falls back to Instagram and keeps the original link for Open", () => {
@@ -46,7 +46,7 @@ describe("pipVideoForProduct", () => {
     assert.equal(pip.kind, "instagram");
     assert.equal(pip.playSrc, "https://www.instagram.com/reel/abc123/embed");
     assert.equal(pip.openHref, "https://www.instagram.com/reel/abc123/");
-    assert.equal(pip.openLabel, "Open Instagram");
+    assert.equal(pip.openLabel, "Watch on Instagram");
   });
 
   it("returns null when there is no shopper video", () => {
@@ -58,14 +58,29 @@ describe("productWatchLinks", () => {
   it("shows only Instagram when that link is set", () => {
     assert.deepEqual(
       productWatchLinks({ instagramUrl: "https://www.instagram.com/reel/abc123/" }),
-      [{ platform: "instagram", href: "https://www.instagram.com/reel/abc123/" }]
+      [
+        {
+          platform: "instagram",
+          href: "https://www.instagram.com/reel/abc123/",
+          playSrc: "https://www.instagram.com/reel/abc123/embed",
+          openLabel: "Watch on Instagram",
+        },
+      ]
     );
   });
 
   it("shows only TikTok when that link is set", () => {
     assert.deepEqual(
       productWatchLinks({ tiktokUrl: "https://www.tiktok.com/@shop/video/1" }),
-      [{ platform: "tiktok", href: "https://www.tiktok.com/@shop/video/1" }]
+      [
+        {
+          platform: "tiktok",
+          href: "https://www.tiktok.com/@shop/video/1",
+          playSrc:
+            "https://www.tiktok.com/player/v1/1?autoplay=1&loop=1&description=0&music_info=0",
+          openLabel: "Watch on TikTok",
+        },
+      ]
     );
   });
 

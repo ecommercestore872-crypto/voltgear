@@ -11,6 +11,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
+    return NextResponse.json(
+      { error: "Demo login is disabled in production." },
+      { status: 403 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const username = body?.username ? String(body.username) : "";
   const password = body?.password ? String(body.password) : "";

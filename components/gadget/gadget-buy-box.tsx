@@ -94,6 +94,13 @@ export function GadgetBuyBox({
       }
     : null;
 
+  function scrollToOptions() {
+    document.getElementById("gadget-buy-options")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+
   function handleAdd(open = true, event?: React.MouseEvent<HTMLButtonElement>) {
     if (outOfStock || !selectionReady) return;
     addItem(
@@ -205,6 +212,7 @@ export function GadgetBuyBox({
             {stock.status === "low-stock" && !outOfStock ? " — order soon" : null}
           </p>
 
+          <div id="gadget-buy-options">
           {axesOn ? (
             <VariantAxisPickers
               colorEnabled={product.colorEnabled}
@@ -245,6 +253,7 @@ export function GadgetBuyBox({
               </div>
             </fieldset>
           ) : null}
+          </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             {!outOfStock ? (
@@ -342,9 +351,14 @@ export function GadgetBuyBox({
             </div>
             <button
               type="button"
-              disabled={!selectionReady}
-              onClick={(e) => handleAdd(true, e)}
-              className="gadget-btn-primary gadget-press inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-sm font-bold disabled:cursor-not-allowed disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
+              onClick={(e) => {
+                if (!selectionReady) {
+                  scrollToOptions();
+                  return;
+                }
+                handleAdd(true, e);
+              }}
+              className="gadget-btn-primary gadget-press inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-sm font-bold"
             >
               <ShoppingBag className="h-4 w-4" />
               {selectionReady ? "Buy now" : "Choose options"}

@@ -4,6 +4,8 @@ import { videoEmbedSrc, videoKind, type GadgetVideoKind } from "@/lib/gadget-pre
 export type ProductWatchLink = {
   platform: "instagram" | "tiktok";
   href: string;
+  playSrc: string;
+  openLabel: string;
 };
 
 export function productWatchLinks(product: {
@@ -17,16 +19,27 @@ export function productWatchLinks(product: {
   const videoUrl = product.productVideo?.url?.trim();
   const videoKindName = videoKind(videoUrl);
 
+  function push(platform: "instagram" | "tiktok", href: string) {
+    const playSrc = videoOnlyPlaySrc(platform, href);
+    if (!playSrc) return;
+    links.push({
+      platform,
+      href,
+      playSrc,
+      openLabel: platform === "instagram" ? "Watch on Instagram" : "Watch on TikTok",
+    });
+  }
+
   if (instagram && videoKind(instagram) === "instagram") {
-    links.push({ platform: "instagram", href: instagram });
+    push("instagram", instagram);
   } else if (videoKindName === "instagram" && videoUrl) {
-    links.push({ platform: "instagram", href: videoUrl });
+    push("instagram", videoUrl);
   }
 
   if (tiktok && videoKind(tiktok) === "tiktok") {
-    links.push({ platform: "tiktok", href: tiktok });
+    push("tiktok", tiktok);
   } else if (videoKindName === "tiktok" && videoUrl) {
-    links.push({ platform: "tiktok", href: videoUrl });
+    push("tiktok", videoUrl);
   }
 
   return links;
@@ -109,12 +122,12 @@ function openMeta(
   const instagram = product.instagramUrl?.trim();
   const tiktok = product.tiktokUrl?.trim();
   if (kind === "instagram" || instagram) {
-    return { openHref: instagram || fallbackHref, openLabel: "Open Instagram" };
+    return { openHref: instagram || fallbackHref, openLabel: "Watch on Instagram" };
   }
   if (kind === "tiktok" || tiktok) {
-    return { openHref: tiktok || fallbackHref, openLabel: "Open TikTok" };
+    return { openHref: tiktok || fallbackHref, openLabel: "Watch on TikTok" };
   }
-  return { openHref: fallbackHref, openLabel: "Open video" };
+  return { openHref: fallbackHref, openLabel: "Watch on platform" };
 }
 
 function posterSrc(product: PipProduct): string | undefined {

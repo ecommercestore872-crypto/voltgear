@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { getPromoByCode } from "@/lib/db/promo-store";
+import { getPromoByCode, countPriorOrdersForEmail } from "@/lib/db/promo-store";
 import { applyPromoToTotals } from "@/lib/db/promo-rules";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { code, subtotal, shipping } = body;
+    const email =
+      typeof body?.email === "string" ? body.email.toLowerCase().trim() : "";
 
     if (!code) {
       return NextResponse.json({ ok: false, error: "Code is required" }, { status: 400 });
@@ -16,12 +18,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "Promo code not found or invalid." });
     }
 
-    // Apply rules (checking active, dates, calculating totals)
-    // We assume isFirstOrder to true for guest checkout currently
+    let isFirstOrder = true;
+    if (promo.firstOrderOnly) {
+      if (!email) {
+        return NextResponse.json({
+          ok: false,
+          error: "Enter your email above first so we can check first-order codes.",
+        });
+      }
+      const prior = await countPriorOrdersForEmail(email);
+      isFirstOrder = prior === 0;
+    }
+
     const result = applyPromoToTotals(promo, {
       subtotal: Number(subtotal ?? 0),
       shipping: Number(shipping ?? 0),
-      isFirstOrder: true,
+      isFirstOrder,
     });
 
     return NextResponse.json(result);

@@ -17,6 +17,14 @@ import {
   getPromoByCode,
   incrementPromoUsage,
 } from "@/lib/db/promo-store";
+import {
+  cacheCheckoutOrder,
+  checkoutClientIp,
+  getCachedCheckoutOrder,
+  readIdempotencyKey,
+  takeCheckoutRateLimit,
+} from "@/lib/checkout-guard";
+import { normalizePhone } from "@/lib/messaging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +45,7 @@ interface CheckoutBody {
   payment?: { method?: string };
   giftWrap?: boolean;
   promoCode?: string;
+  idempotencyKey?: string;
   // Present only for backwards-compatible clients; never trusted.
   subtotal?: number;
   shipping?: number;
@@ -68,12 +77,57 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    if (!customer?.name || !customer.email || !customer.phone || !customer.address) {
+    if (
+      !customer?.name ||
+      !customer.email ||
+      !customer.phone ||
+      !customer.address ||
+      !customer.city?.trim()
+    ) {
       return NextResponse.json(
-        { error: "Name, email, phone and address are required." },
+        { error: "Name, email, phone, address and city are required." },
         { status: 400 }
       );
     }
+
+    const phone = normalizePhone(customer.phone);
+    if (!phone) {
+      return NextResponse.json(
+        { error: "Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)." },
+        { status: 400 }
+      );
+    }
+
+    const email = customer.email.toLowerCase().trim();
+    const rate = takeCheckoutRateLimit({
+      ip: checkoutClientIp(request),
+      email,
+    });
+    if (!rate.ok) {
+      return NextResponse.json({ error: rate.error }, { status: 429 });
+    }
+
+    const idemKey = readIdempotencyKey(request, body.idempotencyKey);
+    if (idemKey) {
+      const cached = getCachedCheckoutOrder(idemKey);
+      if (cached) {
+        const existing = await getOrderByPublicId(cached);
+        if (existing) {
+          return NextResponse.json({
+            ok: true,
+            orderId: cached,
+            subtotal: existing.subtotal,
+            shipping: existing.shipping,
+            total: existing.total,
+            discount: existing.discount ?? 0,
+            promoCode: existing.promoCode ?? null,
+            lines: existing.items ?? [],
+            replayed: true,
+          });
+        }
+      }
+    }
+
     if (payment?.method && payment.method !== "cod") {
       return NextResponse.json(
         { error: "Only Cash on Delivery is available right now." },
@@ -140,7 +194,7 @@ export async function POST(request: Request) {
             { status: 400 }
           );
         }
-        const prior = await countPriorOrdersForEmail(customer.email);
+        const prior = await countPriorOrdersForEmail(email);
         const applied = applyPromoToTotals(promo, {
           subtotal: merchandise,
           shipping: finalShipping,
@@ -163,15 +217,22 @@ export async function POST(request: Request) {
       }
     }
 
+    const customerNote = [
+      gift ? "Gift wrap requested." : null,
+      typeof customer.note === "string" ? customer.note.trim() : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
     const baseOrder = {
       customer: {
         name: customer.name,
-        email: customer.email.toLowerCase().trim(),
-        phone: customer.phone,
-        address: customer.address,
-        city: customer.city,
+        email,
+        phone,
+        address: customer.address.trim(),
+        city: customer.city.trim(),
         postal: customer.postal,
-        note: customer.note,
+        note: customerNote || undefined,
       },
       items: lines,
       payment: "cod" as const,
@@ -195,6 +256,10 @@ export async function POST(request: Request) {
         { error: "We couldn't store your order. Please try again." },
         { status: 500 }
       );
+    }
+
+    if (idemKey) {
+      cacheCheckoutOrder(idemKey, orderId);
     }
 
     if (appliedPromo) {

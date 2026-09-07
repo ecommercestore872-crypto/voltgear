@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 
 import { InvoiceDocument } from "@/components/invoice/invoice-document";
+import { OrderEmailGate } from "@/components/order/order-email-gate";
 import { getOrderByPublicId, fetchSiteSettings } from "@/lib/db/store";
+import { shopperLookupNotFound } from "@/lib/db/order-rules";
 import {
   invoiceFileTitle,
   mergeInvoiceTemplate,
@@ -19,12 +21,26 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   };
 }
 
-export default async function InvoicePage({ params }: { params: { id: string } }) {
+export default async function InvoicePage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { email?: string };
+}) {
   const [order, settings] = await Promise.all([
     getOrderByPublicId(params.id),
     fetchSiteSettings().catch(() => null),
   ]);
   if (!order) return notFound();
+
+  const email = typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+  if (!email) {
+    return <OrderEmailGate orderId={params.id} pathSuffix="/invoice" />;
+  }
+  if (shopperLookupNotFound(order, email)) {
+    return notFound();
+  }
 
   const template = mergeInvoiceTemplate(settings?.invoiceTemplate);
   const identity = resolveInvoiceIdentity(template, settings);
