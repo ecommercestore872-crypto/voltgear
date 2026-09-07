@@ -1,6 +1,8 @@
 import { revalidatePath } from "next/cache";
 
 import { isAdminRequest } from "@/lib/admin";
+import { submitIndexNow } from "@/lib/indexnow-rules";
+import { indexSiteUrl } from "@/lib/seo-rules";
 
 export const dynamic = "force-dynamic";
 
@@ -17,15 +19,10 @@ const DEFAULT_PATHS = [
 ];
 
 /**
- * On-demand ISR revalidation.
- * Call after publishing in Sanity to refresh the storefront immediately:
- *   curl -X POST http://localhost:3001/api/revalidate \
- *     -H "Authorization: Bearer <REVALIDATION_TOKEN>"
- * Or revalidate a single path:
- *   curl -X POST http://localhost:3001/api/revalidate \
- *     -H "Authorization: Bearer <REVALIDATION_TOKEN>" \
- *     -H "Content-Type: application/json" -d '{"path":"/product/voltgear-pro-s2"}'
- * Or a batch of paths: {"paths":["/","/products"]}
+ * On-demand ISR revalidation + IndexNow ping for Bing/partners.
+ *   curl -X POST https://buyntryy.com/api/revalidate \
+ *     -H "Authorization: Bearer <ADMIN_TOKEN>" \
+ *     -H "Content-Type: application/json" -d '{"paths":["/","/products"]}'
  */
 export async function POST(request: Request) {
   if (!isAdminRequest(request)) {
@@ -41,7 +38,17 @@ export async function POST(request: Request) {
 
     for (const path of paths) revalidatePath(path);
 
-    return Response.json({ revalidated: true, paths, now: Date.now() });
+    const indexNow = await submitIndexNow({
+      siteUrl: indexSiteUrl(),
+      urls: paths,
+    });
+
+    return Response.json({
+      revalidated: true,
+      paths,
+      indexNow,
+      now: Date.now(),
+    });
   } catch (err) {
     return Response.json(
       { revalidated: false, error: err instanceof Error ? err.message : "Failed to revalidate" },

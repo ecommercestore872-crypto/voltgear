@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
+import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchSitemapCollections } from "@/lib/db/collection-store";
 import { fetchShopTypes, fetchSitemapPages, fetchSitemapProducts } from "@/lib/db/store";
 import { indexSiteUrl } from "@/lib/seo-rules";
@@ -42,6 +43,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     collections = cols || [];
   } catch {
     products = [];
+  }
+
+  if (shopTypes.length === 0) {
+    shopTypes = FALLBACK_SHOP_TYPES.map((t) => ({ slug: t.slug }));
   }
 
   const blogs = pages.filter((page) => page.pageType === "blog" && page.slug);
