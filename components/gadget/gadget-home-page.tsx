@@ -233,7 +233,13 @@ export async function GadgetHomePage() {
             break;
           case "featured":
             section = featuredProduct ? (
-              <GadgetFeaturedProduct key={id} product={featuredProduct} />
+              <GadgetFeaturedProduct
+                key={id}
+                product={featuredProduct}
+                eyebrow={config.homeFeaturedEyebrow}
+                title={config.homeFeaturedTitle}
+                subtitle={config.homeFeaturedSubtitle}
+              />
             ) : null;
             break;
           case "offers":

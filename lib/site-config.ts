@@ -35,6 +35,7 @@ export interface PublicSiteConfig {
   supportEmail: string | null;
   supportPhone: string | null;
   whatsappNumber: string | null;
+  whatsappConfirmFlow: boolean;
   instagramUrl: string | null;
   tiktokUrl: string | null;
   facebookUrl: string | null;
@@ -42,6 +43,9 @@ export interface PublicSiteConfig {
   homeBestsellersTitle: string | null;
   homeOffersTitle: string | null;
   homeCategoriesTitle: string | null;
+  homeFeaturedEyebrow: string | null;
+  homeFeaturedTitle: string | null;
+  homeFeaturedSubtitle: string | null;
 }
 
 /**
@@ -91,6 +95,7 @@ export function normalizeSettings(
     supportEmail: settings?.email?.trim() || null,
     supportPhone: settings?.phone?.trim() || null,
     whatsappNumber: settings?.whatsappNumber?.trim() || null,
+    whatsappConfirmFlow: settings?.whatsappConfirmFlow === true,
     instagramUrl: socialUrl(["instagram"]),
     tiktokUrl: socialUrl(["tiktok"]),
     facebookUrl: socialUrl(["facebook"]),
@@ -104,6 +109,9 @@ export function normalizeSettings(
     homeBestsellersTitle: settings?.homeBestsellersTitle?.trim() || null,
     homeOffersTitle: settings?.homeOffersTitle?.trim() || null,
     homeCategoriesTitle: settings?.homeCategoriesTitle?.trim() || null,
+    homeFeaturedEyebrow: settings?.homeFeaturedEyebrow?.trim() || null,
+    homeFeaturedTitle: settings?.homeFeaturedTitle?.trim() || null,
+    homeFeaturedSubtitle: settings?.homeFeaturedSubtitle?.trim() || null,
   };
 }
 

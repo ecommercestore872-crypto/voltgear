@@ -169,6 +169,9 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     homeBestsellersTitle: row.home_bestsellers_title ? String(row.home_bestsellers_title) : undefined,
     homeOffersTitle: row.home_offers_title ? String(row.home_offers_title) : undefined,
     homeCategoriesTitle: row.home_categories_title ? String(row.home_categories_title) : undefined,
+    homeFeaturedEyebrow: row.home_featured_eyebrow ? String(row.home_featured_eyebrow) : undefined,
+    homeFeaturedTitle: row.home_featured_title ? String(row.home_featured_title) : undefined,
+    homeFeaturedSubtitle: row.home_featured_subtitle ? String(row.home_featured_subtitle) : undefined,
     homeSections: normalizeHomeSections(row.home_sections),
     lifestyleShop: normalizeLifestyleShop(row.lifestyle_shop),
   };

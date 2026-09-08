@@ -43,6 +43,7 @@ function fromRow(row?: SettingsRow | null) {
     phone: str(d.phone ?? row?.phone),
     address: str(d.address ?? row?.address),
     whatsappNumber: str(d.whatsappNumber ?? row?.whatsapp_number),
+    whatsappConfirmFlow: Boolean(d.whatsappConfirmFlow ?? row?.whatsapp_confirm_flow),
     currency: str(d.currency ?? row?.currency),
     freeShippingThreshold: str(d.freeShippingThreshold ?? row?.free_shipping_threshold),
     shippingFee: str(d.shippingFee ?? row?.shipping_fee),
@@ -106,6 +107,7 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
       phone: form.phone,
       address: form.address,
       whatsappNumber: form.whatsappNumber,
+      whatsappConfirmFlow: form.whatsappConfirmFlow,
       currency: form.currency,
       freeShippingThreshold: form.freeShippingThreshold ? Number(form.freeShippingThreshold) : undefined,
       shippingFee: form.shippingFee ? Number(form.shippingFee) : undefined,
@@ -180,6 +182,20 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
             <Input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
           </div>
         ))}
+        
+        <label className="sm:col-span-2 flex items-center gap-2 p-4 mt-2 rounded-lg border border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors">
+          <input
+            type="checkbox"
+            checked={form.whatsappConfirmFlow}
+            onChange={(e) => setForm((f) => ({ ...f, whatsappConfirmFlow: e.target.checked }))}
+            className="h-5 w-5 rounded border-primary accent-primary"
+          />
+          <div className="flex flex-col">
+            <span className="text-sm font-bold">Require WhatsApp Confirmation for COD Orders</span>
+            <span className="text-xs text-muted-foreground">If enabled, customers will see a huge "Confirm via WhatsApp" deep-link on the thank you page matching your WhatsApp number.</span>
+          </div>
+        </label>
+        
         <p className="sm:col-span-2 text-xs text-muted-foreground">
           New-order alerts go to <code>ORDER_NOTIFY_EMAIL</code> if set, otherwise this contact
           email. From addresses per job:{" "}

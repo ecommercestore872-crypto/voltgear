@@ -16,7 +16,17 @@ import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
-export function GadgetFeaturedProduct({ product }: { product: Product }) {
+export function GadgetFeaturedProduct({
+  product,
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  product: Product;
+  eyebrow?: string | null;
+  title?: string | null;
+  subtitle?: string | null;
+}) {
   const { addItem, openCart } = useCart();
   const [added, setAdded] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -69,15 +79,15 @@ export function GadgetFeaturedProduct({ product }: { product: Product }) {
       aria-labelledby="featured-product-heading"
     >
       <div className="mx-auto max-w-6xl">
-        <p className="gadget-eyebrow">Featured</p>
+        <p className="gadget-eyebrow">{eyebrow || "Featured"}</p>
         <h2
           id="featured-product-heading"
           className="gadget-h2 mt-2 text-[var(--g-charcoal)]"
         >
-          Staff pick
+          {title || "Staff pick"}
         </h2>
         <p className="gadget-body mt-2 max-w-lg">
-          One standout product worth a closer look — clear price, ready to buy.
+          {subtitle || "One standout product worth a closer look — clear price, ready to buy."}
         </p>
 
         <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] lg:grid-cols-2 lg:gap-0">

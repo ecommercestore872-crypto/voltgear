@@ -131,6 +131,7 @@ export interface SiteSettings {
   warrantyInfo?: string;
   codEnabled?: boolean;
   whatsappNumber?: string;
+  whatsappConfirmFlow?: boolean;
   warrantyMonths?: number;
   returnWindowDays?: number;
   navLinks?: { label: string; href: string }[];
@@ -152,6 +153,9 @@ export interface SiteSettings {
   homeBestsellersTitle?: string;
   homeOffersTitle?: string;
   homeCategoriesTitle?: string;
+  homeFeaturedEyebrow?: string;
+  homeFeaturedTitle?: string;
+  homeFeaturedSubtitle?: string;
   homeSections?: { id: string; enabled: boolean }[];
   lifestyleShop?: import("./db/lifestyle-shop-rules").LifestyleShopConfig;
 }

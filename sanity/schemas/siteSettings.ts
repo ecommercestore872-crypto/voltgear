@@ -242,6 +242,24 @@ export const siteSettings = {
       description: "Fallback if empty: 'Shop by Categories'",
     },
     {
+      name: "homeFeaturedEyebrow",
+      title: "Homepage Featured Eyebrow",
+      type: "string",
+      description: "Fallback if empty: 'Featured'",
+    },
+    {
+      name: "homeFeaturedTitle",
+      title: "Homepage Featured Title",
+      type: "string",
+      description: "Fallback if empty: 'Staff pick'",
+    },
+    {
+      name: "homeFeaturedSubtitle",
+      title: "Homepage Featured Subtitle",
+      type: "string",
+      description: "Fallback if empty: 'One standout product worth a closer look — clear price, ready to buy.'",
+    },
+    {
       name: "seo",
       title: "SEO",
       type: "object",
