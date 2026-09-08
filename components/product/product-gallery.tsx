@@ -14,6 +14,11 @@ import { cn } from "@/lib/utils";
 
 type GallerySource = { src: string; thumb: string; alt: string };
 
+/** 3× zoom factor for the hover magnifier lens */
+const ZOOM = 3;
+/** Size of the floating zoom panel in pixels */
+const LENS_SIZE = 300;
+
 export function ProductGallery({
   product,
   variantImage,
@@ -40,10 +45,23 @@ export function ProductGallery({
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
+  // Zoom state
+  const [zoomed, setZoomed] = useState(false);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
+  const [bgPos, setBgPos] = useState({ x: 50, y: 50 });
+  const imgContainerRef = useRef<HTMLDivElement>(null);
+  const isTouchDevice = useRef(false);
+
   useEffect(() => {
     setActive(0);
     setLightboxIndex(0);
+    setZoomed(false);
   }, [variantImage?.src]);
+
+  // Detect touch device once on mount
+  useEffect(() => {
+    isTouchDevice.current = window.matchMedia("(hover: none)").matches;
+  }, []);
 
   const current = sources[Math.min(active, sources.length - 1)];
   const lb = sources.length
@@ -72,11 +90,40 @@ export function ProductGallery({
     setLightboxOpen(true);
   }
 
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (isTouchDevice.current || !imgContainerRef.current) return;
+    const rect = imgContainerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const xPct = Math.max(0, Math.min(1, x / rect.width));
+    const yPct = Math.max(0, Math.min(1, y / rect.height));
+
+    // Clamp the lens panel so it stays fully inside the image container
+    const halfLens = LENS_SIZE / 2;
+    const clampedX = Math.max(halfLens, Math.min(rect.width - halfLens, x));
+    const clampedY = Math.max(halfLens, Math.min(rect.height - halfLens, y));
+
+    setLensPos({ x: clampedX, y: clampedY });
+    setBgPos({ x: xPct * 100, y: yPct * 100 });
+  }
+
   return (
     <div className="space-y-4">
+      {/* Main Image Container */}
       <div
-        className="relative aspect-square cursor-zoom-in touch-pan-y overflow-hidden rounded-xl border bg-[var(--g-cream-deep,#f5f5f5)] select-none"
-        onClick={openLightbox}
+        ref={imgContainerRef}
+        className={cn(
+          "relative aspect-square touch-pan-y overflow-hidden rounded-xl border bg-[var(--g-cream-deep,#f5f5f5)] select-none",
+          zoomed && !isTouchDevice.current ? "cursor-crosshair" : "cursor-zoom-in"
+        )}
+        onClick={() => {
+          if (isTouchDevice.current) openLightbox();
+        }}
+        onMouseEnter={() => {
+          if (!isTouchDevice.current && current) setZoomed(true);
+        }}
+        onMouseLeave={() => setZoomed(false)}
+        onMouseMove={handleMouseMove}
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null;
         }}
@@ -91,8 +138,8 @@ export function ProductGallery({
         onTouchEnd={() => {
           touchStartX.current = null;
         }}
-        role="button"
-        aria-label="Open image viewer"
+        role="img"
+        aria-label={current?.alt ?? product.name}
       >
         {current ? (
           <Image
@@ -102,7 +149,7 @@ export function ProductGallery({
             priority
             quality={90}
             sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-contain"
+            className="object-contain pointer-events-none"
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
@@ -110,18 +157,51 @@ export function ProductGallery({
             <span className="text-sm">No image uploaded</span>
           </div>
         )}
+
         {discount > 0 && (
-          <Badge className="absolute left-4 top-4 bg-destructive text-white">
+          <Badge className="absolute left-4 top-4 bg-destructive text-white z-10">
             Save {discount}%
           </Badge>
         )}
-        {sources.length > 0 && (
-          <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur">
+
+        {/* ✨ Desktop Hover Zoom Lens Panel */}
+        {zoomed && current && (
+          <div
+            className="pointer-events-none absolute z-30 rounded-xl border-2 border-white/60 shadow-2xl overflow-hidden ring-2 ring-[var(--g-forest)]/30"
+            style={{
+              width: LENS_SIZE,
+              height: LENS_SIZE,
+              left: lensPos.x - LENS_SIZE / 2,
+              top: lensPos.y - LENS_SIZE / 2,
+              backgroundImage: `url(${current.src})`,
+              backgroundSize: `${ZOOM * 100}%`,
+              backgroundPosition: `${bgPos.x}% ${bgPos.y}%`,
+              backgroundRepeat: "no-repeat",
+            }}
+            aria-hidden
+          >
+            <span className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-bold text-white/80 backdrop-blur-sm">
+              {ZOOM}×
+            </span>
+          </div>
+        )}
+
+        {/* Expand button (lightbox) — hidden while zoom lens is active */}
+        {sources.length > 0 && !zoomed && (
+          <button
+            className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur z-10 hover:bg-background transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              openLightbox();
+            }}
+            aria-label="Open fullscreen image viewer"
+          >
             <Expand className="h-4 w-4" />
-          </span>
+          </button>
         )}
       </div>
 
+      {/* Thumbnails */}
       {sources.length > 1 && (
         <div className="grid grid-cols-5 gap-3">
           {sources.map((source, i) => (
@@ -130,6 +210,7 @@ export function ProductGallery({
               onClick={() => {
                 setActive(i);
                 setLightboxIndex(i);
+                setZoomed(false);
               }}
               aria-label={`View image ${i + 1}`}
               aria-current={i === active}
@@ -152,7 +233,7 @@ export function ProductGallery({
         </div>
       )}
 
-      {/* Lightbox */}
+      {/* Lightbox Dialog */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-4xl bg-black/90">
           <DialogTitle className="sr-only">
