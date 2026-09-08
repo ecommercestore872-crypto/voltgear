@@ -52,7 +52,7 @@ export function OrderList({
   statusFilter?: string;
 }) {
   const [q, setQ] = useState("");
-  const [activeTab, setActiveTab] = useState(statusFilter || "all");
+  const [activeTab, setActiveTab] = useState(statusFilter || "new");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 50;
 
