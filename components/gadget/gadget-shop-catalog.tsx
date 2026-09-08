@@ -127,7 +127,7 @@ export function GadgetShopCatalog({
 
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-3 sm:pb-12 sm:pt-4 lg:px-8">
         {useFlatGrid && !activeCategory ? null : (
-        <div className="mt-3 sm:mt-4">
+        <div className="sticky top-[3.75rem] z-20 -mx-4 bg-[var(--g-cream)]/95 px-4 pb-2 pt-3 backdrop-blur-md sm:top-[4.25rem] sm:mt-4 lg:-mx-0 lg:px-0">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
             {activeCategory ? "Filter by type" : "Jump to category"}
           </p>

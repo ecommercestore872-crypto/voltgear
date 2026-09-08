@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
@@ -55,6 +55,8 @@ export function GadgetHeroSlider({
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartTime = useRef<number | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -87,11 +89,34 @@ export function GadgetHeroSlider({
   const active = banners[index] ?? banners[0];
 
   function prev() {
+    setPaused(false);
     setIndex((i) => (i - 1 + banners.length) % banners.length);
   }
 
   function next() {
+    setPaused(false);
     setIndex((i) => (i + 1) % banners.length);
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+    touchStartTime.current = Date.now();
+    setPaused(true);
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null || touchStartTime.current === null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
+    const dt = Date.now() - touchStartTime.current;
+    const velocity = Math.abs(dx) / dt; // px/ms
+    const isSwipe = Math.abs(dx) > 40 || velocity > 0.3;
+    if (isSwipe) {
+      dx < 0 ? next() : prev();
+    } else {
+      setPaused(false);
+    }
+    touchStartX.current = null;
+    touchStartTime.current = null;
   }
 
   return (
@@ -99,6 +124,8 @@ export function GadgetHeroSlider({
       className="bg-[var(--g-cream)] px-3 pt-3 pb-2 sm:px-4 sm:pt-4 lg:px-8"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       role="region"
       aria-roledescription="carousel"
       aria-label="Campaign banners"
