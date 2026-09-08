@@ -113,7 +113,7 @@ export function GadgetArrivalCard({
               fill
               quality={70}
               sizes={isGrid ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw" : "260px"}
-              className="object-contain p-3 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] sm:p-4 lg:p-5"
+              className="object-contain p-2 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] sm:p-4 lg:p-5"
             />
           ) : (
             <span className="flex h-full items-center justify-center text-sm text-[var(--g-taupe)]">
@@ -176,7 +176,7 @@ export function GadgetArrivalCard({
                 onClick={handleBuy}
                 title={`Add ${product.name} to cart`}
                 aria-label={`Add ${product.name} to cart`}
-                className="flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--g-forest)] text-[13px] font-semibold text-[var(--g-cream)] transition duration-200 hover:bg-[var(--g-forest-mid)] active:scale-[0.99]"
+                className="flex h-12 w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--g-forest)] text-[13px] font-semibold text-[var(--g-cream)] transition duration-200 hover:bg-[var(--g-forest-mid)] active:scale-[0.99]"
               >
                 {added ? (
                   <>

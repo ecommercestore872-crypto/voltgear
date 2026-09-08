@@ -20,7 +20,7 @@ function whisperLine(codEnabled: boolean, threshold: number): string | null {
 const ctaClass =
   "inline-flex min-h-11 items-center justify-center rounded-sm px-6 text-sm font-black uppercase tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-golden-400";
 
-const HERO_MIN = "min-h-[calc(100dvh-4rem)]";
+const HERO_MIN = "min-h-[60dvh] sm:min-h-[75dvh] lg:min-h-[calc(100dvh-4rem)]";
 
 export function GadgetHero({
   headline,
