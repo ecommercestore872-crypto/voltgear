@@ -96,8 +96,7 @@ export function GadgetNavbar({
   }, [open]);
 
   const menu =
-    open && mounted
-      ? createPortal(
+    open && mounted ? (
           <div className="gadget-theme lg:hidden" role="presentation">
             <button
               type="button"
@@ -206,10 +205,8 @@ export function GadgetNavbar({
                 </a>
               ) : null}
             </div>
-          </div>,
-          document.body
-        )
-      : null;
+          </div>
+    ) : null;
 
   return (
     <header

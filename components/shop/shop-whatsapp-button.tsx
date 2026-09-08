@@ -45,7 +45,7 @@ export function ShopWhatsAppButton({ settings }: { settings: SiteSettings | null
   const showLabel = expanded || pinnedOpen;
 
   return (
-    <div className="pointer-events-none fixed bottom-[max(5.75rem,calc(env(safe-area-inset-bottom)+4.5rem))] right-[max(1.25rem,env(safe-area-inset-right))] z-40 sm:bottom-6 sm:right-6">
+    <div className="pointer-events-none fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] z-[99] sm:bottom-6 sm:right-6">
       <div className="relative inline-flex items-center justify-end">
         <span
           className={cn(
