@@ -181,6 +181,10 @@ const CATEGORY_RELATED_GUIDES: Record<string, { href: string; label: string }> =
     href: "/blog/amoled-calling-smartwatch-pakistan",
     label: "Calling smartwatch guide",
   },
+  tripod: {
+    href: "/blog/best-tripods-pakistan-guide",
+    label: "Mobile & Camera Tripod Guide",
+  },
 };
 
 /** Internal link from category hub → blog guide (helps crawl depth + topical SEO). */
