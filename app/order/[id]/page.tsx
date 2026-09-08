@@ -11,6 +11,7 @@ import {
   Home,
   Mail,
   MapPin,
+  MessageCircle,
   Package,
   ShieldCheck,
   ShoppingBag,
@@ -20,7 +21,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { OrderEmailGate } from "@/components/order/order-email-gate";
-import { getOrderByPublicId } from "@/lib/db/store";
+import { getOrderByPublicId, fetchSiteSettings } from "@/lib/db/store";
+import { normalizeSettings } from "@/lib/site-config";
 import { shopperLookupNotFound } from "@/lib/db/order-rules";
 import {
   buildOrderBillLines,
@@ -59,6 +61,8 @@ export default async function OrderSuccessPage({
   const { customer, items = [], orderId, createdAt } = order;
   const status = (order.status ?? "new") as OrderStatus;
   const isCod = order.payment === "cod";
+  const rawSettings = await fetchSiteSettings().catch(() => null);
+  const config = normalizeSettings(rawSettings);
   const progress = buildOrderProgressSteps(status);
   const billLines = buildOrderBillLines({
     orderId,
@@ -311,6 +315,26 @@ export default async function OrderSuccessPage({
         </div>
 
         <div className="flex flex-col items-center justify-center gap-4 py-8 sm:flex-row">
+          {isCod && (status === "new" || status === "processing") && config.whatsappConfirmFlow && config.whatsappNumber ? (
+            <Button
+              asChild
+              size="lg"
+              className="h-12 w-full rounded border border-[#25D366] bg-[#25D366] px-10 text-[14px] font-bold tracking-wide text-white shadow-sm hover:bg-[#25D366]/90 sm:w-auto"
+            >
+              <a
+                href={`https://wa.me/${config.whatsappNumber.replace(
+                  /\D/g,
+                  ""
+                )}?text=${encodeURIComponent(
+                  `Hello Buy n Try! I want to confirm my order #${orderId}. Total: ${formatPrice(order.total ?? 0)}. Name: ${customer?.name || "Customer"}.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle className="mr-2 h-5 w-5" /> Confirm via WhatsApp
+              </a>
+            </Button>
+          ) : null}
           <Button
             asChild
             size="lg"
