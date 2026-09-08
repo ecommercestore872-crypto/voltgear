@@ -12,6 +12,19 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+
+  // 1. Geo-Fencing Checkout: Block international bots from spamming COD orders.
+  if (pathname.startsWith("/checkout") || pathname.startsWith("/api/checkout")) {
+    const country = request.headers.get("x-vercel-ip-country");
+    // If Vercel detects a location and it is NOT Pakistan, aggressively bounce them.
+    if (country && country !== "PK") {
+      const lockOutUrl = request.nextUrl.clone();
+      lockOutUrl.pathname = "/";
+      lockOutUrl.searchParams.set("error", "geo-blocked");
+      return NextResponse.redirect(lockOutUrl);
+    }
+  }
+
   if (!pathname.startsWith("/admin") || pathname.startsWith("/admin/login")) {
     return NextResponse.next();
   }
