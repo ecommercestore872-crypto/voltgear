@@ -124,10 +124,12 @@ export function GadgetHeroSlider({
               >
                 {shouldPaint ? (
                   <Image
-                    src={cloudinaryImageUrl(banner.imageUrl, { w: 1200 }) || banner.imageUrl}
+                    src={banner.imageUrl}
                     alt=""
                     fill
                     priority={i === 0}
+                    fetchPriority={i === 0 ? "high" : "auto"}
+                    unoptimized={banner.imageUrl.includes("res.cloudinary.com") || banner.imageUrl.includes("cdn.sanity.io")}
                     quality={70}
                     className="object-cover object-center"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1152px"
@@ -182,13 +184,13 @@ export function GadgetHeroSlider({
                     className="relative flex h-6 items-center focus:outline-none"
                   >
                     <span
-                      className={`relative block h-1.5 rounded-full overflow-hidden transition-all duration-300 ${
+                      className={`relative block h-1.5 rounded-full overflow-hidden transition-colors duration-300 ${
                         i === index ? "w-10 bg-white/40" : "w-3 bg-white/30 hover:bg-white/60"
                       }`}
                     >
                       {i === index && !paused ? (
                         <span
-                          className="absolute inset-y-0 left-0 bg-[var(--g-amber)] rounded-full animate-progress"
+                          className="absolute inset-y-0 left-0 w-full bg-[var(--g-amber)] rounded-full animate-progress"
                           style={{
                             animationDuration: `${INTERVAL_MS}ms`,
                             animationTimingFunction: "linear",

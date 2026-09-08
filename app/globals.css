@@ -422,15 +422,16 @@
 
 @keyframes progress {
   0% {
-    width: 0%;
+    transform: scaleX(0);
   }
   100% {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 
 .animate-progress {
   animation: progress linear forwards;
+  transform-origin: left;
 }
 
 .gadget-theme .gadget-glass-deep {
