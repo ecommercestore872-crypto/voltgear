@@ -431,7 +431,12 @@ export function organizationStructuredData(input: {
     name: input.brandName,
     alternateName: brandSearchAliases(),
     url: input.siteUrl,
-    areaServed: { "@type": "Country", name: "Pakistan" },
+    areaServed: [
+      { "@type": "City", name: "Lahore" },
+      { "@type": "City", name: "Karachi" },
+      { "@type": "City", name: "Islamabad" },
+      { "@type": "Country", name: "Pakistan" }
+    ],
     knowsAbout: [
       "wireless earbuds",
       "chargers and adapters",
