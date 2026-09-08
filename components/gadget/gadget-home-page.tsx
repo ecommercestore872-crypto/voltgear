@@ -224,7 +224,7 @@ export async function GadgetHomePage() {
               <GadgetNewArrivals
                 key={id}
                 products={railProducts}
-                title="Best Sellers"
+                title={config.homeBestsellersTitle || "Best Sellers"}
                 headingId="best-sellers-heading"
                 viewAllHref={collectionHref("best-sellers")}
                 tone="leaf"
@@ -241,7 +241,7 @@ export async function GadgetHomePage() {
               <GadgetNewArrivals
                 key={id}
                 products={bestOffers}
-                title="Best Offers"
+                title={config.homeOffersTitle || "Best Offers"}
                 viewAllHref={collectionHref("best-offers")}
                 headingId="best-offers-heading"
                 tone="clay"
@@ -254,7 +254,7 @@ export async function GadgetHomePage() {
             ) : null;
             break;
           case "categories":
-            section = <GadgetShopCategories key={id} tiles={categoryCards} />;
+            section = <GadgetShopCategories key={id} tiles={categoryCards} title={config.homeCategoriesTitle || undefined} />;
             break;
           case "reviews":
             section = <GadgetReviewsSlider key={id} reviews={testimonials} />;

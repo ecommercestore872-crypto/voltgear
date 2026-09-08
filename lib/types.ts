@@ -149,6 +149,9 @@ export interface SiteSettings {
     endsAt?: string;
   };
   seo?: { title?: string; description?: string };
+  homeBestsellersTitle?: string;
+  homeOffersTitle?: string;
+  homeCategoriesTitle?: string;
   homeSections?: { id: string; enabled: boolean }[];
   lifestyleShop?: import("./db/lifestyle-shop-rules").LifestyleShopConfig;
 }

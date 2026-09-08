@@ -39,6 +39,9 @@ export interface PublicSiteConfig {
   tiktokUrl: string | null;
   facebookUrl: string | null;
   announcement: AnnouncementConfig;
+  homeBestsellersTitle: string | null;
+  homeOffersTitle: string | null;
+  homeCategoriesTitle: string | null;
 }
 
 /**
@@ -98,6 +101,9 @@ export function normalizeSettings(
       startsAt: settings?.announcement?.startsAt || null,
       endsAt: settings?.announcement?.endsAt || null,
     },
+    homeBestsellersTitle: settings?.homeBestsellersTitle?.trim() || null,
+    homeOffersTitle: settings?.homeOffersTitle?.trim() || null,
+    homeCategoriesTitle: settings?.homeCategoriesTitle?.trim() || null,
   };
 }
 

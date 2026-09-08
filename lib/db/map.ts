@@ -166,6 +166,9 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     autopilot: parseAutopilotConfig(row.autopilot),
     announcement: row.announcement as SiteSettings["announcement"],
     seo: row.seo as SiteSettings["seo"],
+    homeBestsellersTitle: row.home_bestsellers_title ? String(row.home_bestsellers_title) : undefined,
+    homeOffersTitle: row.home_offers_title ? String(row.home_offers_title) : undefined,
+    homeCategoriesTitle: row.home_categories_title ? String(row.home_categories_title) : undefined,
     homeSections: normalizeHomeSections(row.home_sections),
     lifestyleShop: normalizeLifestyleShop(row.lifestyle_shop),
   };

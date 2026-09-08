@@ -36,7 +36,13 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
   return fromProducts;
 }
 
-export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
+export function GadgetShopCategories({
+  tiles,
+  title,
+}: {
+  tiles: CategoryIconTile[];
+  title?: string;
+}) {
   const slides = useMemo(() => buildSlides(tiles), [tiles]);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -85,14 +91,29 @@ export function GadgetShopCategories({ tiles }: { tiles: CategoryIconTile[] }) {
               id="shop-categories-heading"
               className="text-2xl font-bold tracking-tight text-[var(--g-charcoal)] sm:text-3xl"
             >
-              Shop by{" "}
-              <span className="relative inline-block text-[var(--g-charcoal)]">
-                Categories
-                <span
-                  className="absolute -bottom-1 left-0 h-[2.5px] w-full rounded-full bg-[var(--g-amber)]"
-                  aria-hidden
-                />
-              </span>
+              {title ? (
+                <>
+                  {title.split(" ").slice(0, -1).join(" ")}{" "}
+                  <span className="relative inline-block text-[var(--g-charcoal)]">
+                    {title.split(" ").slice(-1)[0]}
+                    <span
+                      className="absolute -bottom-1 left-0 h-[2.5px] w-full rounded-full bg-[var(--g-amber)]"
+                      aria-hidden
+                    />
+                  </span>
+                </>
+              ) : (
+                <>
+                  Shop by{" "}
+                  <span className="relative inline-block text-[var(--g-charcoal)]">
+                    Categories
+                    <span
+                      className="absolute -bottom-1 left-0 h-[2.5px] w-full rounded-full bg-[var(--g-amber)]"
+                      aria-hidden
+                    />
+                  </span>
+                </>
+              )}
             </h2>
           </div>
 

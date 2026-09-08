@@ -224,6 +224,24 @@ export const siteSettings = {
       initialValue: { enabled: false, countdownEnabled: false },
     },
     {
+      name: "homeBestsellersTitle",
+      title: "Homepage Bestsellers Title",
+      type: "string",
+      description: "Fallback if empty: 'Best Sellers'",
+    },
+    {
+      name: "homeOffersTitle",
+      title: "Homepage Offers Title",
+      type: "string",
+      description: "Fallback if empty: 'Best Offers'",
+    },
+    {
+      name: "homeCategoriesTitle",
+      title: "Homepage Categories Title",
+      type: "string",
+      description: "Fallback if empty: 'Shop by Categories'",
+    },
+    {
       name: "seo",
       title: "SEO",
       type: "object",
