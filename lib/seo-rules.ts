@@ -185,6 +185,22 @@ const CATEGORY_RELATED_GUIDES: Record<string, { href: string; label: string }> =
     href: "/blog/best-tripods-pakistan-guide",
     label: "Mobile & Camera Tripod Guide",
   },
+  "selfie-stick": {
+    href: "/blog/bluetooth-selfie-stick-pakistan",
+    label: "Selfie Stick Buying Guide",
+  },
+  "ring-light": {
+    href: "/blog/ring-light-price-pakistan",
+    label: "Ring Light Size Guide",
+  },
+  microphones: {
+    href: "/blog/wireless-microphone-pakistan-guide",
+    label: "Wireless Vlogging Mic Guide",
+  },
+  accessories: {
+    href: "/blog/stylus-pen-pakistan-guide",
+    label: "Stylus Pen Buying Guide",
+  },
 };
 
 /** Internal link from category hub → blog guide (helps crawl depth + topical SEO). */

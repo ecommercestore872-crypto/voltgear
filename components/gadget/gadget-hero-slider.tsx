@@ -129,7 +129,6 @@ export function GadgetHeroSlider({
                     fill
                     priority={i === 0}
                     fetchPriority={i === 0 ? "high" : "auto"}
-                    unoptimized={banner.imageUrl.includes("res.cloudinary.com") || banner.imageUrl.includes("cdn.sanity.io")}
                     quality={70}
                     className="object-cover object-center"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1152px"
