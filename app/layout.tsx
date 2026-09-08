@@ -238,7 +238,7 @@ export default async function RootLayout({
               loadClarity
                 ? `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,'clarity','script','${CLARITY_ID}');`
                 : ""
-            }}['scroll','click','touchstart','keydown'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});window.addEventListener('load',function(){setTimeout(load,12000)});})();`,
+            }}['scroll','click','touchstart','keydown','mousemove'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});})();`,
           }}
         />
       </head>
