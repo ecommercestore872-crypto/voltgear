@@ -204,6 +204,9 @@ export default function CheckoutPage() {
   
   const total = merchandise + shipping + (giftWrap ? GIFT_WRAP_FEE : 0) - subDiscount;
   const hasPromo = promoStacks && !!activePromo && !activePromo.error;
+  
+  // Advance Payment Risk Mitigation
+  const requiresAdvance = config.maxCodAmount && total > config.maxCodAmount;
 
   async function handleApplyPromo() {
     if (!promoInput.trim()) {
@@ -794,8 +797,21 @@ export default function CheckoutPage() {
                 <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
                      <h3 className="font-bold text-foreground text-[15px]">Payment Method</h3>
-                     <button className="text-xs font-bold text-primary hover:underline">Edit</button>
+                     <button onClick={() => setStep(1)} className="text-xs font-bold text-primary hover:underline">Edit</button>
                   </div>
+                  
+                  {requiresAdvance && (
+                    <div className="mb-5 rounded-lg bg-[var(--g-danger,#b42318)]/10 p-4 border border-[var(--g-danger,#b42318)]/20 shadow-sm animate-in fade-in zoom-in-95">
+                      <p className="text-[14px] font-bold text-[var(--g-danger,#b42318)] flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                        Advance Payment Mandatory
+                      </p>
+                      <p className="text-[13px] text-[var(--g-danger,#b42318)]/80 mt-1.5 leading-snug">
+                        Orders exceeding <strong>PKR {config.maxCodAmount!.toLocaleString()}</strong> require a partial or full advance deposit to process. Our team will verify and securely collect this via Bank Transfer / EasyPaisa after you place the order.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="space-y-3">
                     {PAYMENT_METHODS.map((method) => {
                       const selected = payment === method.id;

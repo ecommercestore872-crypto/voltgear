@@ -130,6 +130,7 @@ export interface SiteSettings {
   returnPolicy?: string;
   warrantyInfo?: string;
   codEnabled?: boolean;
+  maxCodAmount?: number;
   whatsappNumber?: string;
   whatsappConfirmFlow?: boolean;
   warrantyMonths?: number;

@@ -30,6 +30,7 @@ export interface PublicSiteConfig {
   freeShippingThreshold: number;
   shippingFee: number;
   codEnabled: boolean;
+  maxCodAmount: number | null;
   warrantyMonths: number | null;
   returnWindowDays: number | null;
   supportEmail: string | null;
@@ -90,6 +91,9 @@ export function normalizeSettings(
         ? settings.shippingFee
         : FALLBACK_SHIPPING_FEE,
     codEnabled: settings?.codEnabled !== false,
+    maxCodAmount: typeof settings?.maxCodAmount === "number" && settings.maxCodAmount > 0 
+      ? settings.maxCodAmount 
+      : 15000, // Hardcoded default based on user request (15,000 PKR risk limit)
     warrantyMonths,
     returnWindowDays,
     supportEmail: settings?.email?.trim() || null,

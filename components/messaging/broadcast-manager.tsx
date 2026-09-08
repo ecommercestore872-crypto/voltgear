@@ -56,17 +56,6 @@ interface ContactsPayload {
 
 export function BroadcastManager() {
   const router = useRouter();
-  const [authed, setAuthed] = useState(false);
-
-  useEffect(() => {
-    if (!getAdminToken()) {
-      router.replace("/admin/login");
-    } else {
-      setAuthed(true);
-    }
-  }, [router]);
-
-  if (!authed) return null;
 
   return (
     <div className="space-y-6">
