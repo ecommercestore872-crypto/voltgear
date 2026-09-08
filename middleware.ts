@@ -25,17 +25,24 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  let response = NextResponse.next();
+
   if (!pathname.startsWith("/admin") || pathname.startsWith("/admin/login")) {
-    return NextResponse.next();
+    const city = request.headers.get("x-vercel-ip-city");
+    if (city) {
+      response.cookies.set("visitor-city", encodeURIComponent(city), { path: "/", secure: true, sameSite: "lax" });
+    }
+  } else {
+    const cookie = request.cookies.get(ADMIN_COOKIE)?.value;
+    if (cookie !== getAdminSecret()) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      url.search = "";
+      response = NextResponse.redirect(url);
+    }
   }
 
-  const cookie = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (cookie === getAdminSecret()) return NextResponse.next();
-
-  const url = request.nextUrl.clone();
-  url.pathname = "/admin/login";
-  url.search = "";
-  return NextResponse.redirect(url);
+  return response;
 }
 
 export const config = {

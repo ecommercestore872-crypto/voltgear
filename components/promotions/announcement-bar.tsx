@@ -1,4 +1,5 @@
 import { SHOPPER_BRAND } from "@/lib/brand";
+import { GeoDeliveryBanner } from "./geo-delivery-banner";
 
 export function StorefrontAnnouncementBar() {
   return (
@@ -7,7 +8,7 @@ export function StorefrontAnnouncementBar() {
         <span className="font-semibold text-[var(--g-cream)]">
           {SHOPPER_BRAND.tagline}
         </span>{" "}
-        <span className="text-[var(--g-cream)]">Cash on delivery · try it at home</span>
+        <GeoDeliveryBanner />
       </p>
     </div>
   );
