@@ -228,37 +228,19 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{ __html: themePreviewScript() }}
         />
-        <Script
-          id="adsense-script"
-          strategy="lazyOnload"
-          src={ADSENSE_SCRIPT_SRC}
-          crossOrigin="anonymous"
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var done=false;function load(){if(done)return;done=true;var ad=document.createElement('script');ad.async=1;ad.crossOrigin='anonymous';ad.src='${ADSENSE_SCRIPT_SRC}';document.head.appendChild(ad);${
+              GA_ID
+                ? `var g=document.createElement('script');g.async=1;g.src='https://www.googletagmanager.com/gtag/js?id=${GA_ID}';document.head.appendChild(g);window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:true});`
+                : ""
+            }${
+              loadClarity
+                ? `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,'clarity','script','${CLARITY_ID}');`
+                : ""
+            }}['scroll','click','touchstart','keydown'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});window.addEventListener('load',function(){setTimeout(load,12000)});})();`,
+          }}
         />
-        {GA_ID && (
-          <Script
-            id="google-analytics"
-            strategy="lazyOnload"
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          />
-        )}
-        {GA_ID && (
-          <Script
-            id="google-analytics-init"
-            strategy="lazyOnload"
-            dangerouslySetInnerHTML={{
-              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:true});`,
-            }}
-          />
-        )}
-        {loadClarity && (
-          <Script
-            id="microsoft-clarity"
-            strategy="lazyOnload"
-            dangerouslySetInnerHTML={{
-              __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,'clarity','script','${CLARITY_ID}');`,
-            }}
-          />
-        )}
       </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans antialiased">
         <Suspense fallback={<div className="flex min-h-dvh flex-col">{children}</div>}>
