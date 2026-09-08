@@ -151,6 +151,20 @@ export default function CheckoutPage() {
     } catch {
       setGadget(false);
     }
+
+    try {
+      // Background City Autofill from Edge Cookie
+      const match = document.cookie.match(/(?:^|;\s*)visitor-city=([^;]*)/);
+      if (match && match[1]) {
+        const decodedCity = decodeURIComponent(match[1]);
+        if (decodedCity && decodedCity !== "Pakistan") {
+          setTimeout(() => {
+            const cityEl = document.getElementById("city") as HTMLInputElement;
+            if (cityEl && !cityEl.value) cityEl.value = decodedCity;
+          }, 50);
+        }
+      }
+    } catch {}
   }, []);
 
   // step: 0 = Cart, 1 = Information, 2 = Review, 3 = Complete (implicit on placedOrder)
@@ -573,11 +587,11 @@ export default function CheckoutPage() {
                                     updateQuantity(cartLineKey(item), item.quantity - 1)
                                   }
                                   aria-label="Decrease quantity"
-                                  className="p-1 text-muted-foreground hover:text-foreground"
+                                  className="p-1 text-muted-foreground hover:text-foreground focus:ring-2 focus:ring-primary rounded"
                                 >
                                   <Minus className="h-3.5 w-3.5" />
                                 </button>
-                                <span className="w-8 text-center text-sm font-bold text-foreground">
+                                <span className="w-8 text-center text-sm font-bold text-foreground" aria-live="polite">
                                   {item.quantity}
                                 </span>
                                 <button
@@ -585,7 +599,7 @@ export default function CheckoutPage() {
                                     updateQuantity(cartLineKey(item), item.quantity + 1)
                                   }
                                   aria-label="Increase quantity"
-                                  className="p-1 text-muted-foreground hover:text-foreground"
+                                  className="p-1 text-muted-foreground hover:text-foreground focus:ring-2 focus:ring-primary rounded"
                                 >
                                   <Plus className="h-3.5 w-3.5" />
                                 </button>
@@ -593,7 +607,7 @@ export default function CheckoutPage() {
                               <button
                                 onClick={() => removeItem(cartLineKey(item))}
                                 aria-label={`Remove ${item.name}`}
-                                className="text-sm font-semibold text-destructive hover:underline"
+                                className="text-sm font-semibold text-destructive hover:underline focus:ring-2 focus:ring-destructive rounded px-1"
                               >
                                 Remove
                               </button>
@@ -674,6 +688,21 @@ export default function CheckoutPage() {
                         autoComplete="tel"
                         placeholder="+92 300 1234567"
                         defaultValue={customer.phone}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/[^\d+]/g, "");
+                          if (val.startsWith("03")) val = "+92" + val.slice(1);
+                          else if (val.startsWith("3")) val = "+92" + val;
+                          
+                          if (val.startsWith("+92")) {
+                             const local = val.slice(3).replace(/\D/g, "");
+                             if (local.length > 3) {
+                               val = `+92 ${local.slice(0,3)} ${local.slice(3,10)}`;
+                             } else if (local.length > 0) {
+                               val = `+92 ${local}`;
+                             }
+                          }
+                          e.target.value = val;
+                        }}
                       />
                     </div>
                     <div className="min-w-0 space-y-2 sm:col-span-2">
