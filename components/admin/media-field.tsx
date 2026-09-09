@@ -57,8 +57,15 @@ export function MediaField({
             type: "image/jpeg",
           });
           setWarn(null); // Clear conversion warning
-        } catch (convErr) {
-          throw new Error("HEIC Conversion failed: " + (convErr instanceof Error ? convErr.message : String(convErr)));
+        } catch (convErr: any) {
+          throw new Error(
+            "HEIC error: " +
+              (convErr instanceof Error
+                ? convErr.message
+                : typeof convErr === "object"
+                  ? JSON.stringify(convErr, Object.getOwnPropertyNames(convErr))
+                  : String(convErr))
+          );
         }
       }
       
