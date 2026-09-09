@@ -126,6 +126,9 @@ export function mapProduct(
     featured: Boolean(row.featured),
     badge: row.badge ? String(row.badge) : undefined,
     isDemo: Boolean(row.is_demo),
+    addons: Array.isArray(row.addons)
+      ? (row.addons as Product["addons"])
+      : undefined,
   };
 }
 

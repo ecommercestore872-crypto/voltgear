@@ -48,6 +48,7 @@ function emptyDoc(): ProductDocument {
     colorOptions: [],
     sizeOptions: [],
     reviews: [],
+    addons: [],
   };
 }
 
@@ -85,6 +86,7 @@ function fromProduct(product?: AdminProduct | null, knownSlugs: string[] = []): 
     badge: product.badge,
     isDemo: product.isDemo,
     costPrice: product.costPrice,
+    addons: product.addons ?? [],
   };
   const merged = {
     ...emptyDoc(),
@@ -285,6 +287,114 @@ export function ProductForm({
               onChange={(val) => set("compatibility", val)}
               placeholder="e.g. iPhone 15 Series"
             />
+
+            {/* ── Optional Add-ons ─────────────────────────────────── */}
+            <div className="pt-4 border-t space-y-3">
+              <div>
+                <h3 className="text-base font-semibold">Optional Add-ons</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Let customers add extras at checkout (e.g. a case, screen protector). Each add-on appears as a toggle on the product page.
+                </p>
+              </div>
+              {(doc.addons ?? []).map((addon, idx) => (
+                <div key={idx} className="rounded-lg border p-4 space-y-3 bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Add-on {idx + 1}</p>
+                    <button
+                      type="button"
+                      className="text-xs text-destructive hover:underline"
+                      onClick={() => set(
+                        "addons",
+                        (doc.addons ?? []).filter((_, i) => i !== idx)
+                      )}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-name-${idx}`}>Name</Label>
+                      <Input
+                        id={`addon-name-${idx}`}
+                        value={addon.name}
+                        placeholder="e.g. Silicone Cover"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], name: e.target.value };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-price-${idx}`}>Extra Price (PKR)</Label>
+                      <Input
+                        id={`addon-price-${idx}`}
+                        type="number"
+                        min={0}
+                        value={addon.price ?? ""}
+                        placeholder="e.g. 299"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], price: Number(e.target.value) };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-badge-${idx}`}>Badge (optional)</Label>
+                      <Input
+                        id={`addon-badge-${idx}`}
+                        value={addon.badge ?? ""}
+                        placeholder="e.g. Popular"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], badge: e.target.value };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-desc-${idx}`}>Short description</Label>
+                      <Input
+                        id={`addon-desc-${idx}`}
+                        value={addon.description ?? ""}
+                        placeholder="e.g. Shockproof silicone"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], description: e.target.value };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <Label htmlFor={`addon-img-${idx}`}>Image URL (optional)</Label>
+                      <Input
+                        id={`addon-img-${idx}`}
+                        value={addon.image ?? ""}
+                        placeholder="https://..."
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], image: e.target.value };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-4 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                onClick={() =>
+                  set("addons", [
+                    ...(doc.addons ?? []),
+                    { name: "", price: 0, badge: "", description: "", image: "" },
+                  ])
+                }
+              >
+                + Add an add-on
+              </button>
+            </div>
           </div>
         </div>
 

@@ -33,6 +33,15 @@ export interface ProductOption {
   image?: StoreImage;
 }
 
+export interface ProductAddon {
+  _key?: string;
+  name: string;           // "Silicone Cover"
+  price: number;          // extra price in PKR
+  image?: StoreImage;     // optional product shot
+  badge?: string;         // "Popular" | "Recommended"
+  description?: string;   // short line below name
+}
+
 export interface ProductVideo {
   url?: string;
   cloudinaryPublicId?: string;
@@ -79,6 +88,7 @@ export interface Product {
   isDemo?: boolean;
   instagramUrl?: string;
   tiktokUrl?: string;
+  addons?: ProductAddon[];
 }
 
 export interface HeroSection {

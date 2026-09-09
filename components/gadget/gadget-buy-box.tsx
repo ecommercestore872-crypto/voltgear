@@ -63,6 +63,7 @@ export function GadgetBuyBox({
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [selectedAddonKeys, setSelectedAddonKeys] = useState<Set<number>>(new Set());
   const btnRef = useRef<HTMLButtonElement>(null);
   const selectedKey = axesOn ? comboVariantKey(colorKey, sizeKey) : legacyVariant?._key;
   const variant = axesOn
@@ -80,6 +81,9 @@ export function GadgetBuyBox({
     : variant?.compareAtPrice ?? product.compareAtPrice;
   const colorPhoto = axesOn ? colorImageForKey(product.colorOptions, colorKey) : variant?.image;
   const off = salePercent(price, compareAtPrice);
+  const activeAddons = (product.addons ?? []).filter((_, i) => selectedAddonKeys.has(i));
+  const addonTotal = activeAddons.reduce((sum, a) => sum + (a.price ?? 0), 0);
+  const displayPrice = price + addonTotal;
   const rating = product.rating != null && product.rating > 0 ? product.rating : 4.8;
   const reviewCount = product.reviewCount ?? 0;
   const threshold = Number(config.freeShippingThreshold ?? 0);
@@ -107,7 +111,7 @@ export function GadgetBuyBox({
       {
         slug: product.slug,
         name: product.name,
-        price,
+        price: displayPrice,
         image: itemImage,
         ...(product.sku ? { sku: product.sku } : {}),
         ...(variant && hasVariants
@@ -115,6 +119,16 @@ export function GadgetBuyBox({
               variantKey: variant._key,
               variantName: variant.name,
               ...(variant.sku ? { variantSku: variant.sku } : {}),
+            }
+          : {}),
+        ...(activeAddons.length > 0
+          ? {
+              variantName: [
+                variant && hasVariants ? variant.name : null,
+                `Add-ons: ${activeAddons.map((a) => `${a.name} (+${formatPrice(a.price)})`).join(", ")}`,
+              ]
+                .filter(Boolean)
+                .join(" · "),
             }
           : {}),
       },
@@ -185,7 +199,7 @@ export function GadgetBuyBox({
 
           <div className="mt-5 flex flex-wrap items-end gap-3">
             <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">
-              {formatPrice(price)}
+              {formatPrice(displayPrice)}
             </span>
             {compareAtPrice && compareAtPrice > price ? (
               <span className="pb-1 text-lg text-[var(--g-taupe)] dark:text-muted-foreground line-through">
@@ -255,6 +269,87 @@ export function GadgetBuyBox({
             </fieldset>
           ) : null}
           </div>
+
+          {/* ── Optional Add-ons upsell ─────────────────────────────── */}
+          {(product.addons ?? []).length > 0 ? (
+            <div className="mt-5 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-4">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+                🎁 Upgrade your order
+              </p>
+              <div className="flex flex-col gap-3">
+                {(product.addons ?? []).map((addon, idx) => {
+                  const selected = selectedAddonKeys.has(idx);
+                  return (
+                    <div key={idx} className="flex items-center gap-3">
+                      {addon.image ? (
+                        <img
+                          src={addon.image}
+                          alt={addon.name}
+                          className="h-12 w-12 shrink-0 rounded-lg border border-[var(--g-line)] object-contain bg-white p-1"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[var(--g-line)] bg-white text-xl">
+                          🎁
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-sm font-semibold text-[var(--g-charcoal)]">
+                            {addon.name}
+                          </span>
+                          {addon.badge ? (
+                            <span className="rounded-full bg-[var(--g-forest)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--g-cream)]">
+                              {addon.badge}
+                            </span>
+                          ) : null}
+                        </div>
+                        {addon.description ? (
+                          <p className="mt-0.5 text-xs text-[var(--g-taupe)]">{addon.description}</p>
+                        ) : null}
+                      </div>
+                      {/* Toggle pills */}
+                      <div className="flex shrink-0 overflow-hidden rounded-full border border-[var(--g-line)] text-xs font-semibold">
+                        <button
+                          type="button"
+                          aria-pressed={!selected}
+                          onClick={() =>
+                            setSelectedAddonKeys((prev) => {
+                              const next = new Set(prev);
+                              next.delete(idx);
+                              return next;
+                            })
+                          }
+                          className={cn(
+                            "px-3 py-1.5 transition-colors",
+                            !selected
+                              ? "bg-[var(--g-charcoal)] text-[var(--g-cream)]"
+                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]"
+                          )}
+                        >
+                          No thanks
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() =>
+                            setSelectedAddonKeys((prev) => new Set(Array.from(prev).concat(idx)))
+                          }
+                          className={cn(
+                            "px-3 py-1.5 transition-colors",
+                            selected
+                              ? "bg-[var(--g-forest)] text-[var(--g-cream)]"
+                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]"
+                          )}
+                        >
+                          Add +{formatPrice(addon.price)}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             {!outOfStock ? (

@@ -59,6 +59,14 @@ export interface ProductDocument {
   costPrice?: number;
   tiktokUrl?: string;
   instagramUrl?: string;
+  addons?: Array<{
+    _key?: string;
+    name: string;
+    price: number;
+    image?: string;
+    badge?: string;
+    description?: string;
+  }>;
 }
 
 export function shopVisible(status: unknown): boolean {
@@ -129,6 +137,7 @@ export function mergeProductForm(
     reviewCount: existing?.reviewCount,
     tiktokUrl: form.tiktokUrl ?? existing?.tiktokUrl,
     instagramUrl: form.instagramUrl ?? existing?.instagramUrl,
+    addons: form.addons ?? existing?.addons ?? [],
   };
 }
 
@@ -259,6 +268,7 @@ export function toLiveProductRow(doc: ProductDocument) {
     size_enabled: Boolean(doc.sizeEnabled),
     color_options: parseVariantOptions(doc.colorOptions),
     size_options: parseVariantOptions(doc.sizeOptions),
+    addons: doc.addons ?? [],
     status: "published" as const,
     draft: null,
   };

@@ -60,6 +60,7 @@ async function execDemoQuery<T extends { error: { code?: string; message?: strin
 
 const PRODUCT_EMBED = `
   *,
+  addons,
   product_images ( url, sort_order, source ),
   product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default ),
   product_reviews ( name, rating, review_date, comment, verified, image, is_demo )
