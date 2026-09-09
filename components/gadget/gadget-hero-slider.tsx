@@ -131,7 +131,7 @@ export function GadgetHeroSlider({
       aria-label="Campaign banners"
     >
       <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
-        <div className="relative aspect-[4/5] min-h-[400px] w-full sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
+        <div className="relative aspect-[16/10] w-full sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
