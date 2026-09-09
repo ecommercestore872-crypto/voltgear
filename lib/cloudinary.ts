@@ -37,7 +37,6 @@ export function cloudinaryImageUrl(
   if (idx === -1) return base;
 
   const insert = `f_auto,q_${q},c_limit,w_${w}/`;
-  return `${base.slice(0, idx + marker.length)}${insert}${base.slice(
-    idx + marker.length
-  )}`;
+  const endPath = base.slice(idx + marker.length).replace(/\.heic$/i, ".jpg").replace(/\.heif$/i, ".jpg");
+  return `${base.slice(0, idx + marker.length)}${insert}${endPath}`;
 }

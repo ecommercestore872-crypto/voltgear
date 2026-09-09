@@ -268,7 +268,7 @@ export function ProductForm({
             label="Cover photo (optional)"
             urls={doc.productVideo?.poster ? [doc.productVideo.poster] : []}
             onChange={(urls) =>
-              set("productVideo", { ...doc.productVideo, poster: urls[0] })
+              set("productVideo", { ...doc.productVideo, poster: urls[urls.length - 1] })
             }
           />
           <div className="space-y-1.5">
@@ -423,7 +423,7 @@ export function ProductForm({
                         urls={addon.image ? [addon.image] : []}
                         onChange={(urls) => {
                           const next = [...(doc.addons ?? [])];
-                          next[idx] = { ...next[idx], image: urls[0] ?? "" };
+                          next[idx] = { ...next[idx], image: urls[urls.length - 1] ?? "" };
                           set("addons", next);
                         }}
                       />
