@@ -32,6 +32,7 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
+    "heic2any": "^0.0.4",
     "lucide-react": "^1.31.0",
     "motion": "^13.1.1",
     "next": "14.2.35",

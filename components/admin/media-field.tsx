@@ -34,7 +34,25 @@ export function MediaField({
     setError(null);
     setWarn(null);
     try {
-      const json = await adminUpload(file);
+      let uploadFile = file;
+      // Convert HEIC formats to JPEG for browser and CDN compatibility
+      if (file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().match(/\.heic$|\.heif$/)) {
+        setWarn("Converting Apple HEIC format to JPEG... please wait.");
+        const heic2any = (await import("heic2any")).default;
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.8,
+        }) as Blob | Blob[];
+        
+        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+        uploadFile = new File([blob], file.name.replace(/\.heic$|\.heif$/i, ".jpg"), {
+          type: "image/jpeg",
+        });
+        setWarn(null); // Clear conversion warning
+      }
+      
+      const json = await adminUpload(uploadFile);
       onChange([...urls, json.secureUrl]);
       if (accept.startsWith("image") && isProductImageTooSmall(json.width, json.height)) {
         setWarn(
