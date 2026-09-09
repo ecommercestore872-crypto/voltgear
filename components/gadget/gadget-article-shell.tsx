@@ -57,7 +57,7 @@ export function GadgetArticleShell({
             />
           </div>
         ) : null}
-        <div className="gadget-prose [&_a]:text-[var(--g-forest)] [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-[var(--g-charcoal)] [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_li]:text-[var(--g-taupe)] [&_p]:mt-4 [&_p]:leading-relaxed [&_p]:text-[var(--g-taupe)]">
+        <div className="gadget-prose [&_a:not(.inline-flex)]:text-[var(--g-forest)] [&_a:not(.inline-flex)]:underline [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-[var(--g-charcoal)] [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_li]:text-[var(--g-taupe)] [&_p]:mt-4 [&_p]:leading-relaxed [&_p]:text-[var(--g-taupe)]">
           {children}
         </div>
         {backHref ? (

@@ -42,36 +42,45 @@ export function CookieConsentBar() {
   return (
     <div
       role="dialog"
-      aria-label="Cookie notice"
-      className="fixed inset-x-0 bottom-0 z-[80] border-t border-[var(--g-line)] bg-[var(--g-cream)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(31,54,38,0.12)] sm:px-6"
+      aria-label="Cookie consent banner"
+      className="fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[100] mx-auto max-w-[24rem] sm:inset-x-auto sm:left-6 sm:bottom-6 sm:max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-relaxed text-[var(--g-charcoal)]">
-          We use essential cookies for your cart and checkout. Analytics and advertising cookies
-          (including Google and TikTok) are used only if you allow them. Details:{" "}
-          <Link href="/privacy-policy" className="font-semibold text-[var(--g-forest)] underline-offset-2 hover:underline">
-            Privacy
-          </Link>{" "}
-          and{" "}
-          <Link href="/cookies" className="font-semibold text-[var(--g-forest)] underline-offset-2 hover:underline">
-            Cookies
-          </Link>
-          .
-        </p>
-        <div className="flex shrink-0 flex-wrap gap-2">
+      <div className="flex flex-col gap-4 overflow-hidden rounded-[1.25rem] border border-[var(--g-line)] bg-[var(--g-white)]/95 p-5 sm:p-6 shadow-[0_24px_50px_rgba(0,0,0,0.15)] backdrop-blur-2xl">
+        <div>
+          <h3 className="mb-1.5 text-sm font-bold tracking-tight text-[var(--g-charcoal)]">
+            We value your privacy
+          </h3>
+          <p className="text-[0.8rem] leading-relaxed text-[var(--g-taupe)]">
+            We use cookies to personalize content and ads (including Google AdSense), provide social media features, and analyze our traffic to improve your experience. Read our{" "}
+            <Link
+              href="/privacy-policy"
+              className="font-semibold text-[var(--g-forest)] underline underline-offset-[3px] decoration-1 transition-colors hover:text-[var(--g-charcoal)]"
+            >
+              Privacy Policy
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/cookies"
+              className="font-semibold text-[var(--g-forest)] underline underline-offset-[3px] decoration-1 transition-colors hover:text-[var(--g-charcoal)]"
+            >
+              Cookie Policy
+            </Link>.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5">
           <button
             type="button"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)] px-4 text-sm font-semibold text-[var(--g-forest)]"
-            onClick={() => save("essential")}
+            className="inline-flex min-h-[2.75rem] items-center justify-center rounded-xl bg-[var(--g-forest)] px-4 text-xs font-bold uppercase tracking-wider text-white shadow-md transition-all hover:scale-[1.02] hover:bg-black"
+            onClick={() => save("all")}
           >
-            Essential only
+            Accept All
           </button>
           <button
             type="button"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--g-forest)] px-4 text-sm font-semibold text-[var(--g-white)]"
-            onClick={() => save("all")}
+            className="inline-flex min-h-[2.75rem] items-center justify-center rounded-xl border border-[var(--g-line)] bg-transparent px-4 text-xs font-bold uppercase tracking-wider text-[var(--g-charcoal)] transition-all hover:scale-[1.02] hover:bg-black/5"
+            onClick={() => save("essential")}
           >
-            Accept
+            Essentials
           </button>
         </div>
       </div>
