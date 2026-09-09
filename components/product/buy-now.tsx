@@ -64,15 +64,13 @@ export function BuyNow({
     }
   }
 
-  return (
     <Button
       size="lg"
-      variant="outline"
-      className="flex-1 sm:flex-none sm:px-8"
+      className="flex-1 sm:flex-none px-6 sm:px-10 h-14 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold text-base sm:text-lg shadow-lg shadow-green-600/30 transition-all hover:scale-[1.02] active:scale-95 ring-offset-background focus-visible:ring-2 focus-visible:ring-emerald-500"
       onClick={handleBuyNow}
       disabled={buying}
     >
-      <Zap className="mr-2 h-4 w-4" />
+      <Zap className="mr-2 h-5 w-5 fill-white" />
       {buying ? "Opening Checkout…" : "Buy Now"}
     </Button>
   );

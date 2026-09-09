@@ -71,10 +71,10 @@ export function FloatingAddToCartBar({
               <button
                 type="button"
                 onClick={onBuyNow}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-background shadow-sm transition-all hover:bg-foreground/90 active:scale-95"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base font-bold tracking-wide text-white shadow-md shadow-green-600/30 transition-all hover:scale-105 active:scale-95"
               >
-                <Zap className="w-4 h-4 fill-current" />
-                <span className="hidden min-[370px]:inline">Buy Now</span>
+                <Zap className="w-4 h-4 fill-white" />
+                <span className="inline">Buy Now</span>
               </button>
             </div>
           </div>

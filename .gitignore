@@ -43,3 +43,7 @@ server.log
 
 # brainstorm / agent session artifacts
 .superpowers/
+
+# GSD + local tools
+.planning/
+Plug/
