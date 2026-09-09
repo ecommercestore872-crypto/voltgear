@@ -366,7 +366,7 @@ export function GadgetNavbar({
           </div>
         </div>
       </div>
-      {menu}
+      {menu && typeof document !== "undefined" ? createPortal(menu, document.body) : null}
     </header>
   );
 }
