@@ -82,7 +82,7 @@ export function GadgetFeaturedProduct({
         <p className="gadget-eyebrow">{eyebrow || "Featured"}</p>
         <h2
           id="featured-product-heading"
-          className="gadget-h2 mt-2 text-[var(--g-charcoal)]"
+          className="gadget-h2 mt-2 text-[var(--g-charcoal)] dark:text-white"
         >
           {title || "Staff pick"}
         </h2>
@@ -90,7 +90,7 @@ export function GadgetFeaturedProduct({
           {subtitle || "One standout product worth a closer look — clear price, ready to buy."}
         </p>
 
-        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] lg:grid-cols-2 lg:gap-0">
+        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] dark:bg-[var(--g-charcoal)] lg:grid-cols-2 lg:gap-0">
           <Link
             href={href}
             prefetch={false}
@@ -126,7 +126,7 @@ export function GadgetFeaturedProduct({
               {product.badge ? ` · ${product.badge}` : ""}
             </p>
             <Link href={href} prefetch={false}>
-              <h3 className="gadget-display mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--g-charcoal)] hover:text-[var(--g-forest)] sm:text-3xl">
+              <h3 className="gadget-display mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--g-charcoal)] dark:text-white hover:text-[var(--g-forest)] sm:text-3xl">
                 {product.name}
               </h3>
             </Link>
@@ -142,17 +142,17 @@ export function GadgetFeaturedProduct({
             ) : null}
 
             {product.shortDescription ? (
-              <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-charcoal)]/80 line-clamp-2">
+              <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-charcoal)]/80 dark:text-gray-300 line-clamp-2">
                 {product.shortDescription}
               </p>
             ) : null}
 
             <div className="mt-6 flex flex-wrap items-end gap-3">
-              <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)]">
+              <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-white">
                 {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > product.price ? (
-                <span className="pb-1 text-lg text-[var(--g-charcoal)]/70 line-through">
+                <span className="pb-1 text-lg text-[var(--g-charcoal)]/70 dark:text-gray-400 line-through">
                   {formatPrice(product.compareAtPrice)}
                 </span>
               ) : null}

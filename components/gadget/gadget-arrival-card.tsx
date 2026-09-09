@@ -101,7 +101,7 @@ export function GadgetArrivalCard({
               </span>
             ) : null}
             {tag ? (
-              <span className="max-w-[70%] truncate rounded-md border border-[var(--g-line)] bg-[var(--g-cream)]/95 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--g-charcoal)]">
+              <span className="max-w-[70%] text-shadow-sm truncate rounded-md border border-[var(--g-line)] bg-white/95 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-black shadow-sm dark:border-white/20 dark:bg-black/80 dark:text-white">
                 {tag}
               </span>
             ) : null}
@@ -128,7 +128,7 @@ export function GadgetArrivalCard({
         <Link href={href} prefetch={false} className="min-w-0">
           <h3
             className={cn(
-              "font-semibold tracking-tight text-[var(--g-charcoal)] transition group-hover:text-[var(--g-forest)]",
+              "font-bold tracking-tight text-[var(--g-charcoal)] dark:text-white transition group-hover:text-[var(--g-forest)]",
               isGrid
                 ? "line-clamp-2 text-[14px] leading-snug sm:text-[15px]"
                 : "line-clamp-2 text-[14px] sm:text-[15px]"
@@ -139,7 +139,7 @@ export function GadgetArrivalCard({
         </Link>
 
         {hasRealReviews ? (
-          <p className="mt-1 text-[11px] font-medium text-[var(--g-charcoal)]/80">
+          <p className="mt-1 text-[11px] font-medium text-[var(--g-charcoal)]/80 dark:text-gray-300">
             {product.rating?.toFixed(1)} · {product.reviewCount} reviews
           </p>
         ) : null}
@@ -149,13 +149,13 @@ export function GadgetArrivalCard({
             <span
               className={cn(
                 "text-[1.05rem] font-bold tabular-nums sm:text-[1.15rem]",
-                priceWas ? "text-[var(--g-sale)]" : "text-[var(--g-charcoal)]"
+                priceWas ? "text-[var(--g-sale)]" : "text-[var(--g-charcoal)] dark:text-white"
               )}
             >
               {priceNow}
             </span>
             {priceWas ? (
-              <span className="text-[11px] font-medium text-[var(--g-charcoal)]/70 line-through sm:text-[12px]">
+              <span className="text-[11px] font-medium text-[var(--g-charcoal)]/70 dark:text-gray-400 line-through sm:text-[12px]">
                 {priceWas}
               </span>
             ) : null}
