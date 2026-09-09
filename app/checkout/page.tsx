@@ -355,6 +355,8 @@ export default function CheckoutPage() {
       } catch {
         // fail-open
       }
+      // Scroll to top BEFORE navigation so Next.js doesn't restore checkout's scroll position
+      window.scrollTo({ top: 0, behavior: "instant" });
       router.push(`/order/${data.orderId}${orderQs}`);
       trackPurchase(data.orderId, analyticsItems(), total);
       clearCart();

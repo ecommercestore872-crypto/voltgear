@@ -21,6 +21,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { OrderEmailGate } from "@/components/order/order-email-gate";
+import { ScrollToTop } from "@/components/utils/scroll-to-top";
 import { getOrderByPublicId, fetchSiteSettings } from "@/lib/db/store";
 import { normalizeSettings } from "@/lib/site-config";
 import { shopperLookupNotFound } from "@/lib/db/order-rules";
@@ -85,6 +86,7 @@ export default async function OrderSuccessPage({
 
   return (
     <div className="min-h-screen border-t border-[var(--g-line)] bg-[var(--g-cream)] pb-16 pt-8 text-[var(--g-charcoal)] lg:pb-32 lg:pt-12">
+      <ScrollToTop />
       <div className="container mx-auto max-w-6xl space-y-6 px-4 lg:px-8">
         <div className="grid items-stretch gap-6 lg:grid-cols-[1fr_minmax(16rem,28rem)]">
           <div className="flex flex-col items-center gap-6 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-6 sm:flex-row sm:items-start sm:p-8">
