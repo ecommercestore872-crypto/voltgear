@@ -367,14 +367,12 @@ export function ProductForm({
                       />
                     </div>
                     <div className="col-span-2 space-y-1">
-                      <Label htmlFor={`addon-img-${idx}`}>Image URL (optional)</Label>
-                      <Input
-                        id={`addon-img-${idx}`}
-                        value={addon.image ?? ""}
-                        placeholder="https://..."
-                        onChange={(e) => {
+                      <MediaField
+                        label="Image (optional)"
+                        urls={addon.image ? [addon.image] : []}
+                        onChange={(urls) => {
                           const next = [...(doc.addons ?? [])];
-                          next[idx] = { ...next[idx], image: e.target.value };
+                          next[idx] = { ...next[idx], image: urls[0] ?? "" };
                           set("addons", next);
                         }}
                       />
