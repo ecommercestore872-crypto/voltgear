@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function EditTestimonialPage({ params }: { params: { id: string } }) {
+export default async function EditTestimonialPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const testimonial = await getAdminTestimonial(params.id);
   if (!testimonial) notFound();
   return <TestimonialForm testimonial={testimonial as never} />;

@@ -33,17 +33,32 @@ function FreeShippingBar({
     <div
       className={cn(
         "rounded-xl p-4",
-        gadget ? "bg-[var(--g-cream-deep)]" : "bg-muted/60"
+        gadget ? "bg-[var(--g-cream-deep)]" : "bg-muted/60",
       )}
     >
       {remaining > 0 ? (
-        <p className={cn("text-xs", gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground")}>
+        <p
+          className={cn(
+            "text-xs",
+            gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground",
+          )}
+        >
           You&rsquo;re{" "}
-          <span className={cn("font-semibold", gadget ? "text-[var(--g-charcoal)]" : "text-foreground")}>
+          <span
+            className={cn(
+              "font-semibold",
+              gadget ? "text-[var(--g-charcoal)]" : "text-foreground",
+            )}
+          >
             {formatPrice(remaining)}
           </span>{" "}
           away from{" "}
-          <span className={cn("font-semibold", gadget ? "text-[var(--g-charcoal)]" : "text-foreground")}>
+          <span
+            className={cn(
+              "font-semibold",
+              gadget ? "text-[var(--g-charcoal)]" : "text-foreground",
+            )}
+          >
             free shipping
           </span>
         </p>
@@ -51,7 +66,9 @@ function FreeShippingBar({
         <p
           className={cn(
             "text-xs font-semibold",
-            gadget ? "text-[var(--g-forest)]" : "text-emerald-600 dark:text-emerald-400"
+            gadget
+              ? "text-[var(--g-forest)]"
+              : "text-emerald-600 dark:text-emerald-400",
           )}
         >
           You&rsquo;ve unlocked free shipping!
@@ -60,13 +77,13 @@ function FreeShippingBar({
       <div
         className={cn(
           "mt-2 h-2 overflow-hidden rounded-full",
-          gadget ? "bg-[var(--g-line)]" : "bg-border"
+          gadget ? "bg-[var(--g-line)]" : "bg-border",
         )}
       >
         <div
           className={cn(
             "h-full rounded-full transition-all duration-300",
-            gadget ? "bg-[var(--g-forest)]" : "bg-primary"
+            gadget ? "bg-[var(--g-forest)]" : "bg-primary",
           )}
           style={{ width: `${progress}%` }}
         />
@@ -88,24 +105,29 @@ export default function CartPage() {
       <div
         className={cn(
           "container mx-auto max-w-3xl px-4 py-16 text-center lg:px-8",
-          gadget && `gadget-theme ${gadgetFontClass} bg-[var(--g-cream)]`
+          gadget && `gadget-theme ${gadgetFontClass} bg-[var(--g-cream)]`,
         )}
       >
         <ShoppingBag
           className={cn(
             "mx-auto h-16 w-16",
-            gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"
+            gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground",
           )}
         />
         <h1
           className={cn(
             "mt-4 text-2xl font-bold",
-            gadget && "gadget-display font-semibold tracking-[-0.03em]"
+            gadget && "gadget-display font-semibold tracking-[-0.03em]",
           )}
         >
           Your cart is empty
         </h1>
-        <p className={cn("mt-2", gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground")}>
+        <p
+          className={cn(
+            "mt-2",
+            gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground",
+          )}
+        >
           Add some products to get started.
         </p>
         {gadget ? (
@@ -128,7 +150,8 @@ export default function CartPage() {
     <div
       className={cn(
         "container mx-auto max-w-5xl px-4 py-8 lg:px-8",
-        gadget && `gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`
+        gadget &&
+          `gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`,
       )}
     >
       <Link
@@ -137,7 +160,7 @@ export default function CartPage() {
           "mb-6 inline-flex items-center gap-1 text-sm transition-colors",
           gadget
             ? "text-[var(--g-taupe)] hover:text-[var(--g-forest)]"
-            : "text-muted-foreground hover:text-foreground"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
         <ChevronLeft className="h-4 w-4" /> Continue Shopping
@@ -146,12 +169,17 @@ export default function CartPage() {
       <h1
         className={cn(
           "text-2xl font-bold tracking-tight sm:text-3xl",
-          gadget && "gadget-display font-semibold tracking-[-0.03em]"
+          gadget && "gadget-display font-semibold tracking-[-0.03em]",
         )}
       >
         Shopping cart
       </h1>
-      <p className={cn("mt-1", gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground")}>
+      <p
+        className={cn(
+          "mt-1",
+          gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground",
+        )}
+      >
         {items.length} item(s) in your cart
       </p>
 
@@ -164,7 +192,7 @@ export default function CartPage() {
                 "flex gap-4 rounded-xl border p-4",
                 gadget
                   ? "border-[var(--g-line)] bg-[var(--g-white)]"
-                  : "bg-card"
+                  : "bg-card",
               )}
             >
               {item.image ? (
@@ -175,14 +203,18 @@ export default function CartPage() {
                   height={120}
                   className={cn(
                     "h-24 w-24 rounded-lg border object-cover sm:h-28 sm:w-28",
-                    gadget ? "border-[var(--g-line)] bg-[var(--g-cream-deep)]" : "bg-muted"
+                    gadget
+                      ? "border-[var(--g-line)] bg-[var(--g-cream-deep)]"
+                      : "bg-muted",
                   )}
                 />
               ) : (
                 <div
                   className={cn(
                     "h-24 w-24 rounded-lg border sm:h-28 sm:w-28",
-                    gadget ? "border-[var(--g-line)] bg-[var(--g-cream-deep)]" : "bg-muted"
+                    gadget
+                      ? "border-[var(--g-line)] bg-[var(--g-cream-deep)]"
+                      : "bg-muted",
                   )}
                 />
               )}
@@ -192,7 +224,9 @@ export default function CartPage() {
                     href={productHref(item.slug)}
                     className={cn(
                       "font-medium transition-colors",
-                      gadget ? "hover:text-[var(--g-forest)]" : "hover:text-primary"
+                      gadget
+                        ? "hover:text-[var(--g-forest)]"
+                        : "hover:text-primary",
                     )}
                   >
                     {item.name}
@@ -201,34 +235,53 @@ export default function CartPage() {
                     <p
                       className={cn(
                         "text-sm",
-                        gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"
+                        gadget
+                          ? "text-[var(--g-taupe)]"
+                          : "text-muted-foreground",
                       )}
                     >
                       {item.variantName}
                     </p>
                   ) : null}
-                  <p className="mt-0.5 text-sm font-semibold">{formatPrice(item.price)}</p>
+                  <p className="mt-0.5 text-sm font-semibold">
+                    {formatPrice(item.price)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div
                     className={cn(
                       "flex items-center gap-2 rounded-md border px-2 py-1",
-                      gadget && "border-[var(--g-line)]"
+                      gadget && "border-[var(--g-line)]",
                     )}
                   >
                     <button
                       onClick={() =>
-                        updateQuantity(cartLineKey(item), Math.max(1, item.quantity - 1))
+                        updateQuantity(
+                          cartLineKey(item),
+                          Math.max(1, item.quantity - 1),
+                        )
                       }
-                      className={gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground hover:text-foreground"}
+                      className={
+                        gadget
+                          ? "text-[var(--g-taupe)]"
+                          : "text-muted-foreground hover:text-foreground"
+                      }
                       aria-label="Decrease"
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
-                    <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                    <span className="w-8 text-center text-sm font-medium">
+                      {item.quantity}
+                    </span>
                     <button
-                      onClick={() => updateQuantity(cartLineKey(item), item.quantity + 1)}
-                      className={gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground hover:text-foreground"}
+                      onClick={() =>
+                        updateQuantity(cartLineKey(item), item.quantity + 1)
+                      }
+                      className={
+                        gadget
+                          ? "text-[var(--g-taupe)]"
+                          : "text-muted-foreground hover:text-foreground"
+                      }
                       aria-label="Increase"
                     >
                       <Plus className="h-3.5 w-3.5" />
@@ -250,7 +303,7 @@ export default function CartPage() {
         <aside
           className={cn(
             "h-fit min-w-0 rounded-2xl border p-4 sm:p-6 lg:sticky lg:top-24",
-            gadget ? "border-[var(--g-line)] bg-[var(--g-white)]" : "bg-card"
+            gadget ? "border-[var(--g-line)] bg-[var(--g-white)]" : "bg-card",
           )}
         >
           <h2 className="font-semibold">Order summary</h2>
@@ -264,13 +317,21 @@ export default function CartPage() {
           <Separator className="my-4" />
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className={gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"}>
+              <span
+                className={
+                  gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"
+                }
+              >
                 Subtotal
               </span>
               <span className="font-medium">{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between">
-              <span className={gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"}>
+              <span
+                className={
+                  gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"
+                }
+              >
                 Shipping
               </span>
               <span>
@@ -287,7 +348,7 @@ export default function CartPage() {
               {formatPrice(
                 subtotal >= config.freeShippingThreshold
                   ? subtotal
-                  : subtotal + config.shippingFee
+                  : subtotal + config.shippingFee,
               )}
             </span>
           </div>

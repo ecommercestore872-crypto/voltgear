@@ -19,7 +19,7 @@ export function CollectionsManager({
   const [name, setName] = useState("");
   const [mode, setMode] = useState<"manual" | "auto">("manual");
   const [autoRule, setAutoRule] = useState<"featured" | "bestsellers">(
-    "bestsellers"
+    "bestsellers",
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,45 +124,47 @@ export function CollectionsManager({
 
       <div>
         <h2 className="mb-2 text-sm font-semibold">Created collections</h2>
-      <ul className="space-y-2">
-        {items.length === 0 ? (
-          <li className="text-sm text-muted-foreground">No collections yet.</li>
-        ) : (
-          items.map((c) => (
-            <li
-              key={c.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white px-3 py-3"
-            >
-              <div>
-                <Link
-                  href={`/admin/collections/${c.id}`}
-                  className="font-medium hover:underline"
-                >
-                  {c.name}
-                </Link>
-                <p className="text-xs text-muted-foreground">
-                  {c.slug} · {c.mode}
-                  {c.autoRule ? ` · ${c.autoRule}` : ""} ·{" "}
-                  {c.mode === "manual"
-                    ? `${c.productIds.length} products`
-                    : "auto"}
-                  {c.homeSlot ? ` · on home` : ""}
-                  {!c.active ? " · inactive" : ""}
-                </p>
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={() => remove(c.id)}
-              >
-                Delete
-              </Button>
+        <ul className="space-y-2">
+          {items.length === 0 ? (
+            <li className="text-sm text-muted-foreground">
+              No collections yet.
             </li>
-          ))
-        )}
-      </ul>
+          ) : (
+            items.map((c) => (
+              <li
+                key={c.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white px-3 py-3"
+              >
+                <div>
+                  <Link
+                    href={`/admin/collections/${c.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    {c.name}
+                  </Link>
+                  <p className="text-xs text-muted-foreground">
+                    {c.slug} · {c.mode}
+                    {c.autoRule ? ` · ${c.autoRule}` : ""} ·{" "}
+                    {c.mode === "manual"
+                      ? `${c.productIds.length} products`
+                      : "auto"}
+                    {c.homeSlot ? ` · on home` : ""}
+                    {!c.active ? " · inactive" : ""}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => remove(c.id)}
+                >
+                  Delete
+                </Button>
+              </li>
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );

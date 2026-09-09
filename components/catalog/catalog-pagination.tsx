@@ -48,7 +48,7 @@ function PageLink({
         "flex h-9 min-w-9 items-center justify-center rounded-md px-2 text-sm font-medium outline-none ring-primary focus-visible:ring-2",
         current
           ? "bg-primary text-primary-foreground"
-          : "text-foreground hover:bg-accent"
+          : "text-foreground hover:bg-accent",
       )}
     >
       {children}
@@ -83,7 +83,12 @@ export function CatalogPagination({
       aria-label="Pagination"
       className={cn("mt-8 flex items-center justify-center gap-1", className)}
     >
-      <PageLink page={1} basePath={basePath} base={baseParams} disabled={page <= 1}>
+      <PageLink
+        page={1}
+        basePath={basePath}
+        base={baseParams}
+        disabled={page <= 1}
+      >
         First
       </PageLink>
       <PageLink
@@ -113,7 +118,7 @@ export function CatalogPagination({
           >
             {p}
           </span>
-        )
+        ),
       )}
       <PageLink
         page={page + 1}

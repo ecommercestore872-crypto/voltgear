@@ -43,7 +43,12 @@ export function GadgetNewArrivals({
   const [canNext, setCanNext] = useState(false);
   const heading =
     headingId ||
-    `rail-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "products"}`;
+    `rail-${
+      title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "") || "products"
+    }`;
 
   const updateArrows = useCallback(() => {
     const el = scrollerRef.current;
@@ -130,7 +135,11 @@ export function GadgetNewArrivals({
         >
           <ul className="flex items-stretch gap-3.5 pb-1 sm:gap-4">
             {products.map((product) => (
-              <li key={product._id} data-rail-card className="flex shrink-0 snap-start">
+              <li
+                key={product._id}
+                data-rail-card
+                className="flex shrink-0 snap-start"
+              >
                 <GadgetArrivalCard product={product} />
               </li>
             ))}

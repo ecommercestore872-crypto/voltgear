@@ -1,11 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { Package, Truck, CheckCircle2, Clock, MapPin, PhoneCall, AlertCircle } from "lucide-react";
+import {
+  Package,
+  Truck,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  PhoneCall,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function CustomerDeliveryRescuePage({ params }: { params: { token: string } }) {
-  const [selectedAction, setSelectedAction] = useState<"RETRY" | "ADDRESS" | "PHONE" | null>(null);
+export default function CustomerDeliveryRescuePage({
+  params,
+}: {
+  params: { token: string };
+}) {
+  const [selectedAction, setSelectedAction] = useState<
+    "RETRY" | "ADDRESS" | "PHONE" | null
+  >(null);
   const [newAddress, setNewAddress] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -29,7 +43,9 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
             <Truck className="h-6 w-6 text-amber-400" />
           </div>
           <h1 className="text-xl font-bold">Buy n Try Delivery Update</h1>
-          <p className="text-xs text-white/80 mt-1">We need your input to complete your delivery</p>
+          <p className="text-xs text-white/80 mt-1">
+            We need your input to complete your delivery
+          </p>
         </div>
 
         {submitted ? (
@@ -37,7 +53,8 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
             <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
             <h2 className="text-lg font-bold text-gray-900">Thank You!</h2>
             <p className="text-sm text-gray-600">
-              Your delivery instructions have been updated. Our courier team will attempt delivery accordingly.
+              Your delivery instructions have been updated. Our courier team
+              will attempt delivery accordingly.
             </p>
           </div>
         ) : (
@@ -46,7 +63,10 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
               <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold">Delivery Notice:</span>
-                <p className="mt-0.5">The courier attempted delivery today, but was unable to reach you.</p>
+                <p className="mt-0.5">
+                  The courier attempted delivery today, but was unable to reach
+                  you.
+                </p>
               </div>
             </div>
 
@@ -60,13 +80,17 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
                   type="button"
                   onClick={() => setSelectedAction("RETRY")}
                   className={`flex items-center gap-3 p-3.5 rounded-xl border text-left text-sm transition ${
-                    selectedAction === "RETRY" ? "border-[#1F3626] bg-[#1F3626]/5 font-bold" : "border-gray-200 hover:bg-gray-50"
+                    selectedAction === "RETRY"
+                      ? "border-[#1F3626] bg-[#1F3626]/5 font-bold"
+                      : "border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   <Clock className="h-5 w-5 text-[#1F3626]" />
                   <div>
                     <div>I'm Available for Tomorrow</div>
-                    <div className="text-xs font-normal text-gray-500">Keep my current delivery details</div>
+                    <div className="text-xs font-normal text-gray-500">
+                      Keep my current delivery details
+                    </div>
                   </div>
                 </button>
 
@@ -74,13 +98,17 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
                   type="button"
                   onClick={() => setSelectedAction("ADDRESS")}
                   className={`flex items-center gap-3 p-3.5 rounded-xl border text-left text-sm transition ${
-                    selectedAction === "ADDRESS" ? "border-[#1F3626] bg-[#1F3626]/5 font-bold" : "border-gray-200 hover:bg-gray-50"
+                    selectedAction === "ADDRESS"
+                      ? "border-[#1F3626] bg-[#1F3626]/5 font-bold"
+                      : "border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   <MapPin className="h-5 w-5 text-[#1F3626]" />
                   <div>
                     <div>Correct Street Address / House #</div>
-                    <div className="text-xs font-normal text-gray-500">Provide missing address details</div>
+                    <div className="text-xs font-normal text-gray-500">
+                      Provide missing address details
+                    </div>
                   </div>
                 </button>
 
@@ -88,20 +116,26 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
                   type="button"
                   onClick={() => setSelectedAction("PHONE")}
                   className={`flex items-center gap-3 p-3.5 rounded-xl border text-left text-sm transition ${
-                    selectedAction === "PHONE" ? "border-[#1F3626] bg-[#1F3626]/5 font-bold" : "border-gray-200 hover:bg-gray-50"
+                    selectedAction === "PHONE"
+                      ? "border-[#1F3626] bg-[#1F3626]/5 font-bold"
+                      : "border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   <PhoneCall className="h-5 w-5 text-[#1F3626]" />
                   <div>
                     <div>Update Contact Number</div>
-                    <div className="text-xs font-normal text-gray-500">Provide an alternate phone number</div>
+                    <div className="text-xs font-normal text-gray-500">
+                      Provide an alternate phone number
+                    </div>
                   </div>
                 </button>
               </div>
 
               {selectedAction === "ADDRESS" && (
                 <div className="pt-2">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">New Complete Address</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    New Complete Address
+                  </label>
                   <input
                     type="text"
                     required
@@ -115,7 +149,9 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
 
               {selectedAction === "PHONE" && (
                 <div className="pt-2">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">New Mobile Phone Number</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    New Mobile Phone Number
+                  </label>
                   <input
                     type="tel"
                     required
@@ -132,7 +168,9 @@ export default function CustomerDeliveryRescuePage({ params }: { params: { token
                 disabled={!selectedAction || loading}
                 className="w-full bg-[#1F3626] text-white hover:bg-[#2a4633] py-5 rounded-xl text-sm font-bold"
               >
-                {loading ? "Updating Courier Instructions…" : "Confirm Delivery Update"}
+                {loading
+                  ? "Updating Courier Instructions…"
+                  : "Confirm Delivery Update"}
               </Button>
             </form>
           </div>

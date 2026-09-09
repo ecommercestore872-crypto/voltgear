@@ -54,7 +54,10 @@ export function ProductCollectionsFields({
       })) as { collection?: CollectionPickerItem };
       if (!data.collection) throw new Error("Could not create collection.");
       setName("");
-      onChange([...selectedIds, data.collection.id], [...collections, data.collection]);
+      onChange(
+        [...selectedIds, data.collection.id],
+        [...collections, data.collection],
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create collection.");
     } finally {
@@ -66,8 +69,8 @@ export function ProductCollectionsFields({
     <fieldset className="space-y-3 rounded-md border border-input bg-background p-3">
       <legend className="px-1 text-sm font-medium">Collections</legend>
       <p className="text-xs text-muted-foreground">
-        Put this product on Featured, Best Sellers, or any collection. New collections
-        use the same home product rail as Best Sellers.
+        Put this product on Featured, Best Sellers, or any collection. New
+        collections use the same home product rail as Best Sellers.
       </p>
       {collections.length ? (
         <ul className="space-y-2">
@@ -92,7 +95,10 @@ export function ProductCollectionsFields({
                       {!assignable ? (
                         <>
                           {" · "}
-                          <Link href={`/admin/collections/${c.id}`} className="underline">
+                          <Link
+                            href={`/admin/collections/${c.id}`}
+                            className="underline"
+                          >
                             Switch to manual picks
                           </Link>
                         </>
@@ -105,7 +111,9 @@ export function ProductCollectionsFields({
           })}
         </ul>
       ) : (
-        <p className="text-xs text-muted-foreground">No collections yet — create one below.</p>
+        <p className="text-xs text-muted-foreground">
+          No collections yet — create one below.
+        </p>
       )}
       <div className="space-y-1.5">
         <Label htmlFor="new-collection">New collection</Label>

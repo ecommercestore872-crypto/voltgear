@@ -31,7 +31,7 @@ export function AddToCart({ product }: { product: Product }) {
         productId: product._id,
         ...(product.sku ? { sku: product.sku } : {}),
       },
-      quantity
+      quantity,
     );
     trackAddToCart({
       item_id: product.slug,

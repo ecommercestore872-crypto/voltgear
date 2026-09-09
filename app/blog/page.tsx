@@ -68,7 +68,9 @@ export default async function BlogPage() {
   };
 
   return (
-    <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
+    <div
+      className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -84,7 +86,8 @@ export default async function BlogPage() {
             Pakistan buying guides
           </h1>
           <p className="mt-3 max-w-xl text-sm text-[var(--g-taupe)] sm:text-base">
-            How to pick TWS earbuds, 65W GaN chargers, 20,000mAh power banks, and calling watches when you are paying cash on delivery.
+            How to pick TWS earbuds, 65W GaN chargers, 20,000mAh power banks,
+            and calling watches when you are paying cash on delivery.
           </p>
         </div>
       </div>
@@ -120,11 +123,14 @@ export default async function BlogPage() {
                     {post.publishedAt ? (
                       <span className="flex items-center gap-1">
                         <CalendarDays className="h-3 w-3" />
-                        {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {new Date(post.publishedAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          },
+                        )}
                       </span>
                     ) : null}
                     {post.author ? (
@@ -138,7 +144,9 @@ export default async function BlogPage() {
                     {post.title}
                   </h2>
                   {post.excerpt ? (
-                    <p className="line-clamp-3 text-sm text-[var(--g-taupe)]">{post.excerpt}</p>
+                    <p className="line-clamp-3 text-sm text-[var(--g-taupe)]">
+                      {post.excerpt}
+                    </p>
                   ) : null}
                 </div>
               </Link>

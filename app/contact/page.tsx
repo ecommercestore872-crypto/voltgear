@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Headphones, Mail, MapPin, MessageCircle, Package, Phone, ShieldCheck } from "lucide-react";
+import {
+  Headphones,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Package,
+  Phone,
+  ShieldCheck,
+} from "lucide-react";
 
 import { GadgetContactForm } from "@/components/gadget/gadget-contact-form";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
@@ -26,7 +34,9 @@ export default async function ContactPage() {
   const address = settings?.address?.trim();
 
   return (
-    <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
+    <div
+      className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}
+    >
       <div className="border-b border-[var(--g-line)]">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12 lg:px-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
@@ -36,8 +46,8 @@ export default async function ContactPage() {
             Contact us
           </h1>
           <p className="gadget-body mt-3 max-w-xl sm:text-base">
-            Questions about an order, warranty, or product? WhatsApp or call for the fastest reply —
-            we usually get back the same day.
+            Questions about an order, warranty, or product? WhatsApp or call for
+            the fastest reply — we usually get back the same day.
           </p>
         </div>
       </div>
@@ -67,7 +77,9 @@ export default async function ContactPage() {
             >
               <Phone className="h-7 w-7 text-[var(--g-forest)]" aria-hidden />
               <div>
-                <p className="text-lg font-semibold text-[var(--g-charcoal)]">Call us</p>
+                <p className="text-lg font-semibold text-[var(--g-charcoal)]">
+                  Call us
+                </p>
                 <p className="mt-1 text-sm text-[var(--g-taupe)]">
                   {config.supportPhone}
                 </p>
@@ -76,11 +88,14 @@ export default async function ContactPage() {
           ) : null}
           {!wa && !call ? (
             <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:col-span-2">
-              <Headphones className="h-7 w-7 text-[var(--g-sage)]" aria-hidden />
+              <Headphones
+                className="h-7 w-7 text-[var(--g-sage)]"
+                aria-hidden
+              />
               <p className="mt-3 font-semibold">Write to us</p>
               <p className="mt-1 text-sm text-[var(--g-taupe)]">
-                Use the form below{email ? " or email" : ""}. We answer on working days, usually the
-                same day.
+                Use the form below{email ? " or email" : ""}. We answer on
+                working days, usually the same day.
               </p>
             </div>
           ) : null}
@@ -88,7 +103,9 @@ export default async function ContactPage() {
             <div className="flex min-h-[7.5rem] flex-col justify-between rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 sm:col-span-2">
               <MapPin className="h-7 w-7 text-[var(--g-forest)]" aria-hidden />
               <div>
-                <p className="text-lg font-semibold text-[var(--g-charcoal)]">Address</p>
+                <p className="text-lg font-semibold text-[var(--g-charcoal)]">
+                  Address
+                </p>
                 <p className="mt-1 text-sm text-[var(--g-taupe)]">{address}</p>
               </div>
             </div>
@@ -127,23 +144,38 @@ export default async function ContactPage() {
 
         <p className="mt-10 text-sm text-[var(--g-taupe)]">
           Policies:{" "}
-          <Link href="/privacy-policy" className="font-medium text-[var(--g-forest)] hover:underline">
+          <Link
+            href="/privacy-policy"
+            className="font-medium text-[var(--g-forest)] hover:underline"
+          >
             Privacy
           </Link>
           {" · "}
-          <Link href="/cookies" className="font-medium text-[var(--g-forest)] hover:underline">
+          <Link
+            href="/cookies"
+            className="font-medium text-[var(--g-forest)] hover:underline"
+          >
             Cookies
           </Link>
           {" · "}
-          <Link href="/terms-of-service" className="font-medium text-[var(--g-forest)] hover:underline">
+          <Link
+            href="/terms-of-service"
+            className="font-medium text-[var(--g-forest)] hover:underline"
+          >
             Terms
           </Link>
           {" · "}
-          <Link href="/shipping-returns" className="font-medium text-[var(--g-forest)] hover:underline">
+          <Link
+            href="/shipping-returns"
+            className="font-medium text-[var(--g-forest)] hover:underline"
+          >
             Shipping &amp; returns
           </Link>
           {" · "}
-          <Link href="/about" className="font-medium text-[var(--g-forest)] hover:underline">
+          <Link
+            href="/about"
+            className="font-medium text-[var(--g-forest)] hover:underline"
+          >
             About
           </Link>
         </p>

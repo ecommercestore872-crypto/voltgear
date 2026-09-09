@@ -17,7 +17,8 @@ export function MobileCategoryStrip({
       <div className="mx-auto max-w-screen-xl px-4 py-4 md:px-6">
         <div className="flex items-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory justify-start md:justify-center hide-scrollbar">
           {cards.map((card, index) => {
-            const image = card.product.images?.[0] || card.product.cloudinaryImages?.[0];
+            const image =
+              card.product.images?.[0] || card.product.cloudinaryImages?.[0];
             return (
               <Link
                 key={card.href}
@@ -35,7 +36,10 @@ export function MobileCategoryStrip({
                       className="object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-105"
                     />
                   ) : (
-                    <Package aria-hidden="true" className="h-6 w-6 text-muted-foreground transition-transform duration-300 group-hover:scale-110" />
+                    <Package
+                      aria-hidden="true"
+                      className="h-6 w-6 text-muted-foreground transition-transform duration-300 group-hover:scale-110"
+                    />
                   )}
                 </div>
                 <span className="text-center text-[11px] sm:text-xs font-semibold tracking-tight leading-tight text-foreground transition-colors duration-300 group-hover:text-primary line-clamp-2">
@@ -46,10 +50,14 @@ export function MobileCategoryStrip({
           })}
         </div>
       </div>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
+      `,
+        }}
+      />
     </div>
   );
 }

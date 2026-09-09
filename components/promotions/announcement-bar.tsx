@@ -8,7 +8,9 @@ export function StorefrontAnnouncementBar() {
         <span className="block truncate font-semibold text-[var(--g-cream)] sm:inline">
           {SHOPPER_BRAND.tagline}
         </span>
-        <span className="hidden sm:inline text-[var(--g-cream)]/60 mx-2">·</span>
+        <span className="hidden sm:inline text-[var(--g-cream)]/60 mx-2">
+          ·
+        </span>
         <GeoDeliveryBanner />
       </p>
     </div>

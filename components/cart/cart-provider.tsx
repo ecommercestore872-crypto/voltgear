@@ -35,7 +35,10 @@ export interface CartItem {
  * same product never merge into one line (and one variant never merges
  * into the base line).
  */
-export function cartLineKey(item: { slug: string; variantKey?: string }): string {
+export function cartLineKey(item: {
+  slug: string;
+  variantKey?: string;
+}): string {
   return item.variantKey ? `${item.slug}::${item.variantKey}` : item.slug;
 }
 
@@ -116,7 +119,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   sku: mergeRetainedSku(i.sku, item.sku),
                   variantSku: mergeRetainedSku(i.variantSku, item.variantSku),
                 }
-              : i
+              : i,
           );
         }
         return [...prev, { ...item, quantity: qty }];
@@ -136,7 +139,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // fail-open
       }
     },
-    []
+    [],
   );
 
   const removeItem = useCallback(
@@ -147,7 +150,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         trackCartLine("remove_from_cart", existing, existing.quantity);
       }
     },
-    [items]
+    [items],
   );
 
   const updateQuantity = useCallback(
@@ -156,18 +159,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems((prev) =>
         quantity <= 0
           ? prev.filter((i) => cartLineKey(i) !== key)
-          : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i))
+          : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i)),
       );
       if (quantity <= 0 && existing) {
         trackCartLine("remove_from_cart", existing, existing.quantity);
       }
     },
-    [items]
+    [items],
   );
 
   const updateItemPrice = useCallback((key: string, price: number) => {
     setItems((prev) =>
-      prev.map((i) => (cartLineKey(i) === key ? { ...i, price } : i))
+      prev.map((i) => (cartLineKey(i) === key ? { ...i, price } : i)),
     );
   }, []);
 
@@ -180,7 +183,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         acc.subtotal += item.price * item.quantity;
         return acc;
       },
-      { count: 0, subtotal: 0 }
+      { count: 0, subtotal: 0 },
     );
   }, [items]);
 
@@ -198,7 +201,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateItemPrice,
       clearCart,
     }),
-    [items, count, subtotal, isOpen, openCart, closeCart, addItem, removeItem, updateQuantity, updateItemPrice, clearCart]
+    [
+      items,
+      count,
+      subtotal,
+      isOpen,
+      openCart,
+      closeCart,
+      addItem,
+      removeItem,
+      updateQuantity,
+      updateItemPrice,
+      clearCart,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

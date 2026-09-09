@@ -25,7 +25,7 @@ export function StickyAddToCart({ product }: { product: Product }) {
 
     const observer = new IntersectionObserver(
       ([entry]) => setVisible(!entry.isIntersecting),
-      { threshold: 0 }
+      { threshold: 0 },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
@@ -99,7 +99,11 @@ export function StickyAddToCart({ product }: { product: Product }) {
               {formatPrice(defaultVariant?.price ?? product.price)}
             </p>
           </div>
-          <Button size="lg" className="shrink-0 px-6 sm:px-8 shadow-sm hover:scale-[1.02] active:scale-[0.95] transition-all duration-300" onClick={handleAdd}>
+          <Button
+            size="lg"
+            className="shrink-0 px-6 sm:px-8 shadow-sm hover:scale-[1.02] active:scale-[0.95] transition-all duration-300"
+            onClick={handleAdd}
+          >
             {added ? (
               <>
                 <Check className="mr-2 h-4 w-4" /> Added

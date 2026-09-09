@@ -13,7 +13,9 @@ export function PostExChitModal({ order, onClose }: PostExChitModalProps) {
   const printRef = useRef<HTMLDivElement>(null);
 
   const trackingNo =
-    order.postexTrackingNumber || order.postex_tracking_number || `PE-${order.orderId}`;
+    order.postexTrackingNumber ||
+    order.postex_tracking_number ||
+    `PE-${order.orderId}`;
   const customer = order.customer || {};
 
   function handlePrint() {
@@ -27,7 +29,9 @@ export function PostExChitModal({ order, onClose }: PostExChitModalProps) {
         <div className="flex items-center justify-between border-b px-5 py-3.5 bg-gray-50 print:hidden">
           <div className="flex items-center gap-2">
             <Truck className="h-5 w-5 text-[#1F3626]" />
-            <h3 className="font-bold text-gray-900">PostEx Shipping Label (Chit)</h3>
+            <h3 className="font-bold text-gray-900">
+              PostEx Shipping Label (Chit)
+            </h3>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -55,19 +59,29 @@ export function PostExChitModal({ order, onClose }: PostExChitModalProps) {
             {/* Header: PostEx & VoltGear Branding */}
             <div className="flex items-center justify-between border-b-2 border-black pb-2 mb-2">
               <div>
-                <h1 className="text-xl font-black tracking-wider uppercase">POSTEX</h1>
-                <p className="text-[10px] font-sans font-bold text-gray-600">COD EXPRESS LOGISTICS</p>
+                <h1 className="text-xl font-black tracking-wider uppercase">
+                  POSTEX
+                </h1>
+                <p className="text-[10px] font-sans font-bold text-gray-600">
+                  COD EXPRESS LOGISTICS
+                </p>
               </div>
               <div className="text-right">
                 <h2 className="text-sm font-bold font-sans">BUY N TRY</h2>
-                <p className="text-[10px] font-sans text-gray-600">buyntryy.com</p>
+                <p className="text-[10px] font-sans text-gray-600">
+                  buyntryy.com
+                </p>
               </div>
             </div>
 
             {/* Tracking Barcode & Details */}
             <div className="text-center border-b-2 border-black pb-2 mb-2">
-              <p className="text-[11px] font-bold text-gray-500">TRACKING NUMBER</p>
-              <p className="text-lg font-black tracking-widest my-0.5">{trackingNo}</p>
+              <p className="text-[11px] font-bold text-gray-500">
+                TRACKING NUMBER
+              </p>
+              <p className="text-lg font-black tracking-widest my-0.5">
+                {trackingNo}
+              </p>
               {/* Barcode Mock Visual */}
               <div className="h-10 w-full bg-black/90 flex items-center justify-center text-white text-[10px] tracking-[0.4em] font-mono rounded-xs">
                 ||||| | |||||| ||| ||||||| |||| ||||
@@ -83,13 +97,19 @@ export function PostExChitModal({ order, onClose }: PostExChitModalProps) {
                 </span>
               </div>
               <p className="font-bold text-sm">{customer.name || "Customer"}</p>
-              <p className="text-[11px] leading-tight my-1">{customer.address || "Address not provided"}</p>
-              <p className="font-bold text-[11px]">TEL: {customer.phone || "N/A"}</p>
+              <p className="text-[11px] leading-tight my-1">
+                {customer.address || "Address not provided"}
+              </p>
+              <p className="font-bold text-[11px]">
+                TEL: {customer.phone || "N/A"}
+              </p>
             </div>
 
             {/* COD Amount Banner */}
             <div className="border-2 border-black bg-gray-100 p-2 text-center mb-2">
-              <p className="text-[10px] font-bold tracking-wider">CASH ON DELIVERY (COD) TOTAL</p>
+              <p className="text-[10px] font-bold tracking-wider">
+                CASH ON DELIVERY (COD) TOTAL
+              </p>
               <p className="text-xl font-black text-black">
                 Rs. {(order.total || 0).toLocaleString()}
               </p>

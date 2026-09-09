@@ -23,10 +23,20 @@ export function ActiveFilters({
 }) {
   const chips: { label: string; key: string }[] = [];
   if (query) chips.push({ label: `Search: ${query}`, key: "q" });
-  if (availability && availability !== "all") chips.push({ label: "In Stock", key: "availability" });
-  if (minPrice != null) chips.push({ label: `Min Rs ${minPrice.toLocaleString()}`, key: "minPrice" });
-  if (maxPrice != null) chips.push({ label: `Max Rs ${maxPrice.toLocaleString()}`, key: "maxPrice" });
-  if (sort && sort !== "featured") chips.push({ label: `Sort: ${sort}`, key: "sort" });
+  if (availability && availability !== "all")
+    chips.push({ label: "In Stock", key: "availability" });
+  if (minPrice != null)
+    chips.push({
+      label: `Min Rs ${minPrice.toLocaleString()}`,
+      key: "minPrice",
+    });
+  if (maxPrice != null)
+    chips.push({
+      label: `Max Rs ${maxPrice.toLocaleString()}`,
+      key: "maxPrice",
+    });
+  if (sort && sort !== "featured")
+    chips.push({ label: `Sort: ${sort}`, key: "sort" });
 
   if (chips.length === 0) return null;
 

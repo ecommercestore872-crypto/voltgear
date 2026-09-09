@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function EditBlogPage({ params }: { params: { id: string } }) {
+export default async function EditBlogPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const page = await getAdminPage(params.id);
   if (!page || page.page_type !== "blog") notFound();
   return <PageForm desk="blog" page={page as never} />;

@@ -120,12 +120,7 @@ export async function GET(request: Request) {
   for (const [email, info] of Array.from(latestByEmail.entries())) {
     if (info.lastOrderAt > cutoff) continue;
     if (await recentWinbackExists(email, sinceIso)) continue;
-    await enqueueEmailEvent(
-      "win-back",
-      email,
-      { name: info.name ?? "" },
-      0
-    );
+    await enqueueEmailEvent("win-back", email, { name: info.name ?? "" }, 0);
     winbacksQueued++;
   }
 
@@ -139,7 +134,9 @@ export async function GET(request: Request) {
     if (cfg.autoDispatch) {
       const { runAutoDispatch } = await import("@/lib/autopilot/dispatch-run");
       const booked = await runAutoDispatch();
-      autoBooked = booked.filter((r) => r.ok && r.action === "book" && r.trackingNumber).length;
+      autoBooked = booked.filter(
+        (r) => r.ok && r.action === "book" && r.trackingNumber,
+      ).length;
     }
     if (cfg.autoRescue) {
       const { runAutoRescue } = await import("@/lib/autopilot/rescue-run");

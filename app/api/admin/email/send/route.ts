@@ -31,13 +31,13 @@ export async function POST(request: Request) {
   if (!subject || !text) {
     return NextResponse.json(
       { error: "Subject and message text are required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
   if (!recipients.length) {
     return NextResponse.json(
       { error: "Enter at least one recipient email." },
-      { status: 400 }
+      { status: 400 },
     );
   }
   if (recipients.length > 1 && !confirmPermission) {
@@ -46,14 +46,14 @@ export async function POST(request: Request) {
         error:
           "Bulk send requires confirmPermission: true (you confirm you have permission to email these people).",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
   for (const email of recipients) {
     if (!email.includes("@")) {
       return NextResponse.json(
         { error: `Invalid email: ${email}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
   }

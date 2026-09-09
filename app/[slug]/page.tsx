@@ -67,9 +67,7 @@ export default async function StaticPage({
   return (
     <article className="container mx-auto px-4 py-12 lg:px-8">
       <div className="mx-auto max-w-3xl">
-        <h1 className="mt-3 text-4xl font-bold tracking-tight">
-          {page.title}
-        </h1>
+        <h1 className="mt-3 text-4xl font-bold tracking-tight">{page.title}</h1>
 
         {page.excerpt && (
           <p className="mt-4 text-lg text-muted-foreground">{page.excerpt}</p>

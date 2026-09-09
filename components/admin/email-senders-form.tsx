@@ -17,10 +17,9 @@ import {
 } from "@/lib/email-sender-rules";
 
 function emptyForm(): Record<EmailSendPurpose, string> {
-  return Object.fromEntries(EMAIL_SEND_PURPOSES.map((p) => [p.kind, ""])) as Record<
-    EmailSendPurpose,
-    string
-  >;
+  return Object.fromEntries(
+    EMAIL_SEND_PURPOSES.map((p) => [p.kind, ""]),
+  ) as Record<EmailSendPurpose, string>;
 }
 
 function fromConfig(config?: EmailSenderConfig | null) {
@@ -42,7 +41,9 @@ export function EmailSendersForm({
 }) {
   const router = useRouter();
   const [form, setForm] = useState(() => fromConfig(config));
-  const [status, setStatus] = useState<PublishStatus>(hasDraft ? "draft" : "published");
+  const [status, setStatus] = useState<PublishStatus>(
+    hasDraft ? "draft" : "published",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,9 +84,10 @@ export function EmailSendersForm({
       <div>
         <h1 className="text-2xl font-semibold">Email sending</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          For each job, set the From address on your verified Resend domain. Empty fields use{" "}
-          <code className="text-xs">{fallbackFrom || "FROM_EMAIL"}</code>. The mailbox domain must
-          show as Verified in{" "}
+          For each job, set the From address on your verified Resend domain.
+          Empty fields use{" "}
+          <code className="text-xs">{fallbackFrom || "FROM_EMAIL"}</code>. The
+          mailbox domain must show as Verified in{" "}
           <a
             href="https://resend.com/domains"
             className="underline underline-offset-2"
@@ -94,8 +96,12 @@ export function EmailSendersForm({
           >
             Resend → Domains
           </a>
-          . Shoppers still receive order mail at the address they typed at checkout. Letter copy:{" "}
-          <Link href="/admin/order-emails" className="underline underline-offset-2">
+          . Shoppers still receive order mail at the address they typed at
+          checkout. Letter copy:{" "}
+          <Link
+            href="/admin/order-emails"
+            className="underline underline-offset-2"
+          >
             Order emails
           </Link>
           .

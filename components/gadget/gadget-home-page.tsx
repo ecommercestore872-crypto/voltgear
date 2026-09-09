@@ -23,8 +23,15 @@ import {
   normalizeLifestyleShop,
 } from "@/lib/db/lifestyle-shop-rules";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
-import { collectionHref, gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
-import { fetchExtraCollectionRails, fetchProductsForHomeSlot } from "@/lib/db/collection-store";
+import {
+  collectionHref,
+  gadgetShopTypeLinks,
+  products2Href,
+} from "@/lib/gadget-preview";
+import {
+  fetchExtraCollectionRails,
+  fetchProductsForHomeSlot,
+} from "@/lib/db/collection-store";
 import {
   normalizeHomeSections,
   type HomeSectionId,
@@ -72,9 +79,7 @@ export async function GadgetHomePage() {
     settings = set;
     shopTypes = gadgetShopTypeLinks(types);
     blogPosts = blogs;
-    slotBestsellers = colBest
-      ? applyGadgetStudioImagesList(colBest)
-      : null;
+    slotBestsellers = colBest ? applyGadgetStudioImagesList(colBest) : null;
     slotFeatured = colFeat ? applyGadgetStudioImagesList(colFeat) : null;
     slotOffers = colOffers ? applyGadgetStudioImagesList(colOffers) : null;
     extraRails = extra.map((rail) => ({
@@ -93,11 +98,14 @@ export async function GadgetHomePage() {
       const slug = cat.href.split("/").pop() as string;
       const candidates = products.filter((p) => p.category === slug);
       const rep =
-        candidates.find((p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p)) ??
-        null;
+        candidates.find(
+          (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p),
+        ) ?? null;
       return rep ? { ...cat, product: rep } : null;
     })
-    .filter((c): c is { label: string; href: string; product: Product } => Boolean(c));
+    .filter((c): c is { label: string; href: string; product: Product } =>
+      Boolean(c),
+    );
 
   const trust = [
     {
@@ -117,14 +125,18 @@ export async function GadgetHomePage() {
     {
       key: "returns",
       title: "Easy Returns",
-      detail: config.returnWindowDays ? `${config.returnWindowDays}-day policy` : "Hassle-free",
+      detail: config.returnWindowDays
+        ? `${config.returnWindowDays}-day policy`
+        : "Hassle-free",
       icon: "returns" as const,
       show: true,
     },
     {
       key: "curated",
       title: "Quality Covered",
-      detail: config.warrantyMonths ? `${config.warrantyMonths}-month warranty` : "Certified picks",
+      detail: config.warrantyMonths
+        ? `${config.warrantyMonths}-month warranty`
+        : "Certified picks",
       icon: "curated" as const,
       show: true,
     },
@@ -134,14 +146,19 @@ export async function GadgetHomePage() {
     .filter((p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p))
     .slice(0, 8);
 
-  const railProducts = (slotBestsellers?.length ? slotBestsellers : newArrivals).slice(0, 8);
+  const railProducts = (
+    slotBestsellers?.length ? slotBestsellers : newArrivals
+  ).slice(0, 8);
 
   const featuredProduct =
     slotFeatured?.find(
-      (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p)
+      (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p),
     ) ??
     products.find(
-      (p) => p.featured && !getStockState(p.stockStatus).soldOut && hasUsableImage(p)
+      (p) =>
+        p.featured &&
+        !getStockState(p.stockStatus).soldOut &&
+        hasUsableImage(p),
     ) ??
     railProducts.find((p) => hasUsableImage(p)) ??
     null;
@@ -156,14 +173,14 @@ export async function GadgetHomePage() {
             !getStockState(p.stockStatus).soldOut &&
             hasUsableImage(p) &&
             typeof p.compareAtPrice === "number" &&
-            p.compareAtPrice > p.price
+            p.compareAtPrice > p.price,
         )
   )
     .filter(
       (p) =>
         p._id !== featuredId &&
         !getStockState(p.stockStatus).soldOut &&
-        hasUsableImage(p)
+        hasUsableImage(p),
     )
     .slice(0, 8);
 
@@ -175,16 +192,19 @@ export async function GadgetHomePage() {
             (p) =>
               p._id !== featuredId &&
               !getStockState(p.stockStatus).soldOut &&
-              hasUsableImage(p)
+              hasUsableImage(p),
           )
-          .sort((a, b) => Number(b.featured) - Number(a.featured) || a.price - b.price)
+          .sort(
+            (a, b) =>
+              Number(b.featured) - Number(a.featured) || a.price - b.price,
+          )
           .slice(0, 8);
 
   const demoBanners = gadgetDemoHeroBanners(products2Href);
   const lifestyleShop = normalizeLifestyleShop(settings?.lifestyleShop);
   const layout = homeLayoutIdsForLifestyle(
     normalizeHomeSections(settings?.homeSections ?? null),
-    lifestyleShop
+    lifestyleShop,
   );
   const trustItems = trust.map(({ key, title, detail, icon }) => ({
     key,
@@ -217,7 +237,9 @@ export async function GadgetHomePage() {
         let section: ReactNode = null;
         switch (id) {
           case "trust":
-            section = trustItems.length ? <GadgetTrustStrip key={id} items={trustItems} /> : null;
+            section = trustItems.length ? (
+              <GadgetTrustStrip key={id} items={trustItems} />
+            ) : null;
             break;
           case "bestsellers":
             section = (
@@ -260,7 +282,13 @@ export async function GadgetHomePage() {
             ) : null;
             break;
           case "categories":
-            section = <GadgetShopCategories key={id} tiles={categoryCards} title={config.homeCategoriesTitle || undefined} />;
+            section = (
+              <GadgetShopCategories
+                key={id}
+                tiles={categoryCards}
+                title={config.homeCategoriesTitle || undefined}
+              />
+            );
             break;
           case "reviews":
             section = <GadgetReviewsSlider key={id} reviews={testimonials} />;

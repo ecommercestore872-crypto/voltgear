@@ -7,10 +7,12 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
-  const categories = (types.length ? types : FALLBACK_SHOP_TYPES).map((type) => ({
-    name: type.name,
-    path: `/products/${type.slug}`,
-  }));
+  const categories = (types.length ? types : FALLBACK_SHOP_TYPES).map(
+    (type) => ({
+      name: type.name,
+      path: `/products/${type.slug}`,
+    }),
+  );
   const body = llmsTxt({
     siteUrl: indexSiteUrl(),
     brandName: SHOPPER_BRAND.spokenName,

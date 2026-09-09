@@ -28,7 +28,7 @@ export function AdSenseUnit({
 
   useEffect(() => {
     setAdsAllowed(
-      window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all"
+      window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all",
     );
   }, [pathname]);
 

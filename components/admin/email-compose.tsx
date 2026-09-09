@@ -6,26 +6,27 @@ import { adminFetch } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const BUILTIN: { id: string; label: string; subject: string; text: string }[] = [
-  {
-    id: "blank",
-    label: "Blank",
-    subject: "",
-    text: "",
-  },
-  {
-    id: "promo",
-    label: "Promo",
-    subject: "Something new from VoltGear",
-    text: "Hi,\n\nWe thought you’d like this update from our store.\n\nShop now: https://voltgear-coral.vercel.app/products2\n\n— VoltGear",
-  },
-  {
-    id: "restock",
-    label: "Back in stock",
-    subject: "It’s back in stock",
-    text: "Hi,\n\nAn item you might want is available again.\n\nBrowse the shop: https://voltgear-coral.vercel.app/products2\n\n— VoltGear",
-  },
-];
+const BUILTIN: { id: string; label: string; subject: string; text: string }[] =
+  [
+    {
+      id: "blank",
+      label: "Blank",
+      subject: "",
+      text: "",
+    },
+    {
+      id: "promo",
+      label: "Promo",
+      subject: "Something new from VoltGear",
+      text: "Hi,\n\nWe thought you’d like this update from our store.\n\nShop now: https://voltgear-coral.vercel.app/products2\n\n— VoltGear",
+    },
+    {
+      id: "restock",
+      label: "Back in stock",
+      subject: "It’s back in stock",
+      text: "Hi,\n\nAn item you might want is available again.\n\nBrowse the shop: https://voltgear-coral.vercel.app/products2\n\n— VoltGear",
+    },
+  ];
 
 type SavedTemplate = {
   id: string;
@@ -100,7 +101,9 @@ export function EmailCompose() {
     setBusy(true);
     setError(null);
     try {
-      await adminFetch(`/api/admin/email-templates/${id}`, { method: "DELETE" });
+      await adminFetch(`/api/admin/email-templates/${id}`, {
+        method: "DELETE",
+      });
       await loadTemplates();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Delete failed");
@@ -132,7 +135,7 @@ export function EmailCompose() {
           data.failed?.length
             ? ` (${data.failed.map((f) => f.email).join(", ")})`
             : ""
-        }`
+        }`,
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Send failed");
@@ -145,8 +148,8 @@ export function EmailCompose() {
     <div className="space-y-4 rounded-lg border bg-white p-4">
       <h2 className="text-lg font-semibold">Email</h2>
       <p className="text-sm text-muted-foreground">
-        Send from your domain mail (Resend / FROM_EMAIL). One address, or several
-        separated by commas. Save templates to reuse promo copy.
+        Send from your domain mail (Resend / FROM_EMAIL). One address, or
+        several separated by commas. Save templates to reuse promo copy.
       </p>
       <div className="flex flex-wrap gap-2">
         {BUILTIN.map((t) => (

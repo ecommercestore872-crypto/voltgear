@@ -13,7 +13,10 @@ export function SortSelect({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor="catalog-sort" className="text-sm font-medium text-foreground">
+      <label
+        htmlFor="catalog-sort"
+        className="text-sm font-medium text-foreground"
+      >
         Sort by:
       </label>
       <select

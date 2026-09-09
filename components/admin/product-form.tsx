@@ -52,7 +52,10 @@ function emptyDoc(): ProductDocument {
   };
 }
 
-function fromProduct(product?: AdminProduct | null, knownSlugs: string[] = []): ProductDocument {
+function fromProduct(
+  product?: AdminProduct | null,
+  knownSlugs: string[] = [],
+): ProductDocument {
   if (!product) return emptyDoc();
   const doc = product.draft ?? {
     name: product.name,
@@ -114,18 +117,26 @@ export function ProductForm({
   const router = useRouter();
   const isNew = !product;
   const knownSlugs = shopTypes.map((t) => t.slug);
-  const [doc, setDoc] = useState<ProductDocument>(() => fromProduct(product, knownSlugs));
-  const [status, setStatus] = useState<PublishStatus>(product?.status ?? "draft");
+  const [doc, setDoc] = useState<ProductDocument>(() =>
+    fromProduct(product, knownSlugs),
+  );
+  const [status, setStatus] = useState<PublishStatus>(
+    product?.status ?? "draft",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [description, setDescription] = useState(() =>
-    portableTextToPlain(fromProduct(product, knownSlugs).description)
+    portableTextToPlain(fromProduct(product, knownSlugs).description),
   );
   const [collectionList, setCollectionList] = useState(collections);
-  const [selectedCollectionIds, setSelectedCollectionIds] = useState(collectionIds);
+  const [selectedCollectionIds, setSelectedCollectionIds] =
+    useState(collectionIds);
   const id = product?._id;
 
-  const set = <K extends keyof ProductDocument>(key: K, value: ProductDocument[K]) => {
+  const set = <K extends keyof ProductDocument>(
+    key: K,
+    value: ProductDocument[K],
+  ) => {
     setDoc((d) => ({ ...d, [key]: value }));
   };
 
@@ -134,7 +145,9 @@ export function ProductForm({
     return { ...doc, slug, description: textToPortableText(description) };
   }, [doc, description, isNew]);
 
-  async function run(action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete") {
+  async function run(
+    action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
+  ) {
     setSaving(true);
     setError(null);
     try {
@@ -147,7 +160,10 @@ export function ProductForm({
       if (action === "create") {
         const json = await adminFetch("/api/admin/products", {
           method: "POST",
-          body: JSON.stringify({ doc: payload, collectionIds: selectedCollectionIds }),
+          body: JSON.stringify({
+            doc: payload,
+            collectionIds: selectedCollectionIds,
+          }),
         });
         router.replace(`/admin/products/${json.id}`);
         return;
@@ -161,7 +177,11 @@ export function ProductForm({
       }
       await adminFetch(`/api/admin/products/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ action, doc: payload, collectionIds: selectedCollectionIds }),
+        body: JSON.stringify({
+          action,
+          doc: payload,
+          collectionIds: selectedCollectionIds,
+        }),
       });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
@@ -180,9 +200,15 @@ export function ProductForm({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="min-w-0 text-xl font-semibold sm:text-2xl">{isNew ? "Add product" : doc.name || "Edit product"}</h1>
+        <h1 className="min-w-0 text-xl font-semibold sm:text-2xl">
+          {isNew ? "Add product" : doc.name || "Edit product"}
+        </h1>
         {!isNew ? (
-          <Button type="button" variant="destructive" onClick={() => run("delete")}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => run("delete")}
+          >
             Delete
           </Button>
         ) : null}
@@ -208,7 +234,11 @@ export function ProductForm({
         <div className="space-y-6 lg:col-span-2">
           <div className="space-y-1.5">
             <Label htmlFor="name">Product name</Label>
-            <Input id="name" value={doc.name} onChange={(e) => set("name", e.target.value)} />
+            <Input
+              id="name"
+              value={doc.name}
+              onChange={(e) => set("name", e.target.value)}
+            />
           </div>
           <MediaField
             label="Photos"
@@ -237,7 +267,9 @@ export function ProductForm({
           <MediaField
             label="Cover photo (optional)"
             urls={doc.productVideo?.poster ? [doc.productVideo.poster] : []}
-            onChange={(urls) => set("productVideo", { ...doc.productVideo, poster: urls[0] })}
+            onChange={(urls) =>
+              set("productVideo", { ...doc.productVideo, poster: urls[0] })
+            }
           />
           <div className="space-y-1.5">
             <Label htmlFor="short">Short summary</Label>
@@ -261,7 +293,7 @@ export function ProductForm({
               <code>&gt; highlight</code> — the product page will style them.
             </p>
           </div>
-          
+
           <div className="pt-4 space-y-8 border-t">
             <h2 className="text-lg font-semibold">Additional Details</h2>
             <StringArrayInput
@@ -293,20 +325,27 @@ export function ProductForm({
               <div>
                 <h3 className="text-base font-semibold">Optional Add-ons</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Let customers add extras at checkout (e.g. a case, screen protector). Each add-on appears as a toggle on the product page.
+                  Let customers add extras at checkout (e.g. a case, screen
+                  protector). Each add-on appears as a toggle on the product
+                  page.
                 </p>
               </div>
               {(doc.addons ?? []).map((addon, idx) => (
-                <div key={idx} className="rounded-lg border p-4 space-y-3 bg-muted/30">
+                <div
+                  key={idx}
+                  className="rounded-lg border p-4 space-y-3 bg-muted/30"
+                >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">Add-on {idx + 1}</p>
                     <button
                       type="button"
                       className="text-xs text-destructive hover:underline"
-                      onClick={() => set(
-                        "addons",
-                        (doc.addons ?? []).filter((_, i) => i !== idx)
-                      )}
+                      onClick={() =>
+                        set(
+                          "addons",
+                          (doc.addons ?? []).filter((_, i) => i !== idx),
+                        )
+                      }
                     >
                       Remove
                     </button>
@@ -326,7 +365,9 @@ export function ProductForm({
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor={`addon-price-${idx}`}>Extra Price (PKR)</Label>
+                      <Label htmlFor={`addon-price-${idx}`}>
+                        Extra Price (PKR)
+                      </Label>
                       <Input
                         id={`addon-price-${idx}`}
                         type="number"
@@ -335,13 +376,18 @@ export function ProductForm({
                         placeholder="e.g. 299"
                         onChange={(e) => {
                           const next = [...(doc.addons ?? [])];
-                          next[idx] = { ...next[idx], price: Number(e.target.value) };
+                          next[idx] = {
+                            ...next[idx],
+                            price: Number(e.target.value),
+                          };
                           set("addons", next);
                         }}
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor={`addon-badge-${idx}`}>Badge (optional)</Label>
+                      <Label htmlFor={`addon-badge-${idx}`}>
+                        Badge (optional)
+                      </Label>
                       <Input
                         id={`addon-badge-${idx}`}
                         value={addon.badge ?? ""}
@@ -354,14 +400,19 @@ export function ProductForm({
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor={`addon-desc-${idx}`}>Short description</Label>
+                      <Label htmlFor={`addon-desc-${idx}`}>
+                        Short description
+                      </Label>
                       <Input
                         id={`addon-desc-${idx}`}
                         value={addon.description ?? ""}
                         placeholder="e.g. Shockproof silicone"
                         onChange={(e) => {
                           const next = [...(doc.addons ?? [])];
-                          next[idx] = { ...next[idx], description: e.target.value };
+                          next[idx] = {
+                            ...next[idx],
+                            description: e.target.value,
+                          };
                           set("addons", next);
                         }}
                       />
@@ -386,7 +437,13 @@ export function ProductForm({
                 onClick={() =>
                   set("addons", [
                     ...(doc.addons ?? []),
-                    { name: "", price: 0, badge: "", description: "", image: "" },
+                    {
+                      name: "",
+                      price: 0,
+                      badge: "",
+                      description: "",
+                      image: "",
+                    },
                   ])
                 }
               >
@@ -415,7 +472,10 @@ export function ProductForm({
               min={0}
               value={doc.compareAtPrice ?? ""}
               onChange={(e) =>
-                set("compareAtPrice", e.target.value === "" ? undefined : Number(e.target.value))
+                set(
+                  "compareAtPrice",
+                  e.target.value === "" ? undefined : Number(e.target.value),
+                )
               }
             />
           </div>
@@ -427,10 +487,15 @@ export function ProductForm({
               min={0}
               value={doc.costPrice ?? ""}
               onChange={(e) =>
-                set("costPrice", e.target.value === "" ? undefined : Number(e.target.value))
+                set(
+                  "costPrice",
+                  e.target.value === "" ? undefined : Number(e.target.value),
+                )
               }
             />
-            <p className="text-xs text-muted-foreground">Used only for delivered profit in Analytics.</p>
+            <p className="text-xs text-muted-foreground">
+              Used only for delivered profit in Analytics.
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="category">Category</Label>
@@ -485,11 +550,15 @@ export function ProductForm({
                   return;
                 }
                 const n = Number(raw);
-                set("quantity", Number.isInteger(n) && n >= 0 ? n : doc.quantity ?? null);
+                set(
+                  "quantity",
+                  Number.isInteger(n) && n >= 0 ? n : (doc.quantity ?? null),
+                );
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Leave empty for unlimited. Set a number to stop overselling. Zero marks the product sold out.
+              Leave empty for unlimited. Set a number to stop overselling. Zero
+              marks the product sold out.
             </p>
           </div>
           <VariantAxesFields

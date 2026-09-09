@@ -38,16 +38,31 @@ export function PublishBar({
       </p>
       <div className="flex flex-wrap gap-2">
         {onDiscard && status !== "draft" && (
-          <Button type="button" variant="ghost" onClick={onDiscard} disabled={saving}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onDiscard}
+            disabled={saving}
+          >
             Discard draft
           </Button>
         )}
-        <Button type="button" variant="outline" onClick={onSave} disabled={saving}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onSave}
+          disabled={saving}
+        >
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Save
         </Button>
         {!hideUnpublish && status === "published" && onUnpublish && (
-          <Button type="button" variant="secondary" onClick={onUnpublish} disabled={saving}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onUnpublish}
+            disabled={saving}
+          >
             Unpublish
           </Button>
         )}

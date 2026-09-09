@@ -35,7 +35,7 @@ export function MagicCard({
       onMouseLeave={() => setOpacity(0)}
       className={cn(
         "relative overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:shadow-md",
-        className
+        className,
       )}
       {...props}
     >

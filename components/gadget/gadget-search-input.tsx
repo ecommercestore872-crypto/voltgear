@@ -31,7 +31,7 @@ export function GadgetSearchInput({
         focused
           ? "border-[var(--g-forest)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--g-sage)_28%,transparent)]"
           : "border-[var(--g-line)] shadow-none hover:border-[color-mix(in_srgb,var(--g-sage)_40%,var(--g-line))]",
-        className
+        className,
       )}
     >
       <span
@@ -40,11 +40,14 @@ export function GadgetSearchInput({
           tall ? "left-3.5 h-8 w-8 sm:left-4" : "h-7 w-7",
           focused
             ? "bg-[var(--g-forest)] text-white"
-            : "bg-[var(--g-cream)] text-[var(--g-forest)]"
+            : "bg-[var(--g-cream)] text-[var(--g-forest)]",
         )}
         aria-hidden
       >
-        <Search className={tall ? "h-3.5 w-3.5" : "h-3.5 w-3.5"} strokeWidth={2.2} />
+        <Search
+          className={tall ? "h-3.5 w-3.5" : "h-3.5 w-3.5"}
+          strokeWidth={2.2}
+        />
       </span>
       <input
         id={id}
@@ -60,13 +63,24 @@ export function GadgetSearchInput({
         className={cn(
           "h-full w-full min-w-0 bg-transparent text-base text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-charcoal)]/60 sm:text-sm",
           tall ? "pl-[3.35rem] sm:pl-14" : "pl-11",
-          showSubmit ? "pr-20 sm:pr-24" : "pr-4"
+          showSubmit ? "pr-20 sm:pr-24" : "pr-4",
         )}
       />
-      
+
       {focused && (
         <datalist id="fast-search-list">
-          {["Earbuds", "Smartwatch", "Power Bank", "Ring Light", "Tripod", "Selfie Stick", "Fast Charger", "Wireless Mic", "Stylus Pen", "Gaming Gear"].map(item => (
+          {[
+            "Earbuds",
+            "Smartwatch",
+            "Power Bank",
+            "Ring Light",
+            "Tripod",
+            "Selfie Stick",
+            "Fast Charger",
+            "Wireless Mic",
+            "Stylus Pen",
+            "Gaming Gear",
+          ].map((item) => (
             <option key={item} value={item} />
           ))}
         </datalist>

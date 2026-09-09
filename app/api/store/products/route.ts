@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { fetchAllProducts, fetchFeaturedByCategory, fetchProductBySlug } from "@/lib/db/store";
+import {
+  fetchAllProducts,
+  fetchFeaturedByCategory,
+  fetchProductBySlug,
+} from "@/lib/db/store";
 import { isDemoRequest } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";

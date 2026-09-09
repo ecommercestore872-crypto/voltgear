@@ -69,7 +69,7 @@ export function OrderList({
         (o) =>
           o.orderId.toLowerCase().includes(needle) ||
           o.customerName.toLowerCase().includes(needle) ||
-          o.customerEmail.toLowerCase().includes(needle)
+          o.customerEmail.toLowerCase().includes(needle),
       );
     }
     return list;
@@ -93,7 +93,8 @@ export function OrderList({
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage all incoming orders. Select an order to view details and confirm dispatch.
+          Manage all incoming orders. Select an order to view details and
+          confirm dispatch.
         </p>
       </div>
 
@@ -129,7 +130,10 @@ export function OrderList({
           <Input
             placeholder="Search order #, name, or email..."
             value={q}
-            onChange={(e) => { setQ(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
             aria-label="Search orders"
             className="h-9 text-sm"
           />
@@ -151,16 +155,29 @@ export function OrderList({
             <table className="w-full text-left text-sm">
               <thead className="border-b bg-muted/40">
                 <tr>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Order #</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Date</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Customer</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Status</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Total</th>
+                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                    Order #
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                    Customer
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                    Total
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {paginated.map((o) => (
-                  <tr key={o.orderId} className="hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={o.orderId}
+                    className="hover:bg-muted/30 transition-colors"
+                  >
                     <td className="px-4 py-3 font-medium">
                       <Link
                         href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
@@ -196,7 +213,9 @@ export function OrderList({
           {totalPages > 1 && (
             <div className="flex items-center justify-between text-sm text-muted-foreground px-1">
               <p>
-                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} orders
+                Showing {(page - 1) * PAGE_SIZE + 1}–
+                {Math.min(page * PAGE_SIZE, filtered.length)} of{" "}
+                {filtered.length} orders
               </p>
               <div className="flex gap-1.5">
                 <Button

@@ -23,7 +23,10 @@ export function ReviewForm({ slug }: { slug: string }) {
     setError(null);
     setSubmitting(true);
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    const data = Object.fromEntries(new FormData(form)) as Record<
+      string,
+      string
+    >;
 
     try {
       let image: string | undefined;
@@ -96,7 +99,9 @@ export function ReviewForm({ slug }: { slug: string }) {
             </button>
           ))}
           {rating === 0 && (
-            <span className="ml-1.5 text-xs text-muted-foreground">tap to rate</span>
+            <span className="ml-1.5 text-xs text-muted-foreground">
+              tap to rate
+            </span>
           )}
         </div>
       </div>
@@ -104,11 +109,21 @@ export function ReviewForm({ slug }: { slug: string }) {
       {/* Name + Email */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="review-name" className="text-xs">Name *</Label>
-          <Input id="review-name" name="name" required autoComplete="name" className="h-8 text-sm" />
+          <Label htmlFor="review-name" className="text-xs">
+            Name *
+          </Label>
+          <Input
+            id="review-name"
+            name="name"
+            required
+            autoComplete="name"
+            className="h-8 text-sm"
+          />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="review-email" className="text-xs">Email *</Label>
+          <Label htmlFor="review-email" className="text-xs">
+            Email *
+          </Label>
           <Input
             id="review-email"
             name="email"
@@ -122,7 +137,9 @@ export function ReviewForm({ slug }: { slug: string }) {
 
       {/* Comment */}
       <div className="space-y-1">
-        <Label htmlFor="review-comment" className="text-xs">Review *</Label>
+        <Label htmlFor="review-comment" className="text-xs">
+          Review *
+        </Label>
         <Textarea
           id="review-comment"
           name="comment"
@@ -160,7 +177,10 @@ export function ReviewForm({ slug }: { slug: string }) {
         {photo && (
           <button
             type="button"
-            onClick={() => { setPhoto(null); setPhotoUrl(null); }}
+            onClick={() => {
+              setPhoto(null);
+              setPhotoUrl(null);
+            }}
             className="text-xs text-muted-foreground underline"
           >
             Remove
@@ -173,9 +193,15 @@ export function ReviewForm({ slug }: { slug: string }) {
       <div className="flex items-center gap-3">
         <Button type="submit" size="sm" disabled={submitting || rating === 0}>
           {submitting ? (
-            <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Submitting…</>
+            <>
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              Submitting…
+            </>
           ) : (
-            <><Send className="mr-1.5 h-3.5 w-3.5" />Submit</>
+            <>
+              <Send className="mr-1.5 h-3.5 w-3.5" />
+              Submit
+            </>
           )}
         </Button>
         <p className="text-[11px] text-muted-foreground leading-snug">

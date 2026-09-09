@@ -39,11 +39,15 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
   const router = useRouter();
   const isNew = !testimonial;
   const [form, setForm] = useState(() => fromRow(testimonial));
-  const [status, setStatus] = useState<PublishStatus>(testimonial?.status ?? "draft");
+  const [status, setStatus] = useState<PublishStatus>(
+    testimonial?.status ?? "draft",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function run(action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete") {
+  async function run(
+    action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
+  ) {
     setSaving(true);
     setError(null);
     try {
@@ -58,7 +62,9 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
       if (!testimonial?.id) return;
       if (action === "delete") {
         if (!confirm("Delete this testimonial?")) return;
-        await adminFetch(`/api/admin/testimonials/${testimonial.id}`, { method: "DELETE" });
+        await adminFetch(`/api/admin/testimonials/${testimonial.id}`, {
+          method: "DELETE",
+        });
         router.replace("/admin/testimonials");
         return;
       }
@@ -80,7 +86,9 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{isNew ? "New testimonial" : form.customerName || "Edit"}</h1>
+        <h1 className="text-2xl font-semibold">
+          {isNew ? "New testimonial" : form.customerName || "Edit"}
+        </h1>
         {!isNew && (
           <Button variant="destructive" onClick={() => run("delete")}>
             Delete
@@ -107,14 +115,18 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
           <Label>Customer name</Label>
           <Input
             value={form.customerName}
-            onChange={(e) => setForm((f) => ({ ...f, customerName: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, customerName: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-1.5">
           <Label>Review</Label>
           <Textarea
             value={form.reviewText}
-            onChange={(e) => setForm((f) => ({ ...f, reviewText: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, reviewText: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-1.5">
@@ -124,18 +136,27 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
             min={1}
             max={5}
             value={form.rating}
-            onChange={(e) => setForm((f) => ({ ...f, rating: Number(e.target.value) }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, rating: Number(e.target.value) }))
+            }
           />
         </div>
         <div className="space-y-1.5">
           <Label>Product</Label>
-          <Input value={form.product} onChange={(e) => setForm((f) => ({ ...f, product: e.target.value }))} />
+          <Input
+            value={form.product}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, product: e.target.value }))
+            }
+          />
         </div>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={form.verified}
-            onChange={(e) => setForm((f) => ({ ...f, verified: e.target.checked }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, verified: e.target.checked }))
+            }
           />
           Verified
         </label>
@@ -143,7 +164,9 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
           <input
             type="checkbox"
             checked={form.isDemo}
-            onChange={(e) => setForm((f) => ({ ...f, isDemo: e.target.checked }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, isDemo: e.target.checked }))
+            }
           />
           Demo — guests never see this testimonial
         </label>

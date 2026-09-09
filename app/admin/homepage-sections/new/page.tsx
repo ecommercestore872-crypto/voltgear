@@ -22,5 +22,10 @@ export default async function NewHomepageSectionPage() {
     price: p.price,
   }));
 
-  return <HomepageSectionForm shopTypes={shopTypes} availableProducts={simpleProducts} />;
+  return (
+    <HomepageSectionForm
+      shopTypes={shopTypes}
+      availableProducts={simpleProducts}
+    />
+  );
 }

@@ -51,7 +51,7 @@ function IconHit({
         "relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors",
         "hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest)]",
-        className
+        className,
       )}
       {...props}
     >
@@ -97,55 +97,77 @@ export function GadgetNavbar({
 
   const menu =
     open && mounted ? (
-          <div className="gadget-theme lg:hidden" role="presentation">
+      <div className="gadget-theme lg:hidden" role="presentation">
+        <button
+          type="button"
+          className="fixed inset-0 z-[90] bg-[var(--g-forest)]/35"
+          aria-label="Close menu"
+          onClick={() => setOpen(false)}
+        />
+        <div
+          className="fixed inset-y-0 right-0 z-[100] flex w-full max-w-sm flex-col overflow-y-auto overscroll-contain border-l border-[var(--g-line)] bg-[var(--g-cream)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+        >
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <ShopBrandMark logo={settings?.logo} name={brandName} compact />
             <button
               type="button"
-              className="fixed inset-0 z-[90] bg-[var(--g-forest)]/35"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] text-[var(--g-forest)]"
               aria-label="Close menu"
               onClick={() => setOpen(false)}
-            />
-            <div
-              className="fixed inset-y-0 right-0 z-[100] flex w-full max-w-sm flex-col overflow-y-auto overscroll-contain border-l border-[var(--g-line)] bg-[var(--g-cream)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navigation menu"
             >
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <ShopBrandMark logo={settings?.logo} name={brandName} compact />
-                <button
-                  type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] text-[var(--g-forest)]"
-                  aria-label="Close menu"
-                  onClick={() => setOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-              <form action={products2Href()} method="get" className="mb-6">
-                <label className="sr-only" htmlFor="gadget-search-mobile">
-                  Search products
-                </label>
-                <GadgetSearchInput
-                  id="gadget-search-mobile"
-                  size="lg"
-                  showSubmit
-                  placeholder="Search the shop"
-                />
-              </form>
+          <form action={products2Href()} method="get" className="mb-6">
+            <label className="sr-only" htmlFor="gadget-search-mobile">
+              Search products
+            </label>
+            <GadgetSearchInput
+              id="gadget-search-mobile"
+              size="lg"
+              showSubmit
+              placeholder="Search the shop"
+            />
+          </form>
 
-              <p className="gadget-eyebrow mb-2">Shop</p>
-              <nav className="mb-6 grid border-t border-[var(--g-line)]" aria-label="Mobile shop">
-                <Link
-                  href={products2Href()}
-                  onClick={() => setOpen(false)}
-                  className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm font-semibold text-[var(--g-forest)]"
-                >
-                  All products
-                </Link>
-                {links.map((link) => (
+          <p className="gadget-eyebrow mb-2">Shop</p>
+          <nav
+            className="mb-6 grid border-t border-[var(--g-line)]"
+            aria-label="Mobile shop"
+          >
+            <Link
+              href={products2Href()}
+              onClick={() => setOpen(false)}
+              className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm font-semibold text-[var(--g-forest)]"
+            >
+              All products
+            </Link>
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {navLinks.length ? (
+            <>
+              <p className="gadget-eyebrow mb-2">Explore</p>
+              <nav
+                className="mb-6 grid border-t border-[var(--g-line)]"
+                aria-label="Mobile explore"
+              >
+                {navLinks.map((link) => (
                   <Link
-                    key={link.href}
+                    key={link.href + link.label}
                     href={link.href}
                     onClick={() => setOpen(false)}
                     className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
@@ -154,58 +176,48 @@ export function GadgetNavbar({
                   </Link>
                 ))}
               </nav>
+            </>
+          ) : null}
 
-              {navLinks.length ? (
-                <>
-                  <p className="gadget-eyebrow mb-2">Explore</p>
-                  <nav className="mb-6 grid border-t border-[var(--g-line)]" aria-label="Mobile explore">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.href + link.label}
-                        href={link.href}
-                        onClick={() => setOpen(false)}
-                        className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
-                  </nav>
-                </>
-              ) : null}
+          {helpLinks.length ? (
+            <>
+              <p className="gadget-eyebrow mb-2">Help</p>
+              <nav
+                className="grid border-t border-[var(--g-line)]"
+                aria-label="Mobile help"
+              >
+                {helpLinks.map((link) => {
+                  const Icon = helpIcon(link.href);
+                  return (
+                    <Link
+                      key={link.href + link.label}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+                    >
+                      <Icon
+                        className="h-4 w-4 text-[var(--g-sage)]"
+                        aria-hidden
+                      />
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </>
+          ) : null}
 
-              {helpLinks.length ? (
-                <>
-                  <p className="gadget-eyebrow mb-2">Help</p>
-                  <nav className="grid border-t border-[var(--g-line)]" aria-label="Mobile help">
-                    {helpLinks.map((link) => {
-                      const Icon = helpIcon(link.href);
-                      return (
-                        <Link
-                          key={link.href + link.label}
-                          href={link.href}
-                          onClick={() => setOpen(false)}
-                          className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-                        >
-                          <Icon className="h-4 w-4 text-[var(--g-sage)]" aria-hidden />
-                          {link.label}
-                        </Link>
-                      );
-                    })}
-                  </nav>
-                </>
-              ) : null}
-
-              {phone ? (
-                <a
-                  href={`tel:${phone.replace(/\s+/g, "")}`}
-                  className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--g-forest)] px-4 text-sm font-semibold text-[var(--g-cream)]"
-                >
-                  <Phone className="h-4 w-4" aria-hidden />
-                  Call {phone}
-                </a>
-              ) : null}
-            </div>
-          </div>
+          {phone ? (
+            <a
+              href={`tel:${phone.replace(/\s+/g, "")}`}
+              className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--g-forest)] px-4 text-sm font-semibold text-[var(--g-cream)]"
+            >
+              <Phone className="h-4 w-4" aria-hidden />
+              Call {phone}
+            </a>
+          ) : null}
+        </div>
+      </div>
     ) : null;
 
   return (
@@ -216,15 +228,19 @@ export function GadgetNavbar({
       <div className="hidden bg-[var(--g-forest)] text-[var(--g-cream)] md:block">
         <div className="mx-auto flex h-8 max-w-[90rem] items-center justify-between gap-6 px-6 text-[10px] font-semibold uppercase tracking-[0.16em] xl:px-8">
           <p className="min-w-0 truncate">
-            <span className="text-[var(--g-cream)]">
-              {tagline}
-            </span>
+            <span className="text-[var(--g-cream)]">{tagline}</span>
             <span className="mx-2.5 text-white/70">·</span>
             <span className="text-[var(--g-cream)]">Cash on delivery</span>
           </p>
-          <nav className="flex shrink-0 items-center gap-4 text-[var(--g-cream)]" aria-label="Help">
+          <nav
+            className="flex shrink-0 items-center gap-4 text-[var(--g-cream)]"
+            aria-label="Help"
+          >
             {phone ? (
-              <a href={`tel:${phone.replace(/\s+/g, "")}`} className="transition hover:text-[var(--g-cream)]">
+              <a
+                href={`tel:${phone.replace(/\s+/g, "")}`}
+                className="transition hover:text-[var(--g-cream)]"
+              >
                 {phone}
               </a>
             ) : null}
@@ -325,13 +341,18 @@ export function GadgetNavbar({
             <label className="sr-only" htmlFor="gadget-search">
               Search products
             </label>
-            <GadgetSearchInput id="gadget-search" placeholder="Search the shop" />
+            <GadgetSearchInput
+              id="gadget-search"
+              placeholder="Search the shop"
+            />
           </form>
 
           <div className={cn("flex items-center gap-1.5", "lg:ml-0 ml-auto")}>
             <Link
               href="/wishlist"
-              aria-label={wishCount ? `Wishlist, ${wishCount} items` : "Wishlist"}
+              aria-label={
+                wishCount ? `Wishlist, ${wishCount} items` : "Wishlist"
+              }
               title="Wishlist"
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:h-11 sm:w-11"
             >
@@ -366,7 +387,9 @@ export function GadgetNavbar({
           </div>
         </div>
       </div>
-      {menu && typeof document !== "undefined" ? createPortal(menu, document.body) : null}
+      {menu && typeof document !== "undefined"
+        ? createPortal(menu, document.body)
+        : null}
     </header>
   );
 }

@@ -1,13 +1,18 @@
 import type { NewsletterSubscriber } from "@/lib/db/newsletter-store";
 
-export function NewsletterList({ subscribers }: { subscribers: NewsletterSubscriber[] }) {
+export function NewsletterList({
+  subscribers,
+}: {
+  subscribers: NewsletterSubscriber[];
+}) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Newsletter</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Emails collected from the storefront footer. These are not sent automatically.
+            Emails collected from the storefront footer. These are not sent
+            automatically.
           </p>
         </div>
         {subscribers.length > 0 ? (
@@ -21,8 +26,8 @@ export function NewsletterList({ subscribers }: { subscribers: NewsletterSubscri
       </div>
       {subscribers.length === 0 ? (
         <p className="rounded-md border bg-white px-4 py-8 text-sm text-muted-foreground">
-          No subscribers yet. A signup only appears here after the newsletter table exists and
-          someone submits the footer form.
+          No subscribers yet. A signup only appears here after the newsletter
+          table exists and someone submits the footer form.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-md border bg-white">
@@ -38,9 +43,13 @@ export function NewsletterList({ subscribers }: { subscribers: NewsletterSubscri
               {subscribers.map((row) => (
                 <tr key={row.id} className="border-b last:border-0">
                   <td className="px-3 py-2">{row.email}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{row.source}</td>
+                  <td className="px-3 py-2 text-muted-foreground">
+                    {row.source}
+                  </td>
                   <td className="px-3 py-2 tabular-nums text-muted-foreground">
-                    {row.createdAt ? new Date(row.createdAt).toLocaleString("en-PK") : "—"}
+                    {row.createdAt
+                      ? new Date(row.createdAt).toLocaleString("en-PK")
+                      : "—"}
                   </td>
                 </tr>
               ))}

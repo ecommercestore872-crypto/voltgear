@@ -28,18 +28,21 @@ export async function POST(request: Request) {
   const rawRecipients = Array.isArray(body?.recipients) ? body.recipients : [];
 
   if (!text) {
-    return NextResponse.json({ error: "Message text is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Message text is required." },
+      { status: 400 },
+    );
   }
   if (!rawRecipients.length) {
     return NextResponse.json(
       { error: "Choose at least one recipient." },
-      { status: 400 }
+      { status: 400 },
     );
   }
   if (text.length > 4096) {
     return NextResponse.json(
       { error: "Message is too long (max 4096 characters)." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
   if (!recipients.length) {
     return NextResponse.json(
       { error: "No valid Pakistani phone numbers in the selection." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

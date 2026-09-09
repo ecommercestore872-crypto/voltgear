@@ -21,7 +21,12 @@ type SlideRow = {
   sort_order?: number;
   status?: string;
   is_demo?: boolean;
-  products?: { id?: string; name?: string; slug?: string; stock_status?: string } | null;
+  products?: {
+    id?: string;
+    name?: string;
+    slug?: string;
+    stock_status?: string;
+  } | null;
 };
 
 export function HeroSlidesForm({
@@ -50,7 +55,7 @@ export function HeroSlidesForm({
 
   const publishedCount = useMemo(
     () => slides.filter((s) => s.status === "published").length,
-    [slides]
+    [slides],
   );
 
   async function run(fn: () => Promise<void>) {
@@ -94,9 +99,7 @@ export function HeroSlidesForm({
           {
             ...created,
             image_url: created.image_url || imageUrl,
-            products: product
-              ? { id: product.id, name: product.name }
-              : null,
+            products: product ? { id: product.id, name: product.name } : null,
           },
         ]);
       }
@@ -104,7 +107,11 @@ export function HeroSlidesForm({
     });
   }
 
-  async function patchSlide(id: string, action: "save" | "publish" | "unpublish", row: SlideRow) {
+  async function patchSlide(
+    id: string,
+    action: "save" | "publish" | "unpublish",
+    row: SlideRow,
+  ) {
     await run(async () => {
       await adminFetch(`/api/admin/hero/slides/${id}`, {
         method: "PATCH",
@@ -125,10 +132,15 @@ export function HeroSlidesForm({
           s.id === id
             ? {
                 ...s,
-                status: action === "publish" ? "published" : action === "unpublish" ? "draft" : s.status,
+                status:
+                  action === "publish"
+                    ? "published"
+                    : action === "unpublish"
+                      ? "draft"
+                      : s.status,
               }
-            : s
-        )
+            : s,
+        ),
       );
     });
   }
@@ -177,7 +189,10 @@ export function HeroSlidesForm({
     await run(async () => {
       await adminFetch("/api/admin/hero/slides", {
         method: "POST",
-        body: JSON.stringify({ action: "reorder", orderedIds: next.map((s) => s.id) }),
+        body: JSON.stringify({
+          action: "reorder",
+          orderedIds: next.map((s) => s.id),
+        }),
       });
     });
   }
@@ -187,7 +202,8 @@ export function HeroSlidesForm({
       <div>
         <h1 className="text-2xl font-semibold">Home2 hero slides</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Product campaign slides for the live homepage. Published: {publishedCount}/8.
+          Product campaign slides for the live homepage. Published:{" "}
+          {publishedCount}/8.
         </p>
       </div>
 
@@ -213,7 +229,9 @@ export function HeroSlidesForm({
           <select
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={draft.productId}
-            onChange={(e) => setDraft((d) => ({ ...d, productId: e.target.value }))}
+            onChange={(e) =>
+              setDraft((d) => ({ ...d, productId: e.target.value }))
+            }
           >
             {products.map((p) => (
               <option key={p.id} value={p.id}>
@@ -225,18 +243,27 @@ export function HeroSlidesForm({
         <MediaField
           label="Slide image"
           urls={draft.imageUrl ? [draft.imageUrl] : []}
-          onChange={(urls) => setDraft((d) => ({ ...d, imageUrl: (urls[urls.length - 1] ?? "").trim() }))}
+          onChange={(urls) =>
+            setDraft((d) => ({
+              ...d,
+              imageUrl: (urls[urls.length - 1] ?? "").trim(),
+            }))
+          }
           hint="Upload a full campaign banner (like a Ronin promo slide). Wide images work best — the art fills the hero."
         />
         {draft.imageUrl ? (
-          <p className="truncate text-xs text-muted-foreground">Ready: {draft.imageUrl}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            Ready: {draft.imageUrl}
+          </p>
         ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Title override</Label>
             <Input
               value={draft.title}
-              onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, title: e.target.value }))
+              }
               placeholder="Defaults to product name"
             />
           </div>
@@ -244,21 +271,31 @@ export function HeroSlidesForm({
             <Label>Subtitle</Label>
             <Input
               value={draft.subtitle}
-              onChange={(e) => setDraft((d) => ({ ...d, subtitle: e.target.value }))}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, subtitle: e.target.value }))
+              }
             />
           </div>
         </div>
-        <Button onClick={createSlide} disabled={busy || !draft.productId || !draft.imageUrl}>
+        <Button
+          onClick={createSlide}
+          disabled={busy || !draft.productId || !draft.imageUrl}
+        >
           Save draft slide
         </Button>
       </div>
 
       <div className="space-y-3">
         {slides.length === 0 && (
-          <p className="text-sm text-muted-foreground">No slides yet. Add at least one.</p>
+          <p className="text-sm text-muted-foreground">
+            No slides yet. Add at least one.
+          </p>
         )}
         {slides.map((slide, index) => (
-          <div key={slide.id} className="flex flex-col gap-3 rounded-lg border p-4">
+          <div
+            key={slide.id}
+            className="flex flex-col gap-3 rounded-lg border p-4"
+          >
             <div className="flex flex-col gap-3 sm:flex-row">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -273,8 +310,12 @@ export function HeroSlidesForm({
                     {slide.status}
                   </span>
                 </p>
-                <p className="truncate text-xs text-muted-foreground">{slide.image_url || "No image URL"}</p>
-                <p className="text-sm text-muted-foreground">{slide.subtitle}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {slide.image_url || "No image URL"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {slide.subtitle}
+                </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     size="sm"

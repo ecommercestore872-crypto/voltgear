@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     console.error("[promo] list", error);
     return NextResponse.json(
       { error: "Promo table not ready. Push the promo_codes migration." },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }
@@ -29,7 +29,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const result = await createPromoCode(body ?? {});
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ promo: result.promo });
 }

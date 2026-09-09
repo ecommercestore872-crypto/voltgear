@@ -34,7 +34,8 @@ export default async function InvoicePage({
   ]);
   if (!order) return notFound();
 
-  const email = typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+  const email =
+    typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
   if (!email) {
     return <OrderEmailGate orderId={params.id} pathSuffix="/invoice" />;
   }
@@ -55,7 +56,11 @@ export default async function InvoicePage({
         <PrintButton orderId={order.orderId} />
       </div>
       <div className="invoice-stage">
-        <InvoiceDocument order={order} template={template} identity={identity} />
+        <InvoiceDocument
+          order={order}
+          template={template}
+          identity={identity}
+        />
       </div>
     </div>
   );

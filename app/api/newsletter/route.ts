@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   if (ip && !rateLimiter.take({ ip })) {
     return NextResponse.json(
       { error: "Too many signup attempts. Try again later." },
-      { status: 429 }
+      { status: 429 },
     );
   }
 
@@ -30,7 +30,10 @@ export async function POST(req: NextRequest) {
       source: typeof body?.source === "string" ? body.source : "footer",
     });
     if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: result.status });
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      );
     }
     return NextResponse.json({
       ok: true,

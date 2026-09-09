@@ -55,7 +55,7 @@ export function AppChrome({
     const search = searchParams?.toString() ?? "";
     syncGadgetPreviewSession(pathname, search);
     setSessionActive(
-      readGadgetPreviewSession() || searchParams?.get("from") === "gadget"
+      readGadgetPreviewSession() || searchParams?.get("from") === "gadget",
     );
   }, [pathname, searchParams]);
 
@@ -87,11 +87,15 @@ export function AppChrome({
       <WishlistProvider>
         <TikTokPixel />
         {gadget ? (
-          <div className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}>
+          <div
+            className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}
+          >
             <FirstPartyTracker />
             {demoBanner}
             <GadgetNavbar settings={settings} shopTypes={shopTypes} />
-            <main className="min-w-0 flex-1 bg-[var(--g-cream)]">{children}</main>
+            <main className="min-w-0 flex-1 bg-[var(--g-cream)]">
+              {children}
+            </main>
             <GadgetFooter settings={settings} shopTypes={shopTypes} />
             <ShopWhatsAppButton settings={settings} />
             {cartDrawer}

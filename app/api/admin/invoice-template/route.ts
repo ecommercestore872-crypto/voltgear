@@ -34,6 +34,10 @@ export async function PATCH(request: Request) {
   if (action === "publish") result = await publishAdminInvoiceTemplate(config);
   else if (action === "discard") result = await discardAdminInvoiceTemplate();
   else result = await saveAdminInvoiceTemplate(config);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

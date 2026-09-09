@@ -16,7 +16,9 @@ function readChoice(): CookieConsentChoice | null {
 
 export function CookieConsentBar() {
   const pathname = usePathname();
-  const [choice, setChoice] = useState<CookieConsentChoice | null | "unknown">("unknown");
+  const [choice, setChoice] = useState<CookieConsentChoice | null | "unknown">(
+    "unknown",
+  );
 
   useEffect(() => {
     setChoice(readChoice());
@@ -35,7 +37,7 @@ export function CookieConsentBar() {
     window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, next);
     setChoice(next);
     window.dispatchEvent(
-      new CustomEvent(COOKIE_CONSENT_CHANGE_EVENT, { detail: next })
+      new CustomEvent(COOKIE_CONSENT_CHANGE_EVENT, { detail: next }),
     );
   }
 
@@ -51,7 +53,9 @@ export function CookieConsentBar() {
             We value your privacy
           </h3>
           <p className="text-[0.8rem] leading-relaxed text-[var(--g-taupe)]">
-            We use cookies to personalize content and ads (including Google AdSense), provide social media features, and analyze our traffic to improve your experience. Read our{" "}
+            We use cookies to personalize content and ads (including Google
+            AdSense), provide social media features, and analyze our traffic to
+            improve your experience. Read our{" "}
             <Link
               href="/privacy-policy"
               className="font-semibold text-[var(--g-forest)] underline underline-offset-[3px] decoration-1 transition-colors hover:text-[var(--g-charcoal)]"
@@ -64,7 +68,8 @@ export function CookieConsentBar() {
               className="font-semibold text-[var(--g-forest)] underline underline-offset-[3px] decoration-1 transition-colors hover:text-[var(--g-charcoal)]"
             >
               Cookie Policy
-            </Link>.
+            </Link>
+            .
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2.5">

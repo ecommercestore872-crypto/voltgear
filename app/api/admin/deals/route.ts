@@ -28,11 +28,18 @@ export async function GET(request: Request) {
     return NextResponse.json({
       deals,
       suggestions,
-      catalog: catalog.map((p) => ({ slug: p.slug, name: p.name, price: p.price })),
+      catalog: catalog.map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        price: p.price,
+      })),
     });
   } catch (error) {
     console.error("[deals] list", error);
-    return NextResponse.json({ error: "Could not load deals." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not load deals." },
+      { status: 500 },
+    );
   }
 }
 
@@ -43,7 +50,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const result = await createProductDeal(body ?? {});
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ deal: result.deal });
 }

@@ -27,7 +27,7 @@ const SECTIONS: { id: TabId; label: string; Icon: LucideIcon }[] = [
 function visibleFor(product: Product) {
   const features = (product.features ?? []).filter(Boolean);
   const specs = (product.specifications ?? []).filter(
-    (s) => s?.label?.trim() && s?.value?.trim()
+    (s) => s?.label?.trim() && s?.value?.trim(),
   );
   const inbox = (product.inTheBox ?? []).filter(Boolean);
   const compat = (product.compatibility ?? []).filter((c) => c?.trim());
@@ -96,11 +96,13 @@ function ChapterBody({
               "gadget-detail-card grid grid-cols-[110px_1fr] items-baseline gap-3 px-4 py-3 sm:grid-cols-[168px_1fr]",
               i % 2 === 0
                 ? "bg-[color-mix(in_srgb,var(--g-sage)_10%,var(--g-cream-deep))]"
-                : "bg-[var(--g-cream)]"
+                : "bg-[var(--g-cream)]",
             )}
             style={{ animationDelay: `${Math.min(i, 8) * 50}ms` }}
           >
-            <dt className="gadget-eyebrow truncate pr-2 text-[0.62rem]">{s.label}</dt>
+            <dt className="gadget-eyebrow truncate pr-2 text-[0.62rem]">
+              {s.label}
+            </dt>
             <dd className="gadget-display text-[1.02rem] font-medium tracking-[-0.02em] text-[var(--g-forest)]">
               {s.value}
             </dd>
@@ -150,7 +152,8 @@ function ChapterBody({
 
 export function GadgetProductTabs({ product }: { product: Product }) {
   const baseId = useId();
-  const { features, specs, inbox, compat, hasDesc, sections } = visibleFor(product);
+  const { features, specs, inbox, compat, hasDesc, sections } =
+    visibleFor(product);
   const [openId, setOpenId] = useState<TabId | "">("");
 
   if (!hasDesc && sections.length === 0) return null;
@@ -164,7 +167,10 @@ export function GadgetProductTabs({ product }: { product: Product }) {
     setOpenId((current) => (current === id ? "" : id));
   }
 
-  function onTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+  function onTabKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) {
     const last = sections.length - 1;
     let next = index;
     if (event.key === "ArrowDown" || event.key === "ArrowRight") {
@@ -183,7 +189,10 @@ export function GadgetProductTabs({ product }: { product: Product }) {
   }
 
   return (
-    <section className="mx-auto mt-10 max-w-5xl sm:mt-12" aria-label="Product details">
+    <section
+      className="mx-auto mt-10 max-w-5xl sm:mt-12"
+      aria-label="Product details"
+    >
       <header className="mb-5 px-0.5">
         <p className="gadget-eyebrow">The piece</p>
         <h2 className="gadget-h2 mt-1 text-[var(--g-charcoal)]">Look closer</h2>
@@ -194,122 +203,124 @@ export function GadgetProductTabs({ product }: { product: Product }) {
       ) : null}
 
       {sections.length === 0 ? null : (
-      <div
-        className={cn(
-          "mt-4 overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[var(--g-cream)]",
-          active && "md:grid md:grid-cols-[minmax(14rem,16.5rem)_minmax(0,1fr)]",
-          hasDesc && "mt-5"
-        )}
-      >
         <div
-          role="tablist"
-          aria-label="Chapters"
-          aria-orientation="vertical"
           className={cn(
-            "flex flex-col bg-[color-mix(in_srgb,var(--g-sage)_10%,var(--g-cream-deep))]",
-            active && "border-b border-[var(--g-line)] md:border-b-0 md:border-r md:border-r-[color-mix(in_srgb,var(--g-sage)_22%,var(--g-line))]"
+            "mt-4 overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[var(--g-cream)]",
+            active &&
+              "md:grid md:grid-cols-[minmax(14rem,16.5rem)_minmax(0,1fr)]",
+            hasDesc && "mt-5",
           )}
         >
-          {sections.map((section, index) => {
-            const isOpen = section.id === active?.id;
-            const Icon = section.Icon;
-            const chapter = String(index + 1).padStart(2, "0");
-            const tabId = `${baseId}-tab-${section.id}`;
-
-            return (
-              <button
-                key={section.id}
-                id={tabId}
-                type="button"
-                role="tab"
-                aria-selected={isOpen}
-                aria-expanded={isOpen}
-                aria-controls={panelId}
-                onClick={() => toggleChapter(section.id)}
-                onKeyDown={(event) => onTabKeyDown(event, index)}
-                className={cn(
-                  "group relative flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors duration-200 sm:px-5",
-                  "focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--g-forest)]",
-                  isOpen
-                    ? "bg-[color-mix(in_srgb,var(--g-forest)_12%,var(--g-sand))] text-[var(--g-forest)]"
-                    : "text-[var(--g-charcoal)] hover:bg-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-cream))] hover:text-[var(--g-forest)]"
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "absolute inset-y-2 left-0 w-0.5 rounded-full transition-colors duration-200",
-                    isOpen
-                      ? "bg-[var(--g-forest)]"
-                      : "bg-transparent group-hover:bg-[var(--g-sage)]"
-                  )}
-                />
-                <span
-                  className={cn(
-                    "gadget-display w-7 shrink-0 text-[14px] tabular-nums transition-colors duration-200",
-                    isOpen
-                      ? "text-[var(--g-forest)]"
-                      : "text-[var(--g-taupe)] group-hover:text-[var(--g-forest)]"
-                  )}
-                >
-                  {chapter}
-                </span>
-                <span
-                  className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors duration-200",
-                    isOpen
-                      ? "border-[var(--g-forest)] bg-[var(--g-forest)] text-[var(--g-cream)]"
-                      : "border-[color-mix(in_srgb,var(--g-sage)_35%,var(--g-line))] bg-[var(--g-cream)] text-[var(--g-forest)] group-hover:border-[var(--g-forest)] group-hover:bg-[var(--g-forest)] group-hover:text-[var(--g-cream)]"
-                  )}
-                  aria-hidden
-                >
-                  <Icon className="h-3.5 w-3.5 stroke-[1.75]" />
-                </span>
-                <span className="min-w-0 flex-1 text-[14px] font-semibold tracking-tight transition-colors duration-200 sm:text-[15px]">
-                  {section.label}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 shrink-0 stroke-[1.75] transition-all duration-200",
-                    isOpen
-                      ? "rotate-180 text-[var(--g-forest)]"
-                      : "text-[var(--g-taupe)] group-hover:text-[var(--g-forest)]"
-                  )}
-                  aria-hidden
-                />
-              </button>
-            );
-          })}
-        </div>
-
-        {active ? (
           <div
-            role="tabpanel"
-            id={panelId}
-            aria-labelledby={`${baseId}-tab-${active.id}`}
-            className="relative bg-[color-mix(in_srgb,var(--g-sage)_8%,var(--g-sand))] px-5 py-6 sm:px-8 sm:py-8"
+            role="tablist"
+            aria-label="Chapters"
+            aria-orientation="vertical"
+            className={cn(
+              "flex flex-col bg-[color-mix(in_srgb,var(--g-sage)_10%,var(--g-cream-deep))]",
+              active &&
+                "border-b border-[var(--g-line)] md:border-b-0 md:border-r md:border-r-[color-mix(in_srgb,var(--g-sage)_22%,var(--g-line))]",
+            )}
           >
-            <span
-              aria-hidden
-              className="gadget-display pointer-events-none absolute right-5 top-4 select-none text-xl leading-none text-[var(--g-forest)]/15 sm:right-7 sm:top-5 sm:text-2xl"
-            >
-              {num}
-            </span>
-            <p className="gadget-eyebrow relative">
-              {num} · {active.label}
-            </p>
-            <div className="relative mt-5">
-              <ChapterBody
-                sectionId={active.id}
-                features={features}
-                specs={specs}
-                inbox={inbox}
-                compat={compat}
-              />
-            </div>
+            {sections.map((section, index) => {
+              const isOpen = section.id === active?.id;
+              const Icon = section.Icon;
+              const chapter = String(index + 1).padStart(2, "0");
+              const tabId = `${baseId}-tab-${section.id}`;
+
+              return (
+                <button
+                  key={section.id}
+                  id={tabId}
+                  type="button"
+                  role="tab"
+                  aria-selected={isOpen}
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  onClick={() => toggleChapter(section.id)}
+                  onKeyDown={(event) => onTabKeyDown(event, index)}
+                  className={cn(
+                    "group relative flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors duration-200 sm:px-5",
+                    "focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--g-forest)]",
+                    isOpen
+                      ? "bg-[color-mix(in_srgb,var(--g-forest)_12%,var(--g-sand))] text-[var(--g-forest)]"
+                      : "text-[var(--g-charcoal)] hover:bg-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-cream))] hover:text-[var(--g-forest)]",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute inset-y-2 left-0 w-0.5 rounded-full transition-colors duration-200",
+                      isOpen
+                        ? "bg-[var(--g-forest)]"
+                        : "bg-transparent group-hover:bg-[var(--g-sage)]",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "gadget-display w-7 shrink-0 text-[14px] tabular-nums transition-colors duration-200",
+                      isOpen
+                        ? "text-[var(--g-forest)]"
+                        : "text-[var(--g-taupe)] group-hover:text-[var(--g-forest)]",
+                    )}
+                  >
+                    {chapter}
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors duration-200",
+                      isOpen
+                        ? "border-[var(--g-forest)] bg-[var(--g-forest)] text-[var(--g-cream)]"
+                        : "border-[color-mix(in_srgb,var(--g-sage)_35%,var(--g-line))] bg-[var(--g-cream)] text-[var(--g-forest)] group-hover:border-[var(--g-forest)] group-hover:bg-[var(--g-forest)] group-hover:text-[var(--g-cream)]",
+                    )}
+                    aria-hidden
+                  >
+                    <Icon className="h-3.5 w-3.5 stroke-[1.75]" />
+                  </span>
+                  <span className="min-w-0 flex-1 text-[14px] font-semibold tracking-tight transition-colors duration-200 sm:text-[15px]">
+                    {section.label}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 shrink-0 stroke-[1.75] transition-all duration-200",
+                      isOpen
+                        ? "rotate-180 text-[var(--g-forest)]"
+                        : "text-[var(--g-taupe)] group-hover:text-[var(--g-forest)]",
+                    )}
+                    aria-hidden
+                  />
+                </button>
+              );
+            })}
           </div>
-        ) : null}
-      </div>
+
+          {active ? (
+            <div
+              role="tabpanel"
+              id={panelId}
+              aria-labelledby={`${baseId}-tab-${active.id}`}
+              className="relative bg-[color-mix(in_srgb,var(--g-sage)_8%,var(--g-sand))] px-5 py-6 sm:px-8 sm:py-8"
+            >
+              <span
+                aria-hidden
+                className="gadget-display pointer-events-none absolute right-5 top-4 select-none text-xl leading-none text-[var(--g-forest)]/15 sm:right-7 sm:top-5 sm:text-2xl"
+              >
+                {num}
+              </span>
+              <p className="gadget-eyebrow relative">
+                {num} · {active.label}
+              </p>
+              <div className="relative mt-5">
+                <ChapterBody
+                  sectionId={active.id}
+                  features={features}
+                  specs={specs}
+                  inbox={inbox}
+                  compat={compat}
+                />
+              </div>
+            </div>
+          ) : null}
+        </div>
       )}
     </section>
   );

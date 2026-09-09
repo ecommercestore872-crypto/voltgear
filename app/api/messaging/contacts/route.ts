@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   if (!body?.phone) {
     return NextResponse.json(
       { error: "Phone number is required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
   const result = await addManualContact({
@@ -44,7 +44,10 @@ export async function POST(request: Request) {
     note: body.note ? String(body.note) : undefined,
   });
   if (!result.ok) {
-    return NextResponse.json({ error: result.error ?? "Could not add." }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error ?? "Could not add." },
+      { status: 400 },
+    );
   }
   return NextResponse.json({ ok: true, updated: Boolean(result.updated) });
 }
@@ -57,12 +60,15 @@ export async function DELETE(request: Request) {
   if (!phone) {
     return NextResponse.json(
       { error: "Phone parameter is required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
   const result = await removeContact(phone);
   if (!result.ok) {
-    return NextResponse.json({ error: "Could not remove that number." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Could not remove that number." },
+      { status: 400 },
+    );
   }
   return NextResponse.json({ ok: true });
 }

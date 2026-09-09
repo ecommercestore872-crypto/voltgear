@@ -55,10 +55,13 @@ export function DealsManager() {
   }
 
   useEffect(() => {
-    void load().catch((e) => setError(e instanceof Error ? e.message : "Failed to load"));
+    void load().catch((e) =>
+      setError(e instanceof Error ? e.message : "Failed to load"),
+    );
   }, []);
 
-  const name = (slug: string) => catalog.find((p) => p.slug === slug)?.name ?? slug;
+  const name = (slug: string) =>
+    catalog.find((p) => p.slug === slug)?.name ?? slug;
 
   async function create() {
     setBusy(true);
@@ -144,9 +147,9 @@ export function DealsManager() {
       <div>
         <h1 className="text-2xl font-semibold">Deals</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Named pairs only. Percent comes off the cheaper item. A Rs 2,500 + Rs 200 pair cannot
-          unlock the off — the cheaper item must be at least 40% of the dearer one, and Coach
-          cost must still clear the safe floor.
+          Named pairs only. Percent comes off the cheaper item. A Rs 2,500 + Rs
+          200 pair cannot unlock the off — the cheaper item must be at least 40%
+          of the dearer one, and Coach cost must still clear the safe floor.
         </p>
       </div>
 
@@ -193,11 +196,19 @@ export function DealsManager() {
           </label>
           <label className="block space-y-1 text-sm">
             <span className="font-medium">Title (optional)</span>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Watch + strap" />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Watch + strap"
+            />
           </label>
         </div>
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        <Button type="button" disabled={busy || !slugA || !slugB} onClick={() => void create()}>
+        <Button
+          type="button"
+          disabled={busy || !slugA || !slugB}
+          onClick={() => void create()}
+        >
           Create deal
         </Button>
       </div>
@@ -206,18 +217,23 @@ export function DealsManager() {
         <section className="space-y-3">
           <h2 className="font-semibold">Suggested pairs</h2>
           <p className="text-sm text-muted-foreground">
-            From delivered orders only. Cancelled parcels do not count. Unbalanced or below-floor
-            pairs stay listed so you can see why they were skipped.
+            From delivered orders only. Cancelled parcels do not count.
+            Unbalanced or below-floor pairs stay listed so you can see why they
+            were skipped.
           </p>
           <ul className="grid gap-3 md:grid-cols-2">
             {suggestions.map((row) => (
-              <li key={`${row.slugA}|${row.slugB}`} className="rounded-lg border bg-white p-4 text-sm">
+              <li
+                key={`${row.slugA}|${row.slugB}`}
+                className="rounded-lg border bg-white p-4 text-sm"
+              >
                 <p className="font-medium text-[var(--g-charcoal)]">
                   {row.nameA} + {row.nameB}
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  {formatPrice(row.priceA)} + {formatPrice(row.priceB)} · delivered together{" "}
-                  {row.deliveredTogether} time{row.deliveredTogether === 1 ? "" : "s"}
+                  {formatPrice(row.priceA)} + {formatPrice(row.priceB)} ·
+                  delivered together {row.deliveredTogether} time
+                  {row.deliveredTogether === 1 ? "" : "s"}
                 </p>
                 <p className="mt-2">{row.reason}</p>
                 {row.canCreate ? (
@@ -228,7 +244,9 @@ export function DealsManager() {
                     onClick={() => {
                       setSlugA(row.slugA);
                       setSlugB(row.slugB);
-                      setPercentOff(String(Math.min(10, row.maxSafePercent ?? 10)));
+                      setPercentOff(
+                        String(Math.min(10, row.maxSafePercent ?? 10)),
+                      );
                       setTitle(`${row.nameA} + ${row.nameB}`);
                     }}
                   >
@@ -256,7 +274,8 @@ export function DealsManager() {
             {deals.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-3 py-4 text-muted-foreground">
-                  No pair deals yet. Start from a suggestion or pick two products above.
+                  No pair deals yet. Start from a suggestion or pick two
+                  products above.
                 </td>
               </tr>
             ) : (
@@ -267,16 +286,35 @@ export function DealsManager() {
                     {name(deal.slugA)} + {name(deal.slugB)}
                   </td>
                   <td className="px-3 py-2">{deal.percentOff}% cheaper item</td>
-                  <td className="px-3 py-2">{deal.active ? "Live" : "Paused"}</td>
+                  <td className="px-3 py-2">
+                    {deal.active ? "Live" : "Paused"}
+                  </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-2">
-                      <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void toggleActive(deal)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => void toggleActive(deal)}
+                      >
                         {deal.active ? "Pause" : "Go live"}
                       </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => void downloadGraphic(deal)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void downloadGraphic(deal)}
+                      >
                         HTML graphic
                       </Button>
-                      <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void remove(deal)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => void remove(deal)}
+                      >
                         Delete
                       </Button>
                     </div>

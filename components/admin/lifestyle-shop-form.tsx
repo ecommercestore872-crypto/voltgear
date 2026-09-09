@@ -18,7 +18,7 @@ import {
 export function LifestyleShopForm({ initial }: { initial?: unknown }) {
   const router = useRouter();
   const [shop, setShop] = useState<LifestyleShopConfig>(() =>
-    normalizeLifestyleShop(initial ?? EMPTY_LIFESTYLE_SHOP)
+    normalizeLifestyleShop(initial ?? EMPTY_LIFESTYLE_SHOP),
   );
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -26,7 +26,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
 
   function setBanner<K extends keyof LifestyleShopConfig["banner"]>(
     key: K,
-    value: LifestyleShopConfig["banner"][K]
+    value: LifestyleShopConfig["banner"][K],
   ) {
     setShop((current) => ({
       ...current,
@@ -38,7 +38,9 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
   function setTile(index: number, patch: Partial<LifestyleShopTile>) {
     setShop((current) => ({
       ...current,
-      tiles: current.tiles.map((tile, i) => (i === index ? { ...tile, ...patch } : tile)),
+      tiles: current.tiles.map((tile, i) =>
+        i === index ? { ...tile, ...patch } : tile,
+      ),
     }));
     setSaved(false);
   }
@@ -68,9 +70,10 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
       <div>
         <h2 className="text-lg font-semibold">Lifestyle shop</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Large banner on the left, four cards on the right. Change any field here
-          to replace the catalog mosaic. Empty cards stay hidden. Saving turns the
-          section on; use the arrows in Home layout to move it or Shop categories.
+          Large banner on the left, four cards on the right. Change any field
+          here to replace the catalog mosaic. Empty cards stay hidden. Saving
+          turns the section on; use the arrows in Home layout to move it or Shop
+          categories.
         </p>
       </div>
 
@@ -80,7 +83,9 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
         </p>
       ) : null}
       {saved ? (
-        <p className="text-sm text-muted-foreground">Saved. The homepage will refresh shortly.</p>
+        <p className="text-sm text-muted-foreground">
+          Saved. The homepage will refresh shortly.
+        </p>
       ) : null}
 
       <div className="space-y-3">

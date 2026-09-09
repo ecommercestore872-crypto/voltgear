@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
           error: "Order is BLOCKED by Autopilot validation",
           exceptions: validation.exceptions,
         },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
@@ -125,7 +125,8 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     console.error("[Autopilot Dispatch Error]:", err);
-    const message = err instanceof Error ? err.message : "Internal server error";
+    const message =
+      err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

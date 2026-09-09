@@ -26,7 +26,12 @@ type PageRow = {
   author?: string;
   sections?: unknown;
   keywords?: string[];
-  seo?: { title?: string; description?: string; featured?: boolean; homeOrder?: number };
+  seo?: {
+    title?: string;
+    description?: string;
+    featured?: boolean;
+    homeOrder?: number;
+  };
   status?: PublishStatus;
   draft?: Record<string, unknown> | null;
   is_demo?: boolean;
@@ -40,7 +45,10 @@ function fromRow(row?: PageRow | null, desk?: "blog" | "page") {
   return {
     title: String(draft?.title ?? row?.title ?? ""),
     slug: String(draft?.slug ?? row?.slug ?? ""),
-    pageType: desk === "blog" ? "blog" : String(draft?.pageType ?? row?.page_type ?? "static"),
+    pageType:
+      desk === "blog"
+        ? "blog"
+        : String(draft?.pageType ?? row?.page_type ?? "static"),
     excerpt: String(draft?.excerpt ?? row?.excerpt ?? ""),
     coverImage: String(draft?.coverImage ?? row?.cover_image_url ?? ""),
     author: String(draft?.author ?? row?.author ?? "Buy n Try editors"),
@@ -51,7 +59,10 @@ function fromRow(row?: PageRow | null, desk?: "blog" | "page") {
     seoDescription: String(seo?.description ?? ""),
     featured: Boolean(seo?.featured),
     homeOrder: String(seo?.homeOrder ?? ""),
-    publishedAt: String(draft?.publishedAt ?? row?.published_at ?? "").slice(0, 16),
+    publishedAt: String(draft?.publishedAt ?? row?.published_at ?? "").slice(
+      0,
+      16,
+    ),
     isDemo: Boolean(draft?.isDemo ?? row?.is_demo),
   };
 }
@@ -81,9 +92,15 @@ export function PageForm({
         throw new Error("Sections must be valid JSON.");
       }
     }
-    const keywords = form.keywords.split(",").map((s) => s.trim()).filter(Boolean);
+    const keywords = form.keywords
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
     const seo = {
-      ...blogSeoDefaults({ title: form.seoTitle || form.title, excerpt: form.seoDescription || form.excerpt }),
+      ...blogSeoDefaults({
+        title: form.seoTitle || form.title,
+        excerpt: form.seoDescription || form.excerpt,
+      }),
       title: (form.seoTitle || form.title).trim(),
       description: (form.seoDescription || form.excerpt).trim(),
       ...(form.featured ? { featured: true } : {}),
@@ -96,7 +113,9 @@ export function PageForm({
       excerpt: form.excerpt,
       coverImage: form.coverImage,
       author: form.author,
-      publishedAt: form.publishedAt ? new Date(form.publishedAt).toISOString() : undefined,
+      publishedAt: form.publishedAt
+        ? new Date(form.publishedAt).toISOString()
+        : undefined,
       sections: isBlog ? sanitizeBlogSections(sections) : sections,
       keywords,
       seo,
@@ -105,7 +124,9 @@ export function PageForm({
     return payload;
   }
 
-  async function run(action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete") {
+  async function run(
+    action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
+  ) {
     setSaving(true);
     setError(null);
     try {
@@ -148,7 +169,11 @@ export function PageForm({
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex justify-between gap-4">
         <h1 className="text-2xl font-semibold">
-          {isNew ? (desk === "blog" ? "New blog guide" : "New page") : form.title || "Edit"}
+          {isNew
+            ? desk === "blog"
+              ? "New blog guide"
+              : "New page"
+            : form.title || "Edit"}
         </h1>
         {!isNew && (
           <Button variant="destructive" onClick={() => run("delete")}>
@@ -180,14 +205,20 @@ export function PageForm({
               setForm((f) => ({
                 ...f,
                 title: e.target.value,
-                slug: f.slug && f.slug !== slugify(f.title) ? f.slug : slugify(e.target.value),
+                slug:
+                  f.slug && f.slug !== slugify(f.title)
+                    ? f.slug
+                    : slugify(e.target.value),
               }))
             }
           />
         </div>
         <div className="space-y-1.5">
           <Label>Slug</Label>
-          <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} />
+          <Input
+            value={form.slug}
+            onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+          />
         </div>
         {desk === "page" ? (
           <div className="space-y-1.5">
@@ -195,7 +226,9 @@ export function PageForm({
             <select
               className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={form.pageType}
-              onChange={(e) => setForm((f) => ({ ...f, pageType: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, pageType: e.target.value }))
+              }
             >
               <option value="static">Static</option>
               <option value="blog">Blog</option>
@@ -207,42 +240,63 @@ export function PageForm({
             <Input
               type="datetime-local"
               value={form.publishedAt}
-              onChange={(e) => setForm((f) => ({ ...f, publishedAt: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, publishedAt: e.target.value }))
+              }
             />
           </div>
         )}
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Excerpt</Label>
-          <Textarea value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} />
+          <Textarea
+            value={form.excerpt}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, excerpt: e.target.value }))
+            }
+          />
         </div>
         <div className="sm:col-span-2 space-y-1.5">
           <MediaField
             label="Cover photo"
             hint="Upload a wide photo (16:9 works best on cards and Google)."
             urls={form.coverImage ? [form.coverImage] : []}
-            onChange={(urls) => setForm((f) => ({ ...f, coverImage: urls.at(-1) ?? "" }))}
+            onChange={(urls) =>
+              setForm((f) => ({ ...f, coverImage: urls.at(-1) ?? "" }))
+            }
           />
         </div>
         <div className="space-y-1.5">
           <Label>Author</Label>
-          <Input value={form.author} onChange={(e) => setForm((f) => ({ ...f, author: e.target.value }))} />
+          <Input
+            value={form.author}
+            onChange={(e) => setForm((f) => ({ ...f, author: e.target.value }))}
+          />
         </div>
         <div className="space-y-1.5">
           <Label>SEO title</Label>
-          <Input value={form.seoTitle} onChange={(e) => setForm((f) => ({ ...f, seoTitle: e.target.value }))} />
+          <Input
+            value={form.seoTitle}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, seoTitle: e.target.value }))
+            }
+          />
         </div>
         <div className="space-y-1.5">
           <Label>SEO description</Label>
           <Input
             value={form.seoDescription}
-            onChange={(e) => setForm((f) => ({ ...f, seoDescription: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, seoDescription: e.target.value }))
+            }
           />
         </div>
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Keywords (comma separated)</Label>
           <Input
             value={form.keywords}
-            onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, keywords: e.target.value }))
+            }
             placeholder="best earbuds in Pakistan, TWS under 5000, ENC vs ANC"
           />
         </div>
@@ -252,7 +306,9 @@ export function PageForm({
               <input
                 type="checkbox"
                 checked={form.featured}
-                onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, featured: e.target.checked }))
+                }
               />
               Pin on homepage Popular
             </label>
@@ -262,7 +318,9 @@ export function PageForm({
                 type="number"
                 min={1}
                 value={form.homeOrder}
-                onChange={(e) => setForm((f) => ({ ...f, homeOrder: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, homeOrder: e.target.value }))
+                }
               />
             </div>
           </>
@@ -271,7 +329,9 @@ export function PageForm({
           <input
             type="checkbox"
             checked={form.isDemo}
-            onChange={(e) => setForm((f) => ({ ...f, isDemo: e.target.checked }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, isDemo: e.target.checked }))
+            }
           />
           Demo — guests never see this page
         </label>
@@ -288,7 +348,9 @@ export function PageForm({
                 rows={12}
                 className="font-mono text-xs"
                 value={form.sectionsText}
-                onChange={(e) => setForm((f) => ({ ...f, sectionsText: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, sectionsText: e.target.value }))
+                }
               />
             </>
           )}

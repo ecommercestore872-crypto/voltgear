@@ -3,7 +3,11 @@
 import { useState } from "react";
 
 import { CLOUDINARY_CLOUD_NAME } from "@/lib/cloudinary";
-import { hasShopperProductVideo, videoEmbedSrc, videoKind } from "@/lib/gadget-preview";
+import {
+  hasShopperProductVideo,
+  videoEmbedSrc,
+  videoKind,
+} from "@/lib/gadget-preview";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,7 +21,10 @@ type VideoSource = {
   src: string;
 };
 
-function fileSrc(url?: string | null, cloudinaryPublicId?: string | null): string | null {
+function fileSrc(
+  url?: string | null,
+  cloudinaryPublicId?: string | null,
+): string | null {
   if (cloudinaryPublicId?.trim() && CLOUDINARY_CLOUD_NAME) {
     return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${cloudinaryPublicId
       .trim()
@@ -35,11 +42,15 @@ function collectSources(product: Product): VideoSource[] {
     key: string,
     label: string,
     url?: string | null,
-    cloudinaryPublicId?: string | null
+    cloudinaryPublicId?: string | null,
   ) {
     const kind = videoKind(url, cloudinaryPublicId);
     if (kind === "none") return;
-    const fingerprint = (url?.trim() || cloudinaryPublicId?.trim() || "").toLowerCase();
+    const fingerprint = (
+      url?.trim() ||
+      cloudinaryPublicId?.trim() ||
+      ""
+    ).toLowerCase();
     if (fingerprint && seen.has(fingerprint)) return;
     if (fingerprint) seen.add(fingerprint);
 
@@ -55,7 +66,12 @@ function collectSources(product: Product): VideoSource[] {
     sources.push({ key, label, kind, src: embed });
   }
 
-  add("demo", "Product video", product.productVideo?.url, product.productVideo?.cloudinaryPublicId);
+  add(
+    "demo",
+    "Product video",
+    product.productVideo?.url,
+    product.productVideo?.cloudinaryPublicId,
+  );
   add("instagram", "Instagram", product.instagramUrl);
   add("tiktok", "TikTok", product.tiktokUrl);
   return sources;
@@ -84,7 +100,7 @@ export function GadgetVideoPlayer({ product }: { product: Product }) {
       <div
         className={cn(
           "overflow-hidden rounded-xl border border-[var(--g-line)] bg-[var(--g-cream-deep)]",
-          social && "flex justify-center"
+          social && "flex justify-center",
         )}
       >
         {active.kind === "file" ? (
@@ -125,7 +141,7 @@ export function GadgetVideoPlayer({ product }: { product: Product }) {
                     "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
                     selected
                       ? "border-[var(--g-forest)] bg-[var(--g-forest)] text-[var(--g-cream)]"
-                      : "border-[var(--g-forest)]/20 bg-[var(--g-cream-deep)] text-[var(--g-forest)] hover:border-[var(--g-forest)]"
+                      : "border-[var(--g-forest)]/20 bg-[var(--g-cream-deep)] text-[var(--g-forest)] hover:border-[var(--g-forest)]",
                   )}
                 >
                   {source.label}
@@ -144,7 +160,10 @@ export function GadgetVideo({ product }: { product: Product }) {
 
   return (
     <section className="mt-12" aria-labelledby="gadget-video">
-      <h2 id="gadget-video" className="text-xl font-black uppercase tracking-tight">
+      <h2
+        id="gadget-video"
+        className="text-xl font-black uppercase tracking-tight"
+      >
         See it
       </h2>
       <div className="mt-4">

@@ -38,7 +38,10 @@ export function FeaturedCategories({ cards }: { cards: CategoryCard[] }) {
         {/* Mobile: horizontal scroll */}
         <div className="flex sm:hidden gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none">
           {cards.map((card) => (
-            <div key={card.href} className="shrink-0 w-[calc(33.333%-8px)] min-w-[90px] max-w-[130px]">
+            <div
+              key={card.href}
+              className="shrink-0 w-[calc(33.333%-8px)] min-w-[90px] max-w-[130px]"
+            >
               <CategoryItem card={card} />
             </div>
           ))}
@@ -68,7 +71,9 @@ function CategoryItem({ card }: { card: CategoryCard }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <span className="text-xs text-muted-foreground">{card.label[0]}</span>
+            <span className="text-xs text-muted-foreground">
+              {card.label[0]}
+            </span>
           </div>
         )}
       </div>

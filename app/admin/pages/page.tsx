@@ -24,13 +24,20 @@ export default async function AdminPagesPage() {
       <ul className="divide-y rounded-lg border">
         {pages.map((page) => (
           <li key={String(page.id)}>
-            <Link href={`/admin/pages/${page.id}`} className="flex items-center justify-between px-4 py-3 hover:bg-muted/40">
+            <Link
+              href={`/admin/pages/${page.id}`}
+              className="flex items-center justify-between px-4 py-3 hover:bg-muted/40"
+            >
               <span>
                 <span className="block font-medium">{String(page.title)}</span>
-                <span className="text-xs text-muted-foreground">/{String(page.slug)}</span>
+                <span className="text-xs text-muted-foreground">
+                  /{String(page.slug)}
+                </span>
               </span>
               <span className="text-xs capitalize text-muted-foreground">
-                {page.draft ? `${page.status} · draft` : String(page.status ?? "published")}
+                {page.draft
+                  ? `${page.status} · draft`
+                  : String(page.status ?? "published")}
               </span>
             </Link>
           </li>

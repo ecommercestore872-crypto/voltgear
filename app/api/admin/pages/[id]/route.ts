@@ -34,9 +34,14 @@ export async function PATCH(request: Request, { params }: Ctx) {
   let result;
   if (action === "publish") result = await publishAdminPage(params.id, doc);
   else if (action === "unpublish") result = await unpublishAdminPage(params.id);
-  else if (action === "discard") result = await discardAdminPageDraft(params.id);
+  else if (action === "discard")
+    result = await discardAdminPageDraft(params.id);
   else result = await saveAdminPage(params.id, doc);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }
 
@@ -45,6 +50,10 @@ export async function DELETE(request: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const result = await deleteAdminPage(params.id);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

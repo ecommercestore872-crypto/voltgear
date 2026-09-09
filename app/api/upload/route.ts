@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     if (!uploadLimiter.take({ ip })) {
       return NextResponse.json(
         { error: "Too many uploads. Please wait a minute and try again." },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -59,20 +59,19 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { error: "Cloudinary credentials are not configured on the server." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     const formData = await request.formData();
     const file = formData.get("file");
-    const folder =
-      (formData.get("folder") as string) || CLOUDINARY_FOLDER;
+    const folder = (formData.get("folder") as string) || CLOUDINARY_FOLDER;
     const removeBackground = formData.get("removeBackground") === "true";
 
     if (!(file instanceof File)) {
       return NextResponse.json(
         { error: "No file provided. Send the image as the 'file' field." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,14 +79,14 @@ export async function POST(request: Request) {
     if (!ALLOWED_TYPES.has(mimeType)) {
       return NextResponse.json(
         { error: "Only JPEG, PNG, WebP, or GIF images are allowed." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (file.size > MAX_BYTES) {
       return NextResponse.json(
         { error: "Image must be 5 MB or smaller." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -125,7 +124,7 @@ export async function POST(request: Request) {
     console.error("Cloudinary upload failed:", error);
     return NextResponse.json(
       { error: "Upload failed. Please check the file and try again." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

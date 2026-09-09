@@ -24,7 +24,7 @@ export default async function AutopilotAdsPage() {
             quantity: p.quantity,
             status: p.status,
             isDemo: p.isDemo,
-          }))
+          })),
         )}
       />
     );

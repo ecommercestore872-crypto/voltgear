@@ -27,7 +27,9 @@ export function PromosManager() {
 
   async function load() {
     try {
-      const data = (await adminFetch("/api/admin/promos")) as { promos?: Promo[] };
+      const data = (await adminFetch("/api/admin/promos")) as {
+        promos?: Promo[];
+      };
       setPromos(data.promos ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -152,7 +154,11 @@ export function PromosManager() {
           First order only
         </label>
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        <Button type="button" disabled={busy || !code.trim()} onClick={() => void create()}>
+        <Button
+          type="button"
+          disabled={busy || !code.trim()}
+          onClick={() => void create()}
+        >
           Create
         </Button>
       </div>

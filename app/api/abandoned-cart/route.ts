@@ -15,7 +15,10 @@ export async function POST(request: Request) {
   try {
     const limited = takePublicPostLimit(request, "abandoned");
     if (!limited.ok) {
-      return NextResponse.json({ error: limited.error }, { status: limited.status });
+      return NextResponse.json(
+        { error: limited.error },
+        { status: limited.status },
+      );
     }
 
     const body = await request.json();
@@ -42,7 +45,7 @@ export async function POST(request: Request) {
         })),
         subtotal: Number(subtotal ?? 0),
       },
-      3 * 60 * 60 * 1000
+      3 * 60 * 60 * 1000,
     );
 
     return NextResponse.json({ ok: true });

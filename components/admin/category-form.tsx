@@ -19,7 +19,7 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
   const [description, setDescription] = useState(shopType?.description ?? "");
   const [imageUrl, setImageUrl] = useState(shopType?.imageUrl ?? "");
   const [sortOrder, setSortOrder] = useState(
-    shopType?.sortOrder != null ? String(shopType.sortOrder) : ""
+    shopType?.sortOrder != null ? String(shopType.sortOrder) : "",
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +65,9 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
     setSaving(true);
     setError(null);
     try {
-      await adminFetch(`/api/admin/categories/${shopType.id}`, { method: "DELETE" });
+      await adminFetch(`/api/admin/categories/${shopType.id}`, {
+        method: "DELETE",
+      });
       router.replace("/admin/categories");
     } catch (err) {
       if (err instanceof AdminAuthError) {
@@ -81,9 +83,16 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{isNew ? "Add shop type" : name || "Edit shop type"}</h1>
+        <h1 className="text-2xl font-semibold">
+          {isNew ? "Add shop type" : name || "Edit shop type"}
+        </h1>
         {!isNew ? (
-          <Button type="button" variant="destructive" onClick={remove} disabled={saving}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={remove}
+            disabled={saving}
+          >
             Delete
           </Button>
         ) : null}
@@ -92,7 +101,11 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="type-name">Shop type name</Label>
-          <Input id="type-name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input
+            id="type-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="type-desc">Short description</Label>

@@ -71,7 +71,8 @@ export function ProductGallery({
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
       ? Math.round(
-          ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100
+          ((product.compareAtPrice - product.price) / product.compareAtPrice) *
+            100,
         )
       : 0;
 
@@ -81,7 +82,7 @@ export function ProductGallery({
       setActive(next);
       setLightboxIndex(next);
     },
-    [sources.length]
+    [sources.length],
   );
 
   function openLightbox() {
@@ -114,7 +115,9 @@ export function ProductGallery({
         ref={imgContainerRef}
         className={cn(
           "relative aspect-square touch-pan-y overflow-hidden rounded-xl border bg-[var(--g-cream-deep,#f5f5f5)] select-none",
-          zoomed && !isTouchDevice.current ? "cursor-crosshair" : "cursor-zoom-in"
+          zoomed && !isTouchDevice.current
+            ? "cursor-crosshair"
+            : "cursor-zoom-in",
         )}
         onClick={() => {
           if (isTouchDevice.current) openLightbox();
@@ -218,7 +221,7 @@ export function ProductGallery({
                 "relative aspect-square overflow-hidden rounded-lg border bg-muted transition-all",
                 i === active
                   ? "border-primary ring-2 ring-primary/40"
-                  : "opacity-70 hover:opacity-100"
+                  : "opacity-70 hover:opacity-100",
               )}
             >
               <Image
@@ -260,7 +263,7 @@ export function ProductGallery({
               <button
                 onClick={() =>
                   setLightboxIndex(
-                    (lightboxIndex - 1 + sources.length) % sources.length
+                    (lightboxIndex - 1 + sources.length) % sources.length,
                   )
                 }
                 className="absolute left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-background/10 text-white transition-colors hover:bg-background/20"

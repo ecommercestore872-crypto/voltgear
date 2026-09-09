@@ -33,7 +33,7 @@ export function ShopBrandMark({
       className={cn(
         "shop-brand-shine inline-flex w-auto",
         compact ? "h-8 sm:h-9" : "h-9 sm:h-10",
-        className
+        className,
       )}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}

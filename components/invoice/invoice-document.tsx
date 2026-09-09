@@ -26,12 +26,15 @@ export function InvoiceDocument({
   template: InvoiceTemplate;
   identity: InvoiceIdentity;
 }) {
-  const { lines, subtotal, shipping, total, showSubtotal } = invoiceTotals(order);
+  const { lines, subtotal, shipping, total, showSubtotal } =
+    invoiceTotals(order);
   const isCod = order.payment === "cod";
   const customer = order.customer;
   const accent = template.accent || "#1F3626";
   const title = template.documentTitle || "Invoice";
-  const contact = [identity.email, identity.phone].filter(Boolean).join("  ·  ");
+  const contact = [identity.email, identity.phone]
+    .filter(Boolean)
+    .join("  ·  ");
   const billLines = [
     customer?.address?.trim(),
     customer?.city?.trim(),
@@ -49,14 +52,24 @@ export function InvoiceDocument({
         <div className="invoice-brand">
           {identity.logo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={identity.logo} alt={identity.name} className="invoice-logo" />
+            <img
+              src={identity.logo}
+              alt={identity.name}
+              className="invoice-logo"
+            />
           ) : (
             <p className="invoice-wordmark">{identity.name}</p>
           )}
-          {identity.logo ? <p className="invoice-brand-name">{identity.name}</p> : null}
-          {identity.address ? <p className="invoice-meta">{identity.address}</p> : null}
+          {identity.logo ? (
+            <p className="invoice-brand-name">{identity.name}</p>
+          ) : null}
+          {identity.address ? (
+            <p className="invoice-meta">{identity.address}</p>
+          ) : null}
           {contact ? <p className="invoice-meta">{contact}</p> : null}
-          {identity.website ? <p className="invoice-meta">{identity.website}</p> : null}
+          {identity.website ? (
+            <p className="invoice-meta">{identity.website}</p>
+          ) : null}
         </div>
         <div className="invoice-kicker">
           <p className="invoice-title">{title}</p>
@@ -80,12 +93,18 @@ export function InvoiceDocument({
       <section className="invoice-parties">
         <div>
           <h2>Bill to</h2>
-          {customer?.name ? <p className="invoice-party-name">{customer.name}</p> : null}
+          {customer?.name ? (
+            <p className="invoice-party-name">{customer.name}</p>
+          ) : null}
           {billLines.length ? (
             <p className="invoice-meta">{billLines.join(", ")}</p>
           ) : null}
-          {customer?.phone ? <p className="invoice-meta">{customer.phone}</p> : null}
-          {customer?.email ? <p className="invoice-meta">{customer.email}</p> : null}
+          {customer?.phone ? (
+            <p className="invoice-meta">{customer.phone}</p>
+          ) : null}
+          {customer?.email ? (
+            <p className="invoice-meta">{customer.email}</p>
+          ) : null}
         </div>
       </section>
 
@@ -103,7 +122,9 @@ export function InvoiceDocument({
               <tr key={`${line.name}-${i}`}>
                 <td>
                   <span className="item-name">{line.name}</span>
-                  {line.variant ? <span className="item-variant">{line.variant}</span> : null}
+                  {line.variant ? (
+                    <span className="item-variant">{line.variant}</span>
+                  ) : null}
                 </td>
                 <td className="num">{line.quantity}</td>
                 <td className="num">{formatPrice(line.lineTotal)}</td>
@@ -136,7 +157,9 @@ export function InvoiceDocument({
         </div>
       </div>
 
-      {template.notes ? <p className="invoice-notes">{template.notes}</p> : null}
+      {template.notes ? (
+        <p className="invoice-notes">{template.notes}</p>
+      ) : null}
       <footer className="invoice-foot">
         <p>{template.footer}</p>
         <p className="invoice-file">{invoiceFileTitle(order.orderId)}</p>

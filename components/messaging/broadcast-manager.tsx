@@ -18,12 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminHeaders, getAdminToken } from "@/lib/admin-token";
 import type {
   BroadcastContact,
@@ -157,11 +152,19 @@ function RecipientsTab() {
   }
 
   async function remove(contact: BroadcastContact) {
-    if (!confirm(`Remove ${contact.phone}${contact.name ? ` (${contact.name})` : ""}?`)) return;
+    if (
+      !confirm(
+        `Remove ${contact.phone}${contact.name ? ` (${contact.name})` : ""}?`,
+      )
+    )
+      return;
     try {
-      await adminFetch(`/api/messaging/contacts?phone=${encodeURIComponent(contact.phone)}`, {
-        method: "DELETE",
-      });
+      await adminFetch(
+        `/api/messaging/contacts?phone=${encodeURIComponent(contact.phone)}`,
+        {
+          method: "DELETE",
+        },
+      );
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not remove number");
@@ -437,7 +440,11 @@ function SendTab() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <Button onClick={send} disabled={sending || count === 0} className="w-full">
+        <Button
+          onClick={send}
+          disabled={sending || count === 0}
+          className="w-full"
+        >
           {sending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -461,7 +468,7 @@ function SendTab() {
               setSelected(
                 selected.size === contacts.length
                   ? new Set()
-                  : new Set(contacts.map((c) => c.id))
+                  : new Set(contacts.map((c) => c.id)),
               )
             }
             className="text-xs text-primary"
@@ -592,9 +599,7 @@ function ReportsTab() {
     );
   }
 
-  const detail = detailId
-    ? campaigns.find((c) => c._id === detailId)
-    : null;
+  const detail = detailId ? campaigns.find((c) => c._id === detailId) : null;
 
   return (
     <div className="space-y-4">
@@ -616,9 +621,13 @@ function ReportsTab() {
             <div className="shrink-0 text-right text-xs text-muted-foreground">
               <p>{new Date(c.createdAt).toLocaleString("en-PK")}</p>
               <p className="mt-1">
-                <span className="font-semibold text-emerald-600">{c.sent} sent</span>
+                <span className="font-semibold text-emerald-600">
+                  {c.sent} sent
+                </span>
                 {" · "}
-                <span className="font-semibold text-destructive">{c.failed} failed</span>
+                <span className="font-semibold text-destructive">
+                  {c.failed} failed
+                </span>
               </p>
             </div>
           </button>
@@ -652,13 +661,17 @@ function ReportsTab() {
                       <th className="px-4 py-2 font-medium">Phone</th>
                       <th className="px-4 py-2 font-medium">Name</th>
                       <th className="px-4 py-2 font-medium">Status</th>
-                      <th className="px-4 py-2 font-medium">Error / Message ID</th>
+                      <th className="px-4 py-2 font-medium">
+                        Error / Message ID
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {c.recipients.map((r, i) => (
                       <tr key={`${r.phone}-${i}`} className="border-t">
-                        <td className="px-4 py-2 font-mono text-xs">{r.phone}</td>
+                        <td className="px-4 py-2 font-mono text-xs">
+                          {r.phone}
+                        </td>
                         <td className="px-4 py-2">{r.name || "—"}</td>
                         <td className="px-4 py-2">{statusBadge(r.status)}</td>
                         <td className="px-4 py-2 text-xs text-muted-foreground">

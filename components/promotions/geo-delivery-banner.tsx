@@ -19,8 +19,16 @@ export function GeoDeliveryBanner() {
   }, []);
 
   if (city) {
-    return <span className="text-[var(--g-cream)]">Cash on delivery to {city} · try it at home</span>;
+    return (
+      <span className="text-[var(--g-cream)]">
+        Cash on delivery to {city} · try it at home
+      </span>
+    );
   }
 
-  return <span className="text-[var(--g-cream)]">Cash on delivery nationwide · try it at home</span>;
+  return (
+    <span className="text-[var(--g-cream)]">
+      Cash on delivery nationwide · try it at home
+    </span>
+  );
 }

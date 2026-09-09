@@ -79,7 +79,8 @@ export function GadgetHeroSlider({
       <div className="bg-[var(--g-cream)] px-4 py-10 lg:px-8">
         <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] px-4 py-16 text-center">
           <p className="text-sm text-[var(--g-taupe)]">
-            No published hero slides yet. Add a full campaign banner image in Admin → Hero.
+            No published hero slides yet. Add a full campaign banner image in
+            Admin → Hero.
           </p>
         </div>
       </div>
@@ -211,7 +212,9 @@ export function GadgetHeroSlider({
                   >
                     <span
                       className={`relative block h-1.5 rounded-full overflow-hidden transition-colors duration-300 ${
-                        i === index ? "w-10 bg-white/40" : "w-3 bg-white/30 hover:bg-white/60"
+                        i === index
+                          ? "w-10 bg-white/40"
+                          : "w-3 bg-white/30 hover:bg-white/60"
                       }`}
                     >
                       {i === index && !paused ? (

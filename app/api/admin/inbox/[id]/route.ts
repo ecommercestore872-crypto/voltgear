@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
-import { getContactSubmission, updateContactSubmission } from "@/lib/db/inbox-store";
+import {
+  getContactSubmission,
+  updateContactSubmission,
+} from "@/lib/db/inbox-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,7 +23,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -31,7 +34,10 @@ export async function PATCH(
     adminNote: body?.adminNote,
   });
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ item: result.item });
 }

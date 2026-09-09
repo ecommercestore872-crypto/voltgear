@@ -29,11 +29,17 @@ export default async function AdminTestimonialsPage() {
               className="flex items-center justify-between px-4 py-3 hover:bg-muted/40"
             >
               <span>
-                <span className="block font-medium">{String(t.customer_name)}</span>
-                <span className="line-clamp-1 text-xs text-muted-foreground">{String(t.review_text)}</span>
+                <span className="block font-medium">
+                  {String(t.customer_name)}
+                </span>
+                <span className="line-clamp-1 text-xs text-muted-foreground">
+                  {String(t.review_text)}
+                </span>
               </span>
               <span className="text-xs capitalize text-muted-foreground">
-                {t.draft ? `${t.status} · draft` : String(t.status ?? "published")}
+                {t.draft
+                  ? `${t.status} · draft`
+                  : String(t.status ?? "published")}
               </span>
             </Link>
           </li>

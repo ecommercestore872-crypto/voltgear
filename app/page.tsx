@@ -27,7 +27,12 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: "/",
       languages: storeAlternatesLanguages("/").languages,
     },
-    openGraph: { title, description, type: "website", url: "https://buyntryy.com/" },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: "https://buyntryy.com/",
+    },
     twitter: { card: "summary_large_image", title, description },
   };
 }

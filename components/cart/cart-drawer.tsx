@@ -59,33 +59,52 @@ function ConfirmRemoveDialog({
           "w-full max-w-sm rounded-2xl border p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150",
           gadget
             ? "gadget-theme border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)]"
-            : "border bg-background"
+            : "border bg-background",
         )}
       >
         <div className="flex items-center gap-3">
           <div
             className={cn(
               "flex h-10 w-10 items-center justify-center rounded-full",
-              gadget ? "bg-[var(--g-cream-deep)]" : "bg-amber-100 dark:bg-amber-900/30"
+              gadget
+                ? "bg-[var(--g-cream-deep)]"
+                : "bg-amber-100 dark:bg-amber-900/30",
             )}
           >
             <AlertTriangle
               className={cn(
                 "h-5 w-5",
-                gadget ? "text-[var(--g-forest)]" : "text-amber-600 dark:text-amber-400"
+                gadget
+                  ? "text-[var(--g-forest)]"
+                  : "text-amber-600 dark:text-amber-400",
               )}
             />
           </div>
           <div>
             <p className="font-semibold">Remove item?</p>
-            <p className={cn("text-sm", gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground")}>
+            <p
+              className={cn(
+                "text-sm",
+                gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground",
+              )}
+            >
               It will be removed from your cart.
             </p>
           </div>
         </div>
-        <p className={cn("mt-4 text-sm", gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground")}>
+        <p
+          className={cn(
+            "mt-4 text-sm",
+            gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground",
+          )}
+        >
           Are you sure you want to remove{" "}
-          <span className={cn("font-medium", gadget ? "text-[var(--g-charcoal)]" : "text-foreground")}>
+          <span
+            className={cn(
+              "font-medium",
+              gadget ? "text-[var(--g-charcoal)]" : "text-foreground",
+            )}
+          >
             {itemName}
           </span>{" "}
           from your cart?
@@ -113,7 +132,11 @@ function ConfirmRemoveDialog({
               <Button variant="outline" className="flex-1" onClick={onCancel}>
                 Keep It
               </Button>
-              <Button variant="destructive" className="flex-1" onClick={onConfirm}>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={onConfirm}
+              >
                 Yes, Remove
               </Button>
             </>
@@ -121,7 +144,7 @@ function ConfirmRemoveDialog({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
@@ -144,7 +167,13 @@ function FreeShippingBar({
         <div className="flex items-center justify-between text-[11px]">
           {remaining > 0 ? (
             <p className="text-[var(--g-taupe)]">
-              <span className="font-semibold text-[var(--g-charcoal)]">{formatPrice(remaining)}</span> away from <span className="font-semibold text-[var(--g-forest)]">free shipping</span>
+              <span className="font-semibold text-[var(--g-charcoal)]">
+                {formatPrice(remaining)}
+              </span>{" "}
+              away from{" "}
+              <span className="font-semibold text-[var(--g-forest)]">
+                free shipping
+              </span>
             </p>
           ) : (
             <p className="font-semibold text-[var(--g-forest)]">
@@ -169,8 +198,12 @@ function FreeShippingBar({
     <div className="rounded-xl bg-muted/60 p-4">
       {remaining > 0 ? (
         <p className="text-xs text-muted-foreground">
-          You&rsquo;re <span className="font-semibold text-foreground">{formatPrice(remaining)}</span>{" "}
-          away from <span className="font-semibold text-foreground">free shipping</span>
+          You&rsquo;re{" "}
+          <span className="font-semibold text-foreground">
+            {formatPrice(remaining)}
+          </span>{" "}
+          away from{" "}
+          <span className="font-semibold text-foreground">free shipping</span>
         </p>
       ) : (
         <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -199,14 +232,23 @@ export function CartDrawer() {
     sessionActive: sessionActive || isGadgetPreviewPath(pathname || ""),
   });
   const shopHref = gadget ? products2Href() : "/products";
-  const { items, isOpen, closeCart, subtotal, updateQuantity, removeItem, clearCart } =
-    useCart();
+  const {
+    items,
+    isOpen,
+    closeCart,
+    subtotal,
+    updateQuantity,
+    removeItem,
+    clearCart,
+  } = useCart();
   const dealQuote = useDealQuote(items);
   const merchandise = Math.max(0, subtotal - dealQuote.discount);
   const config = useSiteConfig();
   const [orderNote, setOrderNote] = useState("");
   const [confirmKey, setConfirmKey] = useState<string | null>(null);
-  const confirmItem = confirmKey ? items.find((i) => cartLineKey(i) === confirmKey) : null;
+  const confirmItem = confirmKey
+    ? items.find((i) => cartLineKey(i) === confirmKey)
+    : null;
 
   function requestRemove(key: string) {
     closeCart();
@@ -220,14 +262,14 @@ export function CartDrawer() {
           className={cn(
             "flex h-dvh max-h-dvh w-full flex-col overflow-hidden p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] sm:max-w-md sm:p-6",
             gadget &&
-              "gadget-theme border-l border-[var(--g-line)] bg-[var(--g-cream)] text-[var(--g-charcoal)]"
+              "gadget-theme border-l border-[var(--g-line)] bg-[var(--g-cream)] text-[var(--g-charcoal)]",
           )}
         >
           <SheetHeader>
             <SheetTitle
               className={cn(
                 "flex items-center gap-2",
-                gadget && "font-semibold text-[var(--g-charcoal)]"
+                gadget && "font-semibold text-[var(--g-charcoal)]",
               )}
             >
               <ShoppingBag className="h-5 w-5" />
@@ -241,19 +283,28 @@ export function CartDrawer() {
                 <div
                   className={cn(
                     "flex h-16 w-16 items-center justify-center rounded-full",
-                    gadget ? "bg-[var(--g-cream-deep)] text-[var(--g-forest)]" : "text-muted-foreground"
+                    gadget
+                      ? "bg-[var(--g-cream-deep)] text-[var(--g-forest)]"
+                      : "text-muted-foreground",
                   )}
                 >
                   <ShoppingBag className="h-8 w-8" />
                 </div>
                 <div>
-                  <p className={cn("font-semibold", gadget ? "text-[var(--g-charcoal)]" : "")}>
+                  <p
+                    className={cn(
+                      "font-semibold",
+                      gadget ? "text-[var(--g-charcoal)]" : "",
+                    )}
+                  >
                     Your cart is empty
                   </p>
                   <p
                     className={cn(
                       "mt-1 text-sm",
-                      gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"
+                      gadget
+                        ? "text-[var(--g-taupe)]"
+                        : "text-muted-foreground",
                     )}
                   >
                     Add something you love — COD available at checkout.
@@ -266,7 +317,7 @@ export function CartDrawer() {
                     "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold",
                     gadget
                       ? "bg-[var(--g-forest)] text-[var(--g-white)]"
-                      : "bg-primary text-primary-foreground"
+                      : "bg-primary text-primary-foreground",
                   )}
                 >
                   Start shopping
@@ -277,7 +328,15 @@ export function CartDrawer() {
               <>
                 <ul className="space-y-3">
                   {items.map((item) => (
-                    <li key={cartLineKey(item)} className={cn("flex gap-4 p-3 rounded-2xl border", gadget ? "bg-[var(--g-white)] border-[var(--g-line)] shadow-sm" : "bg-card border-border")}>
+                    <li
+                      key={cartLineKey(item)}
+                      className={cn(
+                        "flex gap-4 p-3 rounded-2xl border",
+                        gadget
+                          ? "bg-[var(--g-white)] border-[var(--g-line)] shadow-sm"
+                          : "bg-card border-border",
+                      )}
+                    >
                       {item.image ? (
                         <Image
                           src={item.image}
@@ -288,14 +347,16 @@ export function CartDrawer() {
                             "h-16 w-16 rounded-xl border object-cover",
                             gadget
                               ? "border-[var(--g-line)] bg-[var(--g-white)]"
-                              : "border bg-muted"
+                              : "border bg-muted",
                           )}
                         />
                       ) : (
                         <div
                           className={cn(
                             "h-16 w-16 rounded-xl border",
-                            gadget ? "border-[var(--g-line)] bg-[var(--g-white)]" : "bg-muted"
+                            gadget
+                              ? "border-[var(--g-line)] bg-[var(--g-white)]"
+                              : "bg-muted",
                           )}
                         />
                       )}
@@ -318,7 +379,7 @@ export function CartDrawer() {
                               "flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors",
                               gadget
                                 ? "text-[var(--g-taupe)] hover:bg-[var(--g-cream-deep)] hover:text-red-600"
-                                : "text-muted-foreground hover:text-destructive"
+                                : "text-muted-foreground hover:text-destructive",
                             )}
                             aria-label={`Remove ${item.name}${item.variantName ? ` ${item.variantName}` : ""}`}
                           >
@@ -334,7 +395,10 @@ export function CartDrawer() {
                                   type="button"
                                   className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] transition active:scale-95"
                                   onClick={() =>
-                                    updateQuantity(cartLineKey(item), item.quantity - 1)
+                                    updateQuantity(
+                                      cartLineKey(item),
+                                      item.quantity - 1,
+                                    )
                                   }
                                   aria-label="Decrease quantity"
                                 >
@@ -347,7 +411,10 @@ export function CartDrawer() {
                                   type="button"
                                   className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] transition active:scale-95"
                                   onClick={() =>
-                                    updateQuantity(cartLineKey(item), item.quantity + 1)
+                                    updateQuantity(
+                                      cartLineKey(item),
+                                      item.quantity + 1,
+                                    )
                                   }
                                   aria-label="Increase quantity"
                                 >
@@ -361,18 +428,26 @@ export function CartDrawer() {
                                   size="icon"
                                   className="h-7 w-7"
                                   onClick={() =>
-                                    updateQuantity(cartLineKey(item), item.quantity - 1)
+                                    updateQuantity(
+                                      cartLineKey(item),
+                                      item.quantity - 1,
+                                    )
                                   }
                                 >
                                   <Minus className="h-3 w-3" />
                                 </Button>
-                                <span className="w-5 text-center text-xs">{item.quantity}</span>
+                                <span className="w-5 text-center text-xs">
+                                  {item.quantity}
+                                </span>
                                 <Button
                                   variant="outline"
                                   size="icon"
                                   className="h-7 w-7"
                                   onClick={() =>
-                                    updateQuantity(cartLineKey(item), item.quantity + 1)
+                                    updateQuantity(
+                                      cartLineKey(item),
+                                      item.quantity + 1,
+                                    )
                                   }
                                 >
                                   <Plus className="h-3 w-3" />
@@ -395,7 +470,9 @@ export function CartDrawer() {
 
           {items.length > 0 ? (
             <>
-              <Separator className={gadget ? "bg-[var(--g-line)]" : undefined} />
+              <Separator
+                className={gadget ? "bg-[var(--g-line)]" : undefined}
+              />
               <div className="space-y-3 pt-3">
                 <FreeShippingBar
                   subtotal={merchandise}
@@ -406,15 +483,22 @@ export function CartDrawer() {
                 <div className="flex items-center justify-between gap-2">
                   {gadget && config.codEnabled ? (
                     <p className="flex items-center gap-1.5 text-[11px] text-[var(--g-taupe)]">
-                      <Banknote className="h-3.5 w-3.5 text-[var(--g-forest)]" aria-hidden />
+                      <Banknote
+                        className="h-3.5 w-3.5 text-[var(--g-forest)]"
+                        aria-hidden
+                      />
                       COD at checkout
                     </p>
-                  ) : <span />}
-                  
+                  ) : (
+                    <span />
+                  )}
+
                   <button
                     type="button"
                     onClick={() => {
-                      const el = document.getElementById("order-note-container");
+                      const el = document.getElementById(
+                        "order-note-container",
+                      );
                       if (el) el.classList.toggle("hidden");
                     }}
                     className="text-[11px] font-medium text-[var(--g-forest)] hover:underline"
@@ -434,7 +518,7 @@ export function CartDrawer() {
                       "w-full rounded-lg border px-3 py-1.5 text-xs outline-none",
                       gadget
                         ? "border-[var(--g-line)] bg-[var(--g-white)] placeholder:text-[var(--g-taupe)] focus:border-[var(--g-forest)]"
-                        : "bg-muted/50 placeholder:text-muted-foreground focus:border-primary focus:bg-background"
+                        : "bg-muted/50 placeholder:text-muted-foreground focus:border-primary focus:bg-background",
                     )}
                   />
                 </div>
@@ -443,16 +527,25 @@ export function CartDrawer() {
                   <span
                     className={cn(
                       "text-xs font-medium",
-                      gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground"
+                      gadget
+                        ? "text-[var(--g-taupe)]"
+                        : "text-muted-foreground",
                     )}
                   >
                     Subtotal
                   </span>
-                  <span className="gadget-display text-base font-bold tabular-nums text-[var(--g-charcoal)]">{formatPrice(subtotal)}</span>
+                  <span className="gadget-display text-base font-bold tabular-nums text-[var(--g-charcoal)]">
+                    {formatPrice(subtotal)}
+                  </span>
                 </div>
                 {dealQuote.discount > 0 ? (
                   <div className="flex items-center justify-between">
-                    <span className={cn("text-xs font-medium", gadget ? "text-[var(--g-forest)]" : "text-emerald-700")}>
+                    <span
+                      className={cn(
+                        "text-xs font-medium",
+                        gadget ? "text-[var(--g-forest)]" : "text-emerald-700",
+                      )}
+                    >
                       Pair deal
                     </span>
                     <span className="text-sm font-semibold tabular-nums text-[var(--g-forest)]">
@@ -500,7 +593,11 @@ export function CartDrawer() {
                         View Cart
                       </Link>
                     </Button>
-                    <Button variant="ghost" className="w-full" onClick={clearCart}>
+                    <Button
+                      variant="ghost"
+                      className="w-full"
+                      onClick={clearCart}
+                    >
                       Clear Cart
                     </Button>
                   </>

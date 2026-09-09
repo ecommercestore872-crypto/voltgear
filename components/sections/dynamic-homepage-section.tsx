@@ -4,7 +4,11 @@ import { ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/product/product-card";
 import type { HomepageSection } from "@/lib/types";
 
-export function DynamicHomepageSection({ section }: { section: HomepageSection }) {
+export function DynamicHomepageSection({
+  section,
+}: {
+  section: HomepageSection;
+}) {
   const products = section.resolvedProducts ?? [];
   if (!products.length) return null;
 
@@ -18,7 +22,9 @@ export function DynamicHomepageSection({ section }: { section: HomepageSection }
               {section.title}
             </h2>
             {section.subtitle && (
-              <p className="mt-1 text-sm text-muted-foreground">{section.subtitle}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {section.subtitle}
+              </p>
             )}
           </div>
           {section.showViewAll && section.viewAllHref && (
@@ -27,7 +33,10 @@ export function DynamicHomepageSection({ section }: { section: HomepageSection }
               className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground group"
             >
               View all
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+              <ArrowRight
+                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden
+              />
             </Link>
           )}
         </div>

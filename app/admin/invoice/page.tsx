@@ -13,7 +13,9 @@ export const dynamic = "force-dynamic";
 export default async function AdminInvoiceTemplatePage() {
   const row = (await getAdminSettings()) as Record<string, unknown> | null;
   const draft =
-    row?.draft && typeof row.draft === "object" ? (row.draft as Record<string, unknown>) : null;
+    row?.draft && typeof row.draft === "object"
+      ? (row.draft as Record<string, unknown>)
+      : null;
   const config = editorInvoiceTemplate(row);
   const hasDraft = Boolean(draft?.invoiceTemplate);
   return (

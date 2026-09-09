@@ -15,12 +15,7 @@ function BrandIcon({ className, d }: { className?: string; d: string }) {
 }
 
 export function FacebookIcon({ className }: { className?: string }) {
-  return (
-    <BrandIcon
-      className={className}
-      d={FILL}
-    />
-  );
+  return <BrandIcon className={className} d={FILL} />;
 }
 
 export function InstagramIcon({ className }: { className?: string }) {
@@ -129,9 +124,7 @@ const PLATFORM_MAP: Record<string, React.ElementType> = {
   web: WebsiteIcon,
 };
 
-export function getSocialIcon(
-  platform: string | undefined
-): React.ElementType {
+export function getSocialIcon(platform: string | undefined): React.ElementType {
   return PLATFORM_MAP[(platform || "").toLowerCase()] ?? WebsiteIcon;
 }
 

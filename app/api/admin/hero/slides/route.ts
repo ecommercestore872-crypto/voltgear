@@ -22,8 +22,12 @@ export async function GET(request: Request) {
     ]);
     return NextResponse.json({ slides, blockers });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to load slides";
-    return NextResponse.json({ error: message, slides: [], blockers: [message] }, { status: 500 });
+    const message =
+      err instanceof Error ? err.message : "Failed to load slides";
+    return NextResponse.json(
+      { error: message, slides: [], blockers: [message] },
+      { status: 500 },
+    );
   }
 }
 
@@ -34,7 +38,11 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   if (body?.action === "reorder" && Array.isArray(body.orderedIds)) {
     const result = await reorderAdminHeroSlides(body.orderedIds.map(String));
-    if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+    if (!result.ok)
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      );
     return NextResponse.json(result);
   }
   const doc = body?.doc ?? {};
@@ -46,6 +54,10 @@ export async function POST(request: Request) {
     sortOrder: doc.sortOrder != null ? Number(doc.sortOrder) : undefined,
     isDemo: Boolean(doc.isDemo),
   });
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

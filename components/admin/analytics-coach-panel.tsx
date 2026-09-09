@@ -38,8 +38,10 @@ function channelName(source: string): string {
 
 function verdictLine(row: CoachProductRow): string {
   if (row.verdict === "fill_cost") return "Fill cost first";
-  if (row.verdict === "too_cheap") return `Too cheap · do not go below ${formatMoney(row.floor)}`;
-  if (row.verdict === "not_enough_data") return "Not enough deliveries to set a floor";
+  if (row.verdict === "too_cheap")
+    return `Too cheap · do not go below ${formatMoney(row.floor)}`;
+  if (row.verdict === "not_enough_data")
+    return "Not enough deliveries to set a floor";
   return `Safe · floor ${formatMoney(row.floor)}`;
 }
 
@@ -53,8 +55,12 @@ export function AnalyticsCoachPanel({
   onSaved: () => void;
 }) {
   const [budget, setBudget] = useState(String(coach.defaultBudget || ""));
-  const [packingFee, setPackingFee] = useState(coach.packingFee ? String(coach.packingFee) : "");
-  const [codFee, setCodFee] = useState(coach.codFee ? String(coach.codFee) : "");
+  const [packingFee, setPackingFee] = useState(
+    coach.packingFee ? String(coach.packingFee) : "",
+  );
+  const [codFee, setCodFee] = useState(
+    coach.codFee ? String(coach.codFee) : "",
+  );
   const [costs, setCosts] = useState<Record<string, string>>(() => {
     const next: Record<string, string> = {};
     for (const product of coach.products) {
@@ -68,8 +74,13 @@ export function AnalyticsCoachPanel({
 
   const budgetNumber = Number(budget);
   const live = useMemo(
-    () => applyCoachBudget(coach, Number.isFinite(budgetNumber) && budgetNumber > 0 ? budgetNumber : 0, sourceMoney),
-    [budgetNumber, coach, sourceMoney]
+    () =>
+      applyCoachBudget(
+        coach,
+        Number.isFinite(budgetNumber) && budgetNumber > 0 ? budgetNumber : 0,
+        sourceMoney,
+      ),
+    [budgetNumber, coach, sourceMoney],
   );
 
   const missing = live.products.filter((p) => p.costPrice == null);
@@ -111,25 +122,31 @@ export function AnalyticsCoachPanel({
       <section className="admin-analytics-story">
         <p className="admin-analytics-story-health">Advice only</p>
         <h2 className="text-xl text-[var(--g-charcoal)]">
-          Fill costs, keep prices above the floor, then put ads on products that already deliver cash.
+          Fill costs, keep prices above the floor, then put ads on products that
+          already deliver cash.
         </h2>
         <p className="text-sm text-[var(--g-taupe)]">
-          Safe price uses what customers actually paid, real shipping (including free shipping), packing
-          and COD fees you type, and cancel/RTO leak from parcels older than{" "}
-          {Math.round(coach.maturityHours / 24)} days. About {Math.round(coach.targetBuffer * 100)}% leftover
-          is kept before ads. In-transit parcels are not treated as failed. This does not run Meta or
-          TikTok for you.
+          Safe price uses what customers actually paid, real shipping (including
+          free shipping), packing and COD fees you type, and cancel/RTO leak
+          from parcels older than {Math.round(coach.maturityHours / 24)} days.
+          About {Math.round(coach.targetBuffer * 100)}% leftover is kept before
+          ads. In-transit parcels are not treated as failed. This does not run
+          Meta or TikTok for you.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-lg font-semibold text-[var(--g-charcoal)]">1. Your cost</h3>
+        <h3 className="text-lg font-semibold text-[var(--g-charcoal)]">
+          1. Your cost
+        </h3>
         {missing.length === 0 ? (
-          <p className="text-sm text-[var(--g-taupe)]">Every listed product has a cost. You can still edit them below.</p>
+          <p className="text-sm text-[var(--g-taupe)]">
+            Every listed product has a cost. You can still edit them below.
+          </p>
         ) : (
           <p className="text-sm text-[var(--g-taupe)]">
-            {missing.length} product{missing.length === 1 ? "" : "s"} still need a cost. Profit and ads
-            advice stay off until you fill them.
+            {missing.length} product{missing.length === 1 ? "" : "s"} still need
+            a cost. Profit and ads advice stay off until you fill them.
           </p>
         )}
         <div className="grid gap-3 md:grid-cols-2">
@@ -139,7 +156,12 @@ export function AnalyticsCoachPanel({
               <Input
                 inputMode="decimal"
                 value={costs[product.slug] ?? ""}
-                onChange={(e) => setCosts((current) => ({ ...current, [product.slug]: e.target.value }))}
+                onChange={(e) =>
+                  setCosts((current) => ({
+                    ...current,
+                    [product.slug]: e.target.value,
+                  }))
+                }
                 aria-label={`Cost for ${product.name}`}
               />
               <span className="admin-analytics-tile-hint">
@@ -153,14 +175,18 @@ export function AnalyticsCoachPanel({
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="admin-analytics-tile gap-2">
-            <Label htmlFor="coach-packing">Packing / handling per order (PKR)</Label>
+            <Label htmlFor="coach-packing">
+              Packing / handling per order (PKR)
+            </Label>
             <Input
               id="coach-packing"
               inputMode="decimal"
               value={packingFee}
               onChange={(e) => setPackingFee(e.target.value)}
             />
-            <p className="admin-analytics-tile-hint">Tape, bag, packing. Leave 0 if you do not track it.</p>
+            <p className="admin-analytics-tile-hint">
+              Tape, bag, packing. Leave 0 if you do not track it.
+            </p>
           </div>
           <div className="admin-analytics-tile gap-2">
             <Label htmlFor="coach-cod">COD handling per order (PKR)</Label>
@@ -171,12 +197,17 @@ export function AnalyticsCoachPanel({
               onChange={(e) => setCodFee(e.target.value)}
             />
             <p className="admin-analytics-tile-hint">
-              Courier cash-collection fee. Prepaid parcels skip this. Leave 0 if you do not know it.
+              Courier cash-collection fee. Prepaid parcels skip this. Leave 0 if
+              you do not know it.
             </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="button" onClick={() => void saveCosts()} disabled={saving}>
+          <Button
+            type="button"
+            onClick={() => void saveCosts()}
+            disabled={saving}
+          >
             {saving ? "Saving…" : "Save costs and fees"}
           </Button>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -184,7 +215,9 @@ export function AnalyticsCoachPanel({
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-lg font-semibold text-[var(--g-charcoal)]">2. How much you can spend on ads this period</h3>
+        <h3 className="text-lg font-semibold text-[var(--g-charcoal)]">
+          2. How much you can spend on ads this period
+        </h3>
         <div className="max-w-xs space-y-1.5">
           <Label htmlFor="coach-budget">Budget (PKR)</Label>
           <Input
@@ -194,14 +227,16 @@ export function AnalyticsCoachPanel({
             onChange={(e) => setBudget(e.target.value)}
           />
           <p className="text-xs text-[var(--g-taupe)]">
-            Starts from spend you already typed on Traffic. Change it to see a new split. Nothing is
-            sent to Meta or TikTok.
+            Starts from spend you already typed on Traffic. Change it to see a
+            new split. Nothing is sent to Meta or TikTok.
           </p>
         </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {live.channels.map((channel) => (
             <Card key={channel.source} className="admin-analytics-tile">
-              <p className="admin-analytics-tile-label">{channelName(channel.source)}</p>
+              <p className="admin-analytics-tile-label">
+                {channelName(channel.source)}
+              </p>
               <p className="admin-analytics-tile-value">
                 {channel.action === "unknown"
                   ? "No spend yet"
@@ -222,17 +257,28 @@ export function AnalyticsCoachPanel({
       </section>
 
       <ProductGroup title="Performing — worth ads" rows={performing} />
-      <ProductGroup title="Needs improvement — small tests only" rows={improve} />
+      <ProductGroup
+        title="Needs improvement — small tests only"
+        rows={improve}
+      />
       <ProductGroup title="Weak — do not put ads here" rows={weak} />
     </div>
   );
 }
 
-function ProductGroup({ title, rows }: { title: string; rows: CoachProductRow[] }) {
+function ProductGroup({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: CoachProductRow[];
+}) {
   if (!rows.length) return null;
   return (
     <section className="space-y-3">
-      <h3 className="text-lg font-semibold text-[var(--g-charcoal)]">{title}</h3>
+      <h3 className="text-lg font-semibold text-[var(--g-charcoal)]">
+        {title}
+      </h3>
       <ul className="space-y-3">
         {rows.map((row) => (
           <li key={row.slug}>
@@ -245,9 +291,16 @@ function ProductGroup({ title, rows }: { title: string; rows: CoachProductRow[] 
                   >
                     {row.name}
                   </Link>
-                  <p className="mt-1 text-sm text-[var(--g-taupe)]">{verdictLine(row)}</p>
+                  <p className="mt-1 text-sm text-[var(--g-taupe)]">
+                    {verdictLine(row)}
+                  </p>
                 </div>
-                <span className={cn("admin-analytics-health", `admin-analytics-health-${row.health}`)}>
+                <span
+                  className={cn(
+                    "admin-analytics-health",
+                    `admin-analytics-health-${row.health}`,
+                  )}
+                >
                   {HEALTH_LABEL[row.health]}
                 </span>
               </div>
@@ -255,11 +308,15 @@ function ProductGroup({ title, rows }: { title: string; rows: CoachProductRow[] 
               <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
                 <div>
                   <dt className="text-[var(--g-taupe)]">Listed</dt>
-                  <dd className="tabular-nums">{formatMoney(row.listedPrice)}</dd>
+                  <dd className="tabular-nums">
+                    {formatMoney(row.listedPrice)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-[var(--g-taupe)]">Customers paid</dt>
-                  <dd className="tabular-nums">{formatMoney(row.sellingPrice)}</dd>
+                  <dd className="tabular-nums">
+                    {formatMoney(row.sellingPrice)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-[var(--g-taupe)]">Your cost</dt>
@@ -267,17 +324,23 @@ function ProductGroup({ title, rows }: { title: string; rows: CoachProductRow[] 
                 </div>
                 <div>
                   <dt className="text-[var(--g-taupe)]">Shipping in floor</dt>
-                  <dd className="tabular-nums">{formatMoney(row.shippingAllocated)}</dd>
+                  <dd className="tabular-nums">
+                    {formatMoney(row.shippingAllocated)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-[var(--g-taupe)]">Break-even ads</dt>
                   <dd className="tabular-nums">
-                    {row.breakEvenRoas == null ? "Not available" : `${row.breakEvenRoas}× delivered`}
+                    {row.breakEvenRoas == null
+                      ? "Not available"
+                      : `${row.breakEvenRoas}× delivered`}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-[var(--g-taupe)]">Suggested spend</dt>
-                  <dd className="tabular-nums">{formatMoney(row.suggestedSpend)}</dd>
+                  <dd className="tabular-nums">
+                    {formatMoney(row.suggestedSpend)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-[var(--g-taupe)]">Finished orders</dt>
@@ -292,7 +355,10 @@ function ProductGroup({ title, rows }: { title: string; rows: CoachProductRow[] 
                   {row.channelSplit.map((slice) => (
                     <li key={slice.source}>
                       {channelName(slice.source)}: {formatMoney(slice.amount)}
-                      <span className="text-[var(--g-taupe)]"> — {slice.note}</span>
+                      <span className="text-[var(--g-taupe)]">
+                        {" "}
+                        — {slice.note}
+                      </span>
                     </li>
                   ))}
                 </ul>

@@ -49,9 +49,8 @@ export function UrgencyTicker({
 
   if (!showBar) return null;
 
-  const time = countdownActive && config.endsAt
-    ? getTimeRemaining(config.endsAt)
-    : null;
+  const time =
+    countdownActive && config.endsAt ? getTimeRemaining(config.endsAt) : null;
 
   return (
     <div

@@ -15,7 +15,10 @@ export async function PUT(request: Request) {
   const sections = normalizeHomeSections(body?.sections);
   const result = await saveAdminHomeSections(sections);
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ ok: true, sections: result.sections });
 }

@@ -101,7 +101,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <aside
         className={cn(
           "admin-sidebar fixed inset-y-0 left-0 z-40 w-56 overflow-y-auto border-r p-4 md:static md:block",
-          !open && "max-md:hidden"
+          !open && "max-md:hidden",
         )}
       >
         <p className="admin-sidebar-brand mb-6 text-sm font-semibold tracking-tight">
@@ -124,7 +124,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setOpen(false)}
                     className={cn(
                       "admin-nav-link block rounded-md px-3 py-2 text-sm transition-colors",
-                      active && "admin-nav-link-active"
+                      active && "admin-nav-link-active",
                     )}
                   >
                     {item.label}

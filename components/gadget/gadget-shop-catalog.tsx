@@ -63,7 +63,8 @@ export function GadgetShopCatalog({
   }
 
   const basePath =
-    catalogBasePath ?? (activeCategory ? products2Href(activeCategory) : products2Href());
+    catalogBasePath ??
+    (activeCategory ? products2Href(activeCategory) : products2Href());
   const useFlatGrid = Boolean(flattenGrid || activeCategory);
 
   function categoryHref(slug?: string) {
@@ -92,16 +93,26 @@ export function GadgetShopCatalog({
               categorySlug={activeCategory || undefined}
             />
           </div>
-          <nav aria-label="Breadcrumb" className="text-[11px] font-medium tracking-wide text-[var(--g-taupe)] sm:text-xs">
+          <nav
+            aria-label="Breadcrumb"
+            className="text-[11px] font-medium tracking-wide text-[var(--g-taupe)] sm:text-xs"
+          >
             {breadcrumbs.map((crumb, i) => (
               <span key={`${crumb.label}-${i}`}>
-                {i > 0 ? <span className="px-1.5 text-[var(--g-line)]">/</span> : null}
+                {i > 0 ? (
+                  <span className="px-1.5 text-[var(--g-line)]">/</span>
+                ) : null}
                 {crumb.href ? (
-                  <Link href={crumb.href} className="transition hover:text-[var(--g-forest)]">
+                  <Link
+                    href={crumb.href}
+                    className="transition hover:text-[var(--g-forest)]"
+                  >
                     {crumb.label}
                   </Link>
                 ) : (
-                  <span className="text-[var(--g-charcoal)]">{crumb.label}</span>
+                  <span className="text-[var(--g-charcoal)]">
+                    {crumb.label}
+                  </span>
                 )}
               </span>
             ))}
@@ -127,41 +138,47 @@ export function GadgetShopCatalog({
 
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-3 sm:pb-12 sm:pt-4 lg:px-8">
         {useFlatGrid && !activeCategory ? null : (
-        <div className="sticky top-[3.75rem] z-20 -mx-4 bg-[var(--g-cream)]/95 px-4 pb-2 pt-3 backdrop-blur-md sm:top-[4.25rem] sm:mt-4 lg:-mx-0 lg:px-0">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
-            {activeCategory ? "Filter by type" : "Jump to category"}
-          </p>
-          <div
-            className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            role="navigation"
-            aria-label="Product categories"
-          >
-            <Link
-              href={categoryHref()}
-              className={cn(
-                "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:px-5 sm:text-sm",
-                !activeCategory && !flattenGrid ? "gadget-chip-active" : "gadget-chip-idle"
-              )}
+          <div className="sticky top-[3.75rem] z-20 -mx-4 bg-[var(--g-cream)]/95 px-4 pb-2 pt-3 backdrop-blur-md sm:top-[4.25rem] sm:mt-4 lg:-mx-0 lg:px-0">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+              {activeCategory ? "Filter by type" : "Jump to category"}
+            </p>
+            <div
+              className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              role="navigation"
+              aria-label="Product categories"
             >
-              All products
-            </Link>
-            {shopTypes.map((t) => {
-              const active = t.slug === activeCategory;
-              return (
-                <Link
-                  key={t.slug}
-                  href={activeCategory ? categoryHref(t.slug) : `#category-${t.slug}`}
-                  className={cn(
-                    "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:text-sm",
-                    active ? "gadget-chip-active" : "gadget-chip-idle"
-                  )}
-                >
-                  {t.name}
-                </Link>
-              );
-            })}
+              <Link
+                href={categoryHref()}
+                className={cn(
+                  "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:px-5 sm:text-sm",
+                  !activeCategory && !flattenGrid
+                    ? "gadget-chip-active"
+                    : "gadget-chip-idle",
+                )}
+              >
+                All products
+              </Link>
+              {shopTypes.map((t) => {
+                const active = t.slug === activeCategory;
+                return (
+                  <Link
+                    key={t.slug}
+                    href={
+                      activeCategory
+                        ? categoryHref(t.slug)
+                        : `#category-${t.slug}`
+                    }
+                    className={cn(
+                      "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:text-sm",
+                      active ? "gadget-chip-active" : "gadget-chip-idle",
+                    )}
+                  >
+                    {t.name}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
         )}
 
         {products.length ? (
@@ -177,13 +194,24 @@ export function GadgetShopCatalog({
             <div className="mt-6 space-y-10">
               {(() => {
                 // Group products by category
-                const groups: Record<string, { name: string; slug: string; products: Product[] }> = {};
+                const groups: Record<
+                  string,
+                  { name: string; slug: string; products: Product[] }
+                > = {};
                 for (const p of products) {
                   const catSlug = p.category || "other";
-                  const matchingType = shopTypes.find((t) => t.slug === catSlug);
-                  const catName = matchingType ? matchingType.name : p.category.replace("-", " ");
+                  const matchingType = shopTypes.find(
+                    (t) => t.slug === catSlug,
+                  );
+                  const catName = matchingType
+                    ? matchingType.name
+                    : p.category.replace("-", " ");
                   if (!groups[catSlug]) {
-                    groups[catSlug] = { name: catName, slug: catSlug, products: [] };
+                    groups[catSlug] = {
+                      name: catName,
+                      slug: catSlug,
+                      products: [],
+                    };
                   }
                   groups[catSlug].products.push(p);
                 }
@@ -195,41 +223,46 @@ export function GadgetShopCatalog({
                       : group.products;
                   const hiddenCount = group.products.length - visible.length;
                   return (
-                  <section key={group.slug} id={`category-${group.slug}`} className="scroll-mt-24">
-                    <div className="mb-3.5 flex items-center justify-between border-b border-[var(--g-line)] pb-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <h2 className="gadget-display text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-xl capitalize">
-                          {group.name}
-                        </h2>
-                        <span className="rounded-full bg-[var(--g-cream-deep)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--g-taupe)]">
-                          {group.products.length} {group.products.length === 1 ? "item" : "items"}
-                        </span>
-                      </div>
-                      <Link
-                        href={categoryHref(group.slug)}
-                        className="text-xs font-semibold text-[var(--g-forest)] transition hover:underline"
-                      >
-                        View all {group.name} →
-                      </Link>
-                    </div>
-                    <ul className="gadget-product-grid">
-                      {visible.map((p) => (
-                        <li key={p._id} className="min-w-0">
-                          <GadgetArrivalCard product={p} isGrid />
-                        </li>
-                      ))}
-                    </ul>
-                    {hiddenCount > 0 ? (
-                      <div className="mt-4 text-center">
+                    <section
+                      key={group.slug}
+                      id={`category-${group.slug}`}
+                      className="scroll-mt-24"
+                    >
+                      <div className="mb-3.5 flex items-center justify-between border-b border-[var(--g-line)] pb-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="gadget-display text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-xl capitalize">
+                            {group.name}
+                          </h2>
+                          <span className="rounded-full bg-[var(--g-cream-deep)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--g-taupe)]">
+                            {group.products.length}{" "}
+                            {group.products.length === 1 ? "item" : "items"}
+                          </span>
+                        </div>
                         <Link
                           href={categoryHref(group.slug)}
-                          className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--g-forest)] hover:underline"
+                          className="text-xs font-semibold text-[var(--g-forest)] transition hover:underline"
                         >
-                          See {hiddenCount} more in {group.name}
+                          View all {group.name} →
                         </Link>
                       </div>
-                    ) : null}
-                  </section>
+                      <ul className="gadget-product-grid">
+                        {visible.map((p) => (
+                          <li key={p._id} className="min-w-0">
+                            <GadgetArrivalCard product={p} isGrid />
+                          </li>
+                        ))}
+                      </ul>
+                      {hiddenCount > 0 ? (
+                        <div className="mt-4 text-center">
+                          <Link
+                            href={categoryHref(group.slug)}
+                            className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--g-forest)] hover:underline"
+                          >
+                            See {hiddenCount} more in {group.name}
+                          </Link>
+                        </div>
+                      ) : null}
+                    </section>
                   );
                 });
               })()}
@@ -238,7 +271,9 @@ export function GadgetShopCatalog({
         ) : (
           <div className="gadget-glass mt-8 rounded-2xl px-6 py-14 text-center">
             <p className="text-[var(--g-taupe)]">
-              {query ? `No products match “${query}”.` : "No products match right now."}
+              {query
+                ? `No products match “${query}”.`
+                : "No products match right now."}
             </p>
             <Link
               href={products2Href()}

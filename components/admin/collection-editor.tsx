@@ -19,7 +19,7 @@ export function CollectionEditor({
 }) {
   const [doc, setDoc] = useState(initial);
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(initial.productIds)
+    () => new Set(initial.productIds),
   );
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,7 +33,7 @@ export function CollectionEditor({
       (p) =>
         p.name.toLowerCase().includes(needle) ||
         p.slug.toLowerCase().includes(needle) ||
-        p.category.toLowerCase().includes(needle)
+        p.category.toLowerCase().includes(needle),
     );
   }, [products, q]);
 
@@ -79,7 +79,10 @@ export function CollectionEditor({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link href="/admin/collections" className="text-sm text-muted-foreground hover:underline">
+          <Link
+            href="/admin/collections"
+            className="text-sm text-muted-foreground hover:underline"
+          >
             ← Collections
           </Link>
           <h1 className="mt-1 text-2xl font-semibold">{doc.name}</h1>
@@ -135,8 +138,8 @@ export function CollectionEditor({
           ))}
         </select>
         <span className="text-xs text-muted-foreground">
-          Feeds that rail’s products. Toggle/reorder the rail itself under Content →
-          Home layout.
+          Feeds that rail’s products. Toggle/reorder the rail itself under
+          Content → Home layout.
         </span>
       </label>
       <p className="text-sm text-muted-foreground">

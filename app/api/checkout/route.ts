@@ -3,9 +3,23 @@ import { NextResponse } from "next/server";
 import { parseAutopilotConfig } from "@/lib/autopilot/config";
 import { fulfillOrderWithPostEx } from "@/lib/autopilot/dispatch-run";
 import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
-import { appendOrderNote, createOrder, enqueueEmailEvent, nextPublicOrderId } from "@/lib/order-store";
-import { fetchSiteSettings, getAllOrders, getOrderByPublicId } from "@/lib/db/store";
-import { resolveCheckout, resolveShippingAndTotal, CHECKOUT_PRICE_CHANGED_ERROR, GIFT_WRAP_FEE } from "@/lib/checkout-server";
+import {
+  appendOrderNote,
+  createOrder,
+  enqueueEmailEvent,
+  nextPublicOrderId,
+} from "@/lib/order-store";
+import {
+  fetchSiteSettings,
+  getAllOrders,
+  getOrderByPublicId,
+} from "@/lib/db/store";
+import {
+  resolveCheckout,
+  resolveShippingAndTotal,
+  CHECKOUT_PRICE_CHANGED_ERROR,
+  GIFT_WRAP_FEE,
+} from "@/lib/checkout-server";
 import { isDemoRequest } from "@/lib/demo";
 import { attachOrderAttribution } from "@/lib/db/analytics-checkout";
 import { orderIsDemo } from "@/lib/db/demo-rules";
@@ -74,7 +88,7 @@ export async function POST(request: Request) {
     if (!items.length) {
       return NextResponse.json(
         { error: "Your cart is empty." },
-        { status: 400 }
+        { status: 400 },
       );
     }
     if (
@@ -86,7 +100,7 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { error: "Name, email, phone, address and city are required." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -94,7 +108,7 @@ export async function POST(request: Request) {
     if (!phone) {
       return NextResponse.json(
         { error: "Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -131,12 +145,16 @@ export async function POST(request: Request) {
     if (payment?.method && payment.method !== "cod") {
       return NextResponse.json(
         { error: "Only Cash on Delivery is available right now." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const demoSession = isDemoRequest(request);
-    const resolution = await resolveCheckout(items, giftWrap === true, demoSession);
+    const resolution = await resolveCheckout(
+      items,
+      giftWrap === true,
+      demoSession,
+    );
 
     // Stock / availability errors and invalid quantities are blocking 400s.
     // A price change is a 409: no order is created and no email is sent.
@@ -151,7 +169,7 @@ export async function POST(request: Request) {
           shipping: resolution.checkout.shipping,
           total: resolution.checkout.total,
         },
-        { status: 409 }
+        { status: 409 },
       );
     }
     if (!resolution.ok) {
@@ -164,14 +182,21 @@ export async function POST(request: Request) {
     try {
       const deals = await listProductDeals();
       dealDiscount = applyDealsToCart(
-        lines.map((line) => ({ slug: line.slug, quantity: line.quantity, price: line.price })),
-        deals
+        lines.map((line) => ({
+          slug: line.slug,
+          quantity: line.quantity,
+          price: line.price,
+        })),
+        deals,
       ).discount;
     } catch (error) {
       console.error("[checkout] deals", error);
       dealDiscount = 0;
     }
-    const merchandise = Math.max(0, Math.round((subtotal - dealDiscount) * 100) / 100);
+    const merchandise = Math.max(
+      0,
+      Math.round((subtotal - dealDiscount) * 100) / 100,
+    );
     const shipped = await resolveShippingAndTotal(merchandise, gift);
     let finalShipping = shipped.shipping;
     let finalTotal = shipped.total;
@@ -185,13 +210,16 @@ export async function POST(request: Request) {
         if (!promo) {
           return NextResponse.json(
             { error: "That promo code is not valid." },
-            { status: 400 }
+            { status: 400 },
           );
         }
         if (promoBlockedByDeal(dealDiscount, promo.type)) {
           return NextResponse.json(
-            { error: "A pair deal is already applied. Percent and rupee codes cannot stack on the same order." },
-            { status: 400 }
+            {
+              error:
+                "A pair deal is already applied. Percent and rupee codes cannot stack on the same order.",
+            },
+            { status: 400 },
           );
         }
         const prior = await countPriorOrdersForEmail(email);
@@ -206,13 +234,18 @@ export async function POST(request: Request) {
         }
         finalShipping = applied.shipping;
         finalTotal = applied.total;
-        discount = Math.round((dealDiscount + (promo.type === "free_shipping" ? 0 : applied.discount)) * 100) / 100;
+        discount =
+          Math.round(
+            (dealDiscount +
+              (promo.type === "free_shipping" ? 0 : applied.discount)) *
+              100,
+          ) / 100;
         appliedPromo = applied.code;
       } catch (error) {
         console.error("[checkout] promo", error);
         return NextResponse.json(
           { error: "Could not apply promo code. Try again without it." },
-          { status: 503 }
+          { status: 503 },
         );
       }
     }
@@ -254,7 +287,7 @@ export async function POST(request: Request) {
     if (!persisted) {
       return NextResponse.json(
         { error: "We couldn't store your order. Please try again." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -304,7 +337,7 @@ export async function POST(request: Request) {
         ...emailPayload,
         email: baseOrder.customer.email,
       },
-      { settingsEmail: settings?.email }
+      { settingsEmail: settings?.email },
     );
     const emailNote = orderEmailFailureNote(emailResult);
     if (emailNote) {
@@ -318,7 +351,7 @@ export async function POST(request: Request) {
       "post-purchase",
       baseOrder.customer.email,
       emailPayload,
-      5 * 24 * 60 * 60 * 1000
+      5 * 24 * 60 * 60 * 1000,
     );
 
     try {
@@ -342,14 +375,19 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Checkout error:", error);
-    if (error instanceof Error && error.message.includes("ATOMIC_BUSINESS_ERROR:")) {
-      const msg = error.message.split("ATOMIC_BUSINESS_ERROR:")[1]?.trim() || "Inventory no longer available.";
+    if (
+      error instanceof Error &&
+      error.message.includes("ATOMIC_BUSINESS_ERROR:")
+    ) {
+      const msg =
+        error.message.split("ATOMIC_BUSINESS_ERROR:")[1]?.trim() ||
+        "Inventory no longer available.";
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     // For ATOMIC_INFRA_ERROR or any other unknown error, we return a generic 500 without leaking DB details
     return NextResponse.json(
       { error: "Something went wrong placing your order." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

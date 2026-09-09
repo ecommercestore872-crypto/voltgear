@@ -32,7 +32,8 @@ function str(v: unknown) {
 
 function fromRow(row?: SettingsRow | null) {
   const d = row?.draft ?? {};
-  const social = (d.socialLinks ?? row?.social_links) as { platform?: string; url?: string }[] | undefined;
+  const social = (d.socialLinks ?? row?.social_links) as
+    { platform?: string; url?: string }[] | undefined;
   return {
     brandName: shouldReplaceBrandName(str(d.brandName ?? row?.brand_name))
       ? SHOPPER_BRAND.spokenName
@@ -43,9 +44,13 @@ function fromRow(row?: SettingsRow | null) {
     phone: str(d.phone ?? row?.phone),
     address: str(d.address ?? row?.address),
     whatsappNumber: str(d.whatsappNumber ?? row?.whatsapp_number),
-    whatsappConfirmFlow: Boolean(d.whatsappConfirmFlow ?? row?.whatsapp_confirm_flow),
+    whatsappConfirmFlow: Boolean(
+      d.whatsappConfirmFlow ?? row?.whatsapp_confirm_flow,
+    ),
     currency: str(d.currency ?? row?.currency),
-    freeShippingThreshold: str(d.freeShippingThreshold ?? row?.free_shipping_threshold),
+    freeShippingThreshold: str(
+      d.freeShippingThreshold ?? row?.free_shipping_threshold,
+    ),
     maxCodAmount: str(d.maxCodAmount ?? row?.max_cod_amount),
     shippingFee: str(d.shippingFee ?? row?.shipping_fee),
     returnPolicy: str(d.returnPolicy ?? row?.return_policy),
@@ -55,42 +60,53 @@ function fromRow(row?: SettingsRow | null) {
     facebook: social?.find((s) => s.platform === "facebook")?.url ?? "",
     announcementEnabled: Boolean(
       (d.announcement as { enabled?: boolean } | undefined)?.enabled ??
-        (row?.announcement as { enabled?: boolean } | undefined)?.enabled
+      (row?.announcement as { enabled?: boolean } | undefined)?.enabled,
     ),
     announcementMessage: str(
       (d.announcement as { message?: string } | undefined)?.message ??
-        (row?.announcement as { message?: string } | undefined)?.message
+        (row?.announcement as { message?: string } | undefined)?.message,
     ),
     announcementCountdownEnabled: Boolean(
-      (d.announcement as { countdownEnabled?: boolean } | undefined)?.countdownEnabled ??
-        (row?.announcement as { countdownEnabled?: boolean } | undefined)?.countdownEnabled
+      (d.announcement as { countdownEnabled?: boolean } | undefined)
+        ?.countdownEnabled ??
+      (row?.announcement as { countdownEnabled?: boolean } | undefined)
+        ?.countdownEnabled,
     ),
     announcementStartsAt: str(
       (d.announcement as { startsAt?: string } | undefined)?.startsAt ??
-        (row?.announcement as { startsAt?: string } | undefined)?.startsAt
+        (row?.announcement as { startsAt?: string } | undefined)?.startsAt,
     ),
     announcementEndsAt: str(
       (d.announcement as { endsAt?: string } | undefined)?.endsAt ??
-        (row?.announcement as { endsAt?: string } | undefined)?.endsAt
+        (row?.announcement as { endsAt?: string } | undefined)?.endsAt,
     ),
-    seoTitle: str((d.seo as { title?: string } | undefined)?.title ?? (row?.seo as { title?: string } | undefined)?.title),
+    seoTitle: str(
+      (d.seo as { title?: string } | undefined)?.title ??
+        (row?.seo as { title?: string } | undefined)?.title,
+    ),
     seoDescription: str(
       (d.seo as { description?: string } | undefined)?.description ??
-        (row?.seo as { description?: string } | undefined)?.description
+        (row?.seo as { description?: string } | undefined)?.description,
     ),
-    navLinks: parseChromeLinks(d.navLinks ?? row?.nav_links) ?? DEFAULT_NAV_LINKS,
-    helpLinks: parseChromeLinks(d.helpLinks ?? row?.help_links) ?? DEFAULT_HELP_LINKS,
+    navLinks:
+      parseChromeLinks(d.navLinks ?? row?.nav_links) ?? DEFAULT_NAV_LINKS,
+    helpLinks:
+      parseChromeLinks(d.helpLinks ?? row?.help_links) ?? DEFAULT_HELP_LINKS,
     footerCompanyLinks:
-      parseChromeLinks(d.footerCompanyLinks ?? row?.footer_company_links) ?? DEFAULT_FOOTER_COMPANY_LINKS,
+      parseChromeLinks(d.footerCompanyLinks ?? row?.footer_company_links) ??
+      DEFAULT_FOOTER_COMPANY_LINKS,
     footerCareLinks:
-      parseChromeLinks(d.footerCareLinks ?? row?.footer_care_links) ?? DEFAULT_FOOTER_CARE_LINKS,
+      parseChromeLinks(d.footerCareLinks ?? row?.footer_care_links) ??
+      DEFAULT_FOOTER_CARE_LINKS,
   };
 }
 
 export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
   const router = useRouter();
   const [form, setForm] = useState(() => fromRow(settings));
-  const [status, setStatus] = useState<PublishStatus>(settings?.status ?? "published");
+  const [status, setStatus] = useState<PublishStatus>(
+    settings?.status ?? "published",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,18 +126,20 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
       whatsappNumber: form.whatsappNumber,
       whatsappConfirmFlow: form.whatsappConfirmFlow,
       currency: form.currency,
-      freeShippingThreshold: form.freeShippingThreshold ? Number(form.freeShippingThreshold) : undefined,
+      freeShippingThreshold: form.freeShippingThreshold
+        ? Number(form.freeShippingThreshold)
+        : undefined,
       maxCodAmount: form.maxCodAmount ? Number(form.maxCodAmount) : undefined,
       shippingFee: form.shippingFee ? Number(form.shippingFee) : undefined,
       returnPolicy: form.returnPolicy,
       warrantyInfo: form.warrantyInfo,
       socialLinks,
-      announcement: { 
-        enabled: form.announcementEnabled, 
+      announcement: {
+        enabled: form.announcementEnabled,
         message: form.announcementMessage,
         countdownEnabled: form.announcementCountdownEnabled,
         startsAt: form.announcementStartsAt || null,
-        endsAt: form.announcementEndsAt || null
+        endsAt: form.announcementEndsAt || null,
       },
       seo: { title: form.seoTitle, description: form.seoDescription },
       navLinks: form.navLinks,
@@ -182,99 +200,144 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
         ).map(([key, label]) => (
           <div key={key} className="space-y-1.5">
             <Label>{label}</Label>
-            <Input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
+            <Input
+              value={form[key]}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, [key]: e.target.value }))
+              }
+            />
           </div>
         ))}
-        
+
         <label className="sm:col-span-2 flex items-center gap-2 p-4 mt-2 rounded-lg border border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors">
           <input
             type="checkbox"
             checked={form.whatsappConfirmFlow}
-            onChange={(e) => setForm((f) => ({ ...f, whatsappConfirmFlow: e.target.checked }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, whatsappConfirmFlow: e.target.checked }))
+            }
             className="h-5 w-5 rounded border-primary accent-primary"
           />
           <div className="flex flex-col">
-            <span className="text-sm font-bold">Require WhatsApp Confirmation for COD Orders</span>
-            <span className="text-xs text-muted-foreground">If enabled, customers will see a huge "Confirm via WhatsApp" deep-link on the thank you page matching your WhatsApp number.</span>
+            <span className="text-sm font-bold">
+              Require WhatsApp Confirmation for COD Orders
+            </span>
+            <span className="text-xs text-muted-foreground">
+              If enabled, customers will see a huge "Confirm via WhatsApp"
+              deep-link on the thank you page matching your WhatsApp number.
+            </span>
           </div>
         </label>
-        
+
         <p className="sm:col-span-2 text-xs text-muted-foreground">
-          New-order alerts go to <code>ORDER_NOTIFY_EMAIL</code> if set, otherwise this contact
-          email. From addresses per job:{" "}
-          <Link href="/admin/email-sending" className="underline underline-offset-2">
+          New-order alerts go to <code>ORDER_NOTIFY_EMAIL</code> if set,
+          otherwise this contact email. From addresses per job:{" "}
+          <Link
+            href="/admin/email-sending"
+            className="underline underline-offset-2"
+          >
             Email sending
           </Link>
           . Letter copy and layout:{" "}
-          <Link href="/admin/order-emails" className="underline underline-offset-2">
+          <Link
+            href="/admin/order-emails"
+            className="underline underline-offset-2"
+          >
             Order emails
           </Link>
           {" · "}
           <Link href="/admin/invoice" className="underline underline-offset-2">
             Invoice PDF
           </Link>
-          . Footer subscribers are under Customers → Newsletter. Empty logo keeps the BNT
-          seal in the navbar and footer. Empty link lists hide that group on the shop.
+          . Footer subscribers are under Customers → Newsletter. Empty logo
+          keeps the BNT seal in the navbar and footer. Empty link lists hide
+          that group on the shop.
         </p>
         <ChromeLinkList
           title="Navbar links"
           hint="Shown next to Shop. Categories stay under Admin → Categories."
           links={form.navLinks}
-          onChange={(navLinks: ChromeLink[]) => setForm((f) => ({ ...f, navLinks }))}
+          onChange={(navLinks: ChromeLink[]) =>
+            setForm((f) => ({ ...f, navLinks }))
+          }
         />
         <ChromeLinkList
           title="Help links"
           links={form.helpLinks}
-          onChange={(helpLinks: ChromeLink[]) => setForm((f) => ({ ...f, helpLinks }))}
+          onChange={(helpLinks: ChromeLink[]) =>
+            setForm((f) => ({ ...f, helpLinks }))
+          }
         />
         <ChromeLinkList
           title="Footer — Company"
           links={form.footerCompanyLinks}
-          onChange={(footerCompanyLinks: ChromeLink[]) => setForm((f) => ({ ...f, footerCompanyLinks }))}
+          onChange={(footerCompanyLinks: ChromeLink[]) =>
+            setForm((f) => ({ ...f, footerCompanyLinks }))
+          }
         />
         <ChromeLinkList
           title="Footer — Care"
           links={form.footerCareLinks}
-          onChange={(footerCareLinks: ChromeLink[]) => setForm((f) => ({ ...f, footerCareLinks }))}
+          onChange={(footerCareLinks: ChromeLink[]) =>
+            setForm((f) => ({ ...f, footerCareLinks }))
+          }
         />
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Address</Label>
-          <Textarea value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
+          <Textarea
+            value={form.address}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, address: e.target.value }))
+            }
+          />
         </div>
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Return policy</Label>
           <Textarea
             value={form.returnPolicy}
-            onChange={(e) => setForm((f) => ({ ...f, returnPolicy: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, returnPolicy: e.target.value }))
+            }
           />
         </div>
         <div className="sm:col-span-2 space-y-1.5">
           <Label>Warranty</Label>
           <Textarea
             value={form.warrantyInfo}
-            onChange={(e) => setForm((f) => ({ ...f, warrantyInfo: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, warrantyInfo: e.target.value }))
+            }
           />
         </div>
         <div className="sm:col-span-2 space-y-1.5">
           <Label>SEO description</Label>
           <Textarea
             value={form.seoDescription}
-            onChange={(e) => setForm((f) => ({ ...f, seoDescription: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, seoDescription: e.target.value }))
+            }
           />
         </div>
         <div className="sm:col-span-2 space-y-4 rounded-lg border p-4 bg-muted/20">
-          <h3 className="font-semibold text-base mb-1">Campaign / Announcement Bar</h3>
-          
+          <h3 className="font-semibold text-base mb-1">
+            Campaign / Announcement Bar
+          </h3>
+
           <label className="flex items-center gap-2 text-sm font-medium">
             <input
               type="checkbox"
               checked={form.announcementEnabled}
-              onChange={(e) => setForm((f) => ({ ...f, announcementEnabled: e.target.checked }))}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  announcementEnabled: e.target.checked,
+                }))
+              }
               className="h-4 w-4 rounded"
             />
             Show announcement bar
           </label>
-          
+
           {form.announcementEnabled && (
             <div className="space-y-4 mt-3">
               <div className="space-y-1.5">
@@ -282,7 +345,12 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
                 <Input
                   placeholder="e.g. Blessed Friday: Up to 50% OFF!"
                   value={form.announcementMessage}
-                  onChange={(e) => setForm((f) => ({ ...f, announcementMessage: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      announcementMessage: e.target.value,
+                    }))
+                  }
                 />
               </div>
 
@@ -291,12 +359,17 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
                   <input
                     type="checkbox"
                     checked={form.announcementCountdownEnabled}
-                    onChange={(e) => setForm((f) => ({ ...f, announcementCountdownEnabled: e.target.checked }))}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        announcementCountdownEnabled: e.target.checked,
+                      }))
+                    }
                     className="h-4 w-4 rounded"
                   />
                   Enable countdown timer
                 </label>
-                
+
                 {form.announcementCountdownEnabled && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
@@ -304,7 +377,12 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
                       <Input
                         type="datetime-local"
                         value={form.announcementStartsAt}
-                        onChange={(e) => setForm((f) => ({ ...f, announcementStartsAt: e.target.value }))}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            announcementStartsAt: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -312,7 +390,12 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
                       <Input
                         type="datetime-local"
                         value={form.announcementEndsAt}
-                        onChange={(e) => setForm((f) => ({ ...f, announcementEndsAt: e.target.value }))}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            announcementEndsAt: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                   </div>

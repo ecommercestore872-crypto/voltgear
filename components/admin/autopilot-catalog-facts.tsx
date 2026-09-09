@@ -25,18 +25,23 @@ export function AutopilotCatalogFacts({
       <div>
         <h1 className="text-2xl font-semibold">Catalog facts</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ad accounts are not connected. Price and units are from your products. There is no ROAS
-          or ad spend here.
+          Ad accounts are not connected. Price and units are from your products.
+          There is no ROAS or ad spend here.
         </p>
         <p className="mt-2 text-sm">
-          <Link href="/admin/autopilot/settings" className="underline underline-offset-2">
+          <Link
+            href="/admin/autopilot/settings"
+            className="underline underline-offset-2"
+          >
             Back to Autopilot
           </Link>
         </p>
       </div>
 
       {products.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No published products yet.</p>
+        <p className="text-sm text-muted-foreground">
+          No published products yet.
+        </p>
       ) : (
         <div className="space-y-2">
           {products.map((p) => (

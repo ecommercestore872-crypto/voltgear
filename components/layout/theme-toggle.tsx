@@ -55,7 +55,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       title={dark ? "Switch to light theme" : "Switch to dark theme"}
       className={cn(
         "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-accent",
-        className
+        className,
       )}
     >
       <Sun className={cn("h-5 w-5", dark ? "block" : "hidden")} />

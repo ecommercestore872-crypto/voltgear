@@ -5,7 +5,11 @@ import { parseAutopilotConfig } from "@/lib/autopilot/config";
 import { runAutoDispatch } from "@/lib/autopilot/dispatch-run";
 import { runAutoRescue } from "@/lib/autopilot/rescue-run";
 import { settleFromCsv } from "@/lib/autopilot/settlement-run";
-import { editorAutopilot, getAdminSettings, publishAdminAutopilot } from "@/lib/db/admin-store";
+import {
+  editorAutopilot,
+  getAdminSettings,
+  publishAdminAutopilot,
+} from "@/lib/db/admin-store";
 import { getAllOrders } from "@/lib/order-store";
 
 export const runtime = "nodejs";
@@ -16,7 +20,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const row = await getAdminSettings();
-  return NextResponse.json({ config: editorAutopilot(row as Record<string, unknown> | null) });
+  return NextResponse.json({
+    config: editorAutopilot(row as Record<string, unknown> | null),
+  });
 }
 
 export async function PATCH(request: Request) {
@@ -25,7 +31,11 @@ export async function PATCH(request: Request) {
   }
   const body = await request.json().catch(() => null);
   const result = await publishAdminAutopilot(parseAutopilotConfig(body ?? {}));
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }
 
@@ -37,7 +47,10 @@ export async function POST(request: Request) {
   if (ct.includes("multipart/form-data")) {
     const form = await request.formData();
     const file = form.get("file");
-    const text = file && typeof file === "object" && "text" in file ? await (file as File).text() : "";
+    const text =
+      file && typeof file === "object" && "text" in file
+        ? await (file as File).text()
+        : "";
     const batch = settleFromCsv(text, await getAllOrders());
     return NextResponse.json({
       ok: true,
@@ -49,7 +62,9 @@ export async function POST(request: Request) {
   }
   const body = await request.json().catch(() => null);
   const action = String(body?.action ?? "");
-  if (action === "dispatch") return NextResponse.json({ ok: true, results: await runAutoDispatch() });
-  if (action === "rescue") return NextResponse.json({ ok: true, results: await runAutoRescue() });
+  if (action === "dispatch")
+    return NextResponse.json({ ok: true, results: await runAutoDispatch() });
+  if (action === "rescue")
+    return NextResponse.json({ ok: true, results: await runAutoRescue() });
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }

@@ -56,7 +56,9 @@ export function GadgetShopFindBar({
   return (
     <div
       className="sticky z-30"
-      style={{ top: "calc(var(--g-header-offset, 3.5rem) + var(--g-safe-top, 0px))" }}
+      style={{
+        top: "calc(var(--g-header-offset, 3.5rem) + var(--g-safe-top, 0px))",
+      }}
     >
       <div className="gadget-glass rounded-2xl px-3 py-3 sm:rounded-[1.35rem] sm:px-4 sm:py-3.5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-5">
@@ -76,7 +78,7 @@ export function GadgetShopFindBar({
                 "group relative flex h-12 items-center rounded-full border bg-[var(--g-white)]/90 transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-[3.15rem]",
                 focused
                   ? "border-[var(--g-forest)]/35 shadow-[0_0_0_4px_rgba(31,54,38,0.08),0_10px_28px_rgba(31,54,38,0.08)]"
-                  : "border-[var(--g-line)] shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] hover:border-[var(--g-forest)]/20"
+                  : "border-[var(--g-line)] shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] hover:border-[var(--g-forest)]/20",
               )}
             >
               <span
@@ -84,7 +86,7 @@ export function GadgetShopFindBar({
                   "pointer-events-none absolute left-3.5 flex h-8 w-8 items-center justify-center rounded-full transition duration-300 sm:left-4",
                   focused
                     ? "bg-[var(--g-forest)] text-[var(--g-white)]"
-                    : "bg-[var(--g-cream-deep)] text-[var(--g-forest)]"
+                    : "bg-[var(--g-cream-deep)] text-[var(--g-forest)]",
                 )}
                 aria-hidden
               >
@@ -128,10 +130,13 @@ export function GadgetShopFindBar({
             <p
               className={cn(
                 "flex items-center gap-1.5 text-[12px] text-[var(--g-taupe)] sm:text-[13px]",
-                pending && "opacity-55"
+                pending && "opacity-55",
               )}
             >
-              <Sparkles className="h-3.5 w-3.5 text-[var(--g-sage)]" aria-hidden />
+              <Sparkles
+                className="h-3.5 w-3.5 text-[var(--g-sage)]"
+                aria-hidden
+              />
               <span>
                 <span className="font-semibold tabular-nums text-[var(--g-charcoal)]">
                   {resultCount}
@@ -140,7 +145,10 @@ export function GadgetShopFindBar({
                 {query ? (
                   <>
                     {" "}
-                    for <span className="font-medium text-[var(--g-charcoal)]">“{query}”</span>
+                    for{" "}
+                    <span className="font-medium text-[var(--g-charcoal)]">
+                      “{query}”
+                    </span>
                   </>
                 ) : null}
               </span>
@@ -166,7 +174,7 @@ export function GadgetShopFindBar({
                     onClick={() => go({ sort: s.id })}
                     className={cn(
                       "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold sm:h-11 sm:px-4",
-                      active ? "gadget-chip-active" : "gadget-chip-idle"
+                      active ? "gadget-chip-active" : "gadget-chip-idle",
                     )}
                   >
                     {s.label}

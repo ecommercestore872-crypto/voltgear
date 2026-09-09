@@ -36,7 +36,9 @@ export function GadgetTrustStrip({
           <div className="shrink-0 text-center lg:text-left">
             <p className="text-sm font-bold text-[var(--g-charcoal)] sm:text-base lg:text-[15px]">
               {headline}{" "}
-              <span className="text-[var(--g-amber-text)] font-extrabold">{accent}</span>
+              <span className="text-[var(--g-amber-text)] font-extrabold">
+                {accent}
+              </span>
             </p>
           </div>
 

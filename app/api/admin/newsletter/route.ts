@@ -18,15 +18,19 @@ export async function GET(request: Request) {
         status: 200,
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": "attachment; filename=newsletter-subscribers.csv",
+          "Content-Disposition":
+            "attachment; filename=newsletter-subscribers.csv",
         },
       });
     }
     return NextResponse.json({ subscribers });
   } catch {
     return NextResponse.json(
-      { error: "Newsletter table is missing. Push migration 20260905010000_newsletter_subscribers.sql." },
-      { status: 503 }
+      {
+        error:
+          "Newsletter table is missing. Push migration 20260905010000_newsletter_subscribers.sql.",
+      },
+      { status: 503 },
     );
   }
 }

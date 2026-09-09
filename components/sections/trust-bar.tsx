@@ -1,6 +1,5 @@
 import { ShieldCheck, Zap, MonitorSmartphone, Lock } from "lucide-react";
 
-
 export function TrustBar() {
   const items = [
     {

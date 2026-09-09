@@ -12,7 +12,7 @@ function BntSealMark({
     <span
       className={cn(
         "shop-brand-shine shrink-0 rounded-full",
-        compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-11 sm:w-11"
+        compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-11 sm:w-11",
       )}
       aria-hidden
     >
@@ -48,14 +48,16 @@ export function BntWordmark({
         <span
           className={cn(
             "h-8 w-px self-center sm:h-9",
-            invert ? "bg-[color-mix(in_srgb,var(--g-cream)_28%,transparent)]" : "bg-[var(--g-line)]"
+            invert
+              ? "bg-[color-mix(in_srgb,var(--g-cream)_28%,transparent)]"
+              : "bg-[var(--g-line)]",
           )}
         />
         <span className="min-w-0">
           <span
             className={cn(
               "bnt-lockup",
-              invert ? "text-[var(--g-cream)]" : "text-[var(--g-forest)]"
+              invert ? "text-[var(--g-cream)]" : "text-[var(--g-forest)]",
             )}
           >
             Buy
@@ -67,7 +69,9 @@ export function BntWordmark({
             <span
               className={cn(
                 "bnt-lockup-tag hidden sm:block",
-                invert ? "text-[color-mix(in_srgb,var(--g-sage)_45%,white)]" : "text-[var(--g-sage)]"
+                invert
+                  ? "text-[color-mix(in_srgb,var(--g-sage)_45%,white)]"
+                  : "text-[var(--g-sage)]",
               )}
             >
               Buy it · Try it

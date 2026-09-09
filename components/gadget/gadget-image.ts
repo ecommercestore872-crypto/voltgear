@@ -5,7 +5,7 @@ import type { Product } from "@/lib/types";
 
 export function gadgetImageSrc(
   product: Pick<Product, "images" | "cloudinaryImages" | "slug" | "category">,
-  w: number
+  w: number,
 ): string | null {
   const studio = gadgetStudioImagesFor(product.slug, product.category);
   if (studio?.[0]) return studio[0];

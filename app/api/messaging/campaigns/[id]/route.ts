@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 /** Admin: full delivery report for a single campaign. */
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

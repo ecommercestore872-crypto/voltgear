@@ -11,10 +11,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production"
+  ) {
     return NextResponse.json(
       { error: "Demo login is disabled in production." },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -23,7 +26,10 @@ export async function POST(request: Request) {
   const password = body?.password ? String(body.password) : "";
 
   if (!isValidDemoLogin(username, password)) {
-    return NextResponse.json({ error: "Invalid username or password." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Invalid username or password." },
+      { status: 401 },
+    );
   }
 
   const res = NextResponse.json({ ok: true });

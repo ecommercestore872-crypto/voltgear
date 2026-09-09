@@ -46,7 +46,10 @@ function Row({ href, children }: { href: string; children: ReactNode }) {
       className="flex min-h-11 items-center justify-between gap-3 border-b px-3 py-2 text-sm last:border-0 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <span className="min-w-0 flex-1">{children}</span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+      <ChevronRight
+        className="h-4 w-4 shrink-0 text-muted-foreground"
+        aria-hidden
+      />
     </Link>
   );
 }
@@ -140,7 +143,9 @@ export function Dashboard({
         <span className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
           <span className="font-medium">{o.orderId}</span>
           <span>{o.customerName || "—"}</span>
-          <span className="text-muted-foreground">{STATUS_LABEL[o.status] ?? o.status}</span>
+          <span className="text-muted-foreground">
+            {STATUS_LABEL[o.status] ?? o.status}
+          </span>
           <span className="tabular-nums">{formatPrice(o.total)}</span>
         </span>
       ),
@@ -246,16 +251,31 @@ export function Dashboard({
       <div>
         <h1 className="text-2xl font-semibold">Home</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          <Link href="/admin/analytics" className="underline-offset-4 hover:underline">
+          <Link
+            href="/admin/analytics"
+            className="underline-offset-4 hover:underline"
+          >
             Analytics
           </Link>{" "}
           shows delivered revenue for a date range. These tiles are today only.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <Tile href="/admin/orders" label="Today’s orders" value={String(snapshot.todayOrderCount)} />
-        <Tile href="/admin/orders" label="Today’s money" value={formatPrice(snapshot.todayRevenue)} />
-        <Tile href="/admin/orders?status=pending" label="Pending" value={String(snapshot.pendingCount)} />
+        <Tile
+          href="/admin/orders"
+          label="Today’s orders"
+          value={String(snapshot.todayOrderCount)}
+        />
+        <Tile
+          href="/admin/orders"
+          label="Today’s money"
+          value={formatPrice(snapshot.todayRevenue)}
+        />
+        <Tile
+          href="/admin/orders?status=pending"
+          label="Pending"
+          value={String(snapshot.pendingCount)}
+        />
         <Tile
           href="/admin/orders?status=delivered"
           label="Delivered today"
@@ -289,7 +309,7 @@ export function Dashboard({
                 <Row key={row.key} href={row.href}>
                   {row.body}
                 </Row>
-              )
+              ),
             )}
           </div>
         </section>

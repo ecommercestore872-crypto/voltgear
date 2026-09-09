@@ -53,21 +53,25 @@ export function GadgetBuyBox({
   const { addItem, openCart } = useCart();
   const axesOn = axesEnabled(product);
   const [colorKey, setColorKey] = useState<string | null>(() =>
-    initialAxisSelection(product.colorOptions)
+    initialAxisSelection(product.colorOptions),
   );
   const [sizeKey, setSizeKey] = useState<string | null>(() =>
-    initialAxisSelection(product.sizeOptions)
+    initialAxisSelection(product.sizeOptions),
   );
-  const [legacyVariant, setLegacyVariant] = useState<ProductVariant | null>(() =>
-    axesOn ? null : defaultVariant(product)
+  const [legacyVariant, setLegacyVariant] = useState<ProductVariant | null>(
+    () => (axesOn ? null : defaultVariant(product)),
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const [selectedAddonKeys, setSelectedAddonKeys] = useState<Set<number>>(new Set());
+  const [selectedAddonKeys, setSelectedAddonKeys] = useState<Set<number>>(
+    new Set(),
+  );
   const btnRef = useRef<HTMLButtonElement>(null);
-  const selectedKey = axesOn ? comboVariantKey(colorKey, sizeKey) : legacyVariant?._key;
+  const selectedKey = axesOn
+    ? comboVariantKey(colorKey, sizeKey)
+    : legacyVariant?._key;
   const variant = axesOn
-    ? (product.variants ?? []).find((v) => v._key === selectedKey) ?? null
+    ? ((product.variants ?? []).find((v) => v._key === selectedKey) ?? null)
     : legacyVariant;
   const hasVariants = (product.variants?.length ?? 0) > 0;
   const selectionReady = axesOn
@@ -75,16 +79,21 @@ export function GadgetBuyBox({
     : !hasVariants || Boolean(variant);
   const stock = getVariantStockState(product, variant);
   const outOfStock = stock.soldOut;
-  const price = axesOn ? product.price : variant?.price ?? product.price;
+  const price = axesOn ? product.price : (variant?.price ?? product.price);
   const compareAtPrice = axesOn
     ? product.compareAtPrice
-    : variant?.compareAtPrice ?? product.compareAtPrice;
-  const colorPhoto = axesOn ? colorImageForKey(product.colorOptions, colorKey) : variant?.image;
+    : (variant?.compareAtPrice ?? product.compareAtPrice);
+  const colorPhoto = axesOn
+    ? colorImageForKey(product.colorOptions, colorKey)
+    : variant?.image;
   const off = salePercent(price, compareAtPrice);
-  const activeAddons = (product.addons ?? []).filter((_, i) => selectedAddonKeys.has(i));
+  const activeAddons = (product.addons ?? []).filter((_, i) =>
+    selectedAddonKeys.has(i),
+  );
   const addonTotal = activeAddons.reduce((sum, a) => sum + (a.price ?? 0), 0);
   const displayPrice = price + addonTotal;
-  const rating = product.rating != null && product.rating > 0 ? product.rating : 4.8;
+  const rating =
+    product.rating != null && product.rating > 0 ? product.rating : 4.8;
   const reviewCount = product.reviewCount ?? 0;
   const threshold = Number(config.freeShippingThreshold ?? 0);
   const itemImage = colorPhoto
@@ -132,7 +141,7 @@ export function GadgetBuyBox({
             }
           : {}),
       },
-      quantity
+      quantity,
     );
     trackAddToCart({
       item_id: product.slug,
@@ -167,7 +176,10 @@ export function GadgetBuyBox({
           </h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1" aria-label={`Rated ${rating.toFixed(1)} of 5`}>
+            <div
+              className="flex items-center gap-1"
+              aria-label={`Rated ${rating.toFixed(1)} of 5`}
+            >
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
@@ -183,9 +195,13 @@ export function GadgetBuyBox({
               </span>
             </div>
             {reviewCount > 0 ? (
-              <span className="text-sm text-[var(--g-taupe)]">{reviewCount} reviews</span>
+              <span className="text-sm text-[var(--g-taupe)]">
+                {reviewCount} reviews
+              </span>
             ) : (
-              <span className="text-sm text-[var(--g-taupe)]">Trusted by buyers</span>
+              <span className="text-sm text-[var(--g-taupe)]">
+                Trusted by buyers
+              </span>
             )}
           </div>
 
@@ -220,54 +236,58 @@ export function GadgetBuyBox({
                 ? "text-[var(--g-taupe)]"
                 : stock.status === "low-stock"
                   ? "text-amber-700"
-                  : "text-[var(--g-forest)]"
+                  : "text-[var(--g-forest)]",
             )}
           >
             {stock.label}
-            {stock.status === "low-stock" && !outOfStock ? " — order soon" : null}
+            {stock.status === "low-stock" && !outOfStock
+              ? " — order soon"
+              : null}
           </p>
 
           <div id="gadget-buy-options">
-          {axesOn ? (
-            <VariantAxisPickers
-              colorEnabled={product.colorEnabled}
-              sizeEnabled={product.sizeEnabled}
-              colorOptions={product.colorOptions}
-              sizeOptions={product.sizeOptions}
-              colorKey={colorKey}
-              sizeKey={sizeKey}
-              onColorKey={setColorKey}
-              onSizeKey={setSizeKey}
-            />
-          ) : hasVariants ? (
-            <fieldset className="mt-6">
-              <legend className="mb-2 text-sm font-semibold text-[var(--g-charcoal)]">Choose option</legend>
-              <div className="flex flex-wrap gap-2">
-                {product.variants!.map((v) => {
-                  const selected = variant?._key === v._key;
-                  const sold = getVariantStockState(product, v).soldOut;
-                  return (
-                    <button
-                      key={v._key ?? v.name}
-                      type="button"
-                      disabled={sold}
-                      aria-pressed={selected}
-                      onClick={() => setLegacyVariant(v)}
-                      className={cn(
-                        "min-h-11 rounded-full border px-4 text-sm font-semibold transition",
-                        selected
-                          ? "border-[var(--g-forest)] bg-[var(--g-forest)] text-[var(--g-white)]"
-                          : "border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] hover:border-[var(--g-forest)]",
-                        sold && "cursor-not-allowed line-through opacity-40"
-                      )}
-                    >
-                      {v.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          ) : null}
+            {axesOn ? (
+              <VariantAxisPickers
+                colorEnabled={product.colorEnabled}
+                sizeEnabled={product.sizeEnabled}
+                colorOptions={product.colorOptions}
+                sizeOptions={product.sizeOptions}
+                colorKey={colorKey}
+                sizeKey={sizeKey}
+                onColorKey={setColorKey}
+                onSizeKey={setSizeKey}
+              />
+            ) : hasVariants ? (
+              <fieldset className="mt-6">
+                <legend className="mb-2 text-sm font-semibold text-[var(--g-charcoal)]">
+                  Choose option
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants!.map((v) => {
+                    const selected = variant?._key === v._key;
+                    const sold = getVariantStockState(product, v).soldOut;
+                    return (
+                      <button
+                        key={v._key ?? v.name}
+                        type="button"
+                        disabled={sold}
+                        aria-pressed={selected}
+                        onClick={() => setLegacyVariant(v)}
+                        className={cn(
+                          "min-h-11 rounded-full border px-4 text-sm font-semibold transition",
+                          selected
+                            ? "border-[var(--g-forest)] bg-[var(--g-forest)] text-[var(--g-white)]"
+                            : "border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] hover:border-[var(--g-forest)]",
+                          sold && "cursor-not-allowed line-through opacity-40",
+                        )}
+                      >
+                        {v.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ) : null}
           </div>
 
           {/* ── Optional Add-ons upsell ─────────────────────────────── */}
@@ -304,7 +324,9 @@ export function GadgetBuyBox({
                           ) : null}
                         </div>
                         {addon.description ? (
-                          <p className="mt-0.5 text-xs text-[var(--g-taupe)]">{addon.description}</p>
+                          <p className="mt-0.5 text-xs text-[var(--g-taupe)]">
+                            {addon.description}
+                          </p>
                         ) : null}
                       </div>
                       {/* Toggle pills */}
@@ -323,7 +345,7 @@ export function GadgetBuyBox({
                             "px-3 py-1.5 transition-colors",
                             !selected
                               ? "bg-[var(--g-charcoal)] text-[var(--g-cream)]"
-                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]"
+                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]",
                           )}
                         >
                           No thanks
@@ -332,13 +354,15 @@ export function GadgetBuyBox({
                           type="button"
                           aria-pressed={selected}
                           onClick={() =>
-                            setSelectedAddonKeys((prev) => new Set(Array.from(prev).concat(idx)))
+                            setSelectedAddonKeys(
+                              (prev) => new Set(Array.from(prev).concat(idx)),
+                            )
                           }
                           className={cn(
                             "px-3 py-1.5 transition-colors",
                             selected
                               ? "bg-[var(--g-forest)] text-[var(--g-cream)]"
-                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]"
+                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]",
                           )}
                         >
                           Add +{formatPrice(addon.price)}
@@ -362,7 +386,9 @@ export function GadgetBuyBox({
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="w-8 text-center font-bold tabular-nums">{quantity}</span>
+                <span className="w-8 text-center font-bold tabular-nums">
+                  {quantity}
+                </span>
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.min(99, q + 1))}
@@ -387,7 +413,11 @@ export function GadgetBuyBox({
               ) : (
                 <>
                   <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
-                  {outOfStock ? "Sold out" : !selectionReady ? "Choose options" : "Buy now"}
+                  {outOfStock
+                    ? "Sold out"
+                    : !selectionReady
+                      ? "Choose options"
+                      : "Buy now"}
                 </>
               )}
             </button>
@@ -397,8 +427,12 @@ export function GadgetBuyBox({
             <p className="mt-2 text-center text-xs text-[var(--g-taupe)] sm:text-left">
               {[
                 config.codEnabled ? "Cash on delivery" : null,
-                config.warrantyMonths ? warrantyLabel(config.warrantyMonths) : null,
-                threshold > 0 ? `Free shipping over ${formatPrice(threshold)}` : null,
+                config.warrantyMonths
+                  ? warrantyLabel(config.warrantyMonths)
+                  : null,
+                threshold > 0
+                  ? `Free shipping over ${formatPrice(threshold)}`
+                  : null,
               ]
                 .filter(Boolean)
                 .join(" · ") || "Secure checkout · Confirmation by SMS"}
@@ -408,30 +442,52 @@ export function GadgetBuyBox({
           <ul className="mt-6 grid gap-2 sm:grid-cols-2">
             {config.codEnabled ? (
               <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-                <Banknote className="h-4 w-4 shrink-0 text-[var(--g-forest)]" strokeWidth={1.75} aria-hidden />
+                <Banknote
+                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
                 Cash on delivery
               </li>
             ) : null}
             <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-              <Truck className="h-4 w-4 shrink-0 text-[var(--g-forest)]" strokeWidth={1.75} aria-hidden />
-              {threshold > 0 ? `Free shipping over ${formatPrice(threshold)}` : "Nationwide delivery"}
+              <Truck
+                className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+              {threshold > 0
+                ? `Free shipping over ${formatPrice(threshold)}`
+                : "Nationwide delivery"}
             </li>
             {config.warrantyMonths ? (
               <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-[var(--g-forest)]" strokeWidth={1.75} aria-hidden />
+                <ShieldCheck
+                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
                 {warrantyLabel(config.warrantyMonths)}
               </li>
             ) : null}
             {config.returnWindowDays ? (
               <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-                <RefreshCw className="h-4 w-4 shrink-0 text-[var(--g-forest)]" strokeWidth={1.75} aria-hidden />
+                <RefreshCw
+                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
                 {config.returnWindowDays}-day returns
               </li>
             ) : null}
           </ul>
 
           <p className="mt-4 flex items-start gap-2 text-sm text-[var(--g-taupe)]">
-            <Package className="mt-0.5 h-4 w-4 shrink-0 text-[var(--g-sage)]" strokeWidth={1.75} aria-hidden />
+            <Package
+              className="mt-0.5 h-4 w-4 shrink-0 text-[var(--g-sage)]"
+              strokeWidth={1.75}
+              aria-hidden
+            />
             Secure checkout · Order confirmation by SMS
           </p>
         </div>
@@ -442,8 +498,14 @@ export function GadgetBuyBox({
         <div className="gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] dark:border-border bg-[var(--g-cream)]/95 dark:bg-background/95 px-4 pt-3 backdrop-blur-md lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-[var(--g-charcoal)] dark:text-foreground">{formatPrice(price)}</p>
-              {off ? <p className="text-[11px] font-semibold text-[var(--g-forest)] dark:text-primary">{off}% off</p> : null}
+              <p className="truncate text-sm font-bold text-[var(--g-charcoal)] dark:text-foreground">
+                {formatPrice(price)}
+              </p>
+              {off ? (
+                <p className="text-[11px] font-semibold text-[var(--g-forest)] dark:text-primary">
+                  {off}% off
+                </p>
+              ) : null}
             </div>
             <button
               type="button"

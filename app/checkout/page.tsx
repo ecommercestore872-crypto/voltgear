@@ -86,7 +86,7 @@ function SummaryPriceRow({
           "min-w-0 break-words",
           tone === "deal" && "font-semibold text-[var(--g-sage)]",
           tone === "muted" && "text-muted-foreground",
-          tone === "strong" && "font-semibold text-foreground"
+          tone === "strong" && "font-semibold text-foreground",
         )}
       >
         {label}
@@ -96,7 +96,7 @@ function SummaryPriceRow({
           "shrink-0 text-right tabular-nums",
           tone === "deal" && "font-semibold text-[var(--g-sage)]",
           tone === "muted" && "font-semibold text-foreground",
-          tone === "strong" && "font-bold text-foreground"
+          tone === "strong" && "font-bold text-foreground",
         )}
       >
         {value}
@@ -140,11 +140,13 @@ export default function CheckoutPage() {
   const config = useSiteConfig();
   const [gadget, setGadget] = useState(false);
   const shopHref = gadget ? products2Href() : "/products";
-  const productHref = (slug: string) => (gadget ? product2Href(slug) : `/product/${slug}`);
+  const productHref = (slug: string) =>
+    gadget ? product2Href(slug) : `/product/${slug}`;
 
   useEffect(() => {
     try {
-      const fromGadget = new URLSearchParams(window.location.search).get("from") === "gadget";
+      const fromGadget =
+        new URLSearchParams(window.location.search).get("from") === "gadget";
       if (fromGadget) sessionStorage.setItem(GADGET_SESSION_KEY, "1");
       setGadget(fromGadget || readGadgetPreviewSession());
     } catch {
@@ -177,33 +179,50 @@ export default function CheckoutPage() {
   const [customer, setCustomer] = useState<Record<string, string>>({});
   const [giftWrap, setGiftWrap] = useState(false);
   const [promoInput, setPromoInput] = useState("");
-  const [activePromo, setActivePromo] = useState<{ code: string; discount: number; shipping: number; error?: string; loading?: boolean } | null>(null);
-  const [priceChanged, setPriceChanged] = useState<
-    | {
-        items: PriceMismatch[];
-        subtotal: number;
-        shipping: number;
-        total: number;
-      }
-    | null
-  >(null);
+  const [activePromo, setActivePromo] = useState<{
+    code: string;
+    discount: number;
+    shipping: number;
+    error?: string;
+    loading?: boolean;
+  } | null>(null);
+  const [priceChanged, setPriceChanged] = useState<{
+    items: PriceMismatch[];
+    subtotal: number;
+    shipping: number;
+    total: number;
+  } | null>(null);
   const idempotencyKeyRef = useRef(
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
-      : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 
   const GIFT_WRAP_FEE = 199;
-  
-  const baseShipping = merchandise === 0 || merchandise >= config.freeShippingThreshold ? 0 : config.shippingFee;
+
+  const baseShipping =
+    merchandise === 0 || merchandise >= config.freeShippingThreshold
+      ? 0
+      : config.shippingFee;
   const promoStacks = !(dealDiscount > 0);
-  const shipping = promoStacks && activePromo && !activePromo.error ? activePromo.shipping : baseShipping;
-  const appliedDiscount = promoStacks && activePromo && !activePromo.error ? activePromo.discount : 0;
-  const subDiscount = (promoStacks && activePromo && !activePromo.error && activePromo.shipping === baseShipping) ? appliedDiscount : 0;
-  
-  const total = merchandise + shipping + (giftWrap ? GIFT_WRAP_FEE : 0) - subDiscount;
+  const shipping =
+    promoStacks && activePromo && !activePromo.error
+      ? activePromo.shipping
+      : baseShipping;
+  const appliedDiscount =
+    promoStacks && activePromo && !activePromo.error ? activePromo.discount : 0;
+  const subDiscount =
+    promoStacks &&
+    activePromo &&
+    !activePromo.error &&
+    activePromo.shipping === baseShipping
+      ? appliedDiscount
+      : 0;
+
+  const total =
+    merchandise + shipping + (giftWrap ? GIFT_WRAP_FEE : 0) - subDiscount;
   const hasPromo = promoStacks && !!activePromo && !activePromo.error;
-  
+
   // Advance Payment Risk Mitigation
   const requiresAdvance = config.maxCodAmount && total > config.maxCodAmount;
 
@@ -212,8 +231,13 @@ export default function CheckoutPage() {
       setActivePromo(null);
       return;
     }
-    setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, loading: true });
-    
+    setActivePromo({
+      code: promoInput.trim(),
+      discount: 0,
+      shipping: baseShipping,
+      loading: true,
+    });
+
     try {
       const res = await fetch("/api/promo/validate", {
         method: "POST",
@@ -227,20 +251,38 @@ export default function CheckoutPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, error: data.error || "Invalid promo code" });
-      } else if (dealDiscount > 0 && (data.type === "percent" || data.type === "fixed")) {
         setActivePromo({
           code: promoInput.trim(),
           discount: 0,
           shipping: baseShipping,
-          error: "A pair deal is already applied. Percent and rupee codes cannot stack.",
+          error: data.error || "Invalid promo code",
+        });
+      } else if (
+        dealDiscount > 0 &&
+        (data.type === "percent" || data.type === "fixed")
+      ) {
+        setActivePromo({
+          code: promoInput.trim(),
+          discount: 0,
+          shipping: baseShipping,
+          error:
+            "A pair deal is already applied. Percent and rupee codes cannot stack.",
         });
       } else {
-        setActivePromo({ code: data.code, discount: data.discount, shipping: data.shipping });
+        setActivePromo({
+          code: data.code,
+          discount: data.discount,
+          shipping: data.shipping,
+        });
         setPromoInput("");
       }
     } catch {
-      setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, error: "Network error" });
+      setActivePromo({
+        code: promoInput.trim(),
+        discount: 0,
+        shipping: baseShipping,
+        error: "Network error",
+      });
     }
   }
 
@@ -259,7 +301,7 @@ export default function CheckoutPage() {
     setPlacing(true);
     setPriceChanged(null);
 
-    // If order notes provided, we could technically pass it to API, 
+    // If order notes provided, we could technically pass it to API,
     // but preserving standard contract here:
     try {
       const res = await fetch("/api/checkout", {
@@ -290,7 +332,9 @@ export default function CheckoutPage() {
           giftWrap,
           giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
           idempotencyKey: idempotencyKeyRef.current,
-          ...(activePromo?.code && !activePromo.error ? { promoCode: activePromo.code } : {}),
+          ...(activePromo?.code && !activePromo.error
+            ? { promoCode: activePromo.code }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -305,7 +349,7 @@ export default function CheckoutPage() {
         for (const line of data.lines ?? []) {
           updateItemPrice(
             line.variantKey ? `${line.slug}::${line.variantKey}` : line.slug,
-            line.price
+            line.price,
           );
         }
         setPriceChanged({
@@ -320,7 +364,7 @@ export default function CheckoutPage() {
       if (!res.ok) {
         const category = checkoutValidationCategoryFromHttp(
           res.status,
-          typeof data.error === "string" ? data.error : undefined
+          typeof data.error === "string" ? data.error : undefined,
         );
         if (category) {
           trackFirstParty({
@@ -371,7 +415,9 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Something went wrong placing your order. Please try again.";
+        error instanceof Error
+          ? error.message
+          : "Something went wrong placing your order. Please try again.";
       alert(message);
     } finally {
       setPlacing(false);
@@ -439,22 +485,22 @@ export default function CheckoutPage() {
       return;
     }
     try {
-        trackTikTokInitiateCheckout(
-          items.map((i) => ({
-            slug: i.slug,
-            name: i.name,
-            price: i.price,
-            quantity: i.quantity,
-            ...(i.sku ? { sku: i.sku } : {}),
-            ...(i.variantSku ? { variantSku: i.variantSku } : {}),
-            ...(i.variantKey ? { variantKey: i.variantKey } : {}),
-          })),
-          total,
-          {
-            dealQuoteReady: dealQuote.ready,
-            promoLoading: Boolean(activePromo?.loading),
-          }
-        );
+      trackTikTokInitiateCheckout(
+        items.map((i) => ({
+          slug: i.slug,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          ...(i.sku ? { sku: i.sku } : {}),
+          ...(i.variantSku ? { variantSku: i.variantSku } : {}),
+          ...(i.variantKey ? { variantKey: i.variantKey } : {}),
+        })),
+        total,
+        {
+          dealQuoteReady: dealQuote.ready,
+          promoLoading: Boolean(activePromo?.loading),
+        },
+      );
     } catch {
       // fail-open
     }
@@ -498,7 +544,9 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-[var(--g-cream)] pt-16 flex flex-col items-center justify-start text-[var(--g-charcoal)]">
         <Loader2 className="w-10 h-10 animate-spin text-[var(--g-forest)] mb-4" />
-        <p className="text-sm font-semibold animate-pulse">Taking you to your order...</p>
+        <p className="text-sm font-semibold animate-pulse">
+          Taking you to your order...
+        </p>
       </div>
     );
   }
@@ -527,12 +575,12 @@ export default function CheckoutPage() {
     <div className="min-h-screen overflow-x-clip bg-[var(--g-cream)] font-sans">
       <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)] py-6 sm:py-10">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
-           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)] mb-2">
-             Checkout
-           </p>
-           <h1 className="gadget-display text-2xl tracking-tight text-[var(--g-charcoal)] sm:text-3xl lg:text-4xl">
-             Complete your order
-           </h1>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)] mb-2">
+            Checkout
+          </p>
+          <h1 className="gadget-display text-2xl tracking-tight text-[var(--g-charcoal)] sm:text-3xl lg:text-4xl">
+            Complete your order
+          </h1>
         </div>
       </div>
 
@@ -565,12 +613,16 @@ export default function CheckoutPage() {
         <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8">
           {/* ── Left Content Column ─────────────────────────────────────────── */}
           <div className="flex flex-col gap-6">
-            
             {step === 0 && (
               <section>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="text-xl font-bold tracking-tight">Your Cart</h2>
-                  <Link href="/products" className="text-sm font-bold text-primary hover:underline">
+                  <h2 className="text-xl font-bold tracking-tight">
+                    Your Cart
+                  </h2>
+                  <Link
+                    href="/products"
+                    className="text-sm font-bold text-primary hover:underline"
+                  >
                     Continue Shopping
                   </Link>
                 </div>
@@ -613,19 +665,28 @@ export default function CheckoutPage() {
                               <div className="flex items-center gap-2 rounded-lg border border-border/80 px-2 py-1 bg-white">
                                 <button
                                   onClick={() =>
-                                    updateQuantity(cartLineKey(item), item.quantity - 1)
+                                    updateQuantity(
+                                      cartLineKey(item),
+                                      item.quantity - 1,
+                                    )
                                   }
                                   aria-label="Decrease quantity"
                                   className="p-1 text-muted-foreground hover:text-foreground focus:ring-2 focus:ring-primary rounded"
                                 >
                                   <Minus className="h-3.5 w-3.5" />
                                 </button>
-                                <span className="w-8 text-center text-sm font-bold text-foreground" aria-live="polite">
+                                <span
+                                  className="w-8 text-center text-sm font-bold text-foreground"
+                                  aria-live="polite"
+                                >
                                   {item.quantity}
                                 </span>
                                 <button
                                   onClick={() =>
-                                    updateQuantity(cartLineKey(item), item.quantity + 1)
+                                    updateQuantity(
+                                      cartLineKey(item),
+                                      item.quantity + 1,
+                                    )
                                   }
                                   aria-label="Increase quantity"
                                   className="p-1 text-muted-foreground hover:text-foreground focus:ring-2 focus:ring-primary rounded"
@@ -647,9 +708,13 @@ export default function CheckoutPage() {
                     ))}
                   </ul>
                 </div>
-                
+
                 <div className="mt-6 flex justify-end">
-                  <Button size="lg" className="w-full sm:w-auto px-8" onClick={() => nextStep(1)}>
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto px-8"
+                    onClick={() => nextStep(1)}
+                  >
                     Checkout <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -659,7 +724,9 @@ export default function CheckoutPage() {
             {step === 1 && (
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold tracking-tight">Delivery Details</h2>
+                  <h2 className="text-xl font-bold tracking-tight">
+                    Delivery Details
+                  </h2>
                 </div>
                 <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6 lg:p-8">
                   <form
@@ -671,13 +738,16 @@ export default function CheckoutPage() {
                         !(target instanceof HTMLInputElement) &&
                         !(target instanceof HTMLSelectElement) &&
                         !(target instanceof HTMLTextAreaElement)
-                      ) return;
+                      )
+                        return;
                       trackFirstParty({
                         name: "checkout_validation_error",
                         path: "/checkout",
                         page_type: "checkout",
                         properties: {
-                          category: validationCategoryFromFieldName(target.name),
+                          category: validationCategoryFromFieldName(
+                            target.name,
+                          ),
                         },
                       });
                     }}
@@ -685,18 +755,29 @@ export default function CheckoutPage() {
                       e.preventDefault();
                       setCustomer(
                         Object.fromEntries(
-                          new FormData(e.currentTarget)
-                        ) as Record<string, string>
+                          new FormData(e.currentTarget),
+                        ) as Record<string, string>,
                       );
                       nextStep(2); // Move directly to Review step
                     }}
                   >
                     <div className="min-w-0 space-y-2">
-                      <Label htmlFor="name" className="text-sm font-bold">Full Name *</Label>
-                      <Input id="name" name="name" required autoComplete="name" placeholder="John Doe" defaultValue={customer.name} />
+                      <Label htmlFor="name" className="text-sm font-bold">
+                        Full Name *
+                      </Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        required
+                        autoComplete="name"
+                        placeholder="John Doe"
+                        defaultValue={customer.name}
+                      />
                     </div>
                     <div className="min-w-0 space-y-2">
-                      <Label htmlFor="email" className="text-sm font-bold">Email Address *</Label>
+                      <Label htmlFor="email" className="text-sm font-bold">
+                        Email Address *
+                      </Label>
                       <Input
                         id="email"
                         name="email"
@@ -708,7 +789,9 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="min-w-0 space-y-2 sm:col-span-2">
-                      <Label htmlFor="phone" className="text-sm font-bold">Phone Number *</Label>
+                      <Label htmlFor="phone" className="text-sm font-bold">
+                        Phone Number *
+                      </Label>
                       <Input
                         id="phone"
                         name="phone"
@@ -721,21 +804,23 @@ export default function CheckoutPage() {
                           let val = e.target.value.replace(/[^\d+]/g, "");
                           if (val.startsWith("03")) val = "+92" + val.slice(1);
                           else if (val.startsWith("3")) val = "+92" + val;
-                          
+
                           if (val.startsWith("+92")) {
-                             const local = val.slice(3).replace(/\D/g, "");
-                             if (local.length > 3) {
-                               val = `+92 ${local.slice(0,3)} ${local.slice(3,10)}`;
-                             } else if (local.length > 0) {
-                               val = `+92 ${local}`;
-                             }
+                            const local = val.slice(3).replace(/\D/g, "");
+                            if (local.length > 3) {
+                              val = `+92 ${local.slice(0, 3)} ${local.slice(3, 10)}`;
+                            } else if (local.length > 0) {
+                              val = `+92 ${local}`;
+                            }
                           }
                           e.target.value = val;
                         }}
                       />
                     </div>
                     <div className="min-w-0 space-y-2 sm:col-span-2">
-                      <Label htmlFor="address" className="text-sm font-bold">Street Address *</Label>
+                      <Label htmlFor="address" className="text-sm font-bold">
+                        Street Address *
+                      </Label>
                       <Input
                         id="address"
                         name="address"
@@ -746,11 +831,21 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="min-w-0 space-y-2">
-                      <Label htmlFor="city" className="text-sm font-bold">City *</Label>
-                      <Input id="city" name="city" required autoComplete="address-level2" defaultValue={customer.city} />
+                      <Label htmlFor="city" className="text-sm font-bold">
+                        City *
+                      </Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        required
+                        autoComplete="address-level2"
+                        defaultValue={customer.city}
+                      />
                     </div>
                     <div className="min-w-0 space-y-2">
-                      <Label htmlFor="postal" className="text-sm font-bold">Postal Code</Label>
+                      <Label htmlFor="postal" className="text-sm font-bold">
+                        Postal Code
+                      </Label>
                       <Input
                         id="postal"
                         name="postal"
@@ -761,12 +856,22 @@ export default function CheckoutPage() {
                     </div>
                   </form>
                 </div>
-                
+
                 <div className="mt-6 flex flex-col-reverse gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
-                  <Button type="button" variant="ghost" className="h-11 w-full sm:w-auto" onClick={() => setStep(0)}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-full sm:w-auto"
+                    onClick={() => setStep(0)}
+                  >
                     <ChevronLeft className="mr-1 h-4 w-4" /> Back to Cart
                   </Button>
-                  <Button size="lg" form="details-form" type="submit" className="h-12 w-full px-6 sm:w-auto sm:px-8">
+                  <Button
+                    size="lg"
+                    form="details-form"
+                    type="submit"
+                    className="h-12 w-full px-6 sm:w-auto sm:px-8"
+                  >
                     Continue to Review <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -775,23 +880,34 @@ export default function CheckoutPage() {
 
             {step === 2 && (
               <section className="flex flex-col gap-6">
-                
                 {/* 1. Shipping Information Card */}
                 <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
-                     <h3 className="font-bold text-foreground text-[15px]">Shipping Information</h3>
-                     <button onClick={() => setStep(1)} className="text-xs font-bold text-primary hover:underline">Edit</button>
+                    <h3 className="font-bold text-foreground text-[15px]">
+                      Shipping Information
+                    </h3>
+                    <button
+                      onClick={() => setStep(1)}
+                      className="text-xs font-bold text-primary hover:underline"
+                    >
+                      Edit
+                    </button>
                   </div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 break-words text-sm text-foreground/80 space-y-1">
-                       <p className="font-bold text-foreground">{customer.name || "N/A"}</p>
-                       <p>{customer.phone}</p>
-                       <p>{customer.email}</p>
-                       <div className="mt-3">
-                         <p>{customer.address}</p>
-                         <p>{customer.city}{customer.postal ? `, ${customer.postal}` : ""}</p>
-                         <p>Pakistan</p>
-                       </div>
+                      <p className="font-bold text-foreground">
+                        {customer.name || "N/A"}
+                      </p>
+                      <p>{customer.phone}</p>
+                      <p>{customer.email}</p>
+                      <div className="mt-3">
+                        <p>{customer.address}</p>
+                        <p>
+                          {customer.city}
+                          {customer.postal ? `, ${customer.postal}` : ""}
+                        </p>
+                        <p>Pakistan</p>
+                      </div>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <MapPin className="h-5 w-5 text-primary" />
@@ -802,30 +918,46 @@ export default function CheckoutPage() {
                 {/* 2. Shipping Method Card */}
                 <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
-                     <h3 className="font-bold text-foreground text-[15px]">Shipping Method</h3>
-                     <button className="text-xs font-bold text-primary hover:underline">Edit</button>
+                    <h3 className="font-bold text-foreground text-[15px]">
+                      Shipping Method
+                    </h3>
+                    <button className="text-xs font-bold text-primary hover:underline">
+                      Edit
+                    </button>
                   </div>
                   <label className="flex cursor-default items-start gap-3 rounded-lg border border-primary bg-primary/5 p-3 sm:items-center sm:gap-4 sm:p-4">
-                      <div className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground sm:mt-0">
-                         <Check className="h-3 w-3" strokeWidth={3} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                         <p className="text-[13px] font-bold text-foreground">Standard Delivery (2-4 Working Days)</p>
-                         <p className="mt-0.5 text-xs text-muted-foreground">Free on orders over PKR {config.freeShippingThreshold.toLocaleString()}</p>
-                      </div>
-                      <span className="shrink-0 text-[13px] font-bold text-foreground">
-                        {shippingLabel || "PKR 0"}
-                      </span>
+                    <div className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground sm:mt-0">
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-foreground">
+                        Standard Delivery (2-4 Working Days)
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Free on orders over PKR{" "}
+                        {config.freeShippingThreshold.toLocaleString()}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[13px] font-bold text-foreground">
+                      {shippingLabel || "PKR 0"}
+                    </span>
                   </label>
                 </div>
 
                 {/* 3. Payment Method Card */}
                 <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
-                     <h3 className="font-bold text-foreground text-[15px]">Payment Method</h3>
-                     <button onClick={() => setStep(1)} className="text-xs font-bold text-primary hover:underline">Edit</button>
+                    <h3 className="font-bold text-foreground text-[15px]">
+                      Payment Method
+                    </h3>
+                    <button
+                      onClick={() => setStep(1)}
+                      className="text-xs font-bold text-primary hover:underline"
+                    >
+                      Edit
+                    </button>
                   </div>
-                  
+
                   {requiresAdvance && (
                     <div className="mb-5 rounded-lg bg-[var(--g-danger,#b42318)]/10 p-4 border border-[var(--g-danger,#b42318)]/20 shadow-sm animate-in fade-in zoom-in-95">
                       <p className="text-[14px] font-bold text-[var(--g-danger,#b42318)] flex items-center gap-2">
@@ -833,7 +965,13 @@ export default function CheckoutPage() {
                         Advance Payment Mandatory
                       </p>
                       <p className="text-[13px] text-[var(--g-danger,#b42318)]/80 mt-1.5 leading-snug">
-                        Orders exceeding <strong>PKR {config.maxCodAmount!.toLocaleString()}</strong> require a partial or full advance deposit to process. Our team will verify and securely collect this via Bank Transfer / EasyPaisa after you place the order.
+                        Orders exceeding{" "}
+                        <strong>
+                          PKR {config.maxCodAmount!.toLocaleString()}
+                        </strong>{" "}
+                        require a partial or full advance deposit to process.
+                        Our team will verify and securely collect this via Bank
+                        Transfer / EasyPaisa after you place the order.
                       </p>
                     </div>
                   )}
@@ -842,17 +980,30 @@ export default function CheckoutPage() {
                     {PAYMENT_METHODS.map((method) => {
                       const selected = payment === method.id;
                       return (
-                         <label key={method.id} className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-colors ${selected ? 'border-primary bg-primary/5' : 'bg-white hover:bg-secondary/50'}`}>
-                            <div className={`shrink-0 flex items-center justify-center h-5 w-5 rounded-full border-2 ${selected ? 'border-primary bg-primary text-white' : 'border-border'}`}>
-                               {selected && <Check className="h-3 w-3" strokeWidth={3} />}
-                            </div>
-                            <method.icon className={`h-5 w-5 ${selected ? 'text-primary' : 'text-muted-foreground'}`}/>
-                            <div className="flex-1">
-                              <p className="text-[13px] font-bold tracking-wide">{method.label}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">{method.description}</p>
-                            </div>
-                         </label>
-                      )
+                        <label
+                          key={method.id}
+                          className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-colors ${selected ? "border-primary bg-primary/5" : "bg-white hover:bg-secondary/50"}`}
+                        >
+                          <div
+                            className={`shrink-0 flex items-center justify-center h-5 w-5 rounded-full border-2 ${selected ? "border-primary bg-primary text-white" : "border-border"}`}
+                          >
+                            {selected && (
+                              <Check className="h-3 w-3" strokeWidth={3} />
+                            )}
+                          </div>
+                          <method.icon
+                            className={`h-5 w-5 ${selected ? "text-primary" : "text-muted-foreground"}`}
+                          />
+                          <div className="flex-1">
+                            <p className="text-[13px] font-bold tracking-wide">
+                              {method.label}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                              {method.description}
+                            </p>
+                          </div>
+                        </label>
+                      );
                     })}
                   </div>
                 </div>
@@ -860,51 +1011,75 @@ export default function CheckoutPage() {
                 {/* 4. Order Notes (Optional) */}
                 <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between border-b pb-4 mb-4">
-                     <h3 className="font-bold text-foreground text-[15px]">Order Notes (Optional)</h3>
-                     <button className="text-xs font-bold text-primary hover:underline">Edit</button>
+                    <h3 className="font-bold text-foreground text-[15px]">
+                      Order Notes (Optional)
+                    </h3>
+                    <button className="text-xs font-bold text-primary hover:underline">
+                      Edit
+                    </button>
                   </div>
                   <input
-                     type="text"
-                     placeholder="Leave a note for your order (e.g. gate code, special instructions)"
-                     className="w-full min-w-0 rounded-md border border-border px-3 py-3 text-base shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:px-4 sm:text-sm"
-                     value={orderNotes}
-                     onChange={(e) => setOrderNotes(e.target.value)}
+                    type="text"
+                    placeholder="Leave a note for your order (e.g. gate code, special instructions)"
+                    className="w-full min-w-0 rounded-md border border-border px-3 py-3 text-base shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:px-4 sm:text-sm"
+                    value={orderNotes}
+                    onChange={(e) => setOrderNotes(e.target.value)}
                   />
                 </div>
 
                 {/* 5. Items in Your Order View */}
                 <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                   <div className="flex items-center justify-between gap-2 border-b pb-4 mb-4">
-                     <h3 className="font-bold text-foreground text-[15px]">Items in Your Order ({items.length})</h3>
-                     <button onClick={() => setStep(0)} className="text-xs font-bold text-primary hover:underline">Edit Cart</button>
+                    <h3 className="font-bold text-foreground text-[15px]">
+                      Items in Your Order ({items.length})
+                    </h3>
+                    <button
+                      onClick={() => setStep(0)}
+                      className="text-xs font-bold text-primary hover:underline"
+                    >
+                      Edit Cart
+                    </button>
                   </div>
                   <ul className="divide-y divide-border">
                     {items.map((item) => (
-                      <li key={cartLineKey(item)} className="py-4 flex gap-4 first:pt-0 last:pb-0">
-                         {item.image ? (
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              width={64}
-                              height={64}
-                              className="h-16 w-16 shrink-0 rounded-lg border bg-muted object-cover"
-                            />
-                          ) : (
-                            <div className="h-16 w-16 shrink-0 rounded-lg border bg-muted" />
-                          )}
-                          <div className="flex flex-1 flex-col">
-                            <div className="flex items-start justify-between gap-4">
-                               <p className="text-[13px] font-bold text-foreground line-clamp-2">{item.name}</p>
-                               <span className="text-[13px] font-bold shrink-0">{formatPrice(item.price)}</span>
-                            </div>
-                            {item.variantName && (
-                              <p className="text-xs text-muted-foreground mt-0.5">{item.variantName}</p>
-                            )}
-                            <div className="mt-auto flex gap-4 text-xs font-medium text-muted-foreground items-center">
-                               {item.price > 0 && <span className="text-primary font-bold">{formatPrice(item.price)}</span>}
-                               <span>Qty: {item.quantity}</span>
-                            </div>
+                      <li
+                        key={cartLineKey(item)}
+                        className="py-4 flex gap-4 first:pt-0 last:pb-0"
+                      >
+                        {item.image ? (
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            width={64}
+                            height={64}
+                            className="h-16 w-16 shrink-0 rounded-lg border bg-muted object-cover"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 shrink-0 rounded-lg border bg-muted" />
+                        )}
+                        <div className="flex flex-1 flex-col">
+                          <div className="flex items-start justify-between gap-4">
+                            <p className="text-[13px] font-bold text-foreground line-clamp-2">
+                              {item.name}
+                            </p>
+                            <span className="text-[13px] font-bold shrink-0">
+                              {formatPrice(item.price)}
+                            </span>
                           </div>
+                          {item.variantName && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {item.variantName}
+                            </p>
+                          )}
+                          <div className="mt-auto flex gap-4 text-xs font-medium text-muted-foreground items-center">
+                            {item.price > 0 && (
+                              <span className="text-primary font-bold">
+                                {formatPrice(item.price)}
+                              </span>
+                            )}
+                            <span>Qty: {item.quantity}</span>
+                          </div>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -912,186 +1087,232 @@ export default function CheckoutPage() {
 
                 {/* Security Tag Card */}
                 <div className="flex items-center gap-4 rounded-xl border border-primary/20 bg-[#F4F9F8] p-5 shadow-sm">
-                   <div className="w-10 h-10 rounded-full bg-white border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                     <ShieldCheck className="h-5 w-5" />
-                   </div>
-                   <div>
-                     <p className="font-bold text-[13px] text-foreground">Safe & Secure Checkout</p>
-                     <p className="text-xs text-muted-foreground mt-0.5">Your information is protected with 256-bit SSL encryption.</p>
-                   </div>
+                  <div className="w-10 h-10 rounded-full bg-white border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-[13px] text-foreground">
+                      Safe & Secure Checkout
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Your information is protected with 256-bit SSL encryption.
+                    </p>
+                  </div>
                 </div>
               </section>
             )}
-
           </div>
 
           {/* ── Order summary sidebar ────────────────────────────────────────── */}
           <aside className="w-full space-y-4 lg:sticky lg:top-8 lg:self-start sm:space-y-5">
-             <div className={SUMMARY_CARD}>
-                <h2 className="mb-3 border-b border-[var(--g-line)] pb-3 text-base font-bold text-foreground sm:mb-4 sm:pb-4 sm:text-[17px]">
-                  Order Summary
-                </h2>
+            <div className={SUMMARY_CARD}>
+              <h2 className="mb-3 border-b border-[var(--g-line)] pb-3 text-base font-bold text-foreground sm:mb-4 sm:pb-4 sm:text-[17px]">
+                Order Summary
+              </h2>
 
-                <div className="space-y-2.5 border-b border-[var(--g-line)] pb-3.5 sm:space-y-3 sm:pb-4">
+              <div className="space-y-2.5 border-b border-[var(--g-line)] pb-3.5 sm:space-y-3 sm:pb-4">
+                <SummaryPriceRow
+                  label={`Subtotal (${items.reduce((acc, i) => acc + i.quantity, 0)} items)`}
+                  value={formatPrice(subtotal)}
+                />
+                {dealDiscount > 0 ? (
                   <SummaryPriceRow
-                    label={`Subtotal (${items.reduce((acc, i) => acc + i.quantity, 0)} items)`}
-                    value={formatPrice(subtotal)}
+                    tone="deal"
+                    label={
+                      <>
+                        Pair deal
+                        {dealQuote.applied[0] ? (
+                          <span className="font-medium">
+                            {" "}
+                            · {dealQuote.applied[0].title}
+                          </span>
+                        ) : null}
+                      </>
+                    }
+                    value={`− ${formatPrice(dealDiscount)}`}
                   />
-                  {dealDiscount > 0 ? (
-                    <SummaryPriceRow
-                      tone="deal"
-                      label={
-                        <>
-                          Pair deal
-                          {dealQuote.applied[0] ? (
-                            <span className="font-medium"> · {dealQuote.applied[0].title}</span>
-                          ) : null}
-                        </>
-                      }
-                      value={`− ${formatPrice(dealDiscount)}`}
-                    />
-                  ) : null}
-                  <SummaryPriceRow label="Shipping" value={shippingLabel ?? "—"} />
-                  {activePromo ? (
-                    <SummaryPriceRow
-                      tone="deal"
-                      label="Promo discount"
-                      value={`− ${formatPrice(appliedDiscount)}`}
-                    />
-                  ) : null}
-                  {giftWrap ? (
-                    <SummaryPriceRow
-                      tone="strong"
-                      label="Gift wrap"
-                      value={formatPrice(GIFT_WRAP_FEE)}
-                    />
-                  ) : null}
-                </div>
+                ) : null}
+                <SummaryPriceRow
+                  label="Shipping"
+                  value={shippingLabel ?? "—"}
+                />
+                {activePromo ? (
+                  <SummaryPriceRow
+                    tone="deal"
+                    label="Promo discount"
+                    value={`− ${formatPrice(appliedDiscount)}`}
+                  />
+                ) : null}
+                {giftWrap ? (
+                  <SummaryPriceRow
+                    tone="strong"
+                    label="Gift wrap"
+                    value={formatPrice(GIFT_WRAP_FEE)}
+                  />
+                ) : null}
+              </div>
 
-                <div className="mt-3.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 sm:mt-4">
-                  <div className="min-w-0">
-                    <h3 className="text-base font-bold text-foreground sm:text-lg">Total</h3>
-                    <p className="text-[10px] leading-snug text-muted-foreground">
-                      Inclusive of all taxes
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-right text-xl font-black tracking-tight text-primary tabular-nums sm:text-2xl">
-                    {formatPrice(total)}
+              <div className="mt-3.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 sm:mt-4">
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-foreground sm:text-lg">
+                    Total
+                  </h3>
+                  <p className="text-[10px] leading-snug text-muted-foreground">
+                    Inclusive of all taxes
+                  </p>
+                </div>
+                <span className="shrink-0 text-right text-xl font-black tracking-tight text-primary tabular-nums sm:text-2xl">
+                  {formatPrice(total)}
+                </span>
+              </div>
+
+              {hasPromo && step === 2 ? (
+                <div className="mt-3.5 flex items-start gap-2 rounded-lg border border-primary/20 bg-[var(--g-cream)] p-3 text-xs font-bold text-primary sm:mt-4">
+                  <Banknote className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="min-w-0 leading-snug">
+                    You will save {formatPrice(appliedDiscount)} on this order!
                   </span>
                 </div>
+              ) : null}
+            </div>
 
-                {hasPromo && step === 2 ? (
-                  <div className="mt-3.5 flex items-start gap-2 rounded-lg border border-primary/20 bg-[var(--g-cream)] p-3 text-xs font-bold text-primary sm:mt-4">
-                     <Banknote className="mt-0.5 h-4 w-4 shrink-0" />
-                     <span className="min-w-0 leading-snug">
-                       You will save {formatPrice(appliedDiscount)} on this order!
-                     </span>
+            {step === 2 && (
+              <div className={SUMMARY_CARD}>
+                <h3 className="mb-3 text-[13px] font-bold text-foreground">
+                  Have a promo code?
+                </h3>
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
+                  <Input
+                    placeholder="Enter promo code"
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
+                    className="h-11 min-w-0 flex-1"
+                    disabled={activePromo?.loading}
+                  />
+                  <Button
+                    variant="default"
+                    onClick={handleApplyPromo}
+                    disabled={activePromo?.loading || !promoInput.trim()}
+                    className="h-11 w-full shrink-0 px-5 font-bold shadow-sm sm:w-auto"
+                  >
+                    {activePromo?.loading ? "Applying..." : "Apply"}
+                  </Button>
+                </div>
+                {activePromo?.error ? (
+                  <p className="mt-2 text-xs font-semibold text-destructive">
+                    {activePromo.error}
+                  </p>
+                ) : null}
+                {activePromo && !activePromo.error ? (
+                  <div className="mt-3 flex min-w-0 items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+                    <span className="min-w-0 truncate text-xs font-bold text-primary">
+                      Applied: {activePromo.code}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActivePromo(null)}
+                      className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                    >
+                      Remove
+                    </button>
                   </div>
                 ) : null}
-             </div>
+              </div>
+            )}
 
-             {step === 2 && (
-               <div className={SUMMARY_CARD}>
-                 <h3 className="mb-3 text-[13px] font-bold text-foreground">Have a promo code?</h3>
-                 <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
-                    <Input
-                       placeholder="Enter promo code"
-                       value={promoInput}
-                       onChange={(e) => setPromoInput(e.target.value)}
-                       onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
-                       className="h-11 min-w-0 flex-1"
-                       disabled={activePromo?.loading}
-                    />
-                    <Button
-                      variant="default"
-                      onClick={handleApplyPromo}
-                      disabled={activePromo?.loading || !promoInput.trim()}
-                      className="h-11 w-full shrink-0 px-5 font-bold shadow-sm sm:w-auto"
+            {priceChanged ? (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-sm text-amber-800">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                  <div className="min-w-0">
+                    <p className="font-semibold">
+                      Prices updated while processing.
+                    </p>
+                    <p className="mt-1 text-xs leading-snug">
+                      Review the summary before placing your order again.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {step === 2 && (
+              <div className={SUMMARY_CARD}>
+                <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
+                  {[
+                    {
+                      icon: ShieldCheck,
+                      title: "1 Year Warranty",
+                      detail: "On all products",
+                    },
+                    {
+                      icon: RotateCcw,
+                      title: "7 Days Easy Returns",
+                      detail: "Hassle-free returns",
+                    },
+                    {
+                      icon: Banknote,
+                      title: "Cash on Delivery",
+                      detail: "Pay when you receive",
+                    },
+                    {
+                      icon: Lock,
+                      title: "Secure Checkout",
+                      detail: "100% safe & secure",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.title}
+                      className="flex min-w-0 items-start gap-3"
                     >
-                      {activePromo?.loading ? "Applying..." : "Apply"}
-                    </Button>
-                 </div>
-                 {activePromo?.error ? (
-                   <p className="mt-2 text-xs font-semibold text-destructive">{activePromo.error}</p>
-                 ) : null}
-                 {activePromo && !activePromo.error ? (
-                   <div className="mt-3 flex min-w-0 items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-                     <span className="min-w-0 truncate text-xs font-bold text-primary">
-                       Applied: {activePromo.code}
-                     </span>
-                     <button
-                       type="button"
-                       onClick={() => setActivePromo(null)}
-                       className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground"
-                     >
-                       Remove
-                     </button>
-                   </div>
-                 ) : null}
-               </div>
-             )}
-
-             {priceChanged ? (
-               <div className="rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-sm text-amber-800">
-                 <div className="flex items-start gap-3">
-                   <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                   <div className="min-w-0">
-                     <p className="font-semibold">Prices updated while processing.</p>
-                     <p className="mt-1 text-xs leading-snug">
-                       Review the summary before placing your order again.
-                     </p>
-                   </div>
-                 </div>
-               </div>
-             ) : null}
-
-             {step === 2 && (
-               <div className={SUMMARY_CARD}>
-                 <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
-                    {[
-                      { icon: ShieldCheck, title: "1 Year Warranty", detail: "On all products" },
-                      { icon: RotateCcw, title: "7 Days Easy Returns", detail: "Hassle-free returns" },
-                      { icon: Banknote, title: "Cash on Delivery", detail: "Pay when you receive" },
-                      { icon: Lock, title: "Secure Checkout", detail: "100% safe & secure" },
-                    ].map((item) => (
-                      <div key={item.title} className="flex min-w-0 items-start gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] text-primary">
-                          <item.icon className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[11px] font-bold uppercase tracking-wide text-foreground">
-                            {item.title}
-                          </p>
-                          <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
-                            {item.detail}
-                          </p>
-                        </div>
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] text-primary">
+                        <item.icon className="h-4 w-4" />
                       </div>
-                    ))}
-                 </div>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-foreground">
+                          {item.title}
+                        </p>
+                        <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+                          {item.detail}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-                 <Button
-                   onClick={() => placeOrder()}
-                   disabled={placing || Boolean(placedOrder)}
-                   className="h-12 w-full gap-2 text-[15px] font-bold shadow-md"
-                 >
-                    {placing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4 shrink-0" />}
-                    {placing ? "Processing..." : "Place Order"}
-                 </Button>
+                <Button
+                  onClick={() => placeOrder()}
+                  disabled={placing || Boolean(placedOrder)}
+                  className="h-12 w-full gap-2 text-[15px] font-bold shadow-md"
+                >
+                  {placing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Lock className="h-4 w-4 shrink-0" />
+                  )}
+                  {placing ? "Processing..." : "Place Order"}
+                </Button>
 
-                 <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground sm:mt-4">
-                   By placing your order, you agree to our{" "}
-                   <Link href="/terms-of-service" className="font-bold text-primary underline">
-                     Terms of Service
-                   </Link>{" "}
-                   and{" "}
-                   <Link href="/privacy-policy" className="font-bold text-primary underline">
-                     Privacy Policy
-                   </Link>
-                   .
-                 </p>
-               </div>
-             )}
+                <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground sm:mt-4">
+                  By placing your order, you agree to our{" "}
+                  <Link
+                    href="/terms-of-service"
+                    className="font-bold text-primary underline"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy-policy"
+                    className="font-bold text-primary underline"
+                  >
+                    Privacy Policy
+                  </Link>
+                  .
+                </p>
+              </div>
+            )}
           </aside>
         </div>
       </div>
@@ -1099,39 +1320,57 @@ export default function CheckoutPage() {
       {/* Footer Features (Identical to Figma Checkout End) */}
       <div className="mb-8 mt-8 border-t bg-white sm:mt-12">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8 lg:px-8">
-           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-             <div className="flex items-center gap-3">
-               <Lock className="w-6 h-6 text-primary shrink-0" />
-               <div>
-                  <p className="text-xs font-bold text-foreground">Secure Checkout</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">256-bit SSL encrypted</p>
-               </div>
-             </div>
-             <div className="flex items-center gap-3">
-               <Star className="w-6 h-6 text-primary shrink-0" fill="currentColor" />
-               <div>
-                  <p className="text-xs font-bold text-foreground">Trusted by Thousands</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">4.8/5 average rating</p>
-               </div>
-             </div>
-             <div className="flex items-center gap-3">
-               <Truck className="w-6 h-6 text-primary shrink-0" />
-               <div>
-                  <p className="text-xs font-bold text-foreground">Fast & Reliable Delivery</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Across Pakistan</p>
-               </div>
-             </div>
-             <div className="flex items-center gap-3">
-               <Headphones className="w-6 h-6 text-primary shrink-0" />
-               <div>
-                  <p className="text-xs font-bold text-foreground">24/7 Customer Support</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">We&apos;re here to help</p>
-               </div>
-             </div>
-           </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex items-center gap-3">
+              <Lock className="w-6 h-6 text-primary shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  Secure Checkout
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  256-bit SSL encrypted
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Star
+                className="w-6 h-6 text-primary shrink-0"
+                fill="currentColor"
+              />
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  Trusted by Thousands
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  4.8/5 average rating
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Truck className="w-6 h-6 text-primary shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  Fast & Reliable Delivery
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Across Pakistan
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Headphones className="w-6 h-6 text-primary shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  24/7 Customer Support
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  We&apos;re here to help
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
     </div>
   );
 }

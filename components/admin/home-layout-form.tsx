@@ -41,7 +41,7 @@ export function HomeLayoutForm({
 
   function toggle(index: number) {
     setSections((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, enabled: !s.enabled } : s))
+      prev.map((s, i) => (i === index ? { ...s, enabled: !s.enabled } : s)),
     );
     setSaved(false);
   }
@@ -71,9 +71,10 @@ export function HomeLayoutForm({
       <div>
         <h1 className="text-2xl font-semibold">Home layout</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Hero stays on top. Use the arrows to move Shop categories and Lifestyle
-          shop (or any other block). Lifestyle shop starts above Reviews. The
-          mosaic images and copy are edited in the form under this list.
+          Hero stays on top. Use the arrows to move Shop categories and
+          Lifestyle shop (or any other block). Lifestyle shop starts above
+          Reviews. The mosaic images and copy are edited in the form under this
+          list.
         </p>
       </div>
 
@@ -83,7 +84,9 @@ export function HomeLayoutForm({
         </p>
       ) : null}
       {saved ? (
-        <p className="text-sm text-muted-foreground">Saved. Live home will refresh shortly.</p>
+        <p className="text-sm text-muted-foreground">
+          Saved. Live home will refresh shortly.
+        </p>
       ) : null}
 
       <ul className="divide-y rounded-lg border bg-card">
@@ -99,7 +102,9 @@ export function HomeLayoutForm({
                 checked={section.enabled}
                 onChange={() => toggle(index)}
               />
-              <span className="truncate">{HOME_SECTION_LABELS[section.id]}</span>
+              <span className="truncate">
+                {HOME_SECTION_LABELS[section.id]}
+              </span>
             </label>
             <div className="flex gap-1">
               <Button

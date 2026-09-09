@@ -33,7 +33,10 @@ export function GadgetVideoPip({ product }: { product: Product }) {
   if (!pip) return null;
 
   return (
-    <section className="gadget-video-section" aria-label={`${product.name} video`}>
+    <section
+      className="gadget-video-section"
+      aria-label={`${product.name} video`}
+    >
       {!open ? (
         <button
           type="button"
@@ -50,7 +53,11 @@ export function GadgetVideoPip({ product }: { product: Product }) {
           <span className="gadget-video-thumb-label">Video</span>
         </button>
       ) : (
-        <div className="gadget-video-open" role="dialog" aria-label={`${product.name} video preview`}>
+        <div
+          className="gadget-video-open"
+          role="dialog"
+          aria-label={`${product.name} video preview`}
+        >
           <div className="gadget-video-preview">
             {pip.kind === "file" ? (
               <video
@@ -76,7 +83,11 @@ export function GadgetVideoPip({ product }: { product: Product }) {
             )}
           </div>
           <div className="gadget-video-inline-actions">
-            <button type="button" className="gadget-video-pip-dismiss" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              className="gadget-video-pip-dismiss"
+              onClick={() => setOpen(false)}
+            >
               Close
             </button>
             <a

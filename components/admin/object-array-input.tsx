@@ -64,7 +64,10 @@ export function ObjectArrayInput({
       <Label>{label}</Label>
       <div className="space-y-2">
         {values.map((item, i) => (
-          <div key={i} className="flex flex-col sm:flex-row items-center gap-2 rounded-lg border bg-muted/40 p-2">
+          <div
+            key={i}
+            className="flex flex-col sm:flex-row items-center gap-2 rounded-lg border bg-muted/40 p-2"
+          >
             <div className="flex gap-1">
               <Button
                 type="button"

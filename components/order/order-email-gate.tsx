@@ -28,7 +28,9 @@ export function OrderEmailGate({
 
   return (
     <div className="mx-auto flex min-h-[50vh] max-w-md flex-col justify-center px-4 py-16">
-      <h1 className="gadget-display text-2xl text-[var(--g-charcoal)]">Confirm your order</h1>
+      <h1 className="gadget-display text-2xl text-[var(--g-charcoal)]">
+        Confirm your order
+      </h1>
       <p className="mt-2 text-sm text-[var(--g-taupe)]">
         Enter the email you used at checkout to view order {orderId}.
       </p>

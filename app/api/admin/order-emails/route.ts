@@ -18,7 +18,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const row = await getAdminSettings();
-  return NextResponse.json({ config: editorOrderEmails(row as Record<string, unknown> | null) });
+  return NextResponse.json({
+    config: editorOrderEmails(row as Record<string, unknown> | null),
+  });
 }
 
 export async function PATCH(request: Request) {
@@ -32,6 +34,10 @@ export async function PATCH(request: Request) {
   if (action === "publish") result = await publishAdminOrderEmails(config);
   else if (action === "discard") result = await discardAdminOrderEmails();
   else result = await saveAdminOrderEmails(config);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

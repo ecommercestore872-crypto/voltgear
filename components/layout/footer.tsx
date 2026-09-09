@@ -1,7 +1,11 @@
 import Link from "next/link";
 
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
-import { FALLBACK_SHOP_TYPES, shopTypeLinks, type ShopType } from "@/lib/categories";
+import {
+  FALLBACK_SHOP_TYPES,
+  shopTypeLinks,
+  type ShopType,
+} from "@/lib/categories";
 import { Separator } from "@/components/ui/separator";
 import { getSocialIcon } from "@/components/icons/social-icons";
 import type { SiteSettings } from "@/lib/types";
@@ -21,7 +25,11 @@ export function Footer({
       <div className="container mx-auto grid gap-x-10 gap-y-12 px-4 py-16 md:grid-cols-2 lg:grid-cols-5 lg:px-8 max-w-7xl">
         {/* Brand column */}
         <div className="space-y-5 lg:col-span-2 pr-10">
-          <Link href="/" className="inline-flex min-h-11 w-fit items-center" aria-label={`${brandName} home`}>
+          <Link
+            href="/"
+            className="inline-flex min-h-11 w-fit items-center"
+            aria-label={`${brandName} home`}
+          >
             <ShopBrandMark logo={settings?.logo} name={brandName} invert />
           </Link>
           <p className="text-sm text-white/70 leading-relaxed max-w-sm">
@@ -35,7 +43,7 @@ export function Footer({
                 (social) =>
                   social.platform &&
                   social.url &&
-                  social.url.startsWith("http")
+                  social.url.startsWith("http"),
               )
               .map((social) =>
                 social.platform && social.url ? (
@@ -52,7 +60,7 @@ export function Footer({
                       return <Icon className="h-4 w-4" />;
                     })()}
                   </a>
-                ) : null
+                ) : null,
               )}
           </div>
         </div>
@@ -219,15 +227,23 @@ export function Footer({
 
       <Separator className="bg-white/10" />
       <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-white/50 sm:flex-row lg:px-8 max-w-7xl">
-        <p>© {new Date().getFullYear()} {brandName}. All rights reserved.</p>
+        <p>
+          © {new Date().getFullYear()} {brandName}. All rights reserved.
+        </p>
         <p className="flex flex-wrap gap-4">
-          <Link href="/privacy-policy" className="hover:text-white transition-colors">
+          <Link
+            href="/privacy-policy"
+            className="hover:text-white transition-colors"
+          >
             Privacy Policy
           </Link>
           <Link href="/cookies" className="hover:text-white transition-colors">
             Cookies
           </Link>
-          <Link href="/terms-of-service" className="hover:text-white transition-colors">
+          <Link
+            href="/terms-of-service"
+            className="hover:text-white transition-colors"
+          >
             Terms of Service
           </Link>
           <Link href="/about" className="hover:text-white transition-colors">

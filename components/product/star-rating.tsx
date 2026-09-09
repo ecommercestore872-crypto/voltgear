@@ -23,7 +23,10 @@ export function StarRating({
           strokeWidth={0}
         />
         {fill >= 0.5 && (
-          <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+          <span
+            className="absolute inset-0 overflow-hidden"
+            style={{ width: `${fill * 100}%` }}
+          >
             <Star
               className="fill-amber-400 text-amber-400"
               style={{ width: size, height: size }}
@@ -31,8 +34,10 @@ export function StarRating({
             />
           </span>
         )}
-      </span>
+      </span>,
     );
   }
-  return <div className={cn("flex items-center gap-0.5", className)}>{stars}</div>;
+  return (
+    <div className={cn("flex items-center gap-0.5", className)}>{stars}</div>
+  );
 }

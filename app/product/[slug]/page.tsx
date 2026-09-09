@@ -8,9 +8,17 @@ import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
 import { GadgetProductTabs } from "@/components/gadget/gadget-product-tabs";
 import { ReviewsSection } from "@/components/product/product-info-sections";
 import { ProductViewTracker } from "@/components/product/product-view-tracker";
-import { applyGadgetStudioImages, applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
+import {
+  applyGadgetStudioImages,
+  applyGadgetStudioImagesList,
+} from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
-import { fetchApprovedReviews, fetchCatalogProducts, fetchProductBySlug, fetchSiteSettings } from "@/lib/db/store";
+import {
+  fetchApprovedReviews,
+  fetchCatalogProducts,
+  fetchProductBySlug,
+  fetchSiteSettings,
+} from "@/lib/db/store";
 import { publicDealsForSlug } from "@/lib/db/deal-rules";
 import { fetchDealCatalog, listProductDeals } from "@/lib/db/deal-store";
 import { normalizeSettings } from "@/lib/site-config";
@@ -26,16 +34,20 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const product = await fetchProductBySlug(params.slug, false).catch(() => null);
+  const product = await fetchProductBySlug(params.slug, false).catch(
+    () => null,
+  );
   if (!product) return { robots: { index: false, follow: false } };
-  
+
   const title = `${product.name} — Buy in Pakistan | Buy n Try`;
   const description =
     product.shortDescription ||
     `Buy ${product.name} at Buy n Try (buyntryy.com) with cash on delivery nationwide.`;
   const siteUrl = indexSiteUrl();
   const url = `${siteUrl}/product/${product.slug}`;
-  const firstImg = product.images?.[0] ? imageUrl(product.images[0], { w: 800 }) : undefined;
+  const firstImg = product.images?.[0]
+    ? imageUrl(product.images[0], { w: 800 })
+    : undefined;
 
   return {
     title: { absolute: title },
@@ -72,7 +84,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function Product2Page({ params }: { params: { slug: string } }) {
+export default async function Product2Page({
+  params,
+}: {
+  params: { slug: string };
+}) {
   let product: Product | null = null;
   let related: Product[] = [];
   let settings = null;
@@ -82,13 +98,14 @@ export default async function Product2Page({ params }: { params: { slug: string 
   try {
     product = await fetchProductBySlug(params.slug, false);
     if (product) {
-      [related, settings, approvedReviews, deals, dealCatalog] = await Promise.all([
-        fetchCatalogProducts(),
-        fetchSiteSettings().catch(() => null),
-        fetchApprovedReviews(product._id, false),
-        listProductDeals().catch(() => []),
-        fetchDealCatalog().catch(() => []),
-      ]);
+      [related, settings, approvedReviews, deals, dealCatalog] =
+        await Promise.all([
+          fetchCatalogProducts(),
+          fetchSiteSettings().catch(() => null),
+          fetchApprovedReviews(product._id, false),
+          listProductDeals().catch(() => []),
+          fetchDealCatalog().catch(() => []),
+        ]);
     }
   } catch {
     product = null;
@@ -99,12 +116,14 @@ export default async function Product2Page({ params }: { params: { slug: string 
   // Deduplicate: avoid showing the same review twice when it appears
   // in both the Supabase product_reviews table and the legacy product.reviews array.
   const seen = new Set<string>();
-  const mergedReviews = [...approvedReviews, ...(product.reviews ?? [])].filter((r) => {
-    const key = `${(r.name ?? "").toLowerCase().trim()}|${(r.comment ?? "").toLowerCase().trim()}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const mergedReviews = [...approvedReviews, ...(product.reviews ?? [])].filter(
+    (r) => {
+      const key = `${(r.name ?? "").toLowerCase().trim()}|${(r.comment ?? "").toLowerCase().trim()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    },
+  );
   const productWithReviews: Product = mergedReviews.length
     ? {
         ...product,
@@ -127,13 +146,18 @@ export default async function Product2Page({ params }: { params: { slug: string 
       percentOff: row.percentOff,
       other: related.find((p) => p.slug === row.otherSlug) ?? null,
     }))
-    .filter((row): row is { percentOff: number; other: Product } => Boolean(row.other))
+    .filter((row): row is { percentOff: number; other: Product } =>
+      Boolean(row.other),
+    )
     .slice(0, 2);
 
   const siteUrl = indexSiteUrl();
-  const productImg = product.images?.[0] ? imageUrl(product.images[0], { w: 800 }) : undefined;
+  const productImg = product.images?.[0]
+    ? imageUrl(product.images[0], { w: 800 })
+    : undefined;
 
-  const prodDesc = product.shortDescription || `Buy ${product.name} in Pakistan at Buy n Try.`;
+  const prodDesc =
+    product.shortDescription || `Buy ${product.name} in Pakistan at Buy n Try.`;
 
   const productJsonLd = productStructuredData({
     name: product.name,
@@ -182,7 +206,10 @@ export default async function Product2Page({ params }: { params: { slug: string 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([productJsonLd, breadcrumbJsonLd]).replace(/</g, "\\u003c"),
+          __html: JSON.stringify([productJsonLd, breadcrumbJsonLd]).replace(
+            /</g,
+            "\\u003c",
+          ),
         }}
       />
       <ProductViewTracker
@@ -199,23 +226,35 @@ export default async function Product2Page({ params }: { params: { slug: string 
         sku={product.sku}
       />
       <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
-        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-[var(--g-taupe)]">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex flex-wrap items-center gap-1 text-xs text-[var(--g-taupe)]"
+        >
           <Link href="/" className="hover:text-[var(--g-forest)]">
             Home
           </Link>
           <span aria-hidden>/</span>
-          <Link href={products2Href(product.category)} className="capitalize hover:text-[var(--g-forest)]">
+          <Link
+            href={products2Href(product.category)}
+            className="capitalize hover:text-[var(--g-forest)]"
+          >
             {product.category.replace(/-/g, " ")}
           </Link>
           <span aria-hidden>/</span>
-          <span className="line-clamp-1 text-[var(--g-charcoal)]">{product.name}</span>
+          <span className="line-clamp-1 text-[var(--g-charcoal)]">
+            {product.name}
+          </span>
         </nav>
 
         <div className="mt-6">
           <GadgetBuyBox product={product} config={config} />
         </div>
         {pairBlocks.map((row) => (
-          <GadgetDealPair key={row.other.slug} percentOff={row.percentOff} other={row.other} />
+          <GadgetDealPair
+            key={row.other.slug}
+            percentOff={row.percentOff}
+            other={row.other}
+          />
         ))}
         <div className="mt-10">
           <GadgetProductTabs product={product} />

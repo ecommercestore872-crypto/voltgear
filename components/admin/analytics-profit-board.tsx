@@ -25,9 +25,13 @@ function formatHours(n: number | null | undefined): string {
   return `${rounded} hour${rounded === 1 ? "" : "s"}`;
 }
 
-function formatDelta(delta: PeriodDelta, kind: "money" | "count" | "rate"): string {
+function formatDelta(
+  delta: PeriodDelta,
+  kind: "money" | "count" | "rate",
+): string {
   if (delta.pct == null) {
-    if (delta.previous == null || delta.previous === 0) return "No last-period number";
+    if (delta.previous == null || delta.previous === 0)
+      return "No last-period number";
     return "Same as last period";
   }
   const pct = Math.round(delta.pct * 1000) / 10;
@@ -68,26 +72,37 @@ export function AnalyticsProfitBoard({
 }) {
   return (
     <div className="space-y-4">
-      <section className="admin-analytics-story" aria-labelledby="analytics-plain-title">
+      <section
+        className="admin-analytics-story"
+        aria-labelledby="analytics-plain-title"
+      >
         <p className="admin-analytics-story-health">{story.health}</p>
-        <h2 id="analytics-plain-title" className="text-xl text-[var(--g-charcoal)]">
-          Of {formatMoney(story.booked)} you booked this period, {formatMoney(story.kept)} is in
-          hand, {formatMoney(story.lost)} was cancelled, and {formatMoney(story.waiting)} is still
-          moving.
+        <h2
+          id="analytics-plain-title"
+          className="text-xl text-[var(--g-charcoal)]"
+        >
+          Of {formatMoney(story.booked)} you booked this period,{" "}
+          {formatMoney(story.kept)} is in hand, {formatMoney(story.lost)} was
+          cancelled, and {formatMoney(story.waiting)} is still moving.
         </h2>
         <p className="text-sm text-[var(--g-taupe)]">
-          Average delivered order {formatMoney(story.deliveredAov)}. Last period was{" "}
-          {comparison.previousRange.start} to {comparison.previousRange.end}.
+          Average delivered order {formatMoney(story.deliveredAov)}. Last period
+          was {comparison.previousRange.start} to {comparison.previousRange.end}
+          .
         </p>
         <div className="admin-analytics-per100" aria-label="Out of 100 orders">
           <div className="admin-analytics-per100-item">
             <p className="admin-analytics-tile-label">Delivered</p>
-            <p className="admin-analytics-tile-value">{story.per100.delivered}</p>
+            <p className="admin-analytics-tile-value">
+              {story.per100.delivered}
+            </p>
             <p className="admin-analytics-tile-hint">out of every 100 orders</p>
           </div>
           <div className="admin-analytics-per100-item">
             <p className="admin-analytics-tile-label">Cancelled</p>
-            <p className="admin-analytics-tile-value">{story.per100.cancelled}</p>
+            <p className="admin-analytics-tile-value">
+              {story.per100.cancelled}
+            </p>
             <p className="admin-analytics-tile-hint">out of every 100 orders</p>
           </div>
           <div className="admin-analytics-per100-item">
@@ -105,7 +120,9 @@ export function AnalyticsProfitBoard({
           onClick={() => onDrill("Money in hand", story.keptOrderIds)}
         >
           <p className="admin-analytics-tile-label">Money in hand</p>
-          <p className="admin-analytics-tile-value">{formatMoney(story.kept)}</p>
+          <p className="admin-analytics-tile-value">
+            {formatMoney(story.kept)}
+          </p>
           <p className="admin-analytics-tile-hint">
             {story.keptCount} delivered of orders you took in this range
           </p>
@@ -116,8 +133,12 @@ export function AnalyticsProfitBoard({
           onClick={() => onDrill("Lost to cancels", story.lostOrderIds)}
         >
           <p className="admin-analytics-tile-label">Lost to cancels</p>
-          <p className="admin-analytics-tile-value">{formatMoney(story.lost)}</p>
-          <p className="admin-analytics-tile-hint">{story.lostCount} cancelled · not cash</p>
+          <p className="admin-analytics-tile-value">
+            {formatMoney(story.lost)}
+          </p>
+          <p className="admin-analytics-tile-hint">
+            {story.lostCount} cancelled · not cash
+          </p>
         </button>
         <button
           type="button"
@@ -125,18 +146,24 @@ export function AnalyticsProfitBoard({
           onClick={() => onDrill("Still moving", story.waitingOrderIds)}
         >
           <p className="admin-analytics-tile-label">Still moving</p>
-          <p className="admin-analytics-tile-value">{formatMoney(story.waiting)}</p>
-          <p className="admin-analytics-tile-hint">Can still cancel until delivered</p>
+          <p className="admin-analytics-tile-value">
+            {formatMoney(story.waiting)}
+          </p>
+          <p className="admin-analytics-tile-hint">
+            Can still cancel until delivered
+          </p>
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <Card className="admin-analytics-tile">
-          <p className="admin-analytics-tile-label">Delivered money vs last period</p>
+          <p className="admin-analytics-tile-label">
+            Delivered money vs last period
+          </p>
           <p
             className={cn(
               "admin-analytics-tile-value",
-              deltaClass(comparison.deliveredRevenue.pct)
+              deltaClass(comparison.deliveredRevenue.pct),
             )}
           >
             {formatDelta(comparison.deliveredRevenue, "money")}
@@ -147,30 +174,43 @@ export function AnalyticsProfitBoard({
           </p>
         </Card>
         <Card className="admin-analytics-tile">
-          <p className="admin-analytics-tile-label">Cancel rate vs last period</p>
+          <p className="admin-analytics-tile-label">
+            Cancel rate vs last period
+          </p>
           <p
             className={cn(
               "admin-analytics-tile-value",
-              deltaClass(comparison.cancellationRate.pct, true)
+              deltaClass(comparison.cancellationRate.pct, true),
             )}
           >
             {formatDelta(comparison.cancellationRate, "rate")}
           </p>
         </Card>
         <Card className="admin-analytics-tile">
-          <p className="admin-analytics-tile-label">Orders taken vs last period</p>
-          <p className={cn("admin-analytics-tile-value", deltaClass(comparison.ordersPlaced.pct))}>
+          <p className="admin-analytics-tile-label">
+            Orders taken vs last period
+          </p>
+          <p
+            className={cn(
+              "admin-analytics-tile-value",
+              deltaClass(comparison.ordersPlaced.pct),
+            )}
+          >
             {formatDelta(comparison.ordersPlaced, "count")}
           </p>
           <p className="admin-analytics-tile-hint">
-            Now {comparison.ordersPlaced.current ?? 0} · last {comparison.ordersPlaced.previous ?? 0}
+            Now {comparison.ordersPlaced.current ?? 0} · last{" "}
+            {comparison.ordersPlaced.previous ?? 0}
           </p>
         </Card>
       </div>
 
       {alerts.length > 0 ? (
         <section aria-labelledby="analytics-watch-title" className="space-y-2">
-          <h2 id="analytics-watch-title" className="text-lg font-semibold text-[var(--g-charcoal)]">
+          <h2
+            id="analytics-watch-title"
+            className="text-lg font-semibold text-[var(--g-charcoal)]"
+          >
             Watch these
           </h2>
           <ul className="space-y-2">
@@ -179,11 +219,15 @@ export function AnalyticsProfitBoard({
                 key={alert.id}
                 className={cn(
                   "admin-analytics-alert",
-                  alert.severity === "urgent" && "admin-analytics-alert-urgent"
+                  alert.severity === "urgent" && "admin-analytics-alert-urgent",
                 )}
               >
-                <p className="font-semibold text-[var(--g-charcoal)]">{alert.title}</p>
-                <p className="mt-1 text-sm text-[var(--g-taupe)]">{alert.body}</p>
+                <p className="font-semibold text-[var(--g-charcoal)]">
+                  {alert.title}
+                </p>
+                <p className="mt-1 text-sm text-[var(--g-taupe)]">
+                  {alert.body}
+                </p>
               </li>
             ))}
           </ul>
@@ -192,7 +236,9 @@ export function AnalyticsProfitBoard({
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <Card className="admin-analytics-tile">
-          <p className="admin-analytics-tile-label">Likely returns after ship</p>
+          <p className="admin-analytics-tile-label">
+            Likely returns after ship
+          </p>
           <p className="admin-analytics-tile-value">{rto.count}</p>
           <p className="admin-analytics-tile-hint">{rto.disclaimer}</p>
           {rto.count > 0 ? (
@@ -201,8 +247,8 @@ export function AnalyticsProfitBoard({
               className="mt-2 text-left text-sm font-medium underline"
               onClick={() => onDrill("Shipped then cancelled", rto.orderIds)}
             >
-              {formatMoney(rto.revenue)} in those orders · {rto.cancelledBeforeShip} cancelled
-              before ship
+              {formatMoney(rto.revenue)} in those orders ·{" "}
+              {rto.cancelledBeforeShip} cancelled before ship
             </button>
           ) : (
             <p className="mt-2 text-sm text-[var(--g-taupe)]">
@@ -211,8 +257,12 @@ export function AnalyticsProfitBoard({
           )}
         </Card>
         <Card className="admin-analytics-tile">
-          <p className="admin-analytics-tile-label">Median time to move an order</p>
-          <p className="admin-analytics-tile-value">{formatHours(fulfillment.placedToDelivered)}</p>
+          <p className="admin-analytics-tile-label">
+            Median time to move an order
+          </p>
+          <p className="admin-analytics-tile-value">
+            {formatHours(fulfillment.placedToDelivered)}
+          </p>
           <p className="admin-analytics-tile-hint">
             Pack {formatHours(fulfillment.placedToProcessing)} · courier{" "}
             {formatHours(fulfillment.processingToShipped)} · last mile{" "}
@@ -229,7 +279,8 @@ export function AnalyticsProfitBoard({
           <ul className="space-y-1 text-sm text-[var(--g-charcoal)]">
             {missingCosts.map((row) => (
               <li key={row.slug}>
-                {row.name} · {row.quantityDelivered} delivered with no cost price
+                {row.name} · {row.quantityDelivered} delivered with no cost
+                price
               </li>
             ))}
           </ul>

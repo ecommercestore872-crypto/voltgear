@@ -26,7 +26,7 @@ export function WriteReviewForm({ products, categories }: Props) {
   }, []);
 
   const [category, setCategory] = useState(
-    () => products.find((p) => p.slug === initialSlug)?.category ?? ""
+    () => products.find((p) => p.slug === initialSlug)?.category ?? "",
   );
   const [slug, setSlug] = useState(initialSlug);
   const [rating, setRating] = useState(0);
@@ -50,12 +50,12 @@ export function WriteReviewForm({ products, categories }: Props) {
 
   const available = useMemo(
     () => products.filter((p) => p.category === category),
-    [products, category]
+    [products, category],
   );
 
   const selected = useMemo(
     () => products.find((p) => p.slug === slug),
-    [products, slug]
+    [products, slug],
   );
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -63,7 +63,10 @@ export function WriteReviewForm({ products, categories }: Props) {
     setError(null);
     setSubmitting(true);
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    const data = Object.fromEntries(new FormData(form)) as Record<
+      string,
+      string
+    >;
 
     try {
       let image: string | undefined;
@@ -124,7 +127,10 @@ export function WriteReviewForm({ products, categories }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="min-w-0 space-y-4 rounded-xl border bg-card p-4 sm:p-5">
+    <form
+      onSubmit={onSubmit}
+      className="min-w-0 space-y-4 rounded-xl border bg-card p-4 sm:p-5"
+    >
       <div className="grid min-w-0 gap-4 sm:grid-cols-2">
         <div className="min-w-0 space-y-1.5">
           <Label htmlFor="review-category">Category *</Label>
@@ -262,10 +268,7 @@ export function WriteReviewForm({ products, categories }: Props) {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Button
-        type="submit"
-        disabled={submitting || rating === 0 || !slug}
-      >
+      <Button type="submit" disabled={submitting || rating === 0 || !slug}>
         {submitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

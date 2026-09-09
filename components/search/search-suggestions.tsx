@@ -11,7 +11,12 @@ import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 const POPULAR_SEARCHES = [
-  "earbuds", "smartwatch", "power bank", "charger", "wireless", "fast charging",
+  "earbuds",
+  "smartwatch",
+  "power bank",
+  "charger",
+  "wireless",
+  "fast charging",
 ];
 
 const RECENT_KEY = "voltgear-recent-searches";
@@ -34,11 +39,7 @@ function saveRecentSearch(q: string) {
   } catch {}
 }
 
-export function SearchSuggestions({
-  query,
-}: {
-  query: string;
-}) {
+export function SearchSuggestions({ query }: { query: string }) {
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -47,7 +48,7 @@ export function SearchSuggestions({
     fetchStoreProducts()
       .then((all) => {
         setBestsellers(
-          all.filter((p) => p.stockStatus !== "out-of-stock").slice(0, 4)
+          all.filter((p) => p.stockStatus !== "out-of-stock").slice(0, 4),
         );
       })
       .catch(() => {});
@@ -129,7 +130,9 @@ export function SearchSuggestions({
                   )}
                   <div className="min-w-0">
                     <p className="line-clamp-1 text-sm font-medium">{p.name}</p>
-                    <p className="text-sm font-semibold">{formatPrice(p.price)}</p>
+                    <p className="text-sm font-semibold">
+                      {formatPrice(p.price)}
+                    </p>
                   </div>
                 </Link>
               );

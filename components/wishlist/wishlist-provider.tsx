@@ -88,17 +88,21 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const hasItem = useCallback(
     (slug: string) => items.some((i) => i.slug === slug),
-    [items]
+    [items],
   );
 
   const count = items.length;
 
   const value = useMemo(
     () => ({ items, count, hasItem, addItem, removeItem, toggleItem }),
-    [items, count, hasItem, addItem, removeItem, toggleItem]
+    [items, count, hasItem, addItem, removeItem, toggleItem],
   );
 
-  return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
+  return (
+    <WishlistContext.Provider value={value}>
+      {children}
+    </WishlistContext.Provider>
+  );
 }
 
 const SSR_WISHLIST: WishlistContextValue = {

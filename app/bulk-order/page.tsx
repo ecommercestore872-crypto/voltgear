@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Loader2, Package, Send, ShieldCheck, Truck } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  Package,
+  Send,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
 
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { warrantyLabel } from "@/lib/site-config";
@@ -34,10 +41,13 @@ export default function BulkOrderPage() {
 
   const field =
     "h-11 w-full min-w-0 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 text-base outline-none focus:border-[var(--g-forest)] sm:text-sm";
-  const label = "text-xs font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]";
+  const label =
+    "text-xs font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]";
 
   return (
-    <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
+    <div
+      className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}
+    >
       <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
         <div className="mx-auto max-w-5xl px-4 py-10 lg:px-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
@@ -47,8 +57,8 @@ export default function BulkOrderPage() {
             Bulk &amp; wholesale
           </h1>
           <p className="mt-3 max-w-xl text-sm text-[var(--g-taupe)] sm:text-base">
-            Corporate gifts, resellers, and teams — volume pricing from 10+ units with delivery
-            support.
+            Corporate gifts, resellers, and teams — volume pricing from 10+
+            units with delivery support.
           </p>
         </div>
       </div>
@@ -60,17 +70,23 @@ export default function BulkOrderPage() {
               <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 text-center">
                 <Package className="mx-auto h-7 w-7 text-[var(--g-forest)]" />
                 <p className="mt-2 text-sm font-semibold">10+ units</p>
-                <p className="text-xs text-[var(--g-taupe)]">Volume discounts start here</p>
+                <p className="text-xs text-[var(--g-taupe)]">
+                  Volume discounts start here
+                </p>
               </div>
               <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 text-center">
                 <Truck className="mx-auto h-7 w-7 text-[var(--g-forest)]" />
                 <p className="mt-2 text-sm font-semibold">Delivery support</p>
-                <p className="text-xs text-[var(--g-taupe)]">On qualifying bulk orders</p>
+                <p className="text-xs text-[var(--g-taupe)]">
+                  On qualifying bulk orders
+                </p>
               </div>
               {config.warrantyMonths ? (
                 <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 text-center">
                   <ShieldCheck className="mx-auto h-7 w-7 text-[var(--g-forest)]" />
-                  <p className="mt-2 text-sm font-semibold">Warranty included</p>
+                  <p className="mt-2 text-sm font-semibold">
+                    Warranty included
+                  </p>
                   <p className="text-xs text-[var(--g-taupe)]">
                     {warrantyLabel(config.warrantyMonths)}
                   </p>
@@ -84,7 +100,10 @@ export default function BulkOrderPage() {
               <li>Ask for a custom quote on 200+ units</li>
               <li>
                 Prefer WhatsApp? Use{" "}
-                <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+                <Link
+                  href="/contact"
+                  className="font-semibold text-[var(--g-forest)] hover:underline"
+                >
                   Contact us
                 </Link>
               </li>
@@ -95,43 +114,80 @@ export default function BulkOrderPage() {
             {submitted ? (
               <div className="flex flex-col items-center py-8 text-center">
                 <CheckCircle2 className="h-12 w-12 text-[var(--g-forest)]" />
-                <h3 className="mt-4 text-lg font-semibold">Inquiry submitted</h3>
+                <h3 className="mt-4 text-lg font-semibold">
+                  Inquiry submitted
+                </h3>
                 <p className="mt-2 text-sm text-[var(--g-taupe)]">
                   We&apos;ll get back to you with a custom quote.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <h2 className="gadget-display text-xl font-semibold">Request a quote</h2>
+                <h2 className="gadget-display text-xl font-semibold">
+                  Request a quote
+                </h2>
                 <div className="space-y-1.5">
                   <label htmlFor="company" className={label}>
                     Company *
                   </label>
-                  <input id="company" name="company" required placeholder="Your company" className={field} />
+                  <input
+                    id="company"
+                    name="company"
+                    required
+                    placeholder="Your company"
+                    className={field}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="contact-name" className={label}>
                     Contact name *
                   </label>
-                  <input id="contact-name" name="contactName" required placeholder="Full name" className={field} />
+                  <input
+                    id="contact-name"
+                    name="contactName"
+                    required
+                    placeholder="Full name"
+                    className={field}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="contact-email" className={label}>
                     Email *
                   </label>
-                  <input id="contact-email" name="email" type="email" required placeholder="you@company.com" className={field} />
+                  <input
+                    id="contact-email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="you@company.com"
+                    className={field}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="contact-phone" className={label}>
                     Phone
                   </label>
-                  <input id="contact-phone" name="phone" type="tel" placeholder="+92 300 0000000" className={field} />
+                  <input
+                    id="contact-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="+92 300 0000000"
+                    className={field}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="quantity" className={label}>
                     Estimated quantity *
                   </label>
-                  <input id="quantity" name="quantity" type="number" min={10} required placeholder="e.g. 50" className={field} />
+                  <input
+                    id="quantity"
+                    name="quantity"
+                    type="number"
+                    min={10}
+                    required
+                    placeholder="e.g. 50"
+                    className={field}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="message" className={label}>

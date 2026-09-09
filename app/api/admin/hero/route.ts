@@ -32,6 +32,10 @@ export async function PATCH(request: Request) {
   else if (action === "unpublish") result = await unpublishAdminHero();
   else if (action === "discard") result = await discardAdminHeroDraft();
   else result = await saveAdminHero(doc);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

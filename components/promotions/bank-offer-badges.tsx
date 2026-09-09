@@ -18,7 +18,9 @@ export function BankOfferBadges() {
           </div>
           <div>
             <div className="text-xs font-bold text-gray-900">EasyPaisa</div>
-            <div className="text-[10px] font-semibold text-emerald-600">10% Instant OFF</div>
+            <div className="text-[10px] font-semibold text-emerald-600">
+              10% Instant OFF
+            </div>
           </div>
         </div>
 
@@ -28,7 +30,9 @@ export function BankOfferBadges() {
           </div>
           <div>
             <div className="text-xs font-bold text-gray-900">JazzCash</div>
-            <div className="text-[10px] font-semibold text-red-600">10% Instant OFF</div>
+            <div className="text-[10px] font-semibold text-red-600">
+              10% Instant OFF
+            </div>
           </div>
         </div>
 
@@ -38,7 +42,9 @@ export function BankOfferBadges() {
           </div>
           <div>
             <div className="text-xs font-bold text-gray-900">HBL / Meezan</div>
-            <div className="text-[10px] font-semibold text-blue-600">15% Card OFF</div>
+            <div className="text-[10px] font-semibold text-blue-600">
+              15% Card OFF
+            </div>
           </div>
         </div>
       </div>

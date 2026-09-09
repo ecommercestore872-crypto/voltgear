@@ -20,7 +20,9 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const found = await getStorefrontCollectionBySlug(params.slug).catch(() => null);
+  const found = await getStorefrontCollectionBySlug(params.slug).catch(
+    () => null,
+  );
   const name = found?.collection.name || params.slug.replace(/-/g, " ");
   return {
     title: name,
@@ -37,7 +39,9 @@ function sortProducts(list: Product[], sort: string) {
   const sorted = [...list].sort((a, b) => {
     if (sort === "price-asc") return a.price - b.price;
     if (sort === "price-desc") return b.price - a.price;
-    return Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name);
+    return (
+      Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name)
+    );
   });
   return [
     ...sorted.filter((p) => !getStockState(p.stockStatus).soldOut),
@@ -70,7 +74,7 @@ export default async function CollectionPage({
       (p) =>
         p.name.toLowerCase().includes(qLower) ||
         p.category.toLowerCase().includes(qLower) ||
-        (p.shortDescription || "").toLowerCase().includes(qLower)
+        (p.shortDescription || "").toLowerCase().includes(qLower),
     );
   }
 

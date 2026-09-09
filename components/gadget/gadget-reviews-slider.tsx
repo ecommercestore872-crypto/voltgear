@@ -135,7 +135,10 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
     const card = el?.querySelector<HTMLElement>("[data-review-card]");
     if (!el || !card) return;
     const step = card.offsetWidth + GAP_PX;
-    el.scrollBy({ left: dir * step, behavior: reduceMotion ? "auto" : "smooth" });
+    el.scrollBy({
+      left: dir * step,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
     window.setTimeout(syncActive, 350);
   }
 
@@ -175,7 +178,8 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
               What our customers say
             </h2>
             <p className="mt-2 text-sm text-[var(--g-charcoal)]/80 sm:text-[15px]">
-              Real feedback from buyers who shopped with cash on delivery and curated picks.
+              Real feedback from buyers who shopped with cash on delivery and
+              curated picks.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -215,7 +219,11 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
                     className="h-6 w-6 text-[var(--g-sage)] transition duration-500 group-hover:scale-110 group-hover:text-[var(--g-forest)]"
                     aria-hidden
                   />
-                  <div className="flex items-center gap-0.5" role="img" aria-label={`${item.rating} out of 5 stars`}>
+                  <div
+                    className="flex items-center gap-0.5"
+                    role="img"
+                    aria-label={`${item.rating} out of 5 stars`}
+                  >
                     {Array.from({ length: 5 }).map((_, s) => (
                       <Star
                         key={s}
@@ -261,7 +269,11 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
           ))}
         </ul>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-2" role="group" aria-label="Review slides">
+        <div
+          className="mt-6 flex flex-wrap justify-center gap-2"
+          role="group"
+          aria-label="Review slides"
+        >
           {items.map((_, i) => (
             <button
               key={i}

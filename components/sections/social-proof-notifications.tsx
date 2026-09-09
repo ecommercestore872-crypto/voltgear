@@ -10,18 +10,47 @@ import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const CITIES = [
-  "Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad",
-  "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala",
+  "Lahore",
+  "Karachi",
+  "Islamabad",
+  "Rawalpindi",
+  "Faisalabad",
+  "Multan",
+  "Peshawar",
+  "Quetta",
+  "Sialkot",
+  "Gujranwala",
 ];
 const FIRST_NAMES = [
-  "Ahmed", "Ali", "Bilal", "Daniyal", "Hassan",
-  "Hunza", "Imran", "Kamran", "Saad", "Umar",
-  "Zainab", "Ayesha", "Fatima", "Maryam", "Sana",
-  "Hamza", "Usman", "Shahzaib", "Farhan", "Momin",
+  "Ahmed",
+  "Ali",
+  "Bilal",
+  "Daniyal",
+  "Hassan",
+  "Hunza",
+  "Imran",
+  "Kamran",
+  "Saad",
+  "Umar",
+  "Zainab",
+  "Ayesha",
+  "Fatima",
+  "Maryam",
+  "Sana",
+  "Hamza",
+  "Usman",
+  "Shahzaib",
+  "Farhan",
+  "Momin",
 ];
 const TIME_LABELS = [
-  "just now", "2 minutes ago", "5 minutes ago", "8 minutes ago",
-  "12 minutes ago", "15 minutes ago", "20 minutes ago",
+  "just now",
+  "2 minutes ago",
+  "5 minutes ago",
+  "8 minutes ago",
+  "12 minutes ago",
+  "15 minutes ago",
+  "20 minutes ago",
 ];
 
 const STORAGE_KEY = "voltgear-social-proof";
@@ -50,25 +79,22 @@ export function SocialProofNotifications() {
   const [name, setName] = useState("");
   const [time, setTime] = useState("");
 
-  const showNotification = useCallback(
-    (products: Product[]) => {
-      if (products.length === 0) return;
-      const p = rand(products);
-      setProduct(p);
-      setCity(rand(CITIES));
-      setName(rand(FIRST_NAMES));
-      setTime(rand(TIME_LABELS));
-      setVisible(true);
+  const showNotification = useCallback((products: Product[]) => {
+    if (products.length === 0) return;
+    const p = rand(products);
+    setProduct(p);
+    setCity(rand(CITIES));
+    setName(rand(FIRST_NAMES));
+    setTime(rand(TIME_LABELS));
+    setVisible(true);
 
-      setTimeout(() => setVisible(false), SHOW_DURATION);
+    setTimeout(() => setVisible(false), SHOW_DURATION);
 
-      try {
-        const count = getNotificationCount() + 1;
-        localStorage.setItem(STORAGE_KEY, String(count));
-      } catch {}
-    },
-    []
-  );
+    try {
+      const count = getNotificationCount() + 1;
+      localStorage.setItem(STORAGE_KEY, String(count));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -79,13 +105,15 @@ export function SocialProofNotifications() {
 
     fetchStoreProducts()
       .then((p) => {
-        if (!cancelled) products = p.filter((p) => p.stockStatus !== "out-of-stock");
+        if (!cancelled)
+          products = p.filter((p) => p.stockStatus !== "out-of-stock");
       })
       .catch(() => {});
 
     function scheduleNext() {
       if (cancelled || products.length === 0) return;
-      const delay = MIN_INTERVAL + Math.random() * (MAX_INTERVAL - MIN_INTERVAL);
+      const delay =
+        MIN_INTERVAL + Math.random() * (MAX_INTERVAL - MIN_INTERVAL);
       const t = setTimeout(() => {
         if (!cancelled) {
           showNotification(products);
@@ -117,7 +145,7 @@ export function SocialProofNotifications() {
     <div
       className={cn(
         "fixed bottom-20 left-4 z-[90] w-72 animate-in slide-in-from-left-5 fade-in duration-300 sm:bottom-6 sm:left-6",
-        !visible && "hidden"
+        !visible && "hidden",
       )}
       role="status"
       aria-live="polite"
@@ -140,9 +168,12 @@ export function SocialProofNotifications() {
         )}
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">{name}</span> from {city} just purchased
+            <span className="font-semibold text-foreground">{name}</span> from{" "}
+            {city} just purchased
           </p>
-          <p className="mt-0.5 line-clamp-1 text-sm font-medium">{product.name}</p>
+          <p className="mt-0.5 line-clamp-1 text-sm font-medium">
+            {product.name}
+          </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{time}</p>
         </div>
         <button

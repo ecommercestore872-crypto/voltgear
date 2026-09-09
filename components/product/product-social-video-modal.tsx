@@ -19,7 +19,7 @@ export function ProductSocialVideoModal({
 }: ProductSocialVideoModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activePlatform, setActivePlatform] = useState<"instagram" | "tiktok">(
-    instagramUrl ? "instagram" : "tiktok"
+    instagramUrl ? "instagram" : "tiktok",
   );
 
   if (!instagramUrl && !tiktokUrl) return null;
@@ -104,7 +104,27 @@ export function ProductSocialVideoModal({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect
+                      x="2"
+                      y="2"
+                      width="20"
+                      height="20"
+                      rx="5"
+                      ry="5"
+                    ></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
                   Instagram Reel
                 </button>
                 <button
@@ -116,7 +136,14 @@ export function ProductSocialVideoModal({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.34 2.88 2.88 0 0 1 2.31-4.52 2.66 2.66 0 0 1 1.04.2v-3.26a5.61 5.61 0 0 0-1.12-.11 6.34 6.34 0 0 0-6.19 7.42 6.3 6.3 0 0 0 7.82 5.2 6.37 6.37 0 0 0 4.67-6.22v-6.9a8.17 8.17 0 0 0 4.66 1.76V7.05a5 5 0 0 1-.77-.36z" /></svg>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.34 2.88 2.88 0 0 1 2.31-4.52 2.66 2.66 0 0 1 1.04.2v-3.26a5.61 5.61 0 0 0-1.12-.11 6.34 6.34 0 0 0-6.19 7.42 6.3 6.3 0 0 0 7.82 5.2 6.37 6.37 0 0 0 4.67-6.22v-6.9a8.17 8.17 0 0 0 4.66 1.76V7.05a5 5 0 0 1-.77-.36z" />
+                  </svg>
                   TikTok Video
                 </button>
               </div>
@@ -134,7 +161,9 @@ export function ProductSocialVideoModal({
                 />
               ) : (
                 <div className="p-6 text-center text-white/80">
-                  <p className="text-sm font-medium">Video preview loading...</p>
+                  <p className="text-sm font-medium">
+                    Video preview loading...
+                  </p>
                   {currentUrl && (
                     <a
                       href={currentUrl}
@@ -142,7 +171,8 @@ export function ProductSocialVideoModal({
                       rel="noopener noreferrer"
                       className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary underline font-semibold"
                     >
-                      Open directly on {activePlatform} <ExternalLink className="w-3 h-3" />
+                      Open directly on {activePlatform}{" "}
+                      <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
                 </div>

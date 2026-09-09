@@ -21,7 +21,7 @@ type LetterFields = Record<OrderEmailKind, { subject: string; body: string }>;
 
 function emptyLetters(): LetterFields {
   return Object.fromEntries(
-    ORDER_EMAIL_KINDS.map(({ kind }) => [kind, { subject: "", body: "" }])
+    ORDER_EMAIL_KINDS.map(({ kind }) => [kind, { subject: "", body: "" }]),
   ) as LetterFields;
 }
 
@@ -55,7 +55,9 @@ export function OrderEmailsForm({
 }) {
   const router = useRouter();
   const [form, setForm] = useState(() => fromConfig(config));
-  const [status, setStatus] = useState<PublishStatus>(hasDraft ? "draft" : "published");
+  const [status, setStatus] = useState<PublishStatus>(
+    hasDraft ? "draft" : "published",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,10 +102,13 @@ export function OrderEmailsForm({
       <div>
         <h1 className="text-2xl font-semibold">Order emails</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Shared look for the six order letters. Empty fields keep the current code defaults.
-          Item tables, delivery address, Track button, and status notes are always added in
-          code. From addresses:{" "}
-          <Link href="/admin/email-sending" className="underline underline-offset-2">
+          Shared look for the six order letters. Empty fields keep the current
+          code defaults. Item tables, delivery address, Track button, and status
+          notes are always added in code. From addresses:{" "}
+          <Link
+            href="/admin/email-sending"
+            className="underline underline-offset-2"
+          >
             Email sending
           </Link>
           . Marketing templates stay under Messaging.
@@ -138,8 +143,18 @@ export function OrderEmailsForm({
               <Input
                 id={`order-email-${key}`}
                 value={form[key]}
-                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                placeholder={key.includes("color") || key === "background" || key === "card" || key === "text" || key === "button" ? "#f4f4f5" : ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, [key]: e.target.value }))
+                }
+                placeholder={
+                  key.includes("color") ||
+                  key === "background" ||
+                  key === "card" ||
+                  key === "text" ||
+                  key === "button"
+                    ? "#f4f4f5"
+                    : ""
+                }
               />
             </div>
           ))}
@@ -150,7 +165,9 @@ export function OrderEmailsForm({
             id="order-email-wrapper"
             className="min-h-[140px] font-mono text-sm"
             value={form.wrapperHtml}
-            onChange={(e) => setForm((f) => ({ ...f, wrapperHtml: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, wrapperHtml: e.target.value }))
+            }
             placeholder={"<div>{{title}}{{body}}</div>"}
           />
           <p className="text-xs text-muted-foreground">

@@ -5,7 +5,9 @@ import { ArrowRight, Check, Loader2 } from "lucide-react";
 
 export function GadgetFooterNewsletter() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">(
+    "idle",
+  );
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +44,7 @@ export function GadgetFooterNewsletter() {
             if (status !== "idle" && status !== "loading") setStatus("idle");
           }}
           placeholder="Email address"
-            className="h-12 w-full min-w-0 rounded-full border border-white/35 bg-transparent pl-5 pr-14 text-base text-[var(--g-white)] outline-none placeholder:text-white/70 focus:border-[var(--g-sage)] sm:text-sm"
+          className="h-12 w-full min-w-0 rounded-full border border-white/35 bg-transparent pl-5 pr-14 text-base text-[var(--g-white)] outline-none placeholder:text-white/70 focus:border-[var(--g-sage)] sm:text-sm"
         />
         <button
           type="submit"
@@ -63,7 +65,9 @@ export function GadgetFooterNewsletter() {
         <p className="mt-2 text-xs text-[var(--g-sage)]">You’re on the list.</p>
       ) : null}
       {status === "err" ? (
-        <p className="mt-2 text-xs text-red-300">Couldn’t subscribe — try again.</p>
+        <p className="mt-2 text-xs text-red-300">
+          Couldn’t subscribe — try again.
+        </p>
       ) : null}
     </div>
   );

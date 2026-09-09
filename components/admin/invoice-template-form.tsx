@@ -41,7 +41,9 @@ export function InvoiceTemplateForm({
 }) {
   const router = useRouter();
   const [form, setForm] = useState(() => fromConfig(config));
-  const [status, setStatus] = useState<PublishStatus>(hasDraft ? "draft" : "published");
+  const [status, setStatus] = useState<PublishStatus>(
+    hasDraft ? "draft" : "published",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,8 +81,8 @@ export function InvoiceTemplateForm({
         <h1 className="text-2xl font-semibold">Invoice template</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           One-page PDF for customers. Empty fields use the code default in{" "}
-          <code>lib/invoice-template-rules.ts</code>, then store Settings (name, logo, email,
-          phone, address).
+          <code>lib/invoice-template-rules.ts</code>, then store Settings (name,
+          logo, email, phone, address).
         </p>
       </div>
       <PublishBar
@@ -115,7 +117,11 @@ export function InvoiceTemplateForm({
               type="color"
               aria-label="Pick accent"
               className="h-11 w-12 cursor-pointer rounded-md border border-input bg-background p-1"
-              value={/^#([0-9a-fA-F]{6})$/.test(form.accent) ? form.accent : DEFAULT_INVOICE_TEMPLATE.accent}
+              value={
+                /^#([0-9a-fA-F]{6})$/.test(form.accent)
+                  ? form.accent
+                  : DEFAULT_INVOICE_TEMPLATE.accent
+              }
               onChange={(e) => set("accent", e.target.value)}
             />
           </div>

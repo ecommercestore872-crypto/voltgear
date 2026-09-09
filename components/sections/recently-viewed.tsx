@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-
 import { fetchStoreProductBySlug } from "@/lib/store-client";
 import { imageUrl } from "@/lib/sanity/image";
 import { formatPrice } from "@/lib/utils";
@@ -25,8 +24,8 @@ export function RecentlyViewed() {
         if (items.length > 0) {
           Promise.all(
             items.map((item) =>
-              fetchStoreProductBySlug(item.slug).catch(() => null)
-            )
+              fetchStoreProductBySlug(item.slug).catch(() => null),
+            ),
           ).then((results) => {
             setProducts(results.filter(Boolean) as Product[]);
           });
@@ -41,10 +40,7 @@ export function RecentlyViewed() {
 
   return (
     <Section className="border-t bg-background">
-      <SectionHeader
-        eyebrow="Your History"
-        title="Recently Viewed"
-      />
+      <SectionHeader eyebrow="Your History" title="Recently Viewed" />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {products.slice(0, 4).map((product) => {
           const img = product.images?.[0];

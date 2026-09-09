@@ -54,8 +54,7 @@ function FunnelStepRow({
   onClick?: () => void;
 }) {
   const ofTop = rateOfTop(step.count, topCount);
-  const prevLabel =
-    index === 0 ? "—" : formatRate(step.conversionFromPrevious);
+  const prevLabel = index === 0 ? "—" : formatRate(step.conversionFromPrevious);
   const content = (
     <>
       <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -84,7 +83,7 @@ function FunnelStepRow({
   const className = cn(
     "flex w-full flex-col gap-3 border-b border-[var(--g-line)] px-4 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between",
     onClick &&
-      "cursor-pointer text-left transition-colors hover:bg-[var(--g-sage)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      "cursor-pointer text-left transition-colors hover:bg-[var(--g-sage)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
   );
 
   if (onClick) {
@@ -117,7 +116,9 @@ export function AnalyticsFunnelPanel({
   return (
     <section className="admin-analytics-panel">
       <header className="admin-analytics-panel-head">
-        <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">{title}</h2>
+        <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">
+          {title}
+        </h2>
         <p className="mt-1 text-sm text-[var(--g-taupe)]">{description}</p>
       </header>
       {list.length === 0 ? (
@@ -140,11 +141,7 @@ export function AnalyticsFunnelPanel({
               index={i}
               step={step}
               topCount={topCount}
-              onClick={
-                onStepClick
-                  ? () => onStepClick(step)
-                  : undefined
-              }
+              onClick={onStepClick ? () => onStepClick(step) : undefined}
             />
           ))}
         </div>

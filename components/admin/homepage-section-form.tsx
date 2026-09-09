@@ -11,7 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ShopType } from "@/lib/categories";
-import type { HomepageSection, HomepageSectionLayout, HomepageSectionSource } from "@/lib/types";
+import type {
+  HomepageSection,
+  HomepageSectionLayout,
+  HomepageSectionSource,
+} from "@/lib/types";
 
 interface SimpleProduct {
   id: string;
@@ -36,14 +40,22 @@ export function HomepageSectionForm({
   const [title, setTitle] = useState(section?.title ?? "");
   const [subtitle, setSubtitle] = useState(section?.subtitle ?? "");
   const [slug, setSlug] = useState(section?.slug ?? "");
-  const [sourceType, setSourceType] = useState<HomepageSectionSource>(section?.sourceType ?? "manual");
-  const [categoryId, setCategoryId] = useState(section?.categoryId ?? shopTypes[0]?.slug ?? "");
+  const [sourceType, setSourceType] = useState<HomepageSectionSource>(
+    section?.sourceType ?? "manual",
+  );
+  const [categoryId, setCategoryId] = useState(
+    section?.categoryId ?? shopTypes[0]?.slug ?? "",
+  );
   const [productLimit, setProductLimit] = useState(section?.productLimit ?? 8);
-  const [layout, setLayout] = useState<HomepageSectionLayout>(section?.layout ?? "grid");
+  const [layout, setLayout] = useState<HomepageSectionLayout>(
+    section?.layout ?? "grid",
+  );
   const [showViewAll, setShowViewAll] = useState(section?.showViewAll ?? true);
   const [viewAllHref, setViewAllHref] = useState(section?.viewAllHref ?? "");
   const [isActive, setIsActive] = useState(section?.isActive ?? true);
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(section?.manualProductIds ?? []);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(
+    section?.manualProductIds ?? [],
+  );
 
   // Search filter for manual product selector
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,7 +69,11 @@ export function HomepageSectionForm({
     if (selectedProductIds.includes(p.id)) return false; // hide already selected
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
-    return p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q);
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.slug.toLowerCase().includes(q)
+    );
   });
 
   function addProduct(id: string) {
@@ -94,7 +110,8 @@ export function HomepageSectionForm({
       showViewAll,
       viewAllHref: viewAllHref.trim() || undefined,
       isActive,
-      manualProductIds: sourceType === "manual" ? selectedProductIds : undefined,
+      manualProductIds:
+        sourceType === "manual" ? selectedProductIds : undefined,
     };
 
     try {
@@ -126,7 +143,8 @@ export function HomepageSectionForm({
             {isEditing ? "Edit Homepage Section" : "Create Homepage Section"}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Configure section title, layout, product sources, and manual product curation.
+            Configure section title, layout, product sources, and manual product
+            curation.
           </p>
         </div>
         <div className="flex gap-2">
@@ -134,7 +152,11 @@ export function HomepageSectionForm({
             Cancel
           </Button>
           <Button type="submit" disabled={saving}>
-            {saving ? "Saving..." : isEditing ? "Save Changes" : "Create Section"}
+            {saving
+              ? "Saving..."
+              : isEditing
+                ? "Save Changes"
+                : "Create Section"}
           </Button>
         </div>
       </div>
@@ -142,7 +164,9 @@ export function HomepageSectionForm({
       {error && <p className="text-sm font-medium text-destructive">{error}</p>}
 
       <div className="grid gap-6 rounded-xl border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold border-b pb-3">1. Section Details</h2>
+        <h2 className="text-lg font-semibold border-b pb-3">
+          1. Section Details
+        </h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
@@ -178,7 +202,9 @@ export function HomepageSectionForm({
             <Label>Layout Type</Label>
             <select
               value={layout}
-              onChange={(e) => setLayout(e.target.value as HomepageSectionLayout)}
+              onChange={(e) =>
+                setLayout(e.target.value as HomepageSectionLayout)
+              }
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
             >
               <option value="grid">Product Grid (4 Columns)</option>
@@ -201,7 +227,9 @@ export function HomepageSectionForm({
       </div>
 
       <div className="grid gap-6 rounded-xl border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold border-b pb-3">2. Product Source</h2>
+        <h2 className="text-lg font-semibold border-b pb-3">
+          2. Product Source
+        </h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
@@ -217,7 +245,9 @@ export function HomepageSectionForm({
                 }`}
               >
                 <div className="text-sm">Manual Products</div>
-                <div className="text-xs text-muted-foreground mt-1">Hand-picked list</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Hand-picked list
+                </div>
               </button>
 
               <button
@@ -230,7 +260,9 @@ export function HomepageSectionForm({
                 }`}
               >
                 <div className="text-sm">Category</div>
-                <div className="text-xs text-muted-foreground mt-1">From a shop type</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  From a shop type
+                </div>
               </button>
 
               <button
@@ -243,7 +275,9 @@ export function HomepageSectionForm({
                 }`}
               >
                 <div className="text-sm">Newest</div>
-                <div className="text-xs text-muted-foreground mt-1">Latest published</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Latest published
+                </div>
               </button>
 
               <button
@@ -256,7 +290,9 @@ export function HomepageSectionForm({
                 }`}
               >
                 <div className="text-sm">Sale Items</div>
-                <div className="text-xs text-muted-foreground mt-1">Discounted items</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Discounted items
+                </div>
               </button>
             </div>
           </div>
@@ -297,7 +333,9 @@ export function HomepageSectionForm({
         <div className="grid gap-6 rounded-xl border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold border-b pb-3 flex items-center justify-between">
             <span>3. Manual Product Selection</span>
-            <Badge variant="secondary">{selectedProductIds.length} Selected</Badge>
+            <Badge variant="secondary">
+              {selectedProductIds.length} Selected
+            </Badge>
           </h2>
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -306,7 +344,8 @@ export function HomepageSectionForm({
               <Label>Curated Product Sequence (Order matches homepage)</Label>
               {selectedProductIds.length === 0 ? (
                 <p className="text-xs text-muted-foreground border border-dashed rounded-lg p-6 text-center">
-                  No products selected yet. Search and add products from the list on the right.
+                  No products selected yet. Search and add products from the
+                  list on the right.
                 </p>
               ) : (
                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
@@ -321,8 +360,12 @@ export function HomepageSectionForm({
                           #{index + 1}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold truncate">{p?.name || id}</p>
-                          <p className="text-xs text-muted-foreground">{p?.category}</p>
+                          <p className="font-semibold truncate">
+                            {p?.name || id}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {p?.category}
+                          </p>
                         </div>
                         <div className="flex items-center gap-1">
                           <Button
@@ -386,7 +429,9 @@ export function HomepageSectionForm({
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">{p.category}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.category}
+                        </p>
                       </div>
                       <Button
                         type="button"
@@ -406,7 +451,9 @@ export function HomepageSectionForm({
       )}
 
       <div className="grid gap-6 rounded-xl border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold border-b pb-3">4. View All Link (Optional)</h2>
+        <h2 className="text-lg font-semibold border-b pb-3">
+          4. View All Link (Optional)
+        </h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex items-center gap-3 sm:col-span-2">
@@ -430,7 +477,8 @@ export function HomepageSectionForm({
                 onChange={(e) => setViewAllHref(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Leave empty to automatically point to the section category or shop page.
+                Leave empty to automatically point to the section category or
+                shop page.
               </p>
             </div>
           )}

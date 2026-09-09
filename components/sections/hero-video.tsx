@@ -24,7 +24,7 @@ export function HeroVideo({ src, poster }: { src: string; poster?: string }) {
           video.pause();
         }
       },
-      { rootMargin: "250px 0px" }
+      { rootMargin: "250px 0px" },
     );
 
     observer.observe(video);

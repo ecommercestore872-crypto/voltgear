@@ -63,7 +63,7 @@ function logIngest(reason: string, body: unknown) {
       reason,
       name: typeof raw.name === "string" ? raw.name : undefined,
       path: typeof raw.path === "string" ? raw.path : undefined,
-    })
+    }),
   );
 }
 
@@ -88,7 +88,8 @@ export async function POST(request: Request) {
     return okResponse();
   }
 
-  const rawPath = typeof asRecord(body).path === "string" ? String(asRecord(body).path) : "/";
+  const rawPath =
+    typeof asRecord(body).path === "string" ? String(asRecord(body).path) : "/";
   if (!shouldCollectPath(normalizePathname(rawPath))) {
     return okResponse();
   }
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
       rateLimitIdentity({
         forwardedFor: request.headers.get("x-forwarded-for"),
         sessionCookie: sidCookie,
-      })
+      }),
     )
   ) {
     return okResponse();
@@ -118,8 +119,10 @@ export async function POST(request: Request) {
     const now = new Date();
     const nowIso = now.toISOString();
     const vidCookie = readCookieValue(cookieHeader, VISITOR_COOKIE);
-    const cookieVisitorId = vidCookie && isAnalyticsUuid(vidCookie) ? vidCookie : null;
-    const cookieSessionId = sidCookie && isAnalyticsUuid(sidCookie) ? sidCookie : null;
+    const cookieVisitorId =
+      vidCookie && isAnalyticsUuid(vidCookie) ? vidCookie : null;
+    const cookieSessionId =
+      sidCookie && isAnalyticsUuid(sidCookie) ? sidCookie : null;
 
     let existingSession: {
       id: string;
@@ -165,11 +168,13 @@ export async function POST(request: Request) {
       return okResponse();
     }
     if (!visitorRow) {
-      const { error: visitorInsertError } = await db.from("analytics_visitors").insert({
-        id: resolved.visitorId,
-        first_seen_at: nowIso,
-        last_seen_at: nowIso,
-      });
+      const { error: visitorInsertError } = await db
+        .from("analytics_visitors")
+        .insert({
+          id: resolved.visitorId,
+          first_seen_at: nowIso,
+          last_seen_at: nowIso,
+        });
       if (visitorInsertError && !isUniqueViolation(visitorInsertError.code)) {
         return okResponse();
       }
@@ -188,25 +193,29 @@ export async function POST(request: Request) {
       const touch = shouldApplyFirstTouch(resolved.isNewSession)
         ? buildFirstTouch(asRecord(body).attribution, event.path, shopHost)
         : buildFirstTouch({}, event.path, shopHost);
-      const { error: sessionInsertError } = await db.from("analytics_sessions").insert({
-        id: resolved.sessionId,
-        visitor_id: resolved.visitorId,
-        started_at: nowIso,
-        last_activity_at: nowIso,
-        is_demo: resolved.isDemo,
-        landing_path: touch.landing_path,
-        referrer: touch.referrer,
-        source: touch.source,
-        medium: touch.medium,
-        campaign: touch.campaign,
-        campaign_id: touch.campaign_id,
-        campaign_content: touch.campaign_content,
-        campaign_term: touch.campaign_term,
-        ttclid: touch.ttclid,
-        fbclid: touch.fbclid,
-        gclid: touch.gclid,
-        device_type: deviceTypeFromUserAgent(request.headers.get("user-agent")),
-      });
+      const { error: sessionInsertError } = await db
+        .from("analytics_sessions")
+        .insert({
+          id: resolved.sessionId,
+          visitor_id: resolved.visitorId,
+          started_at: nowIso,
+          last_activity_at: nowIso,
+          is_demo: resolved.isDemo,
+          landing_path: touch.landing_path,
+          referrer: touch.referrer,
+          source: touch.source,
+          medium: touch.medium,
+          campaign: touch.campaign,
+          campaign_id: touch.campaign_id,
+          campaign_content: touch.campaign_content,
+          campaign_term: touch.campaign_term,
+          ttclid: touch.ttclid,
+          fbclid: touch.fbclid,
+          gclid: touch.gclid,
+          device_type: deviceTypeFromUserAgent(
+            request.headers.get("user-agent"),
+          ),
+        });
       if (sessionInsertError && !isUniqueViolation(sessionInsertError.code)) {
         return okResponse();
       }
@@ -237,7 +246,9 @@ export async function POST(request: Request) {
         .select("id, product_id")
         .eq("id", event.variant_id)
         .maybeSingle();
-      variantProductId = variant?.product_id ? String(variant.product_id) : null;
+      variantProductId = variant?.product_id
+        ? String(variant.product_id)
+        : null;
     }
 
     const refs = bindProductRelations({
@@ -269,12 +280,12 @@ export async function POST(request: Request) {
     res.cookies.set(
       VISITOR_COOKIE,
       resolved.visitorId,
-      analyticsCookieOptions(VISITOR_MAX_AGE)
+      analyticsCookieOptions(VISITOR_MAX_AGE),
     );
     res.cookies.set(
       SESSION_COOKIE,
       resolved.sessionId,
-      analyticsCookieOptions(SESSION_MAX_AGE)
+      analyticsCookieOptions(SESSION_MAX_AGE),
     );
 
     if (Math.random() < 1 / 50) {

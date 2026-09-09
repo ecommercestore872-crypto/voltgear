@@ -50,8 +50,9 @@ export default async function WarrantyPage() {
             </p>
           ) : (
             <p>
-              Manufacturing defects are handled case by case. Contact us with your order number
-              and photos of the issue and we will confirm what we can replace or repair.
+              Manufacturing defects are handled case by case. Contact us with
+              your order number and photos of the issue and we will confirm what
+              we can replace or repair.
             </p>
           )}
         </GadgetSupportCard>
@@ -65,17 +66,24 @@ export default async function WarrantyPage() {
         >
           {config.returnWindowDays ? (
             <p>
-              Changed your mind? Return unused products within {config.returnWindowDays}{" "}
-              days — see{" "}
-              <Link href="/shipping-returns#returns" className="font-semibold text-[var(--g-forest)] hover:underline">
+              Changed your mind? Return unused products within{" "}
+              {config.returnWindowDays} days — see{" "}
+              <Link
+                href="/shipping-returns#returns"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 exchange &amp; refunds
               </Link>
               .
             </p>
           ) : (
             <p>
-              Unused items can be discussed for exchange or refund after delivery. Start from{" "}
-              <Link href="/shipping-returns#returns" className="font-semibold text-[var(--g-forest)] hover:underline">
+              Unused items can be discussed for exchange or refund after
+              delivery. Start from{" "}
+              <Link
+                href="/shipping-returns#returns"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 exchange &amp; refunds
               </Link>{" "}
               or the contact page with your order number.
@@ -91,11 +99,17 @@ export default async function WarrantyPage() {
               {email ? (
                 <>
                   Email{" "}
-                  <a href={`mailto:${email}`} className="font-semibold text-[var(--g-forest)] hover:underline">
+                  <a
+                    href={`mailto:${email}`}
+                    className="font-semibold text-[var(--g-forest)] hover:underline"
+                  >
                     {email}
                   </a>{" "}
                   or use our{" "}
-                  <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+                  <Link
+                    href="/contact"
+                    className="font-semibold text-[var(--g-forest)] hover:underline"
+                  >
                     contact page
                   </Link>{" "}
                   with your order number.
@@ -103,15 +117,22 @@ export default async function WarrantyPage() {
               ) : (
                 <>
                   Use our{" "}
-                  <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+                  <Link
+                    href="/contact"
+                    className="font-semibold text-[var(--g-forest)] hover:underline"
+                  >
                     contact page
                   </Link>{" "}
                   with your order number.
                 </>
               )}
             </li>
-            <li>Describe the issue and attach photos or a short video if you can.</li>
-            <li>We&apos;ll review and arrange repair or replacement when covered.</li>
+            <li>
+              Describe the issue and attach photos or a short video if you can.
+            </li>
+            <li>
+              We&apos;ll review and arrange repair or replacement when covered.
+            </li>
           </ol>
         </GadgetSupportCard>
 
@@ -122,7 +143,10 @@ export default async function WarrantyPage() {
           </div>
           <p className="mt-2 text-sm text-white/80">
             WhatsApp or call via{" "}
-            <Link href="/contact" className="font-semibold text-[var(--g-cream)] underline-offset-2 hover:underline">
+            <Link
+              href="/contact"
+              className="font-semibold text-[var(--g-cream)] underline-offset-2 hover:underline"
+            >
               Contact us
             </Link>{" "}
             — we usually reply the same day.

@@ -1,6 +1,9 @@
 "use client";
 
-import { enabledOptions, type VariantOption } from "@/lib/variant-options-rules";
+import {
+  enabledOptions,
+  type VariantOption,
+} from "@/lib/variant-options-rules";
 import { imageUrl } from "@/lib/sanity/image";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +24,9 @@ function AxisButtons({
   if (!live.length) return null;
   return (
     <fieldset className="mt-6">
-      <legend className="mb-2 text-sm font-semibold text-[var(--g-charcoal)]">{legend}</legend>
+      <legend className="mb-2 text-sm font-semibold text-[var(--g-charcoal)]">
+        {legend}
+      </legend>
       <div className="flex flex-wrap gap-2">
         {live.map((opt) => {
           const selected = value === opt.key;
@@ -35,7 +40,7 @@ function AxisButtons({
                 "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition",
                 selected
                   ? "border-[var(--g-forest)] bg-[var(--g-forest)] text-[var(--g-white)]"
-                  : "border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] hover:border-[var(--g-forest)]"
+                  : "border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] hover:border-[var(--g-forest)]",
               )}
             >
               {swatches && opt.image ? (

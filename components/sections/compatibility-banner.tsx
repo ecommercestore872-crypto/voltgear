@@ -9,8 +9,12 @@ export function CompatibilityBanner() {
             <Search className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-foreground">Not sure what&apos;s compatible with your device?</h3>
-            <p className="text-muted-foreground mt-1">Let us help you find the perfect accessory.</p>
+            <h3 className="text-xl font-bold text-foreground">
+              Not sure what&apos;s compatible with your device?
+            </h3>
+            <p className="text-muted-foreground mt-1">
+              Let us help you find the perfect accessory.
+            </p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 flex-1 justify-end max-w-xl">
@@ -29,7 +33,10 @@ export function CompatibilityBanner() {
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           </div>
-          <button type="button" className="bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-colors">
+          <button
+            type="button"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-colors"
+          >
             Find My Gear
           </button>
         </div>

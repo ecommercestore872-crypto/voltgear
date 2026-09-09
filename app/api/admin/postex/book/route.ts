@@ -13,7 +13,10 @@ export async function POST(req: NextRequest) {
     const { orderId } = await req.json();
 
     if (!orderId) {
-      return NextResponse.json({ error: "Missing orderId parameter" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing orderId parameter" },
+        { status: 400 },
+      );
     }
 
     const order = await getOrderByPublicId(orderId);
@@ -22,26 +25,37 @@ export async function POST(req: NextRequest) {
     }
 
     const customer = order.customer || {};
-    const phone = typeof customer.phone === "string" ? customer.phone.trim() : "";
-    const address = typeof customer.address === "string" ? customer.address.trim() : "";
+    const phone =
+      typeof customer.phone === "string" ? customer.phone.trim() : "";
+    const address =
+      typeof customer.address === "string" ? customer.address.trim() : "";
     const city = typeof customer.city === "string" ? customer.city.trim() : "";
 
     if (!phone || phone.length < 10) {
       return NextResponse.json(
-        { error: "Order is missing a valid customer phone. Fix the order before booking PostEx." },
-        { status: 400 }
+        {
+          error:
+            "Order is missing a valid customer phone. Fix the order before booking PostEx.",
+        },
+        { status: 400 },
       );
     }
     if (!address || address.length < 5) {
       return NextResponse.json(
-        { error: "Order is missing a delivery address. Fix the order before booking PostEx." },
-        { status: 400 }
+        {
+          error:
+            "Order is missing a delivery address. Fix the order before booking PostEx.",
+        },
+        { status: 400 },
       );
     }
     if (!city) {
       return NextResponse.json(
-        { error: "Order is missing a city. Fix the order before booking PostEx." },
-        { status: 400 }
+        {
+          error:
+            "Order is missing a city. Fix the order before booking PostEx.",
+        },
+        { status: 400 },
       );
     }
 
@@ -75,7 +89,10 @@ export async function POST(req: NextRequest) {
       .eq("order_id", orderId);
 
     if (dbError) {
-      console.warn("Order shipped in PostEx but database update failed:", dbError);
+      console.warn(
+        "Order shipped in PostEx but database update failed:",
+        dbError,
+      );
     }
 
     return NextResponse.json({
@@ -85,7 +102,8 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     console.error("[PostEx Book Route Error]:", err);
-    const message = err instanceof Error ? err.message : "Internal server error";
+    const message =
+      err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

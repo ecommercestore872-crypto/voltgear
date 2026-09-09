@@ -25,7 +25,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const result = await createAdminHomepageSection(body ?? {});
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json(result);
 }
@@ -38,7 +41,10 @@ export async function PATCH(request: Request) {
   if (body?.action === "reorder" && Array.isArray(body?.orderedIds)) {
     const result = await reorderAdminHomepageSections(body.orderedIds);
     if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: result.status });
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      );
     }
     return NextResponse.json(result);
   }

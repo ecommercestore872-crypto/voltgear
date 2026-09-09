@@ -88,7 +88,7 @@ export function ProductList({
         p.name.toLowerCase().includes(needle) ||
         p.slug.toLowerCase().includes(needle) ||
         p.status.toLowerCase().includes(needle) ||
-        p.category.toLowerCase().includes(needle)
+        p.category.toLowerCase().includes(needle),
     );
   }, [products, q, stockFilter]);
 
@@ -96,9 +96,9 @@ export function ProductList({
     () =>
       groupProductsByCategory(
         filtered,
-        shopTypes.map((t) => ({ slug: t.slug, name: t.name }))
+        shopTypes.map((t) => ({ slug: t.slug, name: t.name })),
       ),
-    [filtered, shopTypes]
+    [filtered, shopTypes],
   );
 
   const visibleGroups =
@@ -120,7 +120,11 @@ export function ProductList({
         onChange={(e) => setQ(e.target.value)}
         aria-label="Search products"
       />
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
+      <div
+        className="flex flex-wrap gap-2"
+        role="group"
+        aria-label="Filter by category"
+      >
         <Button
           type="button"
           size="sm"

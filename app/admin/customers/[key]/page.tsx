@@ -29,7 +29,10 @@ export default async function AdminCustomerProfilePage({
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
         <p className="text-sm text-muted-foreground">
-          <Link href="/admin/customers" className="underline-offset-4 hover:underline">
+          <Link
+            href="/admin/customers"
+            className="underline-offset-4 hover:underline"
+          >
             Customers
           </Link>
         </p>
@@ -65,9 +68,7 @@ export default async function AdminCustomerProfilePage({
       </div>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold">
-          Orders ({orders.length})
-        </h2>
+        <h2 className="mb-3 text-lg font-semibold">Orders ({orders.length})</h2>
         {orders.length === 0 ? (
           <p className="text-sm text-muted-foreground">No orders.</p>
         ) : (
@@ -80,7 +81,9 @@ export default async function AdminCustomerProfilePage({
               >
                 <span className="font-medium">{o.orderId}</span>
                 <span className="text-muted-foreground">{o.status}</span>
-                <span className="tabular-nums">{formatPrice(o.total ?? 0)}</span>
+                <span className="tabular-nums">
+                  {formatPrice(o.total ?? 0)}
+                </span>
               </Link>
             ))}
           </div>
@@ -88,9 +91,7 @@ export default async function AdminCustomerProfilePage({
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold">
-          Inbox ({inbox.length})
-        </h2>
+        <h2 className="mb-3 text-lg font-semibold">Inbox ({inbox.length})</h2>
         {inbox.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No contact or complaint messages for this email.

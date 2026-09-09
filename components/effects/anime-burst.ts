@@ -5,10 +5,18 @@ export function triggerCartParticleBurst(originX: number, originY: number) {
 
   const count = 24;
   const container = document.createElement("div");
-  container.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:99999;";
+  container.style.cssText =
+    "position:fixed;inset:0;pointer-events:none;z-index:99999;";
   document.body.appendChild(container);
 
-  const colors = ["#2563eb", "#3b82f6", "#60a5fa", "#00f0ff", "#a855f7", "#ffffff"];
+  const colors = [
+    "#2563eb",
+    "#3b82f6",
+    "#60a5fa",
+    "#00f0ff",
+    "#a855f7",
+    "#ffffff",
+  ];
 
   for (let i = 0; i < count; i++) {
     const p = document.createElement("span");

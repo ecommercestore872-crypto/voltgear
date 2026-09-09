@@ -25,13 +25,18 @@ cloudinary.config({
 
 async function uploadToStorage(file: File, folder: string) {
   const client = getServiceClient();
-  const ext = (file.name.split(".").pop() || "bin").replace(/[^a-zA-Z0-9]/g, "");
+  const ext = (file.name.split(".").pop() || "bin").replace(
+    /[^a-zA-Z0-9]/g,
+    "",
+  );
   const path = `${folder}/${crypto.randomUUID()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
-  const { error } = await client.storage.from("product-images").upload(path, buffer, {
-    contentType: file.type || "application/octet-stream",
-    upsert: false,
-  });
+  const { error } = await client.storage
+    .from("product-images")
+    .upload(path, buffer, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false,
+    });
   if (error) throw error;
   const { data } = client.storage.from("product-images").getPublicUrl(path);
   return { secureUrl: data.publicUrl, publicId: path };
@@ -76,13 +81,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    const stored = await uploadToStorage(file, folder.replace(/[^a-zA-Z0-9/_-]/g, "") || "admin");
+    const stored = await uploadToStorage(
+      file,
+      folder.replace(/[^a-zA-Z0-9/_-]/g, "") || "admin",
+    );
     return NextResponse.json(stored);
   } catch (error) {
     console.error("[admin/upload] Storage failed", error);
     return NextResponse.json(
       { error: "Upload failed. Check Cloudinary or Storage settings." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

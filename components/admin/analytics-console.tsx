@@ -144,7 +144,9 @@ function formatDeltaHint(pct: number | null | undefined): string | undefined {
   if (pct == null) return undefined;
   const n = Math.round(pct * 1000) / 10;
   if (n === 0) return "Same as last period";
-  return n > 0 ? `Up ${n}% vs last period` : `Down ${Math.abs(n)}% vs last period`;
+  return n > 0
+    ? `Up ${n}% vs last period`
+    : `Down ${Math.abs(n)}% vs last period`;
 }
 
 function downloadCsv(filename: string, csv: string) {
@@ -159,7 +161,12 @@ function downloadCsv(filename: string, csv: string) {
 
 function CsvButton({ filename, csv }: { filename: string; csv: string }) {
   return (
-    <Button type="button" variant="outline" size="sm" onClick={() => downloadCsv(filename, csv)}>
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={() => downloadCsv(filename, csv)}
+    >
       Download CSV
     </Button>
   );
@@ -171,7 +178,10 @@ function formatMoney(n: number | null | undefined): string {
 }
 
 function formatWhen(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }
 
 function MetricButton({
@@ -196,13 +206,20 @@ function MetricButton({
       {hint ? <p className="admin-analytics-tile-hint">{hint}</p> : null}
     </>
   );
-  const tileClass = cn("admin-analytics-tile", primary && "admin-analytics-tile-primary", className);
+  const tileClass = cn(
+    "admin-analytics-tile",
+    primary && "admin-analytics-tile-primary",
+    className,
+  );
   if (!onClick) return <div className={tileClass}>{inner}</div>;
   return (
     <button
       type="button"
       onClick={onClick}
-      className={cn(tileClass, "w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring")}
+      className={cn(
+        tileClass,
+        "w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      )}
     >
       {inner}
     </button>
@@ -220,7 +237,8 @@ function RetentionBanner({ show }: { show: boolean }) {
       role="status"
       className="rounded-2xl border border-[var(--g-line)] bg-[color-mix(in_srgb,var(--g-sage)_12%,var(--g-white))] px-4 py-3 text-sm text-[var(--g-charcoal)]"
     >
-      First-party traffic data is available for the last 90 days only. Order and delivered-revenue analytics remain available for this range.
+      First-party traffic data is available for the last 90 days only. Order and
+      delivered-revenue analytics remain available for this range.
     </p>
   );
 }
@@ -254,9 +272,16 @@ export function AnalyticsConsole() {
         if (from) params.set("from", from);
         if (to) params.set("to", to);
       }
-      const json = await adminFetch(`/api/admin/analytics?${params.toString()}`);
+      const json = await adminFetch(
+        `/api/admin/analytics?${params.toString()}`,
+      );
       setBundle(json);
-      const nextSpend: Record<string, string> = { tiktok: "", meta: "", google: "", other: "" };
+      const nextSpend: Record<string, string> = {
+        tiktok: "",
+        meta: "",
+        google: "",
+        other: "",
+      };
       for (const row of json.sourceMoney ?? []) {
         if (row.spend > 0) nextSpend[row.source] = String(row.spend);
       }
@@ -267,7 +292,9 @@ export function AnalyticsConsole() {
       if (err instanceof AdminAuthError) {
         setError("Sign in again to view analytics.");
       } else {
-        setError(err instanceof Error ? err.message : "Could not load analytics.");
+        setError(
+          err instanceof Error ? err.message : "Could not load analytics.",
+        );
       }
     } finally {
       setLoading(false);
@@ -288,7 +315,9 @@ export function AnalyticsConsole() {
     setDrillTitle(title);
     setDrillLoading(true);
     try {
-      const json = await adminFetch(`/api/admin/analytics/orders?ids=${encodeURIComponent(ids.join(","))}`);
+      const json = await adminFetch(
+        `/api/admin/analytics/orders?ids=${encodeURIComponent(ids.join(","))}`,
+      );
       setDrillOrders(json.orders ?? []);
     } catch {
       setDrillOrders([]);
@@ -342,12 +371,16 @@ export function AnalyticsConsole() {
       const json = await adminFetch("/api/admin/analytics/reports");
       setReports(json.reports ?? []);
     } catch (err) {
-      setQueryError(err instanceof Error ? err.message : "Could not save report.");
+      setQueryError(
+        err instanceof Error ? err.message : "Could not save report.",
+      );
     }
   }
 
   async function removeReport(id: string) {
-    await adminFetch(`/api/admin/analytics/reports/${id}`, { method: "DELETE" });
+    await adminFetch(`/api/admin/analytics/reports/${id}`, {
+      method: "DELETE",
+    });
     setReports((list) => list.filter((r) => r.id !== id));
   }
 
@@ -371,7 +404,9 @@ export function AnalyticsConsole() {
       });
       await load();
     } catch (err) {
-      setSpendError(err instanceof Error ? err.message : "Could not save ad spend.");
+      setSpendError(
+        err instanceof Error ? err.message : "Could not save ad spend.",
+      );
     } finally {
       setSpendSaving(false);
     }
@@ -388,7 +423,8 @@ export function AnalyticsConsole() {
           </p>
           <h1 className="mt-1 text-3xl text-[var(--g-charcoal)]">Analytics</h1>
           <p className="mt-1 max-w-xl text-sm text-[var(--g-taupe)]">
-            Delivered orders are realized money. Placed revenue is not cash in hand. Practice orders are excluded.
+            Delivered orders are realized money. Placed revenue is not cash in
+            hand. Practice orders are excluded.
           </p>
         </div>
         {bundle ? (
@@ -403,7 +439,10 @@ export function AnalyticsConsole() {
           <button
             key={p.id}
             type="button"
-            className={cn("admin-analytics-chip", preset === p.id && "admin-analytics-chip-active")}
+            className={cn(
+              "admin-analytics-chip",
+              preset === p.id && "admin-analytics-chip-active",
+            )}
             onClick={() => setPreset(p.id)}
           >
             {p.label}
@@ -414,11 +453,21 @@ export function AnalyticsConsole() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="from">From</Label>
-            <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input
+              id="from"
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="to">To</Label>
-            <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            <Input
+              id="to"
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
           </div>
           <Button type="button" onClick={() => void load()}>
             Apply
@@ -427,7 +476,9 @@ export function AnalyticsConsole() {
       ) : null}
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      {loading && !bundle ? <p className="text-sm text-[var(--g-taupe)]">Loading…</p> : null}
+      {loading && !bundle ? (
+        <p className="text-sm text-[var(--g-taupe)]">Loading…</p>
+      ) : null}
 
       {exec ? (
         <Tabs defaultValue="overview">
@@ -464,13 +515,17 @@ export function AnalyticsConsole() {
                   formatDeltaHint(bundle.comparison.deliveredRevenue.pct) ??
                   "Primary KPI · money from orders first marked delivered in this range"
                 }
-                onClick={() => void openDrill("Delivered orders", exec.deliveredOrderIds)}
+                onClick={() =>
+                  void openDrill("Delivered orders", exec.deliveredOrderIds)
+                }
               />
               <MetricButton
                 label="Placed revenue"
                 value={formatMoney(exec.placedRevenue)}
                 hint="Not realized · includes orders that may still cancel"
-                onClick={() => void openDrill("Placed orders", exec.placedOrderIds)}
+                onClick={() =>
+                  void openDrill("Placed orders", exec.placedOrderIds)
+                }
               />
               <MetricButton
                 label="Delivered gross profit"
@@ -486,19 +541,31 @@ export function AnalyticsConsole() {
               <MetricButton
                 label="Orders placed"
                 value={String(exec.ordersPlaced)}
-                onClick={() => void openDrill("Placed orders", exec.placedOrderIds)}
+                onClick={() =>
+                  void openDrill("Placed orders", exec.placedOrderIds)
+                }
               />
-              <MetricButton label="Processing" value={String(exec.ordersProcessing)} />
-              <MetricButton label="Shipped" value={String(exec.ordersShipped)} />
+              <MetricButton
+                label="Processing"
+                value={String(exec.ordersProcessing)}
+              />
+              <MetricButton
+                label="Shipped"
+                value={String(exec.ordersShipped)}
+              />
               <MetricButton
                 label="Delivered"
                 value={String(exec.ordersDelivered)}
-                onClick={() => void openDrill("Delivered orders", exec.deliveredOrderIds)}
+                onClick={() =>
+                  void openDrill("Delivered orders", exec.deliveredOrderIds)
+                }
               />
               <MetricButton
                 label="Cancelled"
                 value={String(exec.ordersCancelled)}
-                onClick={() => void openDrill("Cancelled orders", exec.cancelledOrderIds)}
+                onClick={() =>
+                  void openDrill("Cancelled orders", exec.cancelledOrderIds)
+                }
               />
             </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -539,15 +606,20 @@ export function AnalyticsConsole() {
           </TabsContent>
 
           <TabsContent value="products" className="space-y-3">
-            {bundle.products.length === 0 && bundle.productConversion.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No product order lines in this range.</p>
+            {bundle.products.length === 0 &&
+            bundle.productConversion.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No product order lines in this range.
+              </p>
             ) : (
               <>
                 <CsvButton
                   filename={`products-${bundle.range.start}-${bundle.range.end}.csv`}
                   csv={rowsToCsv(
                     bundle.products.map((p) => {
-                      const conv = bundle.productConversion.find((c) => c.slug === p.slug);
+                      const conv = bundle.productConversion.find(
+                        (c) => c.slug === p.slug,
+                      );
                       return {
                         product: p.name,
                         qtyOrdered: p.quantityOrdered,
@@ -574,7 +646,7 @@ export function AnalyticsConsole() {
                       { key: "viewToCart", header: "View to cart" },
                       { key: "cartToOrder", header: "Cart to order" },
                       { key: "cancelRate", header: "Cancel rate" },
-                    ]
+                    ],
                   )}
                 />
                 <TableFrame>
@@ -598,30 +670,58 @@ export function AnalyticsConsole() {
                     </thead>
                     <tbody>
                       {bundle.products.map((p) => {
-                        const conv = bundle.productConversion.find((c) => c.slug === p.slug);
+                        const conv = bundle.productConversion.find(
+                          (c) => c.slug === p.slug,
+                        );
                         return (
                           <tr key={p.slug} className="border-b last:border-0">
                             <td>
                               <button
                                 type="button"
                                 className="text-left font-medium hover:underline"
-                                onClick={() => void openDrill(p.name, p.orderIds)}
+                                onClick={() =>
+                                  void openDrill(p.name, p.orderIds)
+                                }
                               >
                                 {p.name}
                               </button>
                             </td>
-                            <td className="tabular-nums">{conv?.views ?? "—"}</td>
-                            <td className="tabular-nums">{conv?.addToCart ?? "—"}</td>
-                            <td className="tabular-nums">{formatRate(conv?.viewToCart)}</td>
-                            <td className="tabular-nums">{formatRate(conv?.cartToOrder)}</td>
-                            <td className="tabular-nums">{p.quantityOrdered}</td>
-                            <td className="tabular-nums">{p.quantityDelivered}</td>
-                            <td className="tabular-nums">{formatMoney(p.placedRevenue)}</td>
-                            <td className="tabular-nums">{formatMoney(p.deliveredRevenue)}</td>
-                            <td className="tabular-nums">{formatMoney(p.costOfGoods)}</td>
-                            <td className="tabular-nums">{formatMoney(p.deliveredGrossProfit)}</td>
-                            <td className="tabular-nums">{formatRate(p.deliverySuccessRate)}</td>
-                            <td className="tabular-nums">{formatRate(p.cancellationRate)}</td>
+                            <td className="tabular-nums">
+                              {conv?.views ?? "—"}
+                            </td>
+                            <td className="tabular-nums">
+                              {conv?.addToCart ?? "—"}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatRate(conv?.viewToCart)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatRate(conv?.cartToOrder)}
+                            </td>
+                            <td className="tabular-nums">
+                              {p.quantityOrdered}
+                            </td>
+                            <td className="tabular-nums">
+                              {p.quantityDelivered}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatMoney(p.placedRevenue)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatMoney(p.deliveredRevenue)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatMoney(p.costOfGoods)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatMoney(p.deliveredGrossProfit)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatRate(p.deliverySuccessRate)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatRate(p.cancellationRate)}
+                            </td>
                           </tr>
                         );
                       })}
@@ -634,7 +734,9 @@ export function AnalyticsConsole() {
 
           <TabsContent value="cities" className="space-y-3">
             {bundle.cities.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No city data in this range.</p>
+              <p className="text-sm text-muted-foreground">
+                No city data in this range.
+              </p>
             ) : (
               <>
                 <CsvButton
@@ -657,61 +759,74 @@ export function AnalyticsConsole() {
                       { key: "deliveredRevenue", header: "Delivered revenue" },
                       { key: "deliveryRate", header: "Delivery rate" },
                       { key: "cancelRate", header: "Cancel rate" },
-                    ]
+                    ],
                   )}
                 />
                 <TableFrame>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>City</th>
-                      <th>Placed</th>
-                      <th>Confirmed</th>
-                      <th>Delivered</th>
-                      <th>Cancelled</th>
-                      <th>Delivered revenue</th>
-                      <th>Delivery rate</th>
-                      <th>Cancel rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bundle.cities.map((c) => (
-                      <tr key={c.city} className="border-b last:border-0">
-                        <td>
-                          <button
-                            type="button"
-                            className="font-medium hover:underline"
-                            onClick={() => void openDrill(c.city, c.orderIds)}
-                          >
-                            {c.city}
-                          </button>
-                        </td>
-                        <td className="tabular-nums">{c.ordersPlaced}</td>
-                        <td className="text-[var(--g-taupe)]">Not available</td>
-                        <td className="tabular-nums">{c.ordersDelivered}</td>
-                        <td className="tabular-nums">{c.ordersCancelled}</td>
-                        <td className="tabular-nums">{formatMoney(c.deliveredRevenue)}</td>
-                        <td className="tabular-nums">{formatRate(c.deliverySuccessRate)}</td>
-                        <td className="tabular-nums">{formatRate(c.cancellationRate)}</td>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>City</th>
+                        <th>Placed</th>
+                        <th>Confirmed</th>
+                        <th>Delivered</th>
+                        <th>Cancelled</th>
+                        <th>Delivered revenue</th>
+                        <th>Delivery rate</th>
+                        <th>Cancel rate</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </TableFrame>
+                    </thead>
+                    <tbody>
+                      {bundle.cities.map((c) => (
+                        <tr key={c.city} className="border-b last:border-0">
+                          <td>
+                            <button
+                              type="button"
+                              className="font-medium hover:underline"
+                              onClick={() => void openDrill(c.city, c.orderIds)}
+                            >
+                              {c.city}
+                            </button>
+                          </td>
+                          <td className="tabular-nums">{c.ordersPlaced}</td>
+                          <td className="text-[var(--g-taupe)]">
+                            Not available
+                          </td>
+                          <td className="tabular-nums">{c.ordersDelivered}</td>
+                          <td className="tabular-nums">{c.ordersCancelled}</td>
+                          <td className="tabular-nums">
+                            {formatMoney(c.deliveredRevenue)}
+                          </td>
+                          <td className="tabular-nums">
+                            {formatRate(c.deliverySuccessRate)}
+                          </td>
+                          <td className="tabular-nums">
+                            {formatRate(c.cancellationRate)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </TableFrame>
               </>
             )}
           </TabsContent>
 
           <TabsContent value="customers" className="space-y-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {([bundle.customers.firstTime, bundle.customers.repeat] as const).map((row) => (
+              {(
+                [bundle.customers.firstTime, bundle.customers.repeat] as const
+              ).map((row) => (
                 <Card key={row.cohort} className="admin-analytics-tile">
                   <p className="admin-analytics-tile-label">
-                    {row.cohort === "first-time" ? "First-time customers" : "Repeat customers"}
+                    {row.cohort === "first-time"
+                      ? "First-time customers"
+                      : "Repeat customers"}
                   </p>
                   <p className="admin-analytics-tile-value">{row.customers}</p>
                   <p className="admin-analytics-tile-hint">
-                    Orders in range: {row.orderCount} · Delivered: {row.deliveredOrderCount}
+                    Orders in range: {row.orderCount} · Delivered:{" "}
+                    {row.deliveredOrderCount}
                   </p>
                   <p className="mt-1 text-sm text-[var(--g-charcoal)]">
                     Delivered revenue: {formatMoney(row.deliveredRevenue)}
@@ -720,14 +835,23 @@ export function AnalyticsConsole() {
               ))}
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <MetricButton label="30-day reorder rate" value={formatRate(bundle.customers.reorderRate30)} />
-              <MetricButton label="60-day reorder rate" value={formatRate(bundle.customers.reorderRate60)} />
-              <MetricButton label="90-day reorder rate" value={formatRate(bundle.customers.reorderRate90)} />
+              <MetricButton
+                label="30-day reorder rate"
+                value={formatRate(bundle.customers.reorderRate30)}
+              />
+              <MetricButton
+                label="60-day reorder rate"
+                value={formatRate(bundle.customers.reorderRate60)}
+              />
+              <MetricButton
+                label="90-day reorder rate"
+                value={formatRate(bundle.customers.reorderRate90)}
+              />
             </div>
             {bundle.customers.skippedNoEmail > 0 ? (
               <p className="text-sm text-muted-foreground">
-                {bundle.customers.skippedNoEmail} orders had no email or phone and were not merged into
-                customer stats.
+                {bundle.customers.skippedNoEmail} orders had no email or phone
+                and were not merged into customer stats.
               </p>
             ) : null}
           </TabsContent>
@@ -735,8 +859,14 @@ export function AnalyticsConsole() {
           <TabsContent value="traffic" className="space-y-4">
             <RetentionBanner show={bundle.retentionNotice} />
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <MetricButton label="Unique visitors" value={formatCount(bundle.traffic.visitors)} />
-              <MetricButton label="Sessions" value={formatCount(bundle.traffic.sessions)} />
+              <MetricButton
+                label="Unique visitors"
+                value={formatCount(bundle.traffic.visitors)}
+              />
+              <MetricButton
+                label="Sessions"
+                value={formatCount(bundle.traffic.sessions)}
+              />
               <MetricButton
                 label="Converted Sessions"
                 value={formatCount(bundle.traffic.convertedSessions)}
@@ -748,7 +878,9 @@ export function AnalyticsConsole() {
               {bundle.traffic.bySource == null ? (
                 <p className="text-sm text-muted-foreground">Not available</p>
               ) : bundle.traffic.bySource.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No sessions in this range.</p>
+                <p className="text-sm text-muted-foreground">
+                  No sessions in this range.
+                </p>
               ) : (
                 <TableFrame>
                   <table>
@@ -775,7 +907,9 @@ export function AnalyticsConsole() {
               {bundle.traffic.landingPages == null ? (
                 <p className="text-sm text-muted-foreground">Not available</p>
               ) : bundle.traffic.landingPages.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No landing pages in this range.</p>
+                <p className="text-sm text-muted-foreground">
+                  No landing pages in this range.
+                </p>
               ) : (
                 <TableFrame>
                   <table>
@@ -800,8 +934,8 @@ export function AnalyticsConsole() {
             <div>
               <h2 className="mb-2 text-lg font-semibold">Money by source</h2>
               <p className="mb-3 text-sm text-[var(--g-taupe)]">
-                Enter what you spent on ads in this same date range. ROAS stays blank until spend is
-                greater than zero — we will not invent it.
+                Enter what you spent on ads in this same date range. ROAS stays
+                blank until spend is greater than zero — we will not invent it.
               </p>
               <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
                 {Array.from(
@@ -813,29 +947,42 @@ export function AnalyticsConsole() {
                     ...bundle.sourceMoney
                       .map((row) => row.source)
                       .filter((source) => source !== "unattributed"),
-                  ])
+                  ]),
                 ).map((source) => (
                   <div key={source} className="space-y-1.5">
-                    <Label htmlFor={`spend-${source}`}>{displaySource(source)} spend</Label>
+                    <Label htmlFor={`spend-${source}`}>
+                      {displaySource(source)} spend
+                    </Label>
                     <Input
                       id={`spend-${source}`}
                       inputMode="decimal"
                       value={spendDraft[source] ?? ""}
                       onChange={(e) =>
-                        setSpendDraft((current) => ({ ...current, [source]: e.target.value }))
+                        setSpendDraft((current) => ({
+                          ...current,
+                          [source]: e.target.value,
+                        }))
                       }
                     />
                   </div>
                 ))}
               </div>
               <div className="mb-4 flex flex-wrap items-center gap-3">
-                <Button type="button" onClick={() => void saveSpend()} disabled={spendSaving}>
+                <Button
+                  type="button"
+                  onClick={() => void saveSpend()}
+                  disabled={spendSaving}
+                >
                   {spendSaving ? "Saving…" : "Save spend for this range"}
                 </Button>
-                {spendError ? <p className="text-sm text-destructive">{spendError}</p> : null}
+                {spendError ? (
+                  <p className="text-sm text-destructive">{spendError}</p>
+                ) : null}
               </div>
               {bundle.sourceMoney.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No source money in this range.</p>
+                <p className="text-sm text-muted-foreground">
+                  No source money in this range.
+                </p>
               ) : (
                 <>
                   <CsvButton
@@ -855,12 +1002,15 @@ export function AnalyticsConsole() {
                         { key: "source", header: "Source" },
                         { key: "placed", header: "Placed" },
                         { key: "delivered", header: "Delivered" },
-                        { key: "deliveredRevenue", header: "Delivered revenue" },
+                        {
+                          key: "deliveredRevenue",
+                          header: "Delivered revenue",
+                        },
                         { key: "lost", header: "Lost to cancels" },
                         { key: "waiting", header: "Still moving" },
                         { key: "spend", header: "Ad spend" },
                         { key: "roas", header: "ROAS" },
-                      ]
+                      ],
                     )}
                   />
                   <TableFrame>
@@ -879,26 +1029,44 @@ export function AnalyticsConsole() {
                       </thead>
                       <tbody>
                         {bundle.sourceMoney.map((row) => (
-                          <tr key={row.source} className="border-b last:border-0">
+                          <tr
+                            key={row.source}
+                            className="border-b last:border-0"
+                          >
                             <td>
                               <button
                                 type="button"
                                 className="font-medium hover:underline"
-                                onClick={() => void openDrill(displaySource(row.source), row.orderIds)}
+                                onClick={() =>
+                                  void openDrill(
+                                    displaySource(row.source),
+                                    row.orderIds,
+                                  )
+                                }
                               >
                                 {displaySource(row.source)}
                               </button>
                             </td>
                             <td className="tabular-nums">{row.placedCount}</td>
-                            <td className="tabular-nums">{row.deliveredCount}</td>
-                            <td className="tabular-nums">{formatMoney(row.deliveredRevenue)}</td>
-                            <td className="tabular-nums">{formatMoney(row.lost)}</td>
-                            <td className="tabular-nums">{formatMoney(row.waiting)}</td>
+                            <td className="tabular-nums">
+                              {row.deliveredCount}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatMoney(row.deliveredRevenue)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatMoney(row.lost)}
+                            </td>
+                            <td className="tabular-nums">
+                              {formatMoney(row.waiting)}
+                            </td>
                             <td className="tabular-nums">
                               {row.spend > 0 ? formatMoney(row.spend) : "—"}
                             </td>
                             <td className="tabular-nums">
-                              {row.roas == null ? "Not available" : `${Math.round(row.roas * 100) / 100}×`}
+                              {row.roas == null
+                                ? "Not available"
+                                : `${Math.round(row.roas * 100) / 100}×`}
                             </td>
                           </tr>
                         ))}
@@ -913,7 +1081,9 @@ export function AnalyticsConsole() {
                 Delivered Orders by Source — delivered during selected period
               </h2>
               {bundle.traffic.deliveredBySource.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No delivered orders in this range.</p>
+                <p className="text-sm text-muted-foreground">
+                  No delivered orders in this range.
+                </p>
               ) : (
                 <TableFrame>
                   <table>
@@ -929,7 +1099,9 @@ export function AnalyticsConsole() {
                         <tr key={row.source} className="border-b last:border-0">
                           <td>{displaySource(row.source)}</td>
                           <td className="tabular-nums">{row.orders}</td>
-                          <td className="tabular-nums">{formatMoney(row.deliveredRevenue)}</td>
+                          <td className="tabular-nums">
+                            {formatMoney(row.deliveredRevenue)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -966,7 +1138,9 @@ export function AnalyticsConsole() {
           <TabsContent value="insights" className="space-y-4">
             <RetentionBanner show={bundle.retentionNotice} />
             {bundle.insights.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No insights for this range.</p>
+              <p className="text-sm text-muted-foreground">
+                No insights for this range.
+              </p>
             ) : (
               <ul className="space-y-3">
                 {bundle.insights.map((card) => (
@@ -976,11 +1150,13 @@ export function AnalyticsConsole() {
                         "admin-analytics-panel space-y-3 px-4 py-4",
                         card.confidence === "HIGH"
                           ? "admin-analytics-insight-high"
-                          : "admin-analytics-insight-medium"
+                          : "admin-analytics-insight-medium",
                       )}
                     >
                       <div className="flex flex-wrap items-start justify-between gap-2">
-                        <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">{card.title}</h2>
+                        <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">
+                          {card.title}
+                        </h2>
                         <span className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
                           {card.confidence}
                         </span>
@@ -1002,7 +1178,9 @@ export function AnalyticsConsole() {
                         </ul>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium">Recommended checks</h3>
+                        <h3 className="text-sm font-medium">
+                          Recommended checks
+                        </h3>
                         <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
                           {card.recommendedChecks.map((line) => (
                             <li key={line}>{line}</li>
@@ -1039,7 +1217,9 @@ export function AnalyticsConsole() {
                   id="dimension"
                   className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
                   value={dimension}
-                  onChange={(e) => setDimension(e.target.value as "" | AnalyticsDimension)}
+                  onChange={(e) =>
+                    setDimension(e.target.value as "" | AnalyticsDimension)
+                  }
                 >
                   <option value="">None</option>
                   {ANALYTICS_DIMENSIONS.map((d) => (
@@ -1061,11 +1241,18 @@ export function AnalyticsConsole() {
                 className="max-w-sm"
                 aria-label="Saved report name"
               />
-              <Button type="button" variant="outline" onClick={() => void saveReport()} disabled={!saveName.trim()}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void saveReport()}
+                disabled={!saveName.trim()}
+              >
                 Save report
               </Button>
             </div>
-            {queryError ? <p className="text-sm text-destructive">{queryError}</p> : null}
+            {queryError ? (
+              <p className="text-sm text-destructive">{queryError}</p>
+            ) : null}
             {queryRows ? (
               queryRows.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No rows.</p>
@@ -1085,15 +1272,19 @@ export function AnalyticsConsole() {
                             <button
                               type="button"
                               className="hover:underline"
-                              onClick={() => void openDrill(row.label, row.orderIds)}
+                              onClick={() =>
+                                void openDrill(row.label, row.orderIds)
+                              }
                             >
                               {row.label}
                             </button>
                           </td>
                           <td className="tabular-nums">
-                            {metric === "deliveryRate" || metric === "cancellationRate"
+                            {metric === "deliveryRate" ||
+                            metric === "cancellationRate"
                               ? formatRate(row.value)
-                              : metric === "ordersPlaced" || metric === "ordersDelivered"
+                              : metric === "ordersPlaced" ||
+                                  metric === "ordersDelivered"
                                 ? row.value == null
                                   ? "Not available"
                                   : String(row.value)
@@ -1111,20 +1302,31 @@ export function AnalyticsConsole() {
                 <h2 className="mb-2 text-lg font-semibold">Saved reports</h2>
                 <ul className="admin-analytics-panel divide-y">
                   {reports.map((r) => (
-                    <li key={r.id} className="flex min-h-11 items-center justify-between gap-3 px-3 py-2">
+                    <li
+                      key={r.id}
+                      className="flex min-h-11 items-center justify-between gap-3 px-3 py-2"
+                    >
                       <button
                         type="button"
                         className="text-left text-sm font-medium hover:underline"
                         onClick={() => {
                           const q = r.query;
-                          if (typeof q.metric === "string") setMetric(q.metric as AnalyticsMetric);
-                          setDimension((q.dimension as AnalyticsDimension) || "");
+                          if (typeof q.metric === "string")
+                            setMetric(q.metric as AnalyticsMetric);
+                          setDimension(
+                            (q.dimension as AnalyticsDimension) || "",
+                          );
                           void runQuery(q);
                         }}
                       >
                         {r.name}
                       </button>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => void removeReport(r.id)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void removeReport(r.id)}
+                      >
                         Delete
                       </Button>
                     </li>
@@ -1139,7 +1341,9 @@ export function AnalyticsConsole() {
       {drillTitle ? (
         <section className="admin-analytics-panel">
           <div className="admin-analytics-panel-head flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">{drillTitle}</h2>
+            <h2 className="text-lg font-semibold text-[var(--g-charcoal)]">
+              {drillTitle}
+            </h2>
             <Button
               type="button"
               variant="ghost"
@@ -1153,40 +1357,45 @@ export function AnalyticsConsole() {
             </Button>
           </div>
           <div className="p-3 sm:p-4">
-          {drillLoading ? (
-            <p className="text-sm text-[var(--g-taupe)]">Loading orders…</p>
-          ) : drillOrders.length === 0 ? (
-            <p className="text-sm text-[var(--g-taupe)]">No orders in this total.</p>
-          ) : (
-            <TableFrame>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>City</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {drillOrders.map((o) => (
-                    <tr key={o.orderId}>
-                      <td className="font-medium">
-                        <Link href={`/admin/orders/${encodeURIComponent(o.orderId)}`} className="hover:underline">
-                          {o.orderId}
-                        </Link>
-                      </td>
-                      <td>{formatWhen(o.createdAt)}</td>
-                      <td>{STATUS_LABEL[o.status] ?? o.status}</td>
-                      <td>{o.city}</td>
-                      <td className="tabular-nums">{formatPrice(o.total)}</td>
+            {drillLoading ? (
+              <p className="text-sm text-[var(--g-taupe)]">Loading orders…</p>
+            ) : drillOrders.length === 0 ? (
+              <p className="text-sm text-[var(--g-taupe)]">
+                No orders in this total.
+              </p>
+            ) : (
+              <TableFrame>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Order</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>City</th>
+                      <th>Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </TableFrame>
-          )}
+                  </thead>
+                  <tbody>
+                    {drillOrders.map((o) => (
+                      <tr key={o.orderId}>
+                        <td className="font-medium">
+                          <Link
+                            href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
+                            className="hover:underline"
+                          >
+                            {o.orderId}
+                          </Link>
+                        </td>
+                        <td>{formatWhen(o.createdAt)}</td>
+                        <td>{STATUS_LABEL[o.status] ?? o.status}</td>
+                        <td>{o.city}</td>
+                        <td className="tabular-nums">{formatPrice(o.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TableFrame>
+            )}
           </div>
         </section>
       ) : null}

@@ -18,7 +18,10 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
   const showBanner = Boolean(banner.imageUrl || banner.title || banner.eyebrow);
 
   return (
-    <section className="bg-[var(--g-cream)] px-4 py-8 sm:py-12 lg:px-8" aria-label="Lifestyle shop">
+    <section
+      className="bg-[var(--g-cream)] px-4 py-8 sm:py-12 lg:px-8"
+      aria-label="Lifestyle shop"
+    >
       <div className="mx-auto grid max-w-6xl gap-3 sm:gap-4 lg:grid-cols-2 lg:gap-5">
         {showBanner ? (
           <Link
@@ -27,7 +30,10 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
           >
             {banner.imageUrl ? (
               <Image
-                src={cloudinaryImageUrl(banner.imageUrl, { w: 900 }) || banner.imageUrl}
+                src={
+                  cloudinaryImageUrl(banner.imageUrl, { w: 900 }) ||
+                  banner.imageUrl
+                }
                 alt=""
                 fill
                 quality={70}
@@ -81,7 +87,10 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
                 </div>
                 <div className="relative mt-2 flex-1">
                   <Image
-                    src={cloudinaryImageUrl(tile.imageUrl, { w: 480 }) || tile.imageUrl}
+                    src={
+                      cloudinaryImageUrl(tile.imageUrl, { w: 480 }) ||
+                      tile.imageUrl
+                    }
                     alt=""
                     fill
                     quality={70}

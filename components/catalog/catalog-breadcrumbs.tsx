@@ -23,7 +23,11 @@ export function CatalogBreadcrumbs({
       <ol className="flex flex-wrap items-center gap-1">
         {items.map((item, i) => (
           <li key={i} className="flex items-center gap-1.5">
-            {i > 0 && <span aria-hidden="true" className="text-muted-foreground/50">/</span>}
+            {i > 0 && (
+              <span aria-hidden="true" className="text-muted-foreground/50">
+                /
+              </span>
+            )}
             {item.href && !item.current ? (
               <Link
                 href={item.href}
@@ -34,9 +38,7 @@ export function CatalogBreadcrumbs({
             ) : (
               <span
                 aria-current={item.current ? "page" : undefined}
-                className={cn(
-                  item.current && "font-medium text-foreground"
-                )}
+                className={cn(item.current && "font-medium text-foreground")}
               >
                 {item.label}
               </span>

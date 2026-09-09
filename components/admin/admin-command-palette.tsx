@@ -52,7 +52,7 @@ export function AdminCommandPalette() {
       void (async () => {
         try {
           const data = (await adminFetch(
-            `/api/admin/search?q=${encodeURIComponent(qTrim)}`
+            `/api/admin/search?q=${encodeURIComponent(qTrim)}`,
           )) as { hits?: Hit[] };
           setHits(data.hits ?? []);
           setActive(0);
@@ -105,7 +105,9 @@ export function AdminCommandPalette() {
         <ul className="max-h-72 overflow-y-auto py-1">
           {hits.length === 0 ? (
             <li className="px-4 py-3 text-sm text-muted-foreground">
-              {q.trim() ? "No matches" : "Type an order #, product, or customer"}
+              {q.trim()
+                ? "No matches"
+                : "Type an order #, product, or customer"}
             </li>
           ) : (
             hits.map((h, i) => (
@@ -114,7 +116,7 @@ export function AdminCommandPalette() {
                   type="button"
                   className={cn(
                     "flex w-full items-center gap-3 px-4 py-2 text-left text-sm",
-                    i === active && "bg-muted/50"
+                    i === active && "bg-muted/50",
                   )}
                   onMouseEnter={() => setActive(i)}
                   onClick={() => go(h.href)}

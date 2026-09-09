@@ -55,7 +55,7 @@ export function BuyNow({
               }
             : {}),
         },
-        quantity
+        quantity,
       );
       router.push("/checkout");
     } finally {

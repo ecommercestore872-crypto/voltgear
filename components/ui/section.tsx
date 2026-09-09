@@ -7,10 +7,21 @@ interface SectionProps extends HTMLAttributes<HTMLElement> {
   bleed?: boolean;
 }
 
-export function Section({ children, className, containerClass, bleed = false, ...props }: SectionProps) {
+export function Section({
+  children,
+  className,
+  containerClass,
+  bleed = false,
+  ...props
+}: SectionProps) {
   return (
     <section className={cn("py-12 md:py-16 lg:py-24", className)} {...props}>
-      <div className={cn(!bleed && "container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl", containerClass)}>
+      <div
+        className={cn(
+          !bleed && "container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl",
+          containerClass,
+        )}
+      >
         {children}
       </div>
     </section>
@@ -24,9 +35,22 @@ interface SectionHeaderProps extends HTMLAttributes<HTMLDivElement> {
   action?: ReactNode;
 }
 
-export function SectionHeader({ title, description, eyebrow, action, className, ...props }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  description,
+  eyebrow,
+  action,
+  className,
+  ...props
+}: SectionHeaderProps) {
   return (
-    <div className={cn("mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6", className)} {...props}>
+    <div
+      className={cn(
+        "mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6",
+        className,
+      )}
+      {...props}
+    >
       <div className="max-w-2xl">
         {eyebrow && (
           <p className="text-[13px] font-bold uppercase tracking-widest text-primary md:mb-3">
@@ -42,11 +66,7 @@ export function SectionHeader({ title, description, eyebrow, action, className, 
           </p>
         )}
       </div>
-      {action && (
-        <div className="shrink-0">
-          {action}
-        </div>
-      )}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

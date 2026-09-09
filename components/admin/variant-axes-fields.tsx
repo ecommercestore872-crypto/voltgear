@@ -10,7 +10,11 @@ import { adminUpload } from "@/components/admin/admin-fetch";
 import { optionKey, type VariantOption } from "@/lib/variant-options-rules";
 
 function blankOption(): VariantOption {
-  return { key: `opt-${Math.random().toString(36).slice(2, 8)}`, name: "", enabled: true };
+  return {
+    key: `opt-${Math.random().toString(36).slice(2, 8)}`,
+    name: "",
+    enabled: true,
+  };
 }
 
 function ColorPhotoInput({
@@ -53,7 +57,12 @@ function ColorPhotoInput({
           onChange={(e) => onFile(e.target.files?.[0])}
         />
         {url ? (
-          <Button type="button" variant="ghost" size="sm" onClick={() => onChange(undefined)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onChange(undefined)}
+          >
             Clear
           </Button>
         ) : null}
@@ -84,14 +93,17 @@ function OptionList({
           if (key) merged.key = key;
         }
         return merged;
-      })
+      }),
     );
   }
 
   return (
     <div className="space-y-3">
       {options.map((row, i) => (
-        <div key={`${row.key}-${i}`} className="space-y-2 rounded-md border p-3">
+        <div
+          key={`${row.key}-${i}`}
+          className="space-y-2 rounded-md border p-3"
+        >
           <div className="flex flex-wrap items-end gap-2">
             <div className="min-w-[8rem] flex-1 space-y-1">
               <Label htmlFor={`opt-name-${row.key}-${i}`}>Name</Label>
@@ -120,11 +132,19 @@ function OptionList({
             </Button>
           </div>
           {withPhoto ? (
-            <ColorPhotoInput url={row.image} onChange={(image) => patch(i, { image })} />
+            <ColorPhotoInput
+              url={row.image}
+              onChange={(image) => patch(i, { image })}
+            />
           ) : null}
         </div>
       ))}
-      <Button type="button" variant="outline" size="sm" onClick={() => onChange([...options, blankOption()])}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onChange([...options, blankOption()])}
+      >
         <Plus className="mr-1 h-4 w-4" />
         {addLabel}
       </Button>
@@ -155,7 +175,8 @@ export function VariantAxesFields({
       <div>
         <p className="text-sm font-medium">Variants</p>
         <p className="text-xs text-muted-foreground">
-          Turn Color and Size on as needed. Off values stay hidden. Units stay on the product.
+          Turn Color and Size on as needed. Off values stay hidden. Units stay
+          on the product.
         </p>
       </div>
       <label className="flex items-center gap-2 text-sm">
@@ -179,7 +200,12 @@ export function VariantAxesFields({
           withPhoto
           addLabel="Add color"
           onChange={(next) =>
-            onChange({ colorEnabled, sizeEnabled, colorOptions: next, sizeOptions })
+            onChange({
+              colorEnabled,
+              sizeEnabled,
+              colorOptions: next,
+              sizeOptions,
+            })
           }
         />
       ) : null}
@@ -203,7 +229,12 @@ export function VariantAxesFields({
           options={sizeOptions}
           addLabel="Add size"
           onChange={(next) =>
-            onChange({ colorEnabled, sizeEnabled, colorOptions, sizeOptions: next })
+            onChange({
+              colorEnabled,
+              sizeEnabled,
+              colorOptions,
+              sizeOptions: next,
+            })
           }
         />
       ) : null}

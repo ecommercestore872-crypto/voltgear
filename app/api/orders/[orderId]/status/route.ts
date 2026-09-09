@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: { orderId: string } },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,7 +44,7 @@ export async function POST(
       {
         error: `Status must be one of: ${ORDER_STATUS_VALUES.join(", ")}.`,
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -60,7 +60,7 @@ export async function POST(
     if (!cancelRes.ok) {
       return NextResponse.json(
         { error: cancelRes.error || "Could not cancel the order." },
-        { status: 500 }
+        { status: 500 },
       );
     }
     updated = await getOrderById(orderId);
@@ -71,7 +71,7 @@ export async function POST(
   if (!updated) {
     return NextResponse.json(
       { error: "Could not update the order. Please try again." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

@@ -21,7 +21,8 @@ export async function GET(request: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const product = await getAdminProduct(params.id);
-  if (!product) return NextResponse.json({ error: "Not found." }, { status: 404 });
+  if (!product)
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
   return NextResponse.json({ product });
 }
 
@@ -34,10 +35,16 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const doc = body?.doc;
   let result;
   if (action === "publish") result = await publishAdminProduct(params.id, doc);
-  else if (action === "unpublish") result = await unpublishAdminProduct(params.id);
-  else if (action === "discard") result = await discardAdminProductDraft(params.id);
+  else if (action === "unpublish")
+    result = await unpublishAdminProduct(params.id);
+  else if (action === "discard")
+    result = await discardAdminProductDraft(params.id);
   else result = await saveAdminProduct(params.id, doc);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   if (action === "save" || action === "publish") {
     await setProductCollections(params.id, body?.collectionIds);
   }
@@ -49,6 +56,10 @@ export async function DELETE(request: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const result = await deleteAdminProduct(params.id);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

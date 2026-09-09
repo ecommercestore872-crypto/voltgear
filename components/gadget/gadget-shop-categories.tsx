@@ -30,7 +30,8 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
     key: `p-${t.href}`,
     label: t.label,
     href: t.href,
-    image: t.imageUrl || gadgetImageSrc(t.product, PRODUCT_IMAGE.card) || undefined,
+    image:
+      t.imageUrl || gadgetImageSrc(t.product, PRODUCT_IMAGE.card) || undefined,
   }));
 
   return fromProducts;
@@ -166,9 +167,12 @@ export function GadgetShopCategories({
               {/* Circle Avatar Stage */}
               <div
                 className={`relative flex h-[5.5rem] w-[5.5rem] items-center justify-center overflow-hidden rounded-full shadow-md ring-2 ring-white/70 transition duration-300 group-hover:scale-105 group-hover:shadow-xl sm:h-28 sm:w-28 ${
-                  ["bg-[var(--g-forest)]", "bg-[var(--g-sage)]", "bg-[var(--g-terracotta)]", "bg-[var(--g-forest-mid)]"][
-                    idx % 4
-                  ]
+                  [
+                    "bg-[var(--g-forest)]",
+                    "bg-[var(--g-sage)]",
+                    "bg-[var(--g-terracotta)]",
+                    "bg-[var(--g-forest-mid)]",
+                  ][idx % 4]
                 }`}
               >
                 {tile.image ? (
@@ -181,9 +185,15 @@ export function GadgetShopCategories({
                     className="object-cover transition duration-300 group-hover:scale-110"
                   />
                 ) : tile.glyph ? (
-                  <CategoryGlyph name={tile.glyph} className="h-10 w-10 text-white sm:h-12 sm:w-12" />
+                  <CategoryGlyph
+                    name={tile.glyph}
+                    className="h-10 w-10 text-white sm:h-12 sm:w-12"
+                  />
                 ) : (
-                  <CategoryGlyph name="watch" className="h-10 w-10 text-white sm:h-12 sm:w-12" />
+                  <CategoryGlyph
+                    name="watch"
+                    className="h-10 w-10 text-white sm:h-12 sm:w-12"
+                  />
                 )}
               </div>
 

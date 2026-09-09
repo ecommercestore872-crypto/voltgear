@@ -20,7 +20,7 @@ export function CartEffects() {
           fireConfetti(originX, originY);
         else {
           const cartBtn = document.querySelector<HTMLElement>(
-            'button[aria-label*="cart"]'
+            'button[aria-label*="cart"]',
           );
           if (cartBtn) {
             const r = cartBtn.getBoundingClientRect();
@@ -28,7 +28,7 @@ export function CartEffects() {
           }
         }
       }) as EventListener,
-      { capture: true }
+      { capture: true },
     );
   }
 
@@ -43,11 +43,11 @@ export function CartEffects() {
 export function dispatchAddToCartEffect(
   imageEl?: HTMLImageElement | null,
   originX?: number,
-  originY?: number
+  originY?: number,
 ) {
   window.dispatchEvent(
     new CustomEvent("voltgear:add-to-cart", {
       detail: { imageEl, originX, originY },
-    })
+    }),
   );
 }

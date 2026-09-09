@@ -14,19 +14,28 @@ interface ProductVideoModalProps {
   productName: string;
 }
 
-export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productName }: ProductVideoModalProps) {
+export function ProductVideoModal({
+  videoUrl,
+  tiktokUrl,
+  instagramUrl,
+  productName,
+}: ProductVideoModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeMedia, setActiveMedia] = useState<string | null>(null);
 
   function getSafeEmbed(url?: string): string | null {
     if (!url) return null;
     const kind = videoKind(url);
-    if (kind === "instagram" || kind === "tiktok") return videoEmbedSrc(kind, url);
+    if (kind === "instagram" || kind === "tiktok")
+      return videoEmbedSrc(kind, url);
     return url;
   }
 
   // Determine the default embed if opened
-  const defaultEmbed = getSafeEmbed(videoUrl) || getSafeEmbed(tiktokUrl) || getSafeEmbed(instagramUrl);
+  const defaultEmbed =
+    getSafeEmbed(videoUrl) ||
+    getSafeEmbed(tiktokUrl) ||
+    getSafeEmbed(instagramUrl);
 
   if (!videoUrl && !tiktokUrl && !instagramUrl) {
     return null; /* Hide if no videos available */
@@ -47,13 +56,13 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
         >
-          <div 
-             className="relative flex flex-col w-[95vw] max-w-[400px] h-[85vh] max-h-[800px] bg-black rounded-2xl shadow-2xl overflow-hidden border border-white/20"
-             onClick={(e) => e.stopPropagation()}
+          <div
+            className="relative flex flex-col w-[95vw] max-w-[400px] h-[85vh] max-h-[800px] bg-black rounded-2xl shadow-2xl overflow-hidden border border-white/20"
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setIsOpen(false)}
@@ -68,7 +77,9 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
               <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Buy n Try Verified Demo
               </span>
-              <h3 className="text-sm font-bold truncate pr-10 max-w-full">{productName}</h3>
+              <h3 className="text-sm font-bold truncate pr-10 max-w-full">
+                {productName}
+              </h3>
             </div>
 
             <div className="relative flex-1 w-full bg-neutral-900 flex flex-col items-center justify-center overflow-hidden min-h-[300px]">
@@ -77,9 +88,10 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
                   src={activeMedia}
                   className={cn(
                     "w-full border-0 absolute z-0",
-                    activeMedia.includes("instagram.com") || activeMedia.includes("tiktok.com")
+                    activeMedia.includes("instagram.com") ||
+                      activeMedia.includes("tiktok.com")
                       ? "h-[calc(100%+230px)] -top-[80px] pointer-events-auto"
-                      : "h-full inset-0 pointer-events-auto"
+                      : "h-full inset-0 pointer-events-auto",
                   )}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -90,9 +102,12 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
                   <div className="h-16 w-16 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/30">
                     <Video className="h-8 w-8" />
                   </div>
-                  <h4 className="font-bold text-base">Watch Live Hands-On Reel</h4>
+                  <h4 className="font-bold text-base">
+                    Watch Live Hands-On Reel
+                  </h4>
                   <p className="text-xs text-neutral-400 max-w-xs mx-auto">
-                    Check out unboxing & charging speed test on our official Instagram & TikTok channel.
+                    Check out unboxing & charging speed test on our official
+                    Instagram & TikTok channel.
                   </p>
                 </div>
               )}
@@ -118,7 +133,7 @@ export function ProductVideoModal({ videoUrl, tiktokUrl, instagramUrl, productNa
                     <ExternalLink className="h-3 w-3 ml-1 opacity-70" />
                   </Button>
                 )}
-                {(!tiktokUrl && !instagramUrl && videoUrl) && (
+                {!tiktokUrl && !instagramUrl && videoUrl && (
                   <Button
                     onClick={() => window.open(videoUrl, "_blank")}
                     className="bg-white text-black hover:bg-neutral-200 text-xs font-bold px-4 py-2 h-auto rounded-xl flex items-center justify-center gap-1.5 transition-all flex-1"

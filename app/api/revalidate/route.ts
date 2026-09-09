@@ -33,7 +33,8 @@ export async function POST(request: Request) {
     let paths: string[] = [];
     const body = await request.json().catch(() => null);
     if (body?.path && typeof body.path === "string") paths.push(body.path);
-    else if (Array.isArray(body?.paths)) paths = body.paths.filter((p: unknown) => typeof p === "string");
+    else if (Array.isArray(body?.paths))
+      paths = body.paths.filter((p: unknown) => typeof p === "string");
     else paths = DEFAULT_PATHS;
 
     for (const path of paths) revalidatePath(path);
@@ -51,8 +52,11 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     return Response.json(
-      { revalidated: false, error: err instanceof Error ? err.message : "Failed to revalidate" },
-      { status: 500 }
+      {
+        revalidated: false,
+        error: err instanceof Error ? err.message : "Failed to revalidate",
+      },
+      { status: 500 },
     );
   }
 }

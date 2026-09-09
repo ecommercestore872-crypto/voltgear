@@ -46,7 +46,12 @@ export function ReviewsQueue({ reviews }: { reviews: Submission[] }) {
   }
 
   async function remove(id: string) {
-    if (!confirm("Permanently delete this review submission? This cannot be undone.")) return;
+    if (
+      !confirm(
+        "Permanently delete this review submission? This cannot be undone.",
+      )
+    )
+      return;
     setBusy(id + "delete");
     setError(null);
     try {
@@ -80,7 +85,8 @@ export function ReviewsQueue({ reviews }: { reviews: Submission[] }) {
                     </p>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                        STATUS_COLORS[r.status ?? "pending"] ?? "bg-muted text-muted-foreground"
+                        STATUS_COLORS[r.status ?? "pending"] ??
+                        "bg-muted text-muted-foreground"
                       }`}
                     >
                       {r.status ?? "pending"}
@@ -92,7 +98,9 @@ export function ReviewsQueue({ reviews }: { reviews: Submission[] }) {
                       ? " · " + new Date(r.created_at).toLocaleDateString()
                       : ""}
                   </p>
-                  <p className="mt-1.5 text-sm text-foreground/80 line-clamp-3">{r.comment}</p>
+                  <p className="mt-1.5 text-sm text-foreground/80 line-clamp-3">
+                    {r.comment}
+                  </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-1.5">
                   {r.status === "pending" && (

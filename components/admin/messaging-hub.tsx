@@ -11,7 +11,11 @@ export function MessagingHub() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Messaging channel">
+      <div
+        className="flex flex-wrap gap-2"
+        role="tablist"
+        aria-label="Messaging channel"
+      >
         <Button
           type="button"
           size="sm"

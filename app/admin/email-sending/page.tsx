@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 
 import { EmailSendersForm } from "@/components/admin/email-senders-form";
 import { editorEmailSenders, getAdminSettings } from "@/lib/db/admin-store";
-import { envFromAddress, resolveFromAddress, resolveEmailBrandName } from "@/lib/email-rules";
+import {
+  envFromAddress,
+  resolveFromAddress,
+  resolveEmailBrandName,
+} from "@/lib/email-rules";
 
 export const metadata: Metadata = {
   title: "Email sending",
@@ -14,7 +18,9 @@ export const dynamic = "force-dynamic";
 export default async function AdminEmailSendingPage() {
   const row = (await getAdminSettings()) as Record<string, unknown> | null;
   const draft =
-    row?.draft && typeof row.draft === "object" ? (row.draft as Record<string, unknown>) : null;
+    row?.draft && typeof row.draft === "object"
+      ? (row.draft as Record<string, unknown>)
+      : null;
   const config = editorEmailSenders(row);
   const hasDraft = Boolean(draft?.emailSenders);
   const fallbackFrom = resolveFromAddress({

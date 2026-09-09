@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function EditShopTypePage({ params }: { params: { id: string } }) {
+export default async function EditShopTypePage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const shopType = await getAdminShopType(params.id).catch(() => null);
   if (!shopType) notFound();
   return <CategoryForm shopType={shopType} />;

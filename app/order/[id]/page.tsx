@@ -51,7 +51,8 @@ export default async function OrderSuccessPage({
   const order = await getOrderByPublicId(params.id);
   if (!order) notFound();
 
-  const email = typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+  const email =
+    typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
   if (!email) {
     return <OrderEmailGate orderId={params.id} />;
   }
@@ -92,13 +93,18 @@ export default async function OrderSuccessPage({
           <div className="flex flex-col items-center gap-6 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-6 sm:flex-row sm:items-start sm:p-8">
             <div
               className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${
-                cancelled ? "bg-[var(--g-danger,#b42318)]" : "bg-[var(--g-forest)]"
+                cancelled
+                  ? "bg-[var(--g-danger,#b42318)]"
+                  : "bg-[var(--g-forest)]"
               }`}
             >
               {cancelled ? (
                 <X className="h-8 w-8 text-[var(--g-cream)]" strokeWidth={2} />
               ) : (
-                <Check className="h-8 w-8 text-[var(--g-cream)]" strokeWidth={2} />
+                <Check
+                  className="h-8 w-8 text-[var(--g-cream)]"
+                  strokeWidth={2}
+                />
               )}
             </div>
             <div className="flex-1 text-center sm:text-left">
@@ -134,12 +140,17 @@ export default async function OrderSuccessPage({
               />
               {progress.map((step) => {
                 const Icon = STEP_ICON[step.key] ?? Package;
-                const active = step.state === "current" || step.state === "complete";
+                const active =
+                  step.state === "current" || step.state === "complete";
                 return (
                   <div
                     key={step.key}
                     className={`flex flex-col items-center gap-3 ${
-                      step.state === "upcoming" ? "opacity-40" : step.state === "complete" ? "opacity-90" : ""
+                      step.state === "upcoming"
+                        ? "opacity-40"
+                        : step.state === "complete"
+                          ? "opacity-90"
+                          : ""
                     }`}
                   >
                     <div
@@ -150,7 +161,10 @@ export default async function OrderSuccessPage({
                       }`}
                     >
                       {step.state === "complete" || step.state === "current" ? (
-                        <Icon className="h-4 w-4" strokeWidth={step.key === "new" ? 3 : 2} />
+                        <Icon
+                          className="h-4 w-4"
+                          strokeWidth={step.key === "new" ? 3 : 2}
+                        />
                       ) : (
                         <Icon className="h-4 w-4" />
                       )}
@@ -158,7 +172,9 @@ export default async function OrderSuccessPage({
                     <div className="mt-1">
                       <p
                         className={`text-xs font-bold ${
-                          active ? "text-[var(--g-charcoal)]" : "text-[var(--g-taupe)]"
+                          active
+                            ? "text-[var(--g-charcoal)]"
+                            : "text-[var(--g-taupe)]"
                         }`}
                       >
                         {step.label}
@@ -183,8 +199,13 @@ export default async function OrderSuccessPage({
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)]">
           <div className="flex flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-sm">
             <div className="flex items-center gap-3 border-b border-[var(--g-line)] bg-[var(--g-cream)]/50 p-5">
-              <ClipboardList className="h-5 w-5 text-[var(--g-forest)]" strokeWidth={2.5} />
-              <h3 className="text-[15px] font-bold text-[var(--g-charcoal)]">Order details</h3>
+              <ClipboardList
+                className="h-5 w-5 text-[var(--g-forest)]"
+                strokeWidth={2.5}
+              />
+              <h3 className="text-[15px] font-bold text-[var(--g-charcoal)]">
+                Order details
+              </h3>
             </div>
             <div className="grid gap-x-6 gap-y-7 p-6 sm:grid-cols-2">
               <Detail
@@ -215,10 +236,15 @@ export default async function OrderSuccessPage({
                 value={
                   cancelled
                     ? "—"
-                    : `${new Date(Date.now() + 3 * 86400000).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })} – ${new Date(Date.now() + 5 * 86400000).toLocaleDateString("en-US", {
+                    : `${new Date(Date.now() + 3 * 86400000).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )} – ${new Date(
+                        Date.now() + 5 * 86400000,
+                      ).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -235,7 +261,9 @@ export default async function OrderSuccessPage({
                 icon={<MapPin className="h-4 w-4" />}
                 label="Shipping address"
                 value={customer?.name || ""}
-                hint={[customer?.address, customer?.city, "Pakistan"].filter(Boolean).join(", ")}
+                hint={[customer?.address, customer?.city, "Pakistan"]
+                  .filter(Boolean)
+                  .join(", ")}
               />
             </div>
           </div>
@@ -244,7 +272,10 @@ export default async function OrderSuccessPage({
             <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-sm">
               <div className="flex items-center justify-between border-b border-[var(--g-line)] bg-[var(--g-cream)]/50 p-5">
                 <div className="flex items-center gap-3">
-                  <ClipboardList className="h-5 w-5 text-[var(--g-forest)]" strokeWidth={2.5} />
+                  <ClipboardList
+                    className="h-5 w-5 text-[var(--g-forest)]"
+                    strokeWidth={2.5}
+                  />
                   <h3 className="text-[14px] font-bold text-[var(--g-charcoal)]">
                     Items ({items.length})
                   </h3>
@@ -252,13 +283,18 @@ export default async function OrderSuccessPage({
               </div>
               <ul className="max-h-[280px] flex-1 divide-y divide-[var(--g-line)] overflow-y-auto p-5">
                 {items.length === 0 ? (
-                  <li className="py-8 text-center text-sm text-muted-foreground">No items found</li>
+                  <li className="py-8 text-center text-sm text-muted-foreground">
+                    No items found
+                  </li>
                 ) : (
                   items.map((item, i) => {
                     const qty = item.quantity ?? 1;
                     const line = (item.price ?? 0) * qty;
                     return (
-                      <li key={`${item.slug ?? item.name}-${i}`} className="flex gap-4 py-4 first:pt-1 last:pb-1">
+                      <li
+                        key={`${item.slug ?? item.name}-${i}`}
+                        className="flex gap-4 py-4 first:pt-1 last:pb-1"
+                      >
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-2 text-[13px] font-bold leading-snug text-[var(--g-charcoal)]">
                             {item.name}
@@ -305,19 +341,26 @@ export default async function OrderSuccessPage({
                         }`}
                       >
                         <span className="min-w-0">{line.label}</span>
-                        <span className="shrink-0 text-right tabular-nums">{amount}</span>
+                        <span className="shrink-0 text-right tabular-nums">
+                          {amount}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
-                <p className="mt-3 text-[11px] text-[var(--g-taupe)]">Inclusive of all taxes · Pay on delivery</p>
+                <p className="mt-3 text-[11px] text-[var(--g-taupe)]">
+                  Inclusive of all taxes · Pay on delivery
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col items-center justify-center gap-4 py-8 sm:flex-row">
-          {isCod && (status === "new" || status === "processing") && config.whatsappConfirmFlow && config.whatsappNumber ? (
+          {isCod &&
+          (status === "new" || status === "processing") &&
+          config.whatsappConfirmFlow &&
+          config.whatsappNumber ? (
             <Button
               asChild
               size="lg"
@@ -326,9 +369,9 @@ export default async function OrderSuccessPage({
               <a
                 href={`https://wa.me/${config.whatsappNumber.replace(
                   /\D/g,
-                  ""
+                  "",
                 )}?text=${encodeURIComponent(
-                  `Hello Buy n Try! I want to confirm my order #${orderId}. Total: ${formatPrice(order.total ?? 0)}. Name: ${customer?.name || "Customer"}.`
+                  `Hello Buy n Try! I want to confirm my order #${orderId}. Total: ${formatPrice(order.total ?? 0)}. Name: ${customer?.name || "Customer"}.`,
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -353,7 +396,8 @@ export default async function OrderSuccessPage({
             className="h-12 w-full rounded border-[var(--g-line)] bg-[var(--g-white)] px-10 text-[14px] font-bold tracking-wide text-[var(--g-charcoal)] shadow-sm hover:bg-[var(--g-cream)] sm:w-auto"
           >
             <Link href="/products">
-              <ShoppingBag className="mr-2 h-4 w-4 text-[var(--g-taupe)]" /> Continue shopping
+              <ShoppingBag className="mr-2 h-4 w-4 text-[var(--g-taupe)]" />{" "}
+              Continue shopping
             </Link>
           </Button>
         </div>
@@ -422,7 +466,9 @@ function Detail({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--g-taupe)]">
+          {label}
+        </p>
         <p
           className={`mt-1 break-words text-[13px] font-bold ${
             accent ? "text-[var(--g-forest)]" : "text-[var(--g-charcoal)]"
@@ -430,7 +476,11 @@ function Detail({
         >
           {value || "—"}
         </p>
-        {hint ? <p className="mt-1 text-[12px] leading-snug text-[var(--g-taupe)]">{hint}</p> : null}
+        {hint ? (
+          <p className="mt-1 text-[12px] leading-snug text-[var(--g-taupe)]">
+            {hint}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -455,8 +505,12 @@ function SupportCard({
         {icon}
       </div>
       <div className="min-w-0 pt-0.5">
-        <p className="text-[14px] font-bold text-[var(--g-charcoal)]">{title}</p>
-        <p className="mb-3 mt-1 max-w-[220px] text-[12px] leading-relaxed text-[var(--g-taupe)]">{body}</p>
+        <p className="text-[14px] font-bold text-[var(--g-charcoal)]">
+          {title}
+        </p>
+        <p className="mb-3 mt-1 max-w-[220px] text-[12px] leading-relaxed text-[var(--g-taupe)]">
+          {body}
+        </p>
         <Link
           href={href}
           className="flex items-center text-[12.5px] font-bold text-[var(--g-forest)] hover:underline"

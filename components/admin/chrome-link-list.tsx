@@ -19,7 +19,9 @@ export function ChromeLinkList({
   onChange: (next: ChromeLink[]) => void;
 }) {
   function patch(index: number, field: keyof ChromeLink, value: string) {
-    onChange(links.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+    onChange(
+      links.map((row, i) => (i === index ? { ...row, [field]: value } : row)),
+    );
   }
 
   function move(index: number, dir: -1 | 1) {
@@ -36,7 +38,10 @@ export function ChromeLinkList({
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       <div className="space-y-2">
         {links.map((row, i) => (
-          <div key={`${row.href}-${i}`} className="flex flex-col gap-2 rounded-md border p-2 sm:flex-row sm:items-center">
+          <div
+            key={`${row.href}-${i}`}
+            className="flex flex-col gap-2 rounded-md border p-2 sm:flex-row sm:items-center"
+          >
             <Input
               aria-label={`${title} label ${i + 1}`}
               placeholder="Label"
@@ -50,10 +55,22 @@ export function ChromeLinkList({
               onChange={(e) => patch(i, "href", e.target.value)}
             />
             <div className="flex gap-1">
-              <Button type="button" variant="ghost" size="icon" aria-label="Move up" onClick={() => move(i, -1)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Move up"
+                onClick={() => move(i, -1)}
+              >
                 <ArrowUp className="h-4 w-4" />
               </Button>
-              <Button type="button" variant="ghost" size="icon" aria-label="Move down" onClick={() => move(i, 1)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Move down"
+                onClick={() => move(i, 1)}
+              >
                 <ArrowDown className="h-4 w-4" />
               </Button>
               <Button

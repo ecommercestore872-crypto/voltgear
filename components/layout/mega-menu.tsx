@@ -3,11 +3,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
-import { ArrowRight, Watch, BatteryCharging, Plug, Headphones, Package } from "lucide-react";
+import {
+  ArrowRight,
+  Watch,
+  BatteryCharging,
+  Plug,
+  Headphones,
+  Package,
+} from "lucide-react";
 
 import { fetchFeaturedStoreProducts } from "@/lib/store-client";
 import { imageUrl } from "@/lib/sanity/image";
-import { FALLBACK_SHOP_TYPES, shopTypeLinks, type ShopType } from "@/lib/categories";
+import {
+  FALLBACK_SHOP_TYPES,
+  shopTypeLinks,
+  type ShopType,
+} from "@/lib/categories";
 import type { StoreImage } from "@/lib/types";
 
 interface MegaProduct {
@@ -57,7 +68,7 @@ export function MegaMenu({
             featured: p.featured,
           })),
         ] as const;
-      })
+      }),
     )
       .then((entries) => {
         setProducts(Object.fromEntries(entries));
@@ -74,7 +85,11 @@ export function MegaMenu({
       }
     }
     function handlePointerDown(e: PointerEvent) {
-      if (open && menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (
+        open &&
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node)
+      ) {
         // Only close if click target is not the Categories button itself
         const targetElement = e.target as HTMLElement | null;
         if (!targetElement?.closest("[aria-haspopup='true']")) {

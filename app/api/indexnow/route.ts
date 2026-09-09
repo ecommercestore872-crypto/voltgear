@@ -1,8 +1,5 @@
 import { isAdminRequest } from "@/lib/admin";
-import {
-  priorityIndexNowPaths,
-  submitIndexNow,
-} from "@/lib/indexnow-rules";
+import { priorityIndexNowPaths, submitIndexNow } from "@/lib/indexnow-rules";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchBlogPosts, fetchShopTypes } from "@/lib/db/store";
@@ -36,8 +33,12 @@ export async function POST(request: Request) {
       fetchBlogPosts().catch(() => FALLBACK_BLOG_POSTS),
     ]);
     urls = priorityIndexNowPaths({
-      categorySlugs: (types.length ? types : FALLBACK_SHOP_TYPES).map((t) => t.slug),
-      blogSlugs: (blogs.length ? blogs : FALLBACK_BLOG_POSTS).map((p) => p.slug),
+      categorySlugs: (types.length ? types : FALLBACK_SHOP_TYPES).map(
+        (t) => t.slug,
+      ),
+      blogSlugs: (blogs.length ? blogs : FALLBACK_BLOG_POSTS).map(
+        (p) => p.slug,
+      ),
     });
   }
 

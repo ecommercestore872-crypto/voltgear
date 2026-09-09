@@ -8,7 +8,10 @@ import {
   publishAdminEmailSenders,
   saveAdminEmailSenders,
 } from "@/lib/db/admin-store";
-import { emailSenderDocError, parseEmailSenderConfig } from "@/lib/email-sender-rules";
+import {
+  emailSenderDocError,
+  parseEmailSenderConfig,
+} from "@/lib/email-sender-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +21,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const row = await getAdminSettings();
-  return NextResponse.json({ config: editorEmailSenders(row as Record<string, unknown> | null) });
+  return NextResponse.json({
+    config: editorEmailSenders(row as Record<string, unknown> | null),
+  });
 }
 
 export async function PATCH(request: Request) {
@@ -34,6 +39,10 @@ export async function PATCH(request: Request) {
   if (action === "publish") result = await publishAdminEmailSenders(config);
   else if (action === "discard") result = await discardAdminEmailSenders();
   else result = await saveAdminEmailSenders(config);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

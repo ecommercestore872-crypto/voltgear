@@ -31,7 +31,10 @@ export function CategoryPills({
           variant={selected === cat.slug ? "default" : "outline"}
         >
           <Link href={`/products/${cat.slug}`}>
-            {cat.name} <span className="ml-1 text-xs opacity-60">({counts[cat.slug] ?? 0})</span>
+            {cat.name}{" "}
+            <span className="ml-1 text-xs opacity-60">
+              ({counts[cat.slug] ?? 0})
+            </span>
           </Link>
         </Button>
       ))}

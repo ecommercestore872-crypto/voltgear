@@ -48,7 +48,8 @@ export function TikTokPixel() {
     }
 
     window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
-    return () => window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+    return () =>
+      window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
   }, []);
 
   const pixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID ?? "";

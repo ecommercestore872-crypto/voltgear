@@ -34,13 +34,16 @@ export function GadgetFeaturedProduct({
   const stock = getStockState(product.stockStatus);
   const href = product2Href(product.slug);
   const off = salePercent(product.price, product.compareAtPrice);
-  const rating = product.rating != null && product.rating > 0 ? product.rating : null;
+  const rating =
+    product.rating != null && product.rating > 0 ? product.rating : null;
   const features = (product.features ?? []).filter(Boolean).slice(0, 3);
 
   function handleBuy() {
     if (stock.soldOut) return;
     const defaultVariant =
-      product.variants?.find((v) => v.isDefault) ?? product.variants?.[0] ?? null;
+      product.variants?.find((v) => v.isDefault) ??
+      product.variants?.[0] ??
+      null;
     const price = defaultVariant?.price ?? product.price;
     const itemImage = gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
     addItem({
@@ -87,7 +90,8 @@ export function GadgetFeaturedProduct({
           {title || "Staff pick"}
         </h2>
         <p className="gadget-body mt-2 max-w-lg">
-          {subtitle || "One standout product worth a closer look — clear price, ready to buy."}
+          {subtitle ||
+            "One standout product worth a closer look — clear price, ready to buy."}
         </p>
 
         <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] dark:bg-[var(--g-charcoal)] lg:grid-cols-2 lg:gap-0">
@@ -98,7 +102,7 @@ export function GadgetFeaturedProduct({
             className="flex relative min-h-[14rem] bg-[var(--g-cream)] sm:min-h-[20rem] lg:min-h-0 h-full"
           >
             {image ? (
-               <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 lg:p-8">
+              <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 lg:p-8">
                 <Image
                   src={image}
                   alt=""
@@ -132,11 +136,22 @@ export function GadgetFeaturedProduct({
             </Link>
 
             {rating != null ? (
-              <div className="mt-3 flex items-center gap-1.5" role="img" aria-label={`Rated ${rating.toFixed(1)} of 5`}>
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" strokeWidth={1.75} />
-                <span className="text-sm font-semibold tabular-nums">{rating.toFixed(1)}</span>
+              <div
+                className="mt-3 flex items-center gap-1.5"
+                role="img"
+                aria-label={`Rated ${rating.toFixed(1)} of 5`}
+              >
+                <Star
+                  className="h-4 w-4 fill-amber-400 text-amber-400"
+                  strokeWidth={1.75}
+                />
+                <span className="text-sm font-semibold tabular-nums">
+                  {rating.toFixed(1)}
+                </span>
                 {product.reviewCount ? (
-                  <span className="text-sm text-[var(--g-charcoal)]/75">({product.reviewCount} reviews)</span>
+                  <span className="text-sm text-[var(--g-charcoal)]/75">
+                    ({product.reviewCount} reviews)
+                  </span>
                 ) : null}
               </div>
             ) : null}
@@ -151,7 +166,8 @@ export function GadgetFeaturedProduct({
               <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-white">
                 {formatPrice(product.price)}
               </span>
-              {product.compareAtPrice && product.compareAtPrice > product.price ? (
+              {product.compareAtPrice &&
+              product.compareAtPrice > product.price ? (
                 <span className="pb-1 text-lg text-[var(--g-charcoal)]/70 dark:text-gray-400 line-through">
                   {formatPrice(product.compareAtPrice)}
                 </span>
@@ -191,7 +207,8 @@ export function GadgetFeaturedProduct({
                     </>
                   ) : (
                     <>
-                      <ShoppingBag className="h-4 w-4" strokeWidth={1.75} /> Buy now
+                      <ShoppingBag className="h-4 w-4" strokeWidth={1.75} /> Buy
+                      now
                     </>
                   )}
                 </button>

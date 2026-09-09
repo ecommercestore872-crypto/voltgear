@@ -97,19 +97,28 @@ export default async function FaqPage() {
           {config.codEnabled ? (
             <>
               <p>
-                <strong className="text-[var(--g-charcoal)]">Cash on delivery (COD)</strong> is
-                available on eligible orders — pay the courier when your parcel arrives.
+                <strong className="text-[var(--g-charcoal)]">
+                  Cash on delivery (COD)
+                </strong>{" "}
+                is available on eligible orders — pay the courier when your
+                parcel arrives.
               </p>
               <ul className="mt-3 list-disc space-y-1.5 pl-4">
                 <li>No online card checkout required for standard orders.</li>
-                <li>Have the exact amount ready when possible to speed up handover.</li>
-                <li>Order total (including shipping) is confirmed on your checkout page.</li>
+                <li>
+                  Have the exact amount ready when possible to speed up
+                  handover.
+                </li>
+                <li>
+                  Order total (including shipping) is confirmed on your checkout
+                  page.
+                </li>
               </ul>
             </>
           ) : (
             <p>
-              Payment options are confirmed at checkout. Contact support if you need help
-              completing an order.
+              Payment options are confirmed at checkout. Contact support if you
+              need help completing an order.
             </p>
           )}
         </GadgetSupportCard>
@@ -122,21 +131,30 @@ export default async function FaqPage() {
           <ul className="list-disc space-y-1.5 pl-4">
             <li>
               Track status anytime on{" "}
-              <Link href="/track" className="font-semibold text-[var(--g-forest)] hover:underline">
+              <Link
+                href="/track"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 Track your order
               </Link>
               .
             </li>
             <li>
               Need to change address or cancel soon after ordering?{" "}
-              <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+              <Link
+                href="/contact"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 Contact us
               </Link>{" "}
               quickly with your order number.
             </li>
             <li>
               Bulk / corporate purchases: see{" "}
-              <Link href="/bulk-order" className="font-semibold text-[var(--g-forest)] hover:underline">
+              <Link
+                href="/bulk-order"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 Corporate orders
               </Link>
               .
@@ -172,7 +190,10 @@ export default async function FaqPage() {
             </li>
             <li>
               Defects and coverage:{" "}
-              <Link href="/warranty" className="font-semibold text-[var(--g-forest)] hover:underline">
+              <Link
+                href="/warranty"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 Warranty policy
               </Link>
               .

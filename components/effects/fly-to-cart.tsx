@@ -8,7 +8,7 @@ export function useFlyToCart() {
       if (!imageEl) return;
 
       const cartBtn = document.querySelector<HTMLElement>(
-        'button[aria-label*="cart"]'
+        'button[aria-label*="cart"]',
       );
       if (!cartBtn) return;
 
@@ -48,7 +48,7 @@ export function useFlyToCart() {
 
       setTimeout(() => ghost.remove(), 600);
     },
-    []
+    [],
   );
 
   return fly;

@@ -28,7 +28,9 @@ export function AutopilotHonestyBoard({
     return (
       <div className="mx-auto max-w-3xl space-y-4">
         <h1 className="text-2xl font-semibold">Autopilot</h1>
-        <p className="text-sm text-destructive">Could not load shop numbers. Open Orders and try again.</p>
+        <p className="text-sm text-destructive">
+          Could not load shop numbers. Open Orders and try again.
+        </p>
       </div>
     );
   }
@@ -38,8 +40,8 @@ export function AutopilotHonestyBoard({
       <div>
         <h1 className="text-2xl font-semibold">Autopilot</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Numbers are from the shop. Auto-book and tracking stay off until you turn them on. Ads
-          and reorder are still not engines.
+          Numbers are from the shop. Auto-book and tracking stay off until you
+          turn them on. Ads and reorder are still not engines.
         </p>
       </div>
       <AutopilotEnginePanel
@@ -56,7 +58,9 @@ export function AutopilotHonestyBoard({
         >
           <Card className="flex min-h-11 flex-col justify-center px-4 py-4 transition-colors hover:bg-accent">
             <p className="text-sm text-muted-foreground">Waiting to pack</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{pendingCount}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">
+              {pendingCount}
+            </p>
           </Card>
         </Link>
         <Link
@@ -65,7 +69,9 @@ export function AutopilotHonestyBoard({
         >
           <Card className="flex min-h-11 flex-col justify-center px-4 py-4 transition-colors hover:bg-accent">
             <p className="text-sm text-muted-foreground">Low or zero units</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{lowStockCount}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">
+              {lowStockCount}
+            </p>
           </Card>
         </Link>
         <Link
@@ -73,8 +79,12 @@ export function AutopilotHonestyBoard({
           className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Card className="flex min-h-11 flex-col justify-center px-4 py-4 transition-colors hover:bg-accent">
-            <p className="text-sm text-muted-foreground">Have a PostEx tracking number</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{postexTrackedCount}</p>
+            <p className="text-sm text-muted-foreground">
+              Have a PostEx tracking number
+            </p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">
+              {postexTrackedCount}
+            </p>
           </Card>
         </Link>
       </div>

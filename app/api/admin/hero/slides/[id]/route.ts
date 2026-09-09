@@ -37,7 +37,11 @@ export async function PATCH(request: Request, ctx: Ctx) {
   if (action === "publish") result = await publishAdminHeroSlide(id, doc);
   else if (action === "unpublish") result = await unpublishAdminHeroSlide(id);
   else result = await updateAdminHeroSlide(id, doc);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }
 
@@ -47,6 +51,10 @@ export async function DELETE(request: Request, ctx: Ctx) {
   }
   const { id } = await ctx.params;
   const result = await deleteAdminHeroSlide(id);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

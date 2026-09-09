@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Banknote, Mail, Phone, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import {
+  Banknote,
+  Mail,
+  Phone,
+  RotateCcw,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
 
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
@@ -43,14 +50,20 @@ export function GadgetFooter({
     { href: products2Href(), label: "All Products" },
     ...gadgetShopTypeLinks(shopTypes),
   ];
-  const companyLinks = resolveChromeLinks(settings?.footerCompanyLinks, DEFAULT_FOOTER_COMPANY_LINKS);
-  const careLinks = resolveChromeLinks(settings?.footerCareLinks, DEFAULT_FOOTER_CARE_LINKS);
+  const companyLinks = resolveChromeLinks(
+    settings?.footerCompanyLinks,
+    DEFAULT_FOOTER_COMPANY_LINKS,
+  );
+  const careLinks = resolveChromeLinks(
+    settings?.footerCareLinks,
+    DEFAULT_FOOTER_CARE_LINKS,
+  );
   const [shopA, shopB] = splitTwo(shopLinks);
   const [companyA, companyB] = splitTwo(companyLinks);
   const phone = settings?.phone;
   const email = settings?.email;
   const socials = (settings?.socialLinks ?? []).filter(
-    (s) => s.platform && s.url && s.url.startsWith("http")
+    (s) => s.platform && s.url && s.url.startsWith("http"),
   );
 
   const threshold = settings?.freeShippingThreshold ?? 3000;
@@ -68,9 +81,13 @@ export function GadgetFooter({
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-sage)_35%,transparent)] text-[color-mix(in_srgb,var(--g-sage)_40%,white)] shadow-sm">
                 <Truck className="h-5 w-5 stroke-[1.6]" />
               </span>
-              <p className="text-xs font-bold text-white">{threshold > 0 ? "Free Shipping" : "Fast Shipping"}</p>
+              <p className="text-xs font-bold text-white">
+                {threshold > 0 ? "Free Shipping" : "Fast Shipping"}
+              </p>
               <p className="text-[11px] text-white/85">
-                {threshold > 0 ? `On orders over ${formatPrice(threshold)}` : "Across the country"}
+                {threshold > 0
+                  ? `On orders over ${formatPrice(threshold)}`
+                  : "Across the country"}
               </p>
             </div>
             {codEnabled && (
@@ -79,22 +96,30 @@ export function GadgetFooter({
                   <Banknote className="h-5 w-5 stroke-[1.6]" />
                 </span>
                 <p className="text-xs font-bold text-white">Cash on Delivery</p>
-                <p className="text-[11px] text-white/85">Pay at your doorstep</p>
+                <p className="text-[11px] text-white/85">
+                  Pay at your doorstep
+                </p>
               </div>
             )}
             <div className="flex flex-col items-center gap-1.5 p-2">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-[color-mix(in_srgb,var(--g-sage)_30%,white)] shadow-sm">
                 <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
               </span>
-              <p className="text-xs font-bold text-white">{warrantyMonths}-Month Warranty</p>
-              <p className="text-[11px] text-white/85">100% genuine replacement</p>
+              <p className="text-xs font-bold text-white">
+                {warrantyMonths}-Month Warranty
+              </p>
+              <p className="text-[11px] text-white/85">
+                100% genuine replacement
+              </p>
             </div>
             <div className="flex flex-col items-center gap-1.5 p-2">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_28%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_35%,white)] shadow-sm">
                 <RotateCcw className="h-5 w-5 stroke-[1.6]" />
               </span>
               <p className="text-xs font-bold text-white">Easy Returns</p>
-              <p className="text-[11px] text-white/85">{returnWindowDays}-day hassle-free policy</p>
+              <p className="text-[11px] text-white/85">
+                {returnWindowDays}-day hassle-free policy
+              </p>
             </div>
           </div>
         </div>
@@ -200,9 +225,15 @@ export function GadgetFooter({
                   href={`tel:${phone.replace(/\s+/g, "")}`}
                   className="flex items-center gap-2 text-sm text-white/85 transition hover:text-[var(--g-white)]"
                 >
-                  <Phone className="h-4 w-4 shrink-0 text-[var(--g-sage)]" aria-hidden />
+                  <Phone
+                    className="h-4 w-4 shrink-0 text-[var(--g-sage)]"
+                    aria-hidden
+                  />
                   <span>
-                    Call Us: <span className="font-medium text-[var(--g-white)]">{phone}</span>
+                    Call Us:{" "}
+                    <span className="font-medium text-[var(--g-white)]">
+                      {phone}
+                    </span>
                   </span>
                 </a>
               ) : null}
@@ -211,9 +242,15 @@ export function GadgetFooter({
                   href={`mailto:${email}`}
                   className="flex items-center gap-2 text-sm text-white/85 transition hover:text-[var(--g-white)]"
                 >
-                  <Mail className="h-4 w-4 shrink-0 text-[var(--g-sage)]" aria-hidden />
+                  <Mail
+                    className="h-4 w-4 shrink-0 text-[var(--g-sage)]"
+                    aria-hidden
+                  />
                   <span>
-                    Email Us: <span className="font-medium text-[var(--g-white)]">{email}</span>
+                    Email Us:{" "}
+                    <span className="font-medium text-[var(--g-white)]">
+                      {email}
+                    </span>
                   </span>
                 </a>
               ) : null}
@@ -230,20 +267,38 @@ export function GadgetFooter({
             <p>
               © {new Date().getFullYear()} {brandName}. All rights reserved.
             </p>
-            <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <Link href="/privacy-policy" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+            <nav
+              aria-label="Legal"
+              className="flex flex-wrap items-center gap-x-4 gap-y-1"
+            >
+              <Link
+                href="/privacy-policy"
+                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
+              >
                 Privacy
               </Link>
-              <Link href="/cookies" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+              <Link
+                href="/cookies"
+                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
+              >
                 Cookies
               </Link>
-              <Link href="/terms-of-service" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+              <Link
+                href="/terms-of-service"
+                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
+              >
                 Terms
               </Link>
-              <Link href="/about" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+              <Link
+                href="/about"
+                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
+              >
                 About
               </Link>
-              <Link href="/contact" className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]">
+              <Link
+                href="/contact"
+                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
+              >
                 Contact
               </Link>
             </nav>

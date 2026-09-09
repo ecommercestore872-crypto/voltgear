@@ -21,7 +21,13 @@ import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import { useGadgetPreview } from "@/components/gadget/use-gadget-preview";
 import { product2Href } from "@/lib/gadget-preview";
 
-export function ProductCard({ product, className }: { product: Product; className?: string }) {
+export function ProductCard({
+  product,
+  className,
+}: {
+  product: Product;
+  className?: string;
+}) {
   const { addItem } = useCart();
   const gadget = useGadgetPreview();
   const href = gadget ? product2Href(product.slug) : `/product/${product.slug}`;
@@ -34,15 +40,17 @@ export function ProductCard({ product, className }: { product: Product; classNam
     defaultVariant && getStockState(defaultVariant.stockStatus).purchasable;
   const canDirectAdd = !hasVariants || variantPurchasable;
   const hasRealReviews =
-    typeof product.reviewCount === "number" && product.reviewCount > 0 &&
-    typeof product.rating === "number" && product.rating > 0;
+    typeof product.reviewCount === "number" &&
+    product.reviewCount > 0 &&
+    typeof product.rating === "number" &&
+    product.rating > 0;
   const imgRef = useRef<HTMLImageElement>(null);
 
   return (
     <Card
       className={cn(
         "group relative overflow-hidden border-0 bg-transparent shadow-none",
-        className
+        className,
       )}
     >
       <Link href={href} prefetch={false} className="block">
@@ -127,10 +135,12 @@ export function ProductCard({ product, className }: { product: Product; classNam
         </div>
 
         {outOfStock || !canDirectAdd ? (
-          <Button asChild className="w-full" variant={outOfStock ? "default" : "outline"}>
-            <Link href={href}>
-              {outOfStock ? "Sold Out" : "View Options"}
-            </Link>
+          <Button
+            asChild
+            className="w-full"
+            variant={outOfStock ? "default" : "outline"}
+          >
+            <Link href={href}>{outOfStock ? "Sold Out" : "View Options"}</Link>
           </Button>
         ) : (
           <Button

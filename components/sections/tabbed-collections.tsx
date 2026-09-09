@@ -6,7 +6,11 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product/product-card";
-import { FALLBACK_SHOP_TYPES, shopTypeLinks, type ShopType } from "@/lib/categories";
+import {
+  FALLBACK_SHOP_TYPES,
+  shopTypeLinks,
+  type ShopType,
+} from "@/lib/categories";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +31,7 @@ export function TabbedCollections({
   ];
 
   const filtered =
-    active === "all"
-      ? products
-      : products.filter((p) => p.category === active);
+    active === "all" ? products : products.filter((p) => p.category === active);
 
   return (
     <div>
@@ -58,7 +60,7 @@ export function TabbedCollections({
               "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-all",
               active === tab.slug
                 ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground",
             )}
           >
             {tab.label}

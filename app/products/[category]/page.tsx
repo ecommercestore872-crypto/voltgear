@@ -27,7 +27,10 @@ export async function generateMetadata({
   params: { category: string };
 }): Promise<Metadata> {
   const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
-  const shop = findShopType(types.length ? types : FALLBACK_SHOP_TYPES, params.category);
+  const shop = findShopType(
+    types.length ? types : FALLBACK_SHOP_TYPES,
+    params.category,
+  );
   const name = shop?.name || params.category.replace(/-/g, " ");
   const meta = categorySearchMeta({
     slug: params.category,
@@ -40,9 +43,14 @@ export async function generateMetadata({
     keywords: meta.keywords,
     alternates: {
       canonical: `/products/${params.category}`,
-      languages: storeAlternatesLanguages(`/products/${params.category}`).languages,
+      languages: storeAlternatesLanguages(`/products/${params.category}`)
+        .languages,
     },
-    openGraph: { title: meta.title, description: meta.description, type: "website" },
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+      type: "website",
+    },
   };
 }
 
@@ -57,7 +65,10 @@ export default async function Products2CategoryPage({
   const config = normalizeSettings(settings);
 
   try {
-    const [p, types] = await Promise.all([fetchCatalogProducts(), fetchShopTypes()]);
+    const [p, types] = await Promise.all([
+      fetchCatalogProducts(),
+      fetchShopTypes(),
+    ]);
     products = applyGadgetStudioImagesList(p);
     shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
   } catch {
@@ -70,7 +81,9 @@ export default async function Products2CategoryPage({
   }
 
   const title = shop?.name || params.category.replace(/-/g, " ");
-  const categoryProducts = products.filter((p) => p.category === params.category);
+  const categoryProducts = products.filter(
+    (p) => p.category === params.category,
+  );
   const hubCopy = categoryHubCopy({ slug: params.category, name: title });
   const structured = categoryStructuredData({
     siteUrl: indexSiteUrl(),
@@ -95,7 +108,11 @@ export default async function Products2CategoryPage({
           ]).replace(/</g, "\\u003c"),
         }}
       />
-      <Suspense fallback={<div className="min-h-[50vh] bg-[var(--g-cream)]" aria-hidden />}>
+      <Suspense
+        fallback={
+          <div className="min-h-[50vh] bg-[var(--g-cream)]" aria-hidden />
+        }
+      >
         <GadgetShopCatalogClient
           title={title}
           description={hubCopy}

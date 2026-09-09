@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: { orderId: string } },
 ) {
   const orderId = params.orderId;
   if (!orderId) {
@@ -33,35 +33,41 @@ export async function POST(
   if (!email) {
     return NextResponse.json(
       { error: "Provide the email used at checkout." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const order = await getOrderById(orderId);
   if (shopperLookupNotFound(order, email)) {
-    return NextResponse.json({ error: SHOPPER_NOT_FOUND_MESSAGE }, { status: 404 });
+    return NextResponse.json(
+      { error: SHOPPER_NOT_FOUND_MESSAGE },
+      { status: 404 },
+    );
   }
 
   const now = new Date();
   if (!canShopperCancel(order!, now)) {
     return NextResponse.json(
       { error: shopperCancelBlockReason(order!, now) },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
   const cancelRes = await cancelOrder(orderId, SHOPPER_CANCEL_NOTE);
   if (!cancelRes.ok) {
     return NextResponse.json(
-      { error: cancelRes.error || "Could not cancel the order. Please try again." },
-      { status: 500 }
+      {
+        error:
+          cancelRes.error || "Could not cancel the order. Please try again.",
+      },
+      { status: 500 },
     );
   }
   const updated = await getOrderById(orderId);
   if (!updated) {
     return NextResponse.json(
       { error: "Could not cancel the order. Please try again." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

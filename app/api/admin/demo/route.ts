@@ -16,7 +16,7 @@ export async function DELETE(request: Request) {
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Purge failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

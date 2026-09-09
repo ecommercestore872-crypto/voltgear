@@ -84,21 +84,33 @@ export function Hero({
 
   const currentSlide = slides[activeIndex] || slides[0];
   const featured = currentSlide.featuredProduct ?? null;
-  const primaryHref = currentSlide.primaryCta?.href || (featured ? `/product/${featured.slug}` : "/products");
+  const primaryHref =
+    currentSlide.primaryCta?.href ||
+    (featured ? `/product/${featured.slug}` : "/products");
   const primaryLabel = currentSlide.primaryCta?.label || "Shop Now";
 
-  const image = currentSlide.image || (featured?.images?.[0] ?? featured?.cloudinaryImages?.[0]);
+  const image =
+    currentSlide.image ||
+    (featured?.images?.[0] ?? featured?.cloudinaryImages?.[0]);
   let resolvedImageSrc = imageUrl(image, { w: 2400 });
   if (!resolvedImageSrc && featured) {
     resolvedImageSrc = getFallbackProductImage(featured);
-  } else if (!resolvedImageSrc && currentSlide.image && typeof currentSlide.image === 'string') {
+  } else if (
+    !resolvedImageSrc &&
+    currentSlide.image &&
+    typeof currentSlide.image === "string"
+  ) {
     resolvedImageSrc = currentSlide.image;
   }
 
   const discount =
-    featured && featured.compareAtPrice && featured.compareAtPrice > featured.price
+    featured &&
+    featured.compareAtPrice &&
+    featured.compareAtPrice > featured.price
       ? Math.round(
-          ((featured.compareAtPrice - featured.price) / featured.compareAtPrice) * 100
+          ((featured.compareAtPrice - featured.price) /
+            featured.compareAtPrice) *
+            100,
         )
       : 0;
 
@@ -122,7 +134,10 @@ export function Hero({
           >
             {resolvedImageSrc && !featured ? (
               /* Banner layout */
-              <Link href={primaryHref} className="relative block w-full h-[60vh] min-h-[450px] lg:h-[80vh] lg:min-h-[600px] group">
+              <Link
+                href={primaryHref}
+                className="relative block w-full h-[60vh] min-h-[450px] lg:h-[80vh] lg:min-h-[600px] group"
+              >
                 <Image
                   src={resolvedImageSrc}
                   alt={currentSlide.alt}
@@ -153,16 +168,15 @@ export function Hero({
                 {/* Left Subtle Background - Desktop/Tablet */}
                 <div
                   className="absolute top-0 bottom-0 left-0 w-[100%] sm:w-[65%] lg:w-[50%] bg-secondary/30 z-10 hidden sm:block border-r border-border/40"
-                  style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
+                  style={{ clipPath: "polygon(0 0, 100% 0, 85% 100%, 0 100%)" }}
                 ></div>
                 {/* Left Subtle Background - Mobile */}
                 <div
                   className="absolute top-0 left-0 right-0 h-[65%] w-full bg-secondary/30 z-10 sm:hidden border-b border-border/40"
-                  style={{ clipPath: 'polygon(0 0, 100% 0, 100% 90%, 0 100%)' }}
+                  style={{ clipPath: "polygon(0 0, 100% 0, 100% 90%, 0 100%)" }}
                 ></div>
 
                 <div className="w-full max-w-[1920px] mx-auto h-[60vh] min-h-[450px] lg:h-[80vh] lg:min-h-[600px] z-20 relative p-6 sm:p-10 md:p-16 flex flex-col sm:flex-row items-center gap-10">
-
                   {/* Left Column Text Content */}
                   <div className="flex-1 w-full flex flex-col items-start justify-center max-w-xl">
                     <div className="mb-4 inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary animate-premium-slide border border-primary/20">
@@ -170,8 +184,14 @@ export function Hero({
                     </div>
                     {currentSlide.headline && (
                       <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight text-foreground animate-premium-slide">
-                        {currentSlide.headline === "Power That Moves With You." ? (
-                          <>Power That <br className="hidden lg:block"/><span className="text-primary">Moves With You.</span></>
+                        {currentSlide.headline ===
+                        "Power That Moves With You." ? (
+                          <>
+                            Power That <br className="hidden lg:block" />
+                            <span className="text-primary">
+                              Moves With You.
+                            </span>
+                          </>
                         ) : (
                           currentSlide.headline
                         )}
@@ -183,13 +203,18 @@ export function Hero({
                       </p>
                     )}
                     <div className="mt-8 flex flex-wrap gap-4 animate-premium-slide [animation-delay:300ms] fill-mode-forward">
-                      <Button asChild className="rounded-full px-10 py-6 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02]">
-                        <Link href={primaryHref}>
-                          {primaryLabel}
-                        </Link>
+                      <Button
+                        asChild
+                        className="rounded-full px-10 py-6 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02]"
+                      >
+                        <Link href={primaryHref}>{primaryLabel}</Link>
                       </Button>
                       {currentSlide.secondaryCta && (
-                        <Button asChild variant="outline" className="rounded-full px-10 py-6 text-sm font-semibold shadow-sm transition-transform hover:scale-[1.02] bg-background">
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="rounded-full px-10 py-6 text-sm font-semibold shadow-sm transition-transform hover:scale-[1.02] bg-background"
+                        >
                           <Link href={currentSlide.secondaryCta.href || "#"}>
                             {currentSlide.secondaryCta.label}
                           </Link>
@@ -207,7 +232,11 @@ export function Hero({
                       {image ? (
                         <Image
                           src={imageUrl(image, { w: 1000 })}
-                          alt={featured?.name || currentSlide.headline || "Featured product"}
+                          alt={
+                            featured?.name ||
+                            currentSlide.headline ||
+                            "Featured product"
+                          }
                           fill
                           priority={activeIndex === 0}
                           sizes="(max-width: 1024px) 100vw, 800px"
@@ -218,16 +247,23 @@ export function Hero({
                       {/* Floating Info tag if featured */}
                       {featured && (
                         <div className="absolute right-0 bottom-10 bg-background/95 backdrop-blur shadow-2xl rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-1 border border-border/50 scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300">
-                          <p className="font-bold text-foreground truncate max-w-[200px]">{featured.name}</p>
+                          <p className="font-bold text-foreground truncate max-w-[200px]">
+                            {featured.name}
+                          </p>
                           <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-primary">{formatPrice(featured.price)}</span>
-                            {discount > 0 && <span className="text-xs text-muted-foreground line-through">{formatPrice(featured.compareAtPrice!)}</span>}
+                            <span className="font-extrabold text-primary">
+                              {formatPrice(featured.price)}
+                            </span>
+                            {discount > 0 && (
+                              <span className="text-xs text-muted-foreground line-through">
+                                {formatPrice(featured.compareAtPrice!)}
+                              </span>
+                            )}
                           </div>
                         </div>
                       )}
                     </Link>
                   </div>
-
                 </div>
               </div>
             )}
@@ -287,7 +323,6 @@ export function Hero({
               ))}
             </div>
           )}
-
         </div>
       </div>
     </section>

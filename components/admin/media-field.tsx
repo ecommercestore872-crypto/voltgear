@@ -36,9 +36,12 @@ export function MediaField({
     try {
       const json = await adminUpload(file);
       onChange([...urls, json.secureUrl]);
-      if (accept.startsWith("image") && isProductImageTooSmall(json.width, json.height)) {
+      if (
+        accept.startsWith("image") &&
+        isProductImageTooSmall(json.width, json.height)
+      ) {
         setWarn(
-          "This photo is smaller than 800 × 800. It may look blurry. Use a square 2048 × 2048 photo for a sharp result."
+          "This photo is smaller than 800 × 800. It may look blurry. Use a square 2048 × 2048 photo for a sharp result.",
         );
       }
     } catch (err) {
@@ -72,13 +75,31 @@ export function MediaField({
           <div key={`${url}-${i}`} className="flex items-center gap-2">
             {accept.startsWith("image") ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={url} alt="" className="h-12 w-12 rounded object-cover" />
+              <img
+                src={url}
+                alt=""
+                className="h-12 w-12 rounded object-cover"
+              />
             ) : null}
-            <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{url}</p>
-            <Button type="button" variant="ghost" size="icon" aria-label="Move up" onClick={() => move(i, -1)}>
+            <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+              {url}
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Move up"
+              onClick={() => move(i, -1)}
+            >
               <ArrowUp className="h-4 w-4" />
             </Button>
-            <Button type="button" variant="ghost" size="icon" aria-label="Move down" onClick={() => move(i, 1)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Move down"
+              onClick={() => move(i, 1)}
+            >
               <ArrowDown className="h-4 w-4" />
             </Button>
             <Button

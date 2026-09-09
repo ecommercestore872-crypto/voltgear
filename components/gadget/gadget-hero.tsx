@@ -37,15 +37,21 @@ export function GadgetHero({
 }) {
   const image = product ? gadgetImageSrc(product, PRODUCT_IMAGE.gallery) : null;
   const href = product ? product2Href(product.slug) : "/products";
-  const off = product ? salePercent(product.price, product.compareAtPrice) : null;
+  const off = product
+    ? salePercent(product.price, product.compareAtPrice)
+    : null;
   const soldOut = product ? getStockState(product.stockStatus).soldOut : false;
   const whisper = whisperLine(codEnabled, freeShippingThreshold);
   const priceNow = product ? formatPrice(product.price) : "";
   const priceWas =
-    product && off && product.compareAtPrice ? formatPrice(product.compareAtPrice) : "";
+    product && off && product.compareAtPrice
+      ? formatPrice(product.compareAtPrice)
+      : "";
 
   return (
-    <section className={`flex flex-col overflow-hidden bg-zinc-950 text-white ${HERO_MIN}`}>
+    <section
+      className={`flex flex-col overflow-hidden bg-zinc-950 text-white ${HERO_MIN}`}
+    >
       <div
         className={`grid flex-1 ${HERO_MIN} ${
           image
@@ -65,7 +71,9 @@ export function GadgetHero({
             {headline}
           </h1>
           {subheadline ? (
-            <p className="mt-4 max-w-lg text-base text-zinc-300 sm:text-lg">{subheadline}</p>
+            <p className="mt-4 max-w-lg text-base text-zinc-300 sm:text-lg">
+              {subheadline}
+            </p>
           ) : null}
 
           {product ? (
@@ -73,14 +81,22 @@ export function GadgetHero({
               <p
                 className="flex flex-wrap items-baseline gap-x-3 gap-y-1"
                 aria-label={
-                  off ? `${priceNow}, was ${priceWas}, ${off} percent off` : priceNow
+                  off
+                    ? `${priceNow}, was ${priceWas}, ${off} percent off`
+                    : priceNow
                 }
               >
-                <span className="text-3xl font-black sm:text-4xl">{priceNow}</span>
+                <span className="text-3xl font-black sm:text-4xl">
+                  {priceNow}
+                </span>
                 {off && product.compareAtPrice ? (
                   <>
-                    <span className="text-lg text-zinc-500 line-through">{priceWas}</span>
-                    <span className="text-sm font-black text-golden-400">–{off}%</span>
+                    <span className="text-lg text-zinc-500 line-through">
+                      {priceWas}
+                    </span>
+                    <span className="text-sm font-black text-golden-400">
+                      –{off}%
+                    </span>
                   </>
                 ) : null}
               </p>
@@ -95,7 +111,11 @@ export function GadgetHero({
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href={href}
-              aria-label={product ? `Shop ${product.name} now` : "Shop all electronic categories"}
+              aria-label={
+                product
+                  ? `Shop ${product.name} now`
+                  : "Shop all electronic categories"
+              }
               className={`${ctaClass} bg-golden-400 text-zinc-950 hover:bg-golden-300 min-h-[44px]`}
             >
               {product ? "Shop now" : "Shop categories"}
@@ -111,7 +131,9 @@ export function GadgetHero({
             ) : null}
           </div>
 
-          {whisper ? <p className="mt-4 text-sm text-zinc-400">{whisper}</p> : null}
+          {whisper ? (
+            <p className="mt-4 text-sm text-zinc-400">{whisper}</p>
+          ) : null}
         </div>
 
         {image ? (

@@ -6,12 +6,7 @@ import { BadgeCheck, Check, MessageSquare, Star } from "lucide-react";
 import { RichText } from "@/components/product/rich-text";
 import { ReviewForm } from "@/components/product/review-form";
 import { StarRating } from "@/components/product/star-rating";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Product } from "@/lib/types";
 
 export function ProductTabs({ product }: { product: Product }) {

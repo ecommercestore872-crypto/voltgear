@@ -29,7 +29,7 @@ function Dialog({ open: controlledOpen, onOpenChange, children }: DialogProps) {
       setInternalOpen(v);
       onOpenChange?.(v);
     },
-    [onOpenChange]
+    [onOpenChange],
   );
 
   return (
@@ -39,7 +39,13 @@ function Dialog({ open: controlledOpen, onOpenChange, children }: DialogProps) {
   );
 }
 
-function DialogTrigger({ asChild, children, className, onClick, ...props }: DialogTriggerProps & { children: React.ReactNode }) {
+function DialogTrigger({
+  asChild,
+  children,
+  className,
+  onClick,
+  ...props
+}: DialogTriggerProps & { children: React.ReactNode }) {
   const { setOpen } = React.useContext(DialogContext);
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setOpen(true);
@@ -47,15 +53,20 @@ function DialogTrigger({ asChild, children, className, onClick, ...props }: Dial
   };
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
-      onClick: (e: React.MouseEvent) => {
-        setOpen(true);
-        const props = (children as React.ReactElement<Record<string, unknown>>).props;
-        if (props && typeof props.onClick === "function") {
-          props.onClick(e);
-        }
+    return React.cloneElement(
+      children as React.ReactElement<Record<string, unknown>>,
+      {
+        onClick: (e: React.MouseEvent) => {
+          setOpen(true);
+          const props = (
+            children as React.ReactElement<Record<string, unknown>>
+          ).props;
+          if (props && typeof props.onClick === "function") {
+            props.onClick(e);
+          }
+        },
       },
-    });
+    );
   }
 
   return (
@@ -98,7 +109,7 @@ function DialogContent({
       <div
         className={cn(
           "relative max-h-[90vh] w-full overflow-auto rounded-[32px] border border-border/40 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] animate-in fade-in-0 zoom-in-95 duration-300 ease-out p-6 sm:p-10",
-          className
+          className,
         )}
         {...props}
       >
@@ -112,12 +123,23 @@ function DialogContent({
         {children}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
-function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-2xl font-extrabold tracking-tight text-slate-900", className)} {...props} />;
+function DialogTitle({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h2
+      className={cn(
+        "text-2xl font-extrabold tracking-tight text-slate-900",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 export { Dialog, DialogTrigger, DialogContent, DialogTitle };

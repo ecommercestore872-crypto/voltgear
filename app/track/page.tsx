@@ -31,7 +31,10 @@ export default function TrackPage() {
       </div>
       <p className="mt-4 text-sm text-[var(--g-taupe)]">
         Can&apos;t find your order?{" "}
-        <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+        <Link
+          href="/contact"
+          className="font-semibold text-[var(--g-forest)] hover:underline"
+        >
           Register a complaint
         </Link>{" "}
         and we&apos;ll dig in.

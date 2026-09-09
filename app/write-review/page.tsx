@@ -31,7 +31,7 @@ export default async function WriteReviewPage() {
   }
 
   const categories = Array.from(
-    new Set(products.map((p) => p.category).filter(Boolean))
+    new Set(products.map((p) => p.category).filter(Boolean)),
   );
 
   return (

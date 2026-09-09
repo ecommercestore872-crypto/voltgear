@@ -19,8 +19,11 @@ export async function GET(request: Request) {
   } catch (e) {
     console.error(e);
     return NextResponse.json(
-      { error: "Collections table missing. Push migration 20260901040000_collections.sql." },
-      { status: 503 }
+      {
+        error:
+          "Collections table missing. Push migration 20260901040000_collections.sql.",
+      },
+      { status: 503 },
     );
   }
 }
@@ -32,7 +35,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const result = await createAdminCollection(body ?? {});
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ collection: result.collection }, { status: 201 });
 }

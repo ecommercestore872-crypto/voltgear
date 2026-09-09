@@ -3,9 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock, User } from "lucide-react";
 
-import {
-  GadgetArticleShell,
-} from "@/components/gadget/gadget-article-shell";
+import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { BlogGuideAd } from "@/components/ads/blog-guide-ad";
 import { fetchBlogPosts, fetchPageBySlug } from "@/lib/db/store";
@@ -36,12 +34,18 @@ function readingMinutes(blocks: ContentBlock[] | undefined): number {
   if (!blocks?.length) return 0;
   const text = blocks
     .map((b) => {
-      if (b._type === "paragraph" || b._type === "callout" || b._type === "quote")
+      if (
+        b._type === "paragraph" ||
+        b._type === "callout" ||
+        b._type === "quote"
+      )
         return b.text ?? "";
       if (b._type === "list") return (b.items ?? []).join(" ");
       if (b._type === "heading") return b.text ?? "";
       if (b._type === "faq") {
-        return (b.items ?? []).map((item) => `${item.question} ${item.answer}`).join(" ");
+        return (b.items ?? [])
+          .map((item) => `${item.question} ${item.answer}`)
+          .join(" ");
       }
       return "";
     })
@@ -119,7 +123,10 @@ export default async function BlogPostPage({
   }).ok;
 
   const faqs = sections
-    .filter((block): block is Extract<ContentBlock, { _type: "faq" }> => block._type === "faq")
+    .filter(
+      (block): block is Extract<ContentBlock, { _type: "faq" }> =>
+        block._type === "faq",
+    )
     .flatMap((block) => block.items ?? [])
     .filter((item) => item.question?.trim() && item.answer?.trim());
 

@@ -15,7 +15,7 @@ export function BntSeal({
         invert
           ? "bg-[var(--g-cream)] text-[var(--g-forest)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
           : "bg-[var(--g-forest)] text-[var(--g-cream)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_1px_0_rgba(31,54,38,0.35)]",
-        className
+        className,
       )}
       aria-hidden
     >

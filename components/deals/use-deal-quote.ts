@@ -13,7 +13,9 @@ function cartKey(items: { slug: string; quantity: number }[]): string {
   return items.map((item) => `${item.slug}:${item.quantity}`).join("|");
 }
 
-export function useDealQuote(items: { slug: string; quantity: number }[]): DealQuote {
+export function useDealQuote(
+  items: { slug: string; quantity: number }[],
+): DealQuote {
   const [quote, setQuote] = useState<DealQuote>({
     discount: 0,
     applied: [],
@@ -31,7 +33,10 @@ export function useDealQuote(items: { slug: string; quantity: number }[]): DealQ
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        items: items.map((item) => ({ slug: item.slug, quantity: item.quantity })),
+        items: items.map((item) => ({
+          slug: item.slug,
+          quantity: item.quantity,
+        })),
       }),
     })
       .then((res) => res.json())

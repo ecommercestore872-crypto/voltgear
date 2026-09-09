@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (!campaignId) {
     return NextResponse.json(
       { error: "campaignId is required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   const results = await sendBulk(
     failed.map((r) => ({ phone: r.phone, name: r.name })),
-    campaign.text
+    campaign.text,
   );
 
   const byPhone = new Map(results.map((r) => [r.phone, r]));

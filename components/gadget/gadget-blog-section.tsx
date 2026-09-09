@@ -53,7 +53,10 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
   const [tab, setTab] = useState<"popular" | "latest">("popular");
 
   const visible = useMemo(() => {
-    const ranked = sortBlogPostsForHome(posts.length ? posts : FALLBACK_BLOG_POSTS, tab);
+    const ranked = sortBlogPostsForHome(
+      posts.length ? posts : FALLBACK_BLOG_POSTS,
+      tab,
+    );
     return toCards(ranked).slice(0, 8);
   }, [posts, tab]);
 
@@ -71,7 +74,11 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
             >
               Blogs
             </h2>
-            <div className="mt-3 flex items-center gap-2" role="group" aria-label="Blog filter">
+            <div
+              className="mt-3 flex items-center gap-2"
+              role="group"
+              aria-label="Blog filter"
+            >
               <button
                 type="button"
                 aria-pressed={tab === "popular"}
@@ -115,7 +122,10 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
               const date = formatDate(post.publishedAt);
               const href = `/blog/${post.slug}`;
               return (
-                <li key={`${tab}-${post.slug}`} className="w-[min(78vw,18.25rem)] shrink-0">
+                <li
+                  key={`${tab}-${post.slug}`}
+                  className="w-[min(78vw,18.25rem)] shrink-0"
+                >
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(31,54,38,0.1)]">
                     <Link
                       href={href}
@@ -148,7 +158,9 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
 
                     <div className="flex flex-1 flex-col gap-2 p-4 sm:p-5">
                       {date ? (
-                        <p className="text-[12px] text-[var(--g-charcoal)]/75">{date}</p>
+                        <p className="text-[12px] text-[var(--g-charcoal)]/75">
+                          {date}
+                        </p>
                       ) : null}
                       <Link href={href}>
                         <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[var(--g-charcoal)]">

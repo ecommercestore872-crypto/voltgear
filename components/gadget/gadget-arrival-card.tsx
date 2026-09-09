@@ -23,7 +23,10 @@ interface GadgetArrivalCardProps {
   variant?: "grid" | "horizontal" | "compact";
 }
 
-function computeDiscountPercent(price: number, compareAtPrice?: number | null): number | null {
+function computeDiscountPercent(
+  price: number,
+  compareAtPrice?: number | null,
+): number | null {
   if (!compareAtPrice || compareAtPrice <= price) return null;
   const pct = Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
   return pct > 0 ? pct : null;
@@ -82,7 +85,7 @@ export function GadgetArrivalCard({
     <article
       className={cn(
         "gadget-hover-lift group relative flex flex-col bg-transparent",
-        isGrid ? "h-full w-full min-w-0" : "gadget-rail-card h-full"
+        isGrid ? "h-full w-full min-w-0" : "gadget-rail-card h-full",
       )}
     >
       <div className="relative">
@@ -91,7 +94,7 @@ export function GadgetArrivalCard({
           prefetch={false}
           className={cn(
             "gadget-studio-stage relative block overflow-hidden rounded-2xl",
-            isGrid ? "aspect-square" : "aspect-square"
+            isGrid ? "aspect-square" : "aspect-square",
           )}
         >
           <div className="pointer-events-none absolute inset-x-2.5 top-2.5 z-10 flex items-start gap-1.5 pr-11">
@@ -112,7 +115,11 @@ export function GadgetArrivalCard({
               alt={product.name}
               fill
               quality={70}
-              sizes={isGrid ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw" : "260px"}
+              sizes={
+                isGrid
+                  ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
+                  : "260px"
+              }
               className="object-contain p-2 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] sm:p-4 lg:p-5"
             />
           ) : (
@@ -124,14 +131,19 @@ export function GadgetArrivalCard({
         <WishlistButton product={product} />
       </div>
 
-      <div className={cn("flex flex-1 flex-col", isGrid ? "px-0.5 pb-1 pt-3" : "px-0.5 pb-1 pt-3")}>
+      <div
+        className={cn(
+          "flex flex-1 flex-col",
+          isGrid ? "px-0.5 pb-1 pt-3" : "px-0.5 pb-1 pt-3",
+        )}
+      >
         <Link href={href} prefetch={false} className="min-w-0">
           <h3
             className={cn(
               "font-bold tracking-tight text-[var(--g-charcoal)] dark:text-white transition group-hover:text-[var(--g-forest)]",
               isGrid
                 ? "line-clamp-2 text-[14px] leading-snug sm:text-[15px]"
-                : "line-clamp-2 text-[14px] sm:text-[15px]"
+                : "line-clamp-2 text-[14px] sm:text-[15px]",
             )}
           >
             {product.name}
@@ -149,7 +161,9 @@ export function GadgetArrivalCard({
             <span
               className={cn(
                 "text-[1.05rem] font-bold tabular-nums sm:text-[1.15rem]",
-                priceWas ? "text-[var(--g-sale)]" : "text-[var(--g-charcoal)] dark:text-white"
+                priceWas
+                  ? "text-[var(--g-sale)]"
+                  : "text-[var(--g-charcoal)] dark:text-white",
               )}
             >
               {priceNow}
@@ -185,7 +199,10 @@ export function GadgetArrivalCard({
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="h-4 w-4 stroke-[1.75]" aria-hidden />
+                    <ShoppingBag
+                      className="h-4 w-4 stroke-[1.75]"
+                      aria-hidden
+                    />
                     <span>Add to cart</span>
                   </>
                 )}

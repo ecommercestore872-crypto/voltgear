@@ -26,7 +26,10 @@ export function PromoPopupModal({
     if (!code) return;
     const seen = window.localStorage.getItem(WELCOME_POPUP_STORAGE_KEY);
     if (welcomePopupStillHidden(seen)) return;
-    const timer = window.setTimeout(() => setIsOpen(true), WELCOME_POPUP_DELAY_MS);
+    const timer = window.setTimeout(
+      () => setIsOpen(true),
+      WELCOME_POPUP_DELAY_MS,
+    );
     return () => window.clearTimeout(timer);
   }, [code]);
 
@@ -48,7 +51,7 @@ export function PromoPopupModal({
   function handleClose() {
     window.localStorage.setItem(
       WELCOME_POPUP_STORAGE_KEY,
-      new Date().toISOString()
+      new Date().toISOString(),
     );
     setIsOpen(false);
   }

@@ -26,7 +26,10 @@ export function FloatingAddToCartBar({
 
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    triggerCartParticleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    triggerCartParticleBurst(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2,
+    );
     setAdded(true);
     onAddToCart?.();
     setTimeout(() => setAdded(false), 2000);
@@ -53,8 +56,12 @@ export function FloatingAddToCartBar({
                 />
               )}
               <div className="truncate">
-                <p className="text-sm font-bold text-foreground truncate">{productName}</p>
-                <p className="text-xs font-mono font-semibold text-primary">Rs. {price.toLocaleString()}</p>
+                <p className="text-sm font-bold text-foreground truncate">
+                  {productName}
+                </p>
+                <p className="text-xs font-mono font-semibold text-primary">
+                  Rs. {price.toLocaleString()}
+                </p>
               </div>
             </div>
 
@@ -64,8 +71,14 @@ export function FloatingAddToCartBar({
                 onClick={handleAdd}
                 className="relative inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-primary-foreground shadow-sm transition-all hover:bg-primary-hover active:scale-95"
               >
-                {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
-                <span className="hidden min-[370px]:inline">{added ? "Added" : "Add to Cart"}</span>
+                {added ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <ShoppingBag className="w-4 h-4" />
+                )}
+                <span className="hidden min-[370px]:inline">
+                  {added ? "Added" : "Add to Cart"}
+                </span>
               </button>
 
               <button

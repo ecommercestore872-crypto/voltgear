@@ -15,8 +15,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ shopTypes });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not load shop types." },
-      { status: 500 }
+      {
+        error:
+          err instanceof Error ? err.message : "Could not load shop types.",
+      },
+      { status: 500 },
     );
   }
 }
@@ -27,6 +30,10 @@ export async function POST(request: Request) {
   }
   const body = await request.json().catch(() => null);
   const result = await createAdminShopType(body?.doc ?? body ?? {});
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

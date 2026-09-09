@@ -30,6 +30,10 @@ export async function PATCH(request: Request) {
   if (action === "publish") result = await publishAdminSettings(doc);
   else if (action === "discard") result = await discardAdminSettingsDraft();
   else result = await saveAdminSettings(doc);
-  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  if (!result.ok)
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   return NextResponse.json(result);
 }

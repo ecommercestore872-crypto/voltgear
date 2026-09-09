@@ -11,7 +11,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/favicon.ico", "/favicon-48.png", "/icon.png", "/apple-icon.png", "/brand/"],
+        allow: [
+          "/",
+          "/favicon.ico",
+          "/favicon-48.png",
+          "/icon.png",
+          "/apple-icon.png",
+          "/brand/",
+        ],
         disallow: [...SEARCH_CRAWL_DISALLOW],
       },
       {

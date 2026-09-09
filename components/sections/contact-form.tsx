@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export function ContactForm({ heading = "Send us a Message" }: { heading?: string }) {
+export function ContactForm({
+  heading = "Send us a Message",
+}: {
+  heading?: string;
+}) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

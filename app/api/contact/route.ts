@@ -10,7 +10,10 @@ export async function POST(request: Request) {
   try {
     const limited = takePublicPostLimit(request, "contact");
     if (!limited.ok) {
-      return NextResponse.json({ error: limited.error }, { status: limited.status });
+      return NextResponse.json(
+        { error: limited.error },
+        { status: limited.status },
+      );
     }
 
     const body = await request.json().catch(() => null);
@@ -24,7 +27,10 @@ export async function POST(request: Request) {
     });
 
     if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: result.status });
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      );
     }
 
     const webhookUrl = process.env.SLACK_WEBHOOK_URL || process.env.WEBHOOK_URL;
@@ -41,6 +47,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, id: result.id }, { status: 201 });
   } catch (error) {
     console.error("Contact form error:", error);
-    return NextResponse.json({ error: "Failed to process message." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to process message." },
+      { status: 500 },
+    );
   }
 }

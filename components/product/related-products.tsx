@@ -15,15 +15,16 @@ export function RelatedProducts({ products }: { products: Product[] }) {
   function scroll(direction: 1 | -1) {
     const track = trackRef.current;
     if (!track) return;
-    track.scrollBy({ left: direction * track.clientWidth * 0.8, behavior: "smooth" });
+    track.scrollBy({
+      left: direction * track.clientWidth * 0.8,
+      behavior: "smooth",
+    });
   }
 
   return (
     <section className="mt-20">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight">
-          You May Also Like
-        </h2>
+        <h2 className="text-2xl font-bold tracking-tight">You May Also Like</h2>
         <div className="flex gap-2">
           <Button
             variant="outline"

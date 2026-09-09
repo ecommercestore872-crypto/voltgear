@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (!loginLimiter.take({ ip })) {
     return NextResponse.json(
       { error: "Too many sign-in attempts. Wait a few minutes and try again." },
-      { status: 429 }
+      { status: 429 },
     );
   }
 

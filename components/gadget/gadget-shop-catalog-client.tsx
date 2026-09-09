@@ -17,7 +17,9 @@ function sortProducts(list: Product[], sort: string) {
   const sorted = [...list].sort((a, b) => {
     if (sort === "price-asc") return a.price - b.price;
     if (sort === "price-desc") return b.price - a.price;
-    return Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name);
+    return (
+      Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name)
+    );
   });
   return [
     ...sorted.filter((p) => !getStockState(p.stockStatus).soldOut),
@@ -69,7 +71,7 @@ export function GadgetShopCatalogClient({
         (p) =>
           p.name.toLowerCase().includes(qLower) ||
           p.category.toLowerCase().includes(qLower) ||
-          (p.shortDescription || "").toLowerCase().includes(qLower)
+          (p.shortDescription || "").toLowerCase().includes(qLower),
       );
     }
     return sortProducts(list, sort);

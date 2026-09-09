@@ -56,7 +56,10 @@ type TimelineStep = {
   at?: string | null;
 };
 
-function lastHistory(history: HistoryEntry[], status: OrderStatus): HistoryEntry | undefined {
+function lastHistory(
+  history: HistoryEntry[],
+  status: OrderStatus,
+): HistoryEntry | undefined {
   const matches = history.filter((h) => h.status === status);
   return matches[matches.length - 1];
 }
@@ -94,7 +97,11 @@ function buildTimeline(result: TrackResponse): TimelineStep[] {
     return {
       key: status,
       label: STATUS_LABEL[status],
-      state: (i < currentIdx ? "complete" : i === currentIdx ? "current" : "upcoming") as StepState,
+      state: (i < currentIdx
+        ? "complete"
+        : i === currentIdx
+          ? "current"
+          : "upcoming") as StepState,
       note: reached ? entry?.note : undefined,
       at: reached ? at : undefined,
     };
@@ -131,7 +138,7 @@ export function TrackOrder() {
     setCancelError(null);
     try {
       const res = await fetch(
-        `/api/orders/${encodeURIComponent(o.trim())}?email=${encodeURIComponent(e.trim())}`
+        `/api/orders/${encodeURIComponent(o.trim())}?email=${encodeURIComponent(e.trim())}`,
       );
       if (res.status === 404) {
         setError(SHOPPER_NOT_FOUND_MESSAGE);
@@ -161,7 +168,7 @@ export function TrackOrder() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: email.trim() }),
-        }
+        },
       );
       const body = await res.json().catch(() => null);
       if (res.status === 404) {
@@ -172,7 +179,7 @@ export function TrackOrder() {
         setCancelError(
           typeof body?.error === "string"
             ? body.error
-            : "Could not cancel. Try again."
+            : "Could not cancel. Try again.",
         );
         if (body?.order) setResult(body.order);
         return;
@@ -211,7 +218,12 @@ export function TrackOrder() {
           className="space-y-5"
         >
           <div className="space-y-2">
-            <Label htmlFor="orderId" className="text-sm font-bold text-slate-800">Order number</Label>
+            <Label
+              htmlFor="orderId"
+              className="text-sm font-bold text-slate-800"
+            >
+              Order number
+            </Label>
             <Input
               id="orderId"
               value={orderId}
@@ -226,7 +238,9 @@ export function TrackOrder() {
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-bold text-slate-800">Email used at checkout</Label>
+            <Label htmlFor="email" className="text-sm font-bold text-slate-800">
+              Email used at checkout
+            </Label>
             <Input
               id="email"
               type="email"
@@ -238,7 +252,11 @@ export function TrackOrder() {
               className="h-12 rounded-xl bg-slate-50/50"
             />
           </div>
-          <Button type="submit" disabled={loading} className="w-full sm:w-auto h-12 rounded-xl px-8 font-bold text-[15px] tracking-wide">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full sm:w-auto h-12 rounded-xl px-8 font-bold text-[15px] tracking-wide"
+          >
             {loading ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
@@ -262,28 +280,38 @@ export function TrackOrder() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="min-w-0 rounded-2xl border border-border/50 bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] sm:p-6 lg:p-8">
             <div className="mb-6 flex flex-col gap-3 border-b border-border/40 pb-5 sm:flex-row sm:items-center sm:justify-between">
-               <div className="min-w-0">
-                 <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">{result.orderId}</p>
-                 <h2 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
-                   {STATUS_LABEL[result.status]}
-                 </h2>
-               </div>
-               <div className="sm:text-right">
-                 <p className="text-[13px] text-muted-foreground">Updated</p>
-                 <p className="text-[14px] font-semibold text-slate-900">{formatDate(result.statusUpdatedAt ?? result.createdAt)}</p>
-               </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">
+                  {result.orderId}
+                </p>
+                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+                  {STATUS_LABEL[result.status]}
+                </h2>
+              </div>
+              <div className="sm:text-right">
+                <p className="text-[13px] text-muted-foreground">Updated</p>
+                <p className="text-[14px] font-semibold text-slate-900">
+                  {formatDate(result.statusUpdatedAt ?? result.createdAt)}
+                </p>
+              </div>
             </div>
 
             <ol className="mt-8">
               {steps.map((step, i) => {
                 const isLast = i === steps.length - 1;
-                const done = step.state === "complete" || step.state === "current";
+                const done =
+                  step.state === "complete" || step.state === "current";
                 return (
-                  <li key={step.key} className="relative flex gap-4 pb-8 last:pb-0">
+                  <li
+                    key={step.key}
+                    className="relative flex gap-4 pb-8 last:pb-0"
+                  >
                     {!isLast && (
                       <span
                         className={`absolute left-[11px] top-6 h-full w-[2px] ${
-                          step.state === "complete" ? "bg-primary" : "bg-slate-100"
+                          step.state === "complete"
+                            ? "bg-primary"
+                            : "bg-slate-100"
                         }`}
                       />
                     )}
@@ -298,30 +326,48 @@ export function TrackOrder() {
                       aria-hidden
                     >
                       {step.state === "complete" && (
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-3.5 h-3.5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       )}
                       {step.state === "current" && (
-                         <div className="w-2 h-2 rounded-full bg-white" />
+                        <div className="w-2 h-2 rounded-full bg-white" />
                       )}
                     </span>
                     <div className="-mt-0.5">
                       <p
                         className={`text-[15px] font-bold ${
-                          step.state === "upcoming" ? "text-slate-400" : "text-slate-900"
+                          step.state === "upcoming"
+                            ? "text-slate-400"
+                            : "text-slate-900"
                         }`}
                       >
                         {step.label}
                         {step.state === "current" && (
-                          <span className="ml-3 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">current</span>
+                          <span className="ml-3 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                            current
+                          </span>
                         )}
                       </p>
                       {done && step.note ? (
-                        <p className="mt-1 text-sm text-slate-500 leading-relaxed max-w-lg">{step.note}</p>
+                        <p className="mt-1 text-sm text-slate-500 leading-relaxed max-w-lg">
+                          {step.note}
+                        </p>
                       ) : null}
                       {done && step.at ? (
-                        <p className="mt-1 text-[12px] font-medium text-slate-400">{formatDate(step.at)}</p>
+                        <p className="mt-1 text-[12px] font-medium text-slate-400">
+                          {formatDate(step.at)}
+                        </p>
                       ) : null}
                     </div>
                   </li>
@@ -334,8 +380,8 @@ export function TrackOrder() {
                 {!confirmCancel ? (
                   <>
                     <p className="text-xs text-muted-foreground">
-                      You can cancel until{" "}
-                      {formatDate(result.cancelUntil)} while we haven&apos;t shipped.
+                      You can cancel until {formatDate(result.cancelUntil)}{" "}
+                      while we haven&apos;t shipped.
                     </p>
                     <Button
                       type="button"
@@ -387,7 +433,9 @@ export function TrackOrder() {
           </div>
 
           <div className="min-w-0 rounded-2xl border border-border/50 bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] sm:p-6 lg:p-8">
-            <h3 className="text-lg font-bold tracking-tight text-slate-900">Order Items</h3>
+            <h3 className="text-lg font-bold tracking-tight text-slate-900">
+              Order Items
+            </h3>
             <ul className="mt-5 divide-y divide-border/40">
               {result.items.map((item, i) => (
                 <li
@@ -397,9 +445,14 @@ export function TrackOrder() {
                   <span className="font-medium text-slate-800">
                     {item.name}
                     {item.variantName && (
-                      <span className="text-muted-foreground"> — {item.variantName}</span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        — {item.variantName}
+                      </span>
                     )}
-                    <span className="ml-2 px-1.5 py-0.5 rounded-sm bg-slate-100 text-slate-500 text-xs font-bold font-mono">×{item.quantity}</span>
+                    <span className="ml-2 px-1.5 py-0.5 rounded-sm bg-slate-100 text-slate-500 text-xs font-bold font-mono">
+                      ×{item.quantity}
+                    </span>
                   </span>
                   <span className="font-bold text-slate-900">
                     {formatPrice(item.price * item.quantity)}
@@ -410,11 +463,15 @@ export function TrackOrder() {
             <dl className="mt-2 space-y-2 border-t border-border/40 pt-5 text-sm">
               <div className="flex justify-between text-slate-500 font-medium">
                 <dt>Subtotal</dt>
-                <dd className="text-slate-900">{formatPrice(result.subtotal)}</dd>
+                <dd className="text-slate-900">
+                  {formatPrice(result.subtotal)}
+                </dd>
               </div>
               <div className="flex justify-between text-slate-500 font-medium">
                 <dt>Shipping</dt>
-                <dd className="text-slate-900">{result.shipping > 0 ? formatPrice(result.shipping) : "Free"}</dd>
+                <dd className="text-slate-900">
+                  {result.shipping > 0 ? formatPrice(result.shipping) : "Free"}
+                </dd>
               </div>
               <div className="flex justify-between text-base font-black text-slate-900 pt-2">
                 <dt>Total</dt>
@@ -423,7 +480,9 @@ export function TrackOrder() {
               <div className="flex justify-between text-slate-500 mt-4 text-[12px] font-semibold uppercase tracking-wider">
                 <dt>Payment Method</dt>
                 <dd className="text-slate-700">
-                  {result.payment === "cod" ? "Cash on Delivery" : result.payment}
+                  {result.payment === "cod"
+                    ? "Cash on Delivery"
+                    : result.payment}
                 </dd>
               </div>
             </dl>
@@ -431,7 +490,10 @@ export function TrackOrder() {
 
           <p className="text-[13px] font-medium text-slate-500 text-center">
             Questions about your order?{" "}
-            <Link href="/contact" className="font-bold text-primary hover:underline">
+            <Link
+              href="/contact"
+              className="font-bold text-primary hover:underline"
+            >
               Contact Support
             </Link>
           </p>

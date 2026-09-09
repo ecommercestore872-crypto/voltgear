@@ -30,31 +30,49 @@ function fromRow(row?: HeroRow | null) {
   const images = Array.isArray(d.backgroundImages)
     ? (d.backgroundImages as string[])
     : Array.isArray(row?.background_images)
-    ? (row?.background_images as string[])
-    : d.backgroundImage || row?.background_image_url
-    ? [String(d.backgroundImage || row?.background_image_url)]
-    : [];
+      ? (row?.background_images as string[])
+      : d.backgroundImage || row?.background_image_url
+        ? [String(d.backgroundImage || row?.background_image_url)]
+        : [];
 
   return {
     headline: String(d.headline ?? row?.headline ?? ""),
     subheadline: String(d.subheadline ?? row?.subheadline ?? ""),
     backgroundImages: images,
     backgroundVideo: String(d.backgroundVideo ?? row?.background_video ?? ""),
-    primaryLabel: String((d.primaryCta as { label?: string } | undefined)?.label ?? row?.primary_cta?.label ?? ""),
-    primaryHref: String((d.primaryCta as { href?: string } | undefined)?.href ?? row?.primary_cta?.href ?? ""),
-    secondaryLabel: String(
-      (d.secondaryCta as { label?: string } | undefined)?.label ?? row?.secondary_cta?.label ?? ""
+    primaryLabel: String(
+      (d.primaryCta as { label?: string } | undefined)?.label ??
+        row?.primary_cta?.label ??
+        "",
     ),
-    secondaryHref: String((d.secondaryCta as { href?: string } | undefined)?.href ?? row?.secondary_cta?.href ?? ""),
+    primaryHref: String(
+      (d.primaryCta as { href?: string } | undefined)?.href ??
+        row?.primary_cta?.href ??
+        "",
+    ),
+    secondaryLabel: String(
+      (d.secondaryCta as { label?: string } | undefined)?.label ??
+        row?.secondary_cta?.label ??
+        "",
+    ),
+    secondaryHref: String(
+      (d.secondaryCta as { href?: string } | undefined)?.href ??
+        row?.secondary_cta?.href ??
+        "",
+    ),
     statsText: JSON.stringify(d.stats ?? row?.stats ?? [], null, 2),
-    featuredProductId: String(d.featuredProductId ?? row?.featured_product_id ?? ""),
+    featuredProductId: String(
+      d.featuredProductId ?? row?.featured_product_id ?? "",
+    ),
   };
 }
 
 export function HeroForm({ hero }: { hero?: HeroRow | null }) {
   const router = useRouter();
   const [form, setForm] = useState(() => fromRow(hero));
-  const [status, setStatus] = useState<PublishStatus>(hero?.status ?? "published");
+  const [status, setStatus] = useState<PublishStatus>(
+    hero?.status ?? "published",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -112,26 +130,37 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
       <div className="grid gap-4">
         <div className="space-y-1.5">
           <Label>Headline</Label>
-          <Input value={form.headline} onChange={(e) => setForm((f) => ({ ...f, headline: e.target.value }))} />
+          <Input
+            value={form.headline}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, headline: e.target.value }))
+            }
+          />
         </div>
         <div className="space-y-1.5">
           <Label>Subheadline</Label>
           <Textarea
             value={form.subheadline}
-            onChange={(e) => setForm((f) => ({ ...f, subheadline: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, subheadline: e.target.value }))
+            }
           />
         </div>
         <MediaField
           label="Hero Slider Images"
           hint="Upload or paste image URLs for the homepage hero section. Uploading 1 image displays a static hero; uploading 2 or more displays a slider carousel in the exact order shown below."
           urls={form.backgroundImages}
-          onChange={(urls) => setForm((f) => ({ ...f, backgroundImages: urls }))}
+          onChange={(urls) =>
+            setForm((f) => ({ ...f, backgroundImages: urls }))
+          }
         />
         <div className="space-y-1.5">
           <Label>Background video URL</Label>
           <Input
             value={form.backgroundVideo}
-            onChange={(e) => setForm((f) => ({ ...f, backgroundVideo: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, backgroundVideo: e.target.value }))
+            }
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -139,28 +168,36 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
             <Label>Primary CTA label</Label>
             <Input
               value={form.primaryLabel}
-              onChange={(e) => setForm((f) => ({ ...f, primaryLabel: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, primaryLabel: e.target.value }))
+              }
             />
           </div>
           <div className="space-y-1.5">
             <Label>Primary CTA href</Label>
             <Input
               value={form.primaryHref}
-              onChange={(e) => setForm((f) => ({ ...f, primaryHref: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, primaryHref: e.target.value }))
+              }
             />
           </div>
           <div className="space-y-1.5">
             <Label>Secondary CTA label</Label>
             <Input
               value={form.secondaryLabel}
-              onChange={(e) => setForm((f) => ({ ...f, secondaryLabel: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, secondaryLabel: e.target.value }))
+              }
             />
           </div>
           <div className="space-y-1.5">
             <Label>Secondary CTA href</Label>
             <Input
               value={form.secondaryHref}
-              onChange={(e) => setForm((f) => ({ ...f, secondaryHref: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, secondaryHref: e.target.value }))
+              }
             />
           </div>
         </div>
@@ -168,7 +205,9 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
           <Label>Featured product ID</Label>
           <Input
             value={form.featuredProductId}
-            onChange={(e) => setForm((f) => ({ ...f, featuredProductId: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, featuredProductId: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-1.5">
@@ -177,7 +216,9 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
             className="font-mono text-xs"
             rows={6}
             value={form.statsText}
-            onChange={(e) => setForm((f) => ({ ...f, statsText: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, statsText: e.target.value }))
+            }
           />
         </div>
       </div>

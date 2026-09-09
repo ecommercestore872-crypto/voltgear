@@ -8,7 +8,9 @@ export function GadgetContactForm({
 }: {
   heading?: string;
 }) {
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
   const [kind, setKind] = useState<"contact" | "complaint">("contact");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -33,7 +35,8 @@ export function GadgetContactForm({
 
   const field =
     "h-11 w-full min-w-0 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-3 text-base text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)] focus:border-[var(--g-forest)] sm:text-sm";
-  const label = "text-xs font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]";
+  const label =
+    "text-xs font-semibold uppercase tracking-[0.12em] text-[var(--g-taupe)]";
 
   return (
     <div className="min-w-0 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 sm:p-6 lg:p-8">
@@ -46,7 +49,11 @@ export function GadgetContactForm({
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div className="space-y-1.5">
           <span className={label}>Type</span>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Message type">
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-label="Message type"
+          >
             <button
               type="button"
               onClick={() => setKind("contact")}
@@ -145,7 +152,9 @@ export function GadgetContactForm({
           </p>
         ) : null}
         {status === "error" ? (
-          <p className="text-sm text-red-700">Something went wrong. Please try again or use WhatsApp.</p>
+          <p className="text-sm text-red-700">
+            Something went wrong. Please try again or use WhatsApp.
+          </p>
         ) : null}
       </form>
     </div>

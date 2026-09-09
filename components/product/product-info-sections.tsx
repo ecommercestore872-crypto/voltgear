@@ -97,7 +97,7 @@ export function InTheBoxSection({ product }: { product: Product }) {
 export function SpecificationsSection({ product }: { product: Product }) {
   const specs =
     product.specifications?.filter(
-      (s) => s?.label?.trim() && s?.value?.trim()
+      (s) => s?.label?.trim() && s?.value?.trim(),
     ) ?? [];
   if (!specs.length) return null;
   return (
@@ -182,7 +182,7 @@ export function ReviewsSection({
   includeDemo?: boolean;
 }) {
   const real = (reviews ?? []).filter(
-    (r) => (includeDemo || !r.isDemo) && r.name && typeof r.rating === "number"
+    (r) => (includeDemo || !r.isDemo) && r.name && typeof r.rating === "number",
   );
 
   const distribution = [0, 0, 0, 0, 0];
@@ -197,7 +197,11 @@ export function ReviewsSection({
     : null;
 
   return (
-    <section id="reviews" className="mt-16 scroll-mt-24" aria-labelledby="reviews">
+    <section
+      id="reviews"
+      className="mt-16 scroll-mt-24"
+      aria-labelledby="reviews"
+    >
       <SectionHeading eyebrow="Reviews" title="Customer Reviews" />
 
       {real.length ? (
@@ -206,21 +210,32 @@ export function ReviewsSection({
             <p className="text-4xl font-black tracking-tighter">
               {(avg ?? rating ?? 0).toFixed(1)}
             </p>
-            <StarRating rating={avg ?? rating ?? 0} className="mt-2 justify-center text-amber-500" size={16} />
+            <StarRating
+              rating={avg ?? rating ?? 0}
+              className="mt-2 justify-center text-amber-500"
+              size={16}
+            />
             <p className="mt-1.5 text-xs font-medium text-muted-foreground">
               Based on {real.length} review{real.length === 1 ? "" : "s"}
             </p>
             <div className="mt-4 space-y-1.5">
               {distribution.map((count, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs font-medium">
-                  <span className="w-3 text-right text-muted-foreground">{5 - i}</span>
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-xs font-medium"
+                >
+                  <span className="w-3 text-right text-muted-foreground">
+                    {5 - i}
+                  </span>
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted/60">
                     <div
                       className="h-full rounded-full bg-amber-500"
                       style={{ width: `${(count / real.length) * 100}%` }}
                     />
                   </div>
-                  <span className="w-3 text-left text-muted-foreground/70">{count}</span>
+                  <span className="w-3 text-left text-muted-foreground/70">
+                    {count}
+                  </span>
                 </div>
               ))}
             </div>
@@ -228,11 +243,16 @@ export function ReviewsSection({
 
           <ul className="space-y-3">
             {real.map((review, i) => (
-              <li key={`${review.name}-${i}`} className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
+              <li
+                key={`${review.name}-${i}`}
+                className="rounded-xl border border-border/40 bg-card p-4 shadow-sm"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/30 pb-3">
                   <div className="flex flex-col gap-1 leading-none">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-foreground text-sm tracking-tight">{review.name}</span>
+                      <span className="font-semibold text-foreground text-sm tracking-tight">
+                        {review.name}
+                      </span>
                       {review.verified ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
                           <BadgeCheck className="h-2.5 w-2.5" />
@@ -251,7 +271,11 @@ export function ReviewsSection({
                     )}
                   </div>
                   <div className="flex items-center gap-2 bg-muted/30 px-2.5 py-1 rounded-full">
-                    <StarRating rating={review.rating} size={12} className="text-amber-500" />
+                    <StarRating
+                      rating={review.rating}
+                      size={12}
+                      className="text-amber-500"
+                    />
                   </div>
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-foreground/80">
@@ -259,7 +283,12 @@ export function ReviewsSection({
                 </p>
                 {review.image && (
                   <div className="mt-4">
-                    <a href={review.image} target="_blank" rel="noopener noreferrer" className="block">
+                    <a
+                      href={review.image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={review.image}
@@ -293,7 +322,7 @@ export function ReviewsSection({
 export function ProductFaqSection({ product }: { product: Product }) {
   const items =
     product.productFaq?.filter(
-      (f) => f?.question?.trim() && f?.answer?.trim()
+      (f) => f?.question?.trim() && f?.answer?.trim(),
     ) ?? [];
   if (!items.length) return null;
   return (

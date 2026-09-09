@@ -11,9 +11,11 @@ import type { ContentBlock } from "@/lib/types";
 function emptyBlock(type: ContentBlock["_type"]): ContentBlock {
   if (type === "heading") return { _type: "heading", level: "h2", text: "" };
   if (type === "list") return { _type: "list", type: "bullet", items: [""] };
-  if (type === "faq") return { _type: "faq", items: [{ question: "", answer: "" }] };
+  if (type === "faq")
+    return { _type: "faq", items: [{ question: "", answer: "" }] };
   if (type === "callout") return { _type: "callout", title: "", text: "" };
-  if (type === "cta") return { _type: "cta", label: "Shop the collection", href: "/products" };
+  if (type === "cta")
+    return { _type: "cta", label: "Shop the collection", href: "/products" };
   return { _type: "paragraph", text: "" };
 }
 
@@ -67,22 +69,38 @@ export function BlogSectionEditor({
 
       {sections.length === 0 ? (
         <p className="rounded-lg border border-dashed px-3 py-6 text-sm text-muted-foreground">
-          Add headings, paragraphs, lists, and an FAQ. Search and AdSense both want a real guide, not a thin blurb.
+          Add headings, paragraphs, lists, and an FAQ. Search and AdSense both
+          want a real guide, not a thin blurb.
         </p>
       ) : null}
 
       <ul className="space-y-4">
         {sections.map((block, index) => (
-          <li key={`${block._type}-${index}`} className="space-y-2 rounded-lg border p-3">
+          <li
+            key={`${block._type}-${index}`}
+            className="space-y-2 rounded-lg border p-3"
+          >
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {block._type}
               </p>
               <div className="flex gap-1">
-                <Button type="button" size="icon" variant="ghost" aria-label="Move up" onClick={() => move(index, -1)}>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Move up"
+                  onClick={() => move(index, -1)}
+                >
                   <ArrowUp className="h-4 w-4" />
                 </Button>
-                <Button type="button" size="icon" variant="ghost" aria-label="Move down" onClick={() => move(index, 1)}>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Move down"
+                  onClick={() => move(index, 1)}
+                >
                   <ArrowDown className="h-4 w-4" />
                 </Button>
                 <Button
@@ -90,7 +108,9 @@ export function BlogSectionEditor({
                   size="icon"
                   variant="ghost"
                   aria-label="Remove section"
-                  onClick={() => onChange(sections.filter((_, i) => i !== index))}
+                  onClick={() =>
+                    onChange(sections.filter((_, i) => i !== index))
+                  }
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -103,7 +123,10 @@ export function BlogSectionEditor({
                   className="flex h-11 rounded-md border border-input bg-background px-3 text-sm"
                   value={block.level ?? "h2"}
                   onChange={(e) =>
-                    update(index, { ...block, level: e.target.value as "h2" | "h3" | "h4" })
+                    update(index, {
+                      ...block,
+                      level: e.target.value as "h2" | "h3" | "h4",
+                    })
                   }
                 >
                   <option value="h2">H2</option>
@@ -111,7 +134,9 @@ export function BlogSectionEditor({
                 </select>
                 <Input
                   value={block.text ?? ""}
-                  onChange={(e) => update(index, { ...block, text: e.target.value })}
+                  onChange={(e) =>
+                    update(index, { ...block, text: e.target.value })
+                  }
                   placeholder="Section heading"
                 />
               </div>
@@ -121,7 +146,9 @@ export function BlogSectionEditor({
               <Textarea
                 rows={5}
                 value={block.text ?? ""}
-                onChange={(e) => update(index, { ...block, text: e.target.value })}
+                onChange={(e) =>
+                  update(index, { ...block, text: e.target.value })
+                }
                 placeholder="Write like you are talking to a shopper in Karachi or Lahore."
               />
             ) : null}
@@ -144,13 +171,17 @@ export function BlogSectionEditor({
               <div className="space-y-2">
                 <Input
                   value={block.title ?? ""}
-                  onChange={(e) => update(index, { ...block, title: e.target.value })}
+                  onChange={(e) =>
+                    update(index, { ...block, title: e.target.value })
+                  }
                   placeholder="Callout title"
                 />
                 <Textarea
                   rows={3}
                   value={block.text ?? ""}
-                  onChange={(e) => update(index, { ...block, text: e.target.value })}
+                  onChange={(e) =>
+                    update(index, { ...block, text: e.target.value })
+                  }
                 />
               </div>
             ) : null}
@@ -159,12 +190,16 @@ export function BlogSectionEditor({
               <div className="grid gap-2 sm:grid-cols-2">
                 <Input
                   value={block.label ?? ""}
-                  onChange={(e) => update(index, { ...block, label: e.target.value })}
+                  onChange={(e) =>
+                    update(index, { ...block, label: e.target.value })
+                  }
                   placeholder="Button label"
                 />
                 <Input
                   value={block.href ?? ""}
-                  onChange={(e) => update(index, { ...block, href: e.target.value })}
+                  onChange={(e) =>
+                    update(index, { ...block, href: e.target.value })
+                  }
                   placeholder="/products/earbuds"
                 />
               </div>
@@ -173,7 +208,10 @@ export function BlogSectionEditor({
             {block._type === "faq" ? (
               <div className="space-y-3">
                 {(block.items ?? []).map((item, fi) => (
-                  <div key={fi} className="space-y-2 rounded-md bg-muted/40 p-2">
+                  <div
+                    key={fi}
+                    className="space-y-2 rounded-md bg-muted/40 p-2"
+                  >
                     <Input
                       value={item.question}
                       onChange={(e) => {
@@ -202,7 +240,10 @@ export function BlogSectionEditor({
                   onClick={() =>
                     update(index, {
                       ...block,
-                      items: [...(block.items ?? []), { question: "", answer: "" }],
+                      items: [
+                        ...(block.items ?? []),
+                        { question: "", answer: "" },
+                      ],
                     })
                   }
                 >

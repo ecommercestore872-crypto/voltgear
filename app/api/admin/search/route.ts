@@ -21,7 +21,9 @@ export async function GET(request: Request) {
       listAdminCustomers(),
     ]);
     const hits = scoreAdminSearchHits(q, {
-      orders: orders.filter((o) => !o.isDemo).map((o) => ({ orderId: o.orderId })),
+      orders: orders
+        .filter((o) => !o.isDemo)
+        .map((o) => ({ orderId: o.orderId })),
       products: products.map((p) => ({
         id: p._id,
         name: p.name,

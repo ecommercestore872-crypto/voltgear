@@ -5,7 +5,10 @@ import { createPortal } from "react-dom";
 import { ExternalLink, X } from "lucide-react";
 
 import { InstagramIcon, TikTokIcon } from "@/components/icons/social-icons";
-import { productWatchLinks, type ProductWatchLink } from "@/lib/product-pip-video";
+import {
+  productWatchLinks,
+  type ProductWatchLink,
+} from "@/lib/product-pip-video";
 import type { Product } from "@/lib/types";
 
 export function GadgetProductWatchLinks({ product }: { product: Product }) {
@@ -113,7 +116,7 @@ export function GadgetProductWatchLinks({ product }: { product: Product }) {
                 </div>
               </div>
             </div>,
-            document.body
+            document.body,
           )
         : null}
     </div>

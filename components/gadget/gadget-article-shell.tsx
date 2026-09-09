@@ -34,13 +34,17 @@ export function GadgetArticleShell({
   backLabel?: string;
 }) {
   return (
-    <div className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}>
+    <div
+      className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}
+    >
       <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
         <div className="mx-auto max-w-3xl px-4 py-10 lg:px-8">
           <p className="gadget-eyebrow">{eyebrow}</p>
           <h1 className="gadget-h1 mt-2 text-[var(--g-charcoal)]">{title}</h1>
           {description ? (
-            <p className="gadget-body mt-3 max-w-xl sm:text-base">{description}</p>
+            <p className="gadget-body mt-3 max-w-xl sm:text-base">
+              {description}
+            </p>
           ) : null}
         </div>
       </div>
@@ -82,7 +86,10 @@ export function GadgetCmsSections({ page }: { page: Page }) {
   return (
     <p className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-8 text-[var(--g-taupe)]">
       This page is maintained by the shop. If a section is missing, use{" "}
-      <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+      <Link
+        href="/contact"
+        className="font-semibold text-[var(--g-forest)] hover:underline"
+      >
         Contact us
       </Link>
       .

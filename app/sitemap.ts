@@ -3,7 +3,11 @@ import type { MetadataRoute } from "next";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchSitemapCollections } from "@/lib/db/collection-store";
-import { fetchShopTypes, fetchSitemapPages, fetchSitemapProducts } from "@/lib/db/store";
+import {
+  fetchShopTypes,
+  fetchSitemapPages,
+  fetchSitemapProducts,
+} from "@/lib/db/store";
 import { indexSiteUrl } from "@/lib/seo-rules";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +16,7 @@ function entry(
   url: string,
   lastModified?: string | Date,
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "weekly",
-  priority = 0.5
+  priority = 0.5,
 ): MetadataRoute.Sitemap[number] {
   return {
     url,
@@ -68,19 +72,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const categoryRoutes = shopTypes.map((cat) =>
-    entry(`${baseUrl}/products/${cat.slug}`, undefined, "daily", 0.85)
+    entry(`${baseUrl}/products/${cat.slug}`, undefined, "daily", 0.85),
   );
 
   const collectionRoutes = collections
     .filter((col) => col.slug)
     .map((col) =>
-      entry(`${baseUrl}/collections/${col.slug}`, col._updatedAt, "weekly", 0.75)
+      entry(
+        `${baseUrl}/collections/${col.slug}`,
+        col._updatedAt,
+        "weekly",
+        0.75,
+      ),
     );
 
   const productRoutes = products
     .filter((prod) => prod.slug)
     .map((prod) =>
-      entry(`${baseUrl}/product/${prod.slug}`, prod._updatedAt, "weekly", 0.7)
+      entry(`${baseUrl}/product/${prod.slug}`, prod._updatedAt, "weekly", 0.7),
     );
 
   const sitemapBlogs =
@@ -91,7 +100,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           _updatedAt: post.publishedAt,
         }));
   const blogRoutes = sitemapBlogs.map((post) =>
-    entry(`${baseUrl}/blog/${post.slug}`, post._updatedAt, "weekly", 0.55)
+    entry(`${baseUrl}/blog/${post.slug}`, post._updatedAt, "weekly", 0.55),
   );
 
   const reserved = new Set([
@@ -108,7 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cmsRoutes = cms
     .filter((page) => page.slug && !reserved.has(page.slug))
     .map((page) =>
-      entry(`${baseUrl}/${page.slug}`, page._updatedAt, "monthly", 0.4)
+      entry(`${baseUrl}/${page.slug}`, page._updatedAt, "monthly", 0.4),
     );
 
   return [

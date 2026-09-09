@@ -84,10 +84,15 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
                 role="note"
                 className="mt-6 flex gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4"
               >
-                <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+                <Lightbulb
+                  className="mt-0.5 h-5 w-5 shrink-0 text-primary"
+                  aria-hidden
+                />
                 <div>
                   {block.title && (
-                    <p className="font-semibold text-[var(--g-charcoal,inherit)]">{block.title}</p>
+                    <p className="font-semibold text-[var(--g-charcoal,inherit)]">
+                      {block.title}
+                    </p>
                   )}
                   <p className="mt-0.5 text-sm leading-relaxed text-[var(--g-taupe,hsl(var(--muted-foreground)))]">
                     {block.text}
@@ -104,7 +109,10 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
                   {block.heading || "Related products"}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  <Check className="mr-1 inline h-3.5 w-3.5 text-primary" aria-hidden />
+                  <Check
+                    className="mr-1 inline h-3.5 w-3.5 text-primary"
+                    aria-hidden
+                  />
                   Pair them with your order — available in the store.
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -177,7 +185,11 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
           }
           case "faq":
             return block.items?.length ? (
-              <section key={i} className="mt-8" aria-labelledby={`blog-faq-${i}`}>
+              <section
+                key={i}
+                className="mt-8"
+                aria-labelledby={`blog-faq-${i}`}
+              >
                 <h2
                   id={`blog-faq-${i}`}
                   className="text-2xl font-bold tracking-tight text-[var(--g-charcoal,inherit)]"

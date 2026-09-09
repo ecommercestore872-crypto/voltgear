@@ -21,24 +21,30 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: { orderId: string } },
 ) {
   const orderId = params.orderId;
   if (!orderId) {
     return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
   }
 
-  const email = new URL(request.url).searchParams.get("email")?.toLowerCase().trim();
+  const email = new URL(request.url).searchParams
+    .get("email")
+    ?.toLowerCase()
+    .trim();
   if (!email) {
     return NextResponse.json(
       { error: "Provide the email used at checkout: ?email=you@example.com" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const order = await getOrderById(orderId);
   if (shopperLookupNotFound(order, email)) {
-    return NextResponse.json({ error: SHOPPER_NOT_FOUND_MESSAGE }, { status: 404 });
+    return NextResponse.json(
+      { error: SHOPPER_NOT_FOUND_MESSAGE },
+      { status: 404 },
+    );
   }
 
   return NextResponse.json(toShopperTrackPayload(order!));
@@ -52,7 +58,7 @@ export async function GET(
  */
 export async function DELETE(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: { orderId: string } },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -72,7 +78,7 @@ export async function DELETE(
   if (!success) {
     return NextResponse.json(
       { error: "Could not delete the order. Please try again." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

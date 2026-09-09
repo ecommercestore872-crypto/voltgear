@@ -19,7 +19,9 @@ export async function StorefrontPromoPopup({
   return (
     <PromoPopupModal
       code={code}
-      minOrderLabel={minOrder && minOrder > 0 ? formatPrice(minOrder) : "Rs. 3,000"}
+      minOrderLabel={
+        minOrder && minOrder > 0 ? formatPrice(minOrder) : "Rs. 3,000"
+      }
     />
   );
 }

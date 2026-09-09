@@ -13,7 +13,7 @@ import {
   GitCompare,
   Share2,
   Info,
-  Lock
+  Lock,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -47,29 +47,27 @@ function defaultVariant(product: Product): ProductVariant | null {
   return variants.find((v) => v.isDefault) ?? variants[0];
 }
 
-export function PurchaseSection({
-  product,
-}: {
-  product: Product;
-}) {
+export function PurchaseSection({ product }: { product: Product }) {
   const { addItem } = useCart();
   const axesOn = axesEnabled(product);
   const [colorKey, setColorKey] = useState<string | null>(() =>
-    initialAxisSelection(product.colorOptions)
+    initialAxisSelection(product.colorOptions),
   );
   const [sizeKey, setSizeKey] = useState<string | null>(() =>
-    initialAxisSelection(product.sizeOptions)
+    initialAxisSelection(product.sizeOptions),
   );
-  const [legacyVariant, setLegacyVariant] = useState<ProductVariant | null>(() =>
-    axesOn ? null : defaultVariant(product)
+  const [legacyVariant, setLegacyVariant] = useState<ProductVariant | null>(
+    () => (axesOn ? null : defaultVariant(product)),
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  const selectedKey = axesOn ? comboVariantKey(colorKey, sizeKey) : legacyVariant?._key;
+  const selectedKey = axesOn
+    ? comboVariantKey(colorKey, sizeKey)
+    : legacyVariant?._key;
   const variant = axesOn
-    ? (product.variants ?? []).find((v) => v._key === selectedKey) ?? null
+    ? ((product.variants ?? []).find((v) => v._key === selectedKey) ?? null)
     : legacyVariant;
   const hasVariants = (product.variants?.length ?? 0) > 0;
   const selectionReady = axesOn
@@ -78,16 +76,18 @@ export function PurchaseSection({
   const stock = getVariantStockState(product, variant);
   const outOfStock = stock.soldOut;
 
-  const price = axesOn ? product.price : variant?.price ?? product.price;
+  const price = axesOn ? product.price : (variant?.price ?? product.price);
   const compareAtPrice = axesOn
     ? product.compareAtPrice
-    : variant?.compareAtPrice ?? product.compareAtPrice;
+    : (variant?.compareAtPrice ?? product.compareAtPrice);
   const discount =
     compareAtPrice && compareAtPrice > price
       ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
       : 0;
 
-  const colorPhoto = axesOn ? colorImageForKey(product.colorOptions, colorKey) : variant?.image;
+  const colorPhoto = axesOn
+    ? colorImageForKey(product.colorOptions, colorKey)
+    : variant?.image;
   const selectedVariantImage = useMemo(() => {
     if (!colorPhoto) return null;
     return {
@@ -124,7 +124,7 @@ export function PurchaseSection({
             }
           : {}),
       },
-      quantity
+      quantity,
     );
     trackAddToCart({
       item_id: product.slug,
@@ -145,48 +145,54 @@ export function PurchaseSection({
     <div className="grid gap-10 lg:grid-cols-2">
       <ProductGallery product={product} variantImage={selectedVariantImage} />
 
-        <div className="space-y-4">
-          {/* Badge & Title */}
-          <div>
-            {product.badge && (
-               <Badge className="bg-primary text-primary-foreground font-bold tracking-widest text-[10px] uppercase mb-3 px-2.5 py-1 rounded">
-                 {product.badge}
-               </Badge>
-            )}
-            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
-              {product.name}
-            </h1>
-            {product.shortDescription && (
-              <p className="mt-2 text-sm font-medium text-muted-foreground w-full max-w-[90%] leading-relaxed">
-                {product.shortDescription}
-              </p>
-            )}
-            
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              {typeof product.reviewCount === "number" && product.reviewCount > 0 && (
+      <div className="space-y-4">
+        {/* Badge & Title */}
+        <div>
+          {product.badge && (
+            <Badge className="bg-primary text-primary-foreground font-bold tracking-widest text-[10px] uppercase mb-3 px-2.5 py-1 rounded">
+              {product.badge}
+            </Badge>
+          )}
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
+            {product.name}
+          </h1>
+          {product.shortDescription && (
+            <p className="mt-2 text-sm font-medium text-muted-foreground w-full max-w-[90%] leading-relaxed">
+              {product.shortDescription}
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {typeof product.reviewCount === "number" &&
+              product.reviewCount > 0 && (
                 <a
                   href="#reviews"
                   className="flex items-center gap-2 rounded transition-colors hover:opacity-80"
                 >
                   <StarRating rating={product.rating} size={18} />
                   <span className="text-sm font-bold text-foreground">
-                    {product.rating ?? 0} <span className="text-primary font-medium tracking-wide">({product.reviewCount} reviews)</span>
+                    {product.rating ?? 0}{" "}
+                    <span className="text-primary font-medium tracking-wide">
+                      ({product.reviewCount} reviews)
+                    </span>
                   </span>
                 </a>
               )}
 
-              <ProductSocialVideoModal
-                productName={product.name}
-                instagramUrl={product.instagramUrl}
-                tiktokUrl={product.tiktokUrl}
-              />
-            </div>
+            <ProductSocialVideoModal
+              productName={product.name}
+              instagramUrl={product.instagramUrl}
+              tiktokUrl={product.tiktokUrl}
+            />
           </div>
+        </div>
 
         {/* Price & Stock */}
         <div className="flex flex-col gap-1.5 pb-2 border-b border-border/50">
           <div className="flex flex-wrap items-end gap-3 translate-y-1">
-            <span className="text-3xl font-extrabold text-foreground">{formatPrice(price)}</span>
+            <span className="text-3xl font-extrabold text-foreground">
+              {formatPrice(price)}
+            </span>
             {discount > 0 && compareAtPrice ? (
               <>
                 <span className="text-sm font-medium text-muted-foreground line-through mb-1">
@@ -201,13 +207,17 @@ export function PurchaseSection({
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium pb-2">
             Price includes VAT <Info className="w-3.5 h-3.5 opacity-60" />
           </div>
-          
+
           <div className="mt-1 flex items-center gap-2">
-             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold tracking-wide">
-                <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                {stock.soldOut ? "Out of Stock" : "In Stock"}
-             </div>
-             {!stock.soldOut && <span className="text-xs font-medium text-muted-foreground">Ready to ship</span>}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold tracking-wide">
+              <Check className="w-3.5 h-3.5" strokeWidth={3} />
+              {stock.soldOut ? "Out of Stock" : "In Stock"}
+            </div>
+            {!stock.soldOut && (
+              <span className="text-xs font-medium text-muted-foreground">
+                Ready to ship
+              </span>
+            )}
           </div>
         </div>
 
@@ -243,7 +253,7 @@ export function PurchaseSection({
                         ? "border-primary bg-primary text-primary-foreground"
                         : "hover:border-primary/50",
                       vStock.soldOut &&
-                        "cursor-not-allowed border-dashed text-muted-foreground/50 line-through"
+                        "cursor-not-allowed border-dashed text-muted-foreground/50 line-through",
                     )}
                   >
                     {v.name}
@@ -257,28 +267,32 @@ export function PurchaseSection({
         {/* Quantity + Add to Cart + Buy Now */}
         <div className="flex flex-col gap-4 mt-8 pb-4 border-b border-border/50">
           {!outOfStock && (
-             <div className="flex flex-col gap-2">
-               <span className="text-sm font-semibold text-foreground">Quantity</span>
-               <div className="flex items-center gap-3 rounded border border-border/70 px-3 py-2 w-fit bg-primary/5">
-                 <button
-                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                   className="text-foreground/70 transition-colors hover:text-foreground"
-                   aria-label="Decrease quantity"
-                 >
-                   <Minus className="h-4 w-4" />
-                 </button>
-                 <span className="w-8 text-center font-bold text-sm">{quantity}</span>
-                 <button
-                   onClick={() => setQuantity((q) => Math.min(99, q + 1))}
-                   className="text-foreground/70 transition-colors hover:text-foreground"
-                   aria-label="Increase quantity"
-                 >
-                   <Plus className="h-4 w-4" />
-                 </button>
-               </div>
-             </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-semibold text-foreground">
+                Quantity
+              </span>
+              <div className="flex items-center gap-3 rounded border border-border/70 px-3 py-2 w-fit bg-primary/5">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="text-foreground/70 transition-colors hover:text-foreground"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-8 text-center font-bold text-sm">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => Math.min(99, q + 1))}
+                  className="text-foreground/70 transition-colors hover:text-foreground"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           )}
-          
+
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-[1fr_1fr] mt-2">
             <Button
               ref={btnRef}
@@ -293,7 +307,11 @@ export function PurchaseSection({
               ) : (
                 <>
                   <ShoppingBag className="h-5 w-5" strokeWidth={2.5} />
-                  {outOfStock ? "Sold Out" : !selectionReady ? "Choose options" : "Add to Cart"}
+                  {outOfStock
+                    ? "Sold Out"
+                    : !selectionReady
+                      ? "Choose options"
+                      : "Add to Cart"}
                 </>
               )}
             </Button>
@@ -308,21 +326,24 @@ export function PurchaseSection({
               </div>
             )}
           </div>
-          
+
           {/* Action Links & Social */}
           <div className="flex flex-wrap items-center justify-between gap-4 w-full mt-3">
-             <div className="flex flex-wrap items-center gap-4 sm:gap-8">
-               <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group">
-                 <Heart className="w-4 h-4 text-foreground/50 group-hover:text-primary transition-colors" /> Add to Wishlist
-               </button>
-               <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group">
-                 <GitCompare className="w-4 h-4 text-foreground/50 group-hover:text-primary transition-colors" /> Compare
-               </button>
-               <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group">
-                 <Share2 className="w-4 h-4 text-foreground/50 group-hover:text-primary transition-colors" /> Share
-               </button>
-             </div>
-             <GadgetProductWatchLinks product={product} />
+            <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+              <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group">
+                <Heart className="w-4 h-4 text-foreground/50 group-hover:text-primary transition-colors" />{" "}
+                Add to Wishlist
+              </button>
+              <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group">
+                <GitCompare className="w-4 h-4 text-foreground/50 group-hover:text-primary transition-colors" />{" "}
+                Compare
+              </button>
+              <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group">
+                <Share2 className="w-4 h-4 text-foreground/50 group-hover:text-primary transition-colors" />{" "}
+                Share
+              </button>
+            </div>
+            <GadgetProductWatchLinks product={product} />
           </div>
         </div>
 
@@ -331,40 +352,56 @@ export function PurchaseSection({
           <div className="pt-4 mt-2 border-t border-border/50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3">
-                 <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
-                    <Banknote className="w-5 h-5" />
-                 </div>
-                 <div>
-                    <p className="text-[13px] font-bold text-foreground leading-tight">Cash on Delivery</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Pay when you receive</p>
-                 </div>
+                <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <Banknote className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-bold text-foreground leading-tight">
+                    Cash on Delivery
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                    Pay when you receive
+                  </p>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3">
-                 <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
-                    <ShieldCheck className="w-5 h-5" />
-                 </div>
-                 <div>
-                    <p className="text-[13px] font-bold text-foreground leading-tight">1 Year Warranty</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Official Brand Warranty</p>
-                 </div>
+                <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-bold text-foreground leading-tight">
+                    1 Year Warranty
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                    Official Brand Warranty
+                  </p>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3">
-                 <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
-                    <Lock className="w-5 h-5" />
-                 </div>
-                 <div>
-                    <p className="text-[13px] font-bold text-foreground leading-tight">Secure Checkout</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">100% Safe & Encrypted</p>
-                 </div>
+                <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-bold text-foreground leading-tight">
+                    Secure Checkout
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                    100% Safe & Encrypted
+                  </p>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3">
-                 <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
-                    <Truck className="w-5 h-5" />
-                 </div>
-                 <div>
-                    <p className="text-[13px] font-bold text-foreground leading-tight">Delivery in 1-2 Days</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Across Pakistan</p>
-                 </div>
+                <div className="w-10 h-10 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-bold text-foreground leading-tight">
+                    Delivery in 1-2 Days
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                    Across Pakistan
+                  </p>
+                </div>
               </div>
             </div>
           </div>

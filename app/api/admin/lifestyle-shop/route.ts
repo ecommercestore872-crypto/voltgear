@@ -15,7 +15,10 @@ export async function PUT(request: Request) {
   const shop = normalizeLifestyleShop(body?.shop ?? body);
   const result = await saveAdminLifestyleShop(shop);
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ ok: true, shop: result.shop });
 }

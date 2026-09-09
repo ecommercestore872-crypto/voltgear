@@ -8,7 +8,9 @@ import { adminFetch } from "@/components/admin/admin-fetch";
 
 export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
   const [items, setItems] = useState(initialItems);
-  const [filter, setFilter] = useState<"all" | "contact" | "complaint" | "new">("all");
+  const [filter, setFilter] = useState<"all" | "contact" | "complaint" | "new">(
+    "all",
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -22,7 +24,10 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
 
-  async function patch(id: string, body: { status?: string; adminNote?: string }) {
+  async function patch(
+    id: string,
+    body: { status?: string; adminNote?: string },
+  ) {
     setBusy(true);
     setError(null);
     try {
@@ -55,7 +60,11 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
           Contact and complaint messages from the storefront
         </p>
       </div>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter inbox">
+      <div
+        className="flex flex-wrap gap-2"
+        role="group"
+        aria-label="Filter inbox"
+      >
         {(
           [
             ["all", "All"],
@@ -87,7 +96,9 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
                 type="button"
                 onClick={() => openItem(item)}
                 className={`w-full rounded-lg border px-3 py-3 text-left transition hover:border-[var(--g-forest)] ${
-                  selectedId === item.id ? "border-[var(--g-forest)] bg-white" : "bg-white/60"
+                  selectedId === item.id
+                    ? "border-[var(--g-forest)] bg-white"
+                    : "bg-white/60"
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -111,14 +122,18 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
         </div>
         <div className="rounded-lg border bg-white p-4">
           {!selected ? (
-            <p className="text-sm text-muted-foreground">Select a message to read it.</p>
+            <p className="text-sm text-muted-foreground">
+              Select a message to read it.
+            </p>
           ) : (
             <div className="space-y-4">
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   {selected.kind} · {selected.status}
                 </p>
-                <h2 className="mt-1 text-lg font-semibold">{selected.subject || "No subject"}</h2>
+                <h2 className="mt-1 text-lg font-semibold">
+                  {selected.subject || "No subject"}
+                </h2>
                 <p className="mt-1 text-sm">
                   {selected.name} ·{" "}
                   <a className="underline" href={`mailto:${selected.email}`}>
@@ -126,7 +141,9 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
                   </a>
                 </p>
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">{selected.message}</p>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                {selected.message}
+              </p>
               <label className="block space-y-1 text-sm">
                 <span className="font-medium">Admin note</span>
                 <textarea
@@ -149,7 +166,9 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
                   size="sm"
                   variant="outline"
                   disabled={busy || selected.status === "closed"}
-                  onClick={() => patch(selected.id, { status: "closed", adminNote: note })}
+                  onClick={() =>
+                    patch(selected.id, { status: "closed", adminNote: note })
+                  }
                 >
                   Mark closed
                 </Button>

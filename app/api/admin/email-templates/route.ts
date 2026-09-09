@@ -19,8 +19,10 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("[email-templates] list", error);
     return NextResponse.json(
-      { error: "Templates table not ready. Push the email_templates migration." },
-      { status: 503 }
+      {
+        error: "Templates table not ready. Push the email_templates migration.",
+      },
+      { status: 503 },
     );
   }
 }
@@ -36,7 +38,10 @@ export async function POST(request: Request) {
     bodyText: body?.bodyText ?? body?.text,
   });
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ template: result.template });
 }

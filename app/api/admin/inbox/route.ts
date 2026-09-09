@@ -18,7 +18,9 @@ export async function GET(request: Request) {
     kindParam === "contact" || kindParam === "complaint"
       ? parseInboxKind(kindParam)
       : undefined;
-  const status = statusParam ? parseInboxStatus(statusParam) ?? undefined : undefined;
+  const status = statusParam
+    ? (parseInboxStatus(statusParam) ?? undefined)
+    : undefined;
 
   try {
     const items = await listContactSubmissions({ kind, status });
@@ -27,7 +29,7 @@ export async function GET(request: Request) {
     console.error("[inbox] list failed", error);
     return NextResponse.json(
       { error: "Inbox is not ready. Push the contact_submissions migration." },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

@@ -7,7 +7,11 @@ import { shopWhatsAppHref } from "@/lib/contact-links";
 import { cn } from "@/lib/utils";
 import type { SiteSettings } from "@/lib/types";
 
-export function ShopWhatsAppButton({ settings }: { settings: SiteSettings | null }) {
+export function ShopWhatsAppButton({
+  settings,
+}: {
+  settings: SiteSettings | null;
+}) {
   const href = shopWhatsAppHref(settings);
   const [expanded, setExpanded] = useState(false);
   const [pinnedOpen, setPinnedOpen] = useState(false);
@@ -50,7 +54,7 @@ export function ShopWhatsAppButton({ settings }: { settings: SiteSettings | null
         <span
           className={cn(
             "shop-wa-pulse pointer-events-none absolute right-0 top-1/2 z-0 h-14 w-14 -translate-y-1/2 rounded-full",
-            showLabel && "opacity-40"
+            showLabel && "opacity-40",
           )}
           aria-hidden
         />
@@ -74,7 +78,7 @@ export function ShopWhatsAppButton({ settings }: { settings: SiteSettings | null
             "shadow-[0_10px_28px_rgba(37,211,102,0.38)] transition-[width,background-color,box-shadow,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
             "hover:bg-[#20bd5a] hover:shadow-[0_14px_32px_rgba(37,211,102,0.45)] hover:-translate-y-0.5",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest,#1b3d29)]",
-            showLabel ? "w-[min(100vw-2.5rem,15.75rem)]" : "w-14"
+            showLabel ? "w-[min(100vw-2.5rem,15.75rem)]" : "w-14",
           )}
         >
           {/* Fixed 56×56 icon cell — keeps the glyph perfectly centered when collapsed */}
@@ -86,7 +90,7 @@ export function ShopWhatsAppButton({ settings }: { settings: SiteSettings | null
               "flex min-w-0 flex-col justify-center overflow-hidden pr-5 transition-[opacity,max-width,margin] duration-300",
               showLabel
                 ? "ml-0 max-w-[10.5rem] opacity-100"
-                : "ml-0 max-w-0 pr-0 opacity-0"
+                : "ml-0 max-w-0 pr-0 opacity-0",
             )}
             aria-hidden={!showLabel}
           >

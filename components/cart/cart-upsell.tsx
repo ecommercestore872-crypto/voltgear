@@ -22,7 +22,9 @@ export function CartUpsell({ excludeSlugs }: { excludeSlugs: string[] }) {
         const addable = (p: Product) => {
           if (p.stockStatus === "out-of-stock") return false;
           const v = getDefaultVariant(p);
-          return v ? getStockState(v.stockStatus).purchasable : !(p.variants?.length);
+          return v
+            ? getStockState(v.stockStatus).purchasable
+            : !p.variants?.length;
         };
         const suggestions = all
           .filter((p) => !excludeSlugs.includes(p.slug) && addable(p))

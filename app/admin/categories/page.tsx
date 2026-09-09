@@ -18,7 +18,8 @@ export default async function AdminCategoriesPage() {
   try {
     shopTypes = await listAdminShopTypes();
   } catch (err) {
-    loadError = err instanceof Error ? err.message : "Could not load shop types.";
+    loadError =
+      err instanceof Error ? err.message : "Could not load shop types.";
   }
 
   return (
@@ -29,9 +30,13 @@ export default async function AdminCategoriesPage() {
           <Link href="/admin/categories/new">Add shop type</Link>
         </Button>
       </div>
-      {loadError ? <p className="text-sm text-destructive">{loadError}</p> : null}
+      {loadError ? (
+        <p className="text-sm text-destructive">{loadError}</p>
+      ) : null}
       {!loadError && shopTypes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Add your first shop type.</p>
+        <p className="text-sm text-muted-foreground">
+          Add your first shop type.
+        </p>
       ) : null}
       {shopTypes.length ? (
         <div className="overflow-x-auto rounded-lg border">
@@ -47,7 +52,9 @@ export default async function AdminCategoriesPage() {
                 <tr key={t.id ?? t.slug} className="border-b last:border-0">
                   <td className="px-3 py-2">
                     <Link
-                      href={t.id ? `/admin/categories/${t.id}` : "/admin/categories"}
+                      href={
+                        t.id ? `/admin/categories/${t.id}` : "/admin/categories"
+                      }
                       className="font-medium hover:underline"
                     >
                       {t.name}

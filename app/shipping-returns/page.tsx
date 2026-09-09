@@ -7,15 +7,13 @@ import {
   GadgetSupportLayout,
 } from "@/components/gadget/gadget-support-layout";
 import { getSettings } from "@/lib/sanity/settings";
-import {
-  normalizeSettings,
-  returnsLabel,
-} from "@/lib/site-config";
+import { normalizeSettings, returnsLabel } from "@/lib/site-config";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Shipping, Exchange & Refunds",
-  description: "Shipping times, cash on delivery, exchanges, and refund policy.",
+  description:
+    "Shipping times, cash on delivery, exchanges, and refund policy.",
   alternates: { canonical: "/shipping-returns" },
 };
 
@@ -57,22 +55,30 @@ export default async function ShippingReturnsPage() {
           title="Shipping policy"
         >
           <p>
-            We ship nationwide. Orders are packed after confirmation and usually leave our
-            warehouse within 1–2 working days.
+            We ship nationwide. Orders are packed after confirmation and usually
+            leave our warehouse within 1–2 working days.
           </p>
           <ul className="mt-3 list-disc space-y-1.5 pl-4">
             <li>Typical delivery: 2–5 working days depending on your city.</li>
             {config.freeShippingThreshold > 0 ? (
               <li>
-                Free shipping on orders of {formatPrice(config.freeShippingThreshold)} or more.
-                Below that, a flat shipping fee of {formatPrice(config.shippingFee)} may apply.
+                Free shipping on orders of{" "}
+                {formatPrice(config.freeShippingThreshold)} or more. Below that,
+                a flat shipping fee of {formatPrice(config.shippingFee)} may
+                apply.
               </li>
             ) : (
-              <li>Shipping fee: {formatPrice(config.shippingFee)} (shown at checkout).</li>
+              <li>
+                Shipping fee: {formatPrice(config.shippingFee)} (shown at
+                checkout).
+              </li>
             )}
             <li>
               Track progress anytime on{" "}
-              <Link href="/track" className="font-semibold text-[var(--g-forest)] hover:underline">
+              <Link
+                href="/track"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 Track your order
               </Link>
               .
@@ -95,21 +101,32 @@ export default async function ShippingReturnsPage() {
             </p>
           ) : (
             <p>
-              Exchange and refund windows are confirmed with your order. Contact us with your
-              order number and we&apos;ll guide you.
+              Exchange and refund windows are confirmed with your order. Contact
+              us with your order number and we&apos;ll guide you.
             </p>
           )}
           <ul className="mt-3 list-disc space-y-1.5 pl-4">
-            <li>Items should be unused, with original packaging and accessories.</li>
-            <li>Defective or DOA units are covered under warranty / replacement first.</li>
+            <li>
+              Items should be unused, with original packaging and accessories.
+            </li>
+            <li>
+              Defective or DOA units are covered under warranty / replacement
+              first.
+            </li>
             <li>
               Start a request via{" "}
-              <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+              <Link
+                href="/contact"
+                className="font-semibold text-[var(--g-forest)] hover:underline"
+              >
                 Contact us
               </Link>{" "}
               or WhatsApp — include order number and photos if relevant.
             </li>
-            <li>Approved refunds are processed after we receive and inspect the return.</li>
+            <li>
+              Approved refunds are processed after we receive and inspect the
+              return.
+            </li>
           </ul>
         </GadgetSupportCard>
 
@@ -119,11 +136,17 @@ export default async function ShippingReturnsPage() {
         >
           <p>
             Check{" "}
-            <Link href="/track" className="font-semibold text-[var(--g-forest)] hover:underline">
+            <Link
+              href="/track"
+              className="font-semibold text-[var(--g-forest)] hover:underline"
+            >
               order tracking
             </Link>{" "}
             first. If status hasn&apos;t moved for several working days,{" "}
-            <Link href="/contact" className="font-semibold text-[var(--g-forest)] hover:underline">
+            <Link
+              href="/contact"
+              className="font-semibold text-[var(--g-forest)] hover:underline"
+            >
               register a complaint
             </Link>{" "}
             and we&apos;ll escalate with the courier.

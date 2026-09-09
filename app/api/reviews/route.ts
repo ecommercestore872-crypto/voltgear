@@ -23,7 +23,10 @@ export async function POST(request: Request) {
   try {
     const limited = takePublicPostLimit(request, "review");
     if (!limited.ok) {
-      return NextResponse.json({ error: limited.error }, { status: limited.status });
+      return NextResponse.json(
+        { error: limited.error },
+        { status: limited.status },
+      );
     }
 
     const body: ReviewBody = await request.json();
@@ -36,19 +39,19 @@ export async function POST(request: Request) {
     if (!rating || rating < 1 || rating > 5) {
       return NextResponse.json(
         { error: "Please choose a rating between 1 and 5." },
-        { status: 400 }
+        { status: 400 },
       );
     }
     if (!name?.trim() || !email?.trim() || !comment?.trim()) {
       return NextResponse.json(
         { error: "Name, email and review are required." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const orders = await getOrdersByEmail(email.toLowerCase().trim());
     const verified = orders.some((o) =>
-      (o.items ?? []).some((i) => i.slug === slug)
+      (o.items ?? []).some((i) => i.slug === slug),
     );
 
     const result = await submitReview({
@@ -64,14 +67,21 @@ export async function POST(request: Request) {
       isDemo: isDemoRequest(request),
     });
     if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: result.status });
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      );
     }
-    return NextResponse.json({ ok: true, verified: result.verified, duplicate: result.duplicate });
+    return NextResponse.json({
+      ok: true,
+      verified: result.verified,
+      duplicate: result.duplicate,
+    });
   } catch (error) {
     console.error("Review error:", error);
     return NextResponse.json(
       { error: "Something went wrong submitting your review." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
