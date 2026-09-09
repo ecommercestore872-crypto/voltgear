@@ -62,6 +62,7 @@ export async function POST(request: Request) {
       const result = await cloudinary.uploader.upload(base64, {
         folder,
         resource_type: isVideo ? "video" : "image",
+        format: isVideo ? undefined : "jpg",
       });
       return NextResponse.json({
         publicId: result.public_id,

@@ -34,42 +34,7 @@ export function MediaField({
     setError(null);
     setWarn(null);
     try {
-      let uploadFile = file;
-      // Convert HEIC formats to JPEG for browser and CDN compatibility
-      if (file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().match(/\.heic$|\.heif$/)) {
-        setWarn("Converting Apple HEIC format to JPEG... please wait.");
-        try {
-          const heic2anyModule = await import("heic2any");
-          const heic2any = heic2anyModule.default || heic2anyModule;
-          
-          if (typeof heic2any !== "function") {
-            throw new Error("heic2any module failed to load as a function");
-          }
-
-          const convertedBlob = await heic2any({
-            blob: file,
-            toType: "image/jpeg",
-            quality: 0.8,
-          }) as Blob | Blob[];
-          
-          const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-          uploadFile = new File([blob], file.name.replace(/\.heic$|\.heif$/i, ".jpg"), {
-            type: "image/jpeg",
-          });
-          setWarn(null); // Clear conversion warning
-        } catch (convErr: any) {
-          throw new Error(
-            "HEIC error: " +
-              (convErr instanceof Error
-                ? convErr.message
-                : typeof convErr === "object"
-                  ? JSON.stringify(convErr, Object.getOwnPropertyNames(convErr))
-                  : String(convErr))
-          );
-        }
-      }
-      
-      const json = await adminUpload(uploadFile);
+      const json = await adminUpload(file);
       onChange([...urls, json.secureUrl]);
       if (accept.startsWith("image") && isProductImageTooSmall(json.width, json.height)) {
         setWarn(
