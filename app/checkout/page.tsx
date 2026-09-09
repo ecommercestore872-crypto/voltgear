@@ -9,7 +9,6 @@ import {
   Banknote,
   Check,
   ChevronLeft,
-  ClipboardList,
   Loader2,
   Lock,
   Minus,
@@ -240,7 +239,7 @@ export default function CheckoutPage() {
         setActivePromo({ code: data.code, discount: data.discount, shipping: data.shipping });
         setPromoInput("");
       }
-    } catch(err) {
+    } catch {
       setActivePromo({ code: promoInput.trim(), discount: 0, shipping: baseShipping, error: "Network error" });
     }
   }
