@@ -104,6 +104,7 @@ function fromRow(row?: SettingsRow | null) {
     homeFeaturedEyebrow: str(d.homeFeaturedEyebrow ?? row?.home_featured_eyebrow),
     homeFeaturedTitle: str(d.homeFeaturedTitle ?? row?.home_featured_title),
     homeFeaturedSubtitle: str(d.homeFeaturedSubtitle ?? row?.home_featured_subtitle),
+    homeFeaturedProductDescription: str(d.homeFeaturedProductDescription ?? row?.home_featured_product_description),
   };
 }
 
@@ -158,6 +159,7 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
       homeFeaturedEyebrow: form.homeFeaturedEyebrow,
       homeFeaturedTitle: form.homeFeaturedTitle,
       homeFeaturedSubtitle: form.homeFeaturedSubtitle,
+      homeFeaturedProductDescription: form.homeFeaturedProductDescription,
     };
   }
 
@@ -364,6 +366,16 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
                   setForm((f) => ({ ...f, homeFeaturedSubtitle: e.target.value }))
                 }
                 placeholder="One standout product worth a closer look — clear price, ready to buy."
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-1.5 mt-2">
+              <Label>Product Description Override (Optional)</Label>
+              <Textarea
+                value={form.homeFeaturedProductDescription}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, homeFeaturedProductDescription: e.target.value }))
+                }
+                placeholder="Leave blank to use the product's default Short Description."
               />
             </div>
           </div>

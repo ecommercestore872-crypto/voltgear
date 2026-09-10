@@ -167,6 +167,7 @@ export interface SiteSettings {
   homeFeaturedEyebrow?: string;
   homeFeaturedTitle?: string;
   homeFeaturedSubtitle?: string;
+  homeFeaturedProductDescription?: string;
   homeSections?: { id: string; enabled: boolean }[];
   lifestyleShop?: import("./db/lifestyle-shop-rules").LifestyleShopConfig;
 }

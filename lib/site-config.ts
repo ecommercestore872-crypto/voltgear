@@ -47,6 +47,7 @@ export interface PublicSiteConfig {
   homeFeaturedEyebrow: string | null;
   homeFeaturedTitle: string | null;
   homeFeaturedSubtitle: string | null;
+  homeFeaturedProductDescription: string | null;
 }
 
 /**
@@ -116,6 +117,7 @@ export function normalizeSettings(
     homeFeaturedEyebrow: settings?.homeFeaturedEyebrow?.trim() || null,
     homeFeaturedTitle: settings?.homeFeaturedTitle?.trim() || null,
     homeFeaturedSubtitle: settings?.homeFeaturedSubtitle?.trim() || null,
+    homeFeaturedProductDescription: settings?.homeFeaturedProductDescription?.trim() || null,
   };
 }
 

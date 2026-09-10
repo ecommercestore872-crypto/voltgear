@@ -21,11 +21,13 @@ export function GadgetFeaturedProduct({
   eyebrow,
   title,
   subtitle,
+  productDescription,
 }: {
   product: Product;
   eyebrow?: string | null;
   title?: string | null;
   subtitle?: string | null;
+  productDescription?: string | null;
 }) {
   const { addItem, openCart } = useCart();
   const [added, setAdded] = useState(false);
@@ -156,9 +158,9 @@ export function GadgetFeaturedProduct({
               </div>
             ) : null}
 
-            {product.shortDescription ? (
+            {productDescription || product.shortDescription ? (
               <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-charcoal)]/80 dark:text-gray-300 line-clamp-2">
-                {product.shortDescription}
+                {productDescription || product.shortDescription}
               </p>
             ) : null}
 

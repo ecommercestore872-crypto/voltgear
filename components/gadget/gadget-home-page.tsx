@@ -261,6 +261,7 @@ export async function GadgetHomePage() {
                 eyebrow={config.homeFeaturedEyebrow}
                 title={config.homeFeaturedTitle}
                 subtitle={config.homeFeaturedSubtitle}
+                productDescription={config.homeFeaturedProductDescription}
               />
             ) : null;
             break;

@@ -175,6 +175,7 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     homeFeaturedEyebrow: row.home_featured_eyebrow ? String(row.home_featured_eyebrow) : undefined,
     homeFeaturedTitle: row.home_featured_title ? String(row.home_featured_title) : undefined,
     homeFeaturedSubtitle: row.home_featured_subtitle ? String(row.home_featured_subtitle) : undefined,
+    homeFeaturedProductDescription: row.home_featured_product_description ? String(row.home_featured_product_description) : undefined,
     homeSections: normalizeHomeSections(row.home_sections),
     lifestyleShop: normalizeLifestyleShop(row.lifestyle_shop),
   };
