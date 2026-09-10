@@ -152,6 +152,8 @@ export function ProductCard({
                 price: defaultVariant?.price ?? product.price,
                 image: image ? imageUrl(image, { w: 128 }) : undefined,
                 productId: product._id,
+        freeShipping: Boolean(product.freeShipping),
+        freeShipping: Boolean(product.freeShipping),
                 ...(product.sku ? { sku: product.sku } : {}),
                 ...(defaultVariant
                   ? {

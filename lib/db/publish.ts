@@ -67,6 +67,7 @@ export interface ProductDocument {
     badge?: string;
     description?: string;
   }>;
+  freeShipping?: boolean;
 }
 
 export function shopVisible(status: unknown): boolean {
@@ -138,6 +139,7 @@ export function mergeProductForm(
     tiktokUrl: form.tiktokUrl ?? existing?.tiktokUrl,
     instagramUrl: form.instagramUrl ?? existing?.instagramUrl,
     addons: form.addons ?? existing?.addons ?? [],
+    freeShipping: form.freeShipping ?? existing?.freeShipping ?? false,
   };
 }
 
@@ -269,6 +271,7 @@ export function toLiveProductRow(doc: ProductDocument) {
     color_options: parseVariantOptions(doc.colorOptions),
     size_options: parseVariantOptions(doc.sizeOptions),
     addons: doc.addons ?? [],
+    free_shipping: Boolean(doc.freeShipping),
     status: "published" as const,
     draft: null,
   };

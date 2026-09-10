@@ -200,8 +200,9 @@ export default function CheckoutPage() {
 
   const GIFT_WRAP_FEE = 199;
 
+  const hasFreeShippingItem = items.some((item) => item.freeShipping);
   const baseShipping =
-    merchandise === 0 || merchandise >= config.freeShippingThreshold
+    merchandise === 0 || merchandise >= config.freeShippingThreshold || hasFreeShippingItem
       ? 0
       : config.shippingFee;
   const promoStacks = !(dealDiscount > 0);
@@ -1014,9 +1015,6 @@ export default function CheckoutPage() {
                     <h3 className="font-bold text-foreground text-[15px]">
                       Order Notes (Optional)
                     </h3>
-                    <button className="text-xs font-bold text-primary hover:underline">
-                      Edit
-                    </button>
                   </div>
                   <input
                     type="text"
@@ -1317,60 +1315,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Footer Features (Identical to Figma Checkout End) */}
-      <div className="mb-8 mt-8 border-t bg-white sm:mt-12">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8 lg:px-8">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center gap-3">
-              <Lock className="w-6 h-6 text-primary shrink-0" />
-              <div>
-                <p className="text-xs font-bold text-foreground">
-                  Secure Checkout
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  256-bit SSL encrypted
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Star
-                className="w-6 h-6 text-primary shrink-0"
-                fill="currentColor"
-              />
-              <div>
-                <p className="text-xs font-bold text-foreground">
-                  Trusted by Thousands
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  4.8/5 average rating
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Truck className="w-6 h-6 text-primary shrink-0" />
-              <div>
-                <p className="text-xs font-bold text-foreground">
-                  Fast & Reliable Delivery
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Across Pakistan
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Headphones className="w-6 h-6 text-primary shrink-0" />
-              <div>
-                <p className="text-xs font-bold text-foreground">
-                  24/7 Customer Support
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  We&apos;re here to help
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   );
 }

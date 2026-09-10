@@ -68,6 +68,8 @@ export function GadgetArrivalCard({
       name: product.name,
       price: product.price,
       image: image || undefined,
+      productId: product._id,
+      freeShipping: Boolean(product.freeShipping),
       ...(product.sku ? { sku: product.sku } : {}),
     });
     trackAddToCart({

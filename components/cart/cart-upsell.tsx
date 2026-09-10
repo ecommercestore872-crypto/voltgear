@@ -78,6 +78,8 @@ export function CartUpsell({ excludeSlugs }: { excludeSlugs: string[] }) {
                     price: v?.price ?? p.price,
                     image: img ? imageUrl(img, { w: 128 }) : undefined,
                     productId: p._id,
+        freeShipping: Boolean(p.freeShipping),
+        freeShipping: Boolean(p.freeShipping),
                     ...(p.sku ? { sku: p.sku } : {}),
                     ...(v
                       ? {

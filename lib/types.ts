@@ -89,6 +89,7 @@ export interface Product {
   instagramUrl?: string;
   tiktokUrl?: string;
   addons?: ProductAddon[];
+  freeShipping?: boolean;
 }
 
 export interface HeroSection {

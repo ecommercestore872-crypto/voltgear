@@ -29,6 +29,9 @@ export function AddToCart({ product }: { product: Product }) {
           ? imageUrl(product.images[0], { w: 128 })
           : undefined,
         productId: product._id,
+        freeShipping: Boolean(product.freeShipping),
+        freeShipping: Boolean(product.freeShipping),
+        freeShipping: Boolean(product.freeShipping),
         ...(product.sku ? { sku: product.sku } : {}),
       },
       quantity,

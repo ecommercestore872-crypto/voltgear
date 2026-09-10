@@ -46,9 +46,9 @@ function emptyDoc(): ProductDocument {
     colorEnabled: false,
     sizeEnabled: false,
     colorOptions: [],
-    sizeOptions: [],
     reviews: [],
     addons: [],
+    freeShipping: false,
   };
 }
 
@@ -86,10 +86,10 @@ function fromProduct(
     reviewCount: product.reviewCount,
     reviews: product.reviews,
     featured: product.featured,
-    badge: product.badge,
     isDemo: product.isDemo,
     costPrice: product.costPrice,
     addons: product.addons ?? [],
+    freeShipping: product.freeShipping ?? false,
   };
   const merged = {
     ...emptyDoc(),
@@ -595,6 +595,14 @@ export function ProductForm({
               onChange={(e) => set("featured", e.target.checked)}
             />
             Featured — homepage spotlight
+          </label>
+          <label className="flex items-center gap-2 text-sm mt-1">
+            <input
+              type="checkbox"
+              checked={Boolean(doc.freeShipping)}
+              onChange={(e) => set("freeShipping", e.target.checked)}
+            />
+            Free Shipping — waive shipping fee if this is in cart
           </label>
           <ProductCollectionsFields
             collections={collectionList}

@@ -274,7 +274,7 @@ export default async function RootLayout({
             compareBar={<CompareBarWrapper />}
             demoBanner={<DemoBanner />}
           >
-            <StorefrontAnnouncementBar />
+            <StorefrontAnnouncementBar tagline={settings?.tagline} />
             <StorefrontPromoPopup />
             <ScrollToTopButton />
             {children}

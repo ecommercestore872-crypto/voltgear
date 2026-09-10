@@ -53,6 +53,8 @@ export function GadgetFeaturedProduct({
       name: product.name,
       price,
       image: itemImage,
+      productId: product._id,
+      freeShipping: Boolean(product.freeShipping),
       ...(product.sku ? { sku: product.sku } : {}),
       ...(defaultVariant
         ? {

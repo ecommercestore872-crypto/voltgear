@@ -27,6 +27,7 @@ export interface CartItem {
   variantSku?: string;
   productId?: string;
   variantId?: string;
+  freeShipping?: boolean;
 }
 
 /**

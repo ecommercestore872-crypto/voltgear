@@ -126,6 +126,7 @@ export function mapProduct(
     featured: Boolean(row.featured),
     badge: row.badge ? String(row.badge) : undefined,
     isDemo: Boolean(row.is_demo),
+    freeShipping: Boolean(row.free_shipping),
     addons: Array.isArray(row.addons)
       ? (row.addons as Product["addons"])
       : undefined,

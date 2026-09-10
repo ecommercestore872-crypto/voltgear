@@ -51,6 +51,11 @@ function fromRow(row?: SettingsRow | null) {
     freeShippingThreshold: str(
       d.freeShippingThreshold ?? row?.free_shipping_threshold,
     ),
+    codEnabled: Boolean(
+      (d.codEnabled ?? row?.cod_enabled) ?? true,
+    ),
+    warrantyMonths: str(d.warrantyMonths ?? row?.warranty_months),
+    returnWindowDays: str(d.returnWindowDays ?? row?.return_window_days),
     maxCodAmount: str(d.maxCodAmount ?? row?.max_cod_amount),
     shippingFee: str(d.shippingFee ?? row?.shipping_fee),
     returnPolicy: str(d.returnPolicy ?? row?.return_policy),
@@ -138,6 +143,9 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
       freeShippingThreshold: form.freeShippingThreshold
         ? Number(form.freeShippingThreshold)
         : undefined,
+      codEnabled: form.codEnabled,
+      warrantyMonths: form.warrantyMonths ? Number(form.warrantyMonths) : undefined,
+      returnWindowDays: form.returnWindowDays ? Number(form.returnWindowDays) : undefined,
       maxCodAmount: form.maxCodAmount ? Number(form.maxCodAmount) : undefined,
       shippingFee: form.shippingFee ? Number(form.shippingFee) : undefined,
       returnPolicy: form.returnPolicy,
@@ -208,6 +216,8 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
             ["currency", "Currency"],
             ["maxCodAmount", "Max COD (Requires Advance >)"],
             ["freeShippingThreshold", "Free shipping threshold"],
+            ["warrantyMonths", "Warranty Months"],
+            ["returnWindowDays", "Return Window Days"],
             ["shippingFee", "Shipping fee"],
             ["instagram", "Instagram URL"],
             ["tiktok", "TikTok URL"],
@@ -225,6 +235,25 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
             />
           </div>
         ))}
+
+        <label className="sm:col-span-2 flex items-center gap-2 p-4 mt-2 rounded-lg border border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors">
+          <input
+            type="checkbox"
+            checked={form.codEnabled}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, codEnabled: e.target.checked }))
+            }
+            className="h-5 w-5 rounded border-primary accent-primary"
+          />
+          <div className="flex flex-col">
+            <span className="text-sm font-bold">
+              Enable Cash on Delivery
+            </span>
+            <span className="text-xs text-muted-foreground">
+              If enabled, COD will show as a pre-footer trust badge.
+            </span>
+          </div>
+        </label>
 
         <label className="sm:col-span-2 flex items-center gap-2 p-4 mt-2 rounded-lg border border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors">
           <input

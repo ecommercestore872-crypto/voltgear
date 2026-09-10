@@ -97,7 +97,7 @@ export function GadgetNavbar({
 
   const menu =
     open && mounted ? (
-      <div className="gadget-theme lg:hidden" role="presentation">
+      <div className="gadget-theme" role="presentation">
         <button
           type="button"
           className="fixed inset-0 z-[90] bg-[var(--g-forest)]/35"
@@ -377,7 +377,6 @@ export function GadgetNavbar({
             </IconHit>
 
             <IconHit
-              className="lg:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}

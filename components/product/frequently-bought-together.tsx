@@ -71,6 +71,8 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
           ? imageUrl(current.images[0], { w: 128 })
           : undefined,
         productId: current._id,
+        freeShipping: Boolean(current.freeShipping),
+        freeShipping: Boolean(current.freeShipping),
         ...(current.sku ? { sku: current.sku } : {}),
         variantKey: v._key,
         variantId: v._key,
@@ -87,6 +89,8 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
         ? imageUrl(current.images[0], { w: 128 })
         : undefined,
       productId: current._id,
+        freeShipping: Boolean(current.freeShipping),
+        freeShipping: Boolean(current.freeShipping),
       ...(current.sku ? { sku: current.sku } : {}),
     };
   }, [current]);

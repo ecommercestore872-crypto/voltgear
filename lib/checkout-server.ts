@@ -127,6 +127,7 @@ export async function resolveCheckout(
   const lines: ResolvedOrderItem[] = [];
   const mismatched: PriceMismatch[] = [];
   let subtotal = 0;
+  let hasFreeShippingItem = false;
 
   for (const line of items) {
     const slug = typeof line.slug === "string" ? line.slug.trim() : "";
@@ -147,6 +148,10 @@ export async function resolveCheckout(
     const product = await fetchProductForCheckout(slug, includeDemo);
     if (!product) {
       return { ok: false, error: CHECKOUT_ERRORS.unavailable };
+    }
+
+    if (product.freeShipping) {
+      hasFreeShippingItem = true;
     }
 
     const variants = product.variants ?? [];
@@ -228,7 +233,7 @@ export async function resolveCheckout(
     });
   }
 
-  const { shipping, total } = await resolveShippingAndTotal(subtotal, giftWrap);
+  const { shipping, total } = await resolveShippingAndTotal(subtotal, giftWrap, hasFreeShippingItem);
   const checkout: ResolvedCheckout = { lines, subtotal, shipping, total };
 
   if (mismatched.length > 0) {
@@ -243,7 +248,8 @@ export async function resolveCheckout(
  */
 export async function resolveShippingAndTotal(
   subtotal: number,
-  giftWrap: boolean
+  giftWrap: boolean,
+  hasFreeShippingItem: boolean = false
 ): Promise<{ shipping: number; total: number }> {
   let settings: SiteSettings | null = null;
   try {
@@ -253,7 +259,7 @@ export async function resolveShippingAndTotal(
   }
   const config = normalizeSettings(settings);
   const shipping =
-    subtotal >= config.freeShippingThreshold ? 0 : config.shippingFee;
+    subtotal >= config.freeShippingThreshold || hasFreeShippingItem ? 0 : config.shippingFee;
   const total = Math.round((subtotal + shipping + (giftWrap ? GIFT_WRAP_FEE : 0)) * 100) / 100;
   return { shipping, total };
 }

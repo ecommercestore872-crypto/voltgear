@@ -114,6 +114,8 @@ export function PurchaseSection({ product }: { product: Product }) {
         price,
         image: itemImage,
         productId: product._id,
+        freeShipping: Boolean(product.freeShipping),
+        freeShipping: Boolean(product.freeShipping),
         ...(product.sku ? { sku: product.sku } : {}),
         ...(variant && hasVariants
           ? {
