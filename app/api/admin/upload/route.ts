@@ -94,3 +94,64 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function DELETE(request: Request) {
+  if (!isAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const urlParam = searchParams.get("url") || searchParams.get("publicId");
+
+  if (!urlParam) {
+    return NextResponse.json({ error: "Missing url or publicId parameter" }, { status: 400 });
+  }
+
+  try {
+    // 1. Check if it's a Supabase storage URL
+    if (urlParam.includes("/storage/v1/object/public/product-images/")) {
+      const path = urlParam.split("/storage/v1/object/public/product-images/")[1];
+      if (path) {
+        const client = getServiceClient();
+        const { error } = await client.storage.from("product-images").remove([path]);
+        if (error) {
+          console.error("[admin/upload DELETE] Supabase remove error", error);
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ ok: true, deleted: path });
+      }
+    }
+
+    // 2. Check if Cloudinary is configured, and try deleting from Cloudinary
+    const cloudinaryReady =
+      isConfigured(CLOUDINARY_CLOUD_NAME) &&
+      isConfigured(CLOUDINARY_API_KEY) &&
+      isConfigured(CLOUDINARY_API_SECRET);
+
+    if (cloudinaryReady) {
+      let publicId = urlParam;
+      // Extract public_id if a full Cloudinary URL was passed
+      if (urlParam.includes("res.cloudinary.com")) {
+        const parts = urlParam.split("/upload/");
+        if (parts.length > 1) {
+          // Remove version number if present (e.g. v1234567/)
+          let pathPart = parts[1];
+          if (pathPart.match(/^v\d+\//)) {
+            pathPart = pathPart.replace(/^v\d+\//, "");
+          }
+          // Remove file extension
+          publicId = pathPart.split(".")[0];
+        }
+      }
+
+      const result = await cloudinary.uploader.destroy(publicId);
+      return NextResponse.json({ ok: true, result });
+    }
+
+    return NextResponse.json({ ok: true, message: "URL not recognized for explicit deletion" });
+  } catch (error: any) {
+    console.error("[admin/upload DELETE] failed", error);
+    return NextResponse.json({ error: error.message || "Failed to delete asset" }, { status: 500 });
+  }
+}
+

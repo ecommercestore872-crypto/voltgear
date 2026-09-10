@@ -66,6 +66,25 @@ export function MediaField({
     onChange(next);
   }
 
+  async function handleRemove(index: number) {
+    const targetUrl = urls[index];
+    if (!targetUrl) return;
+
+    // Delete from state immediately
+    onChange(urls.filter((_, j) => j !== index));
+
+    // Best effort delete from backend storage if it looks like a managed asset
+    if (targetUrl.includes("/storage/v1/object/public/product-images/") || targetUrl.includes("res.cloudinary.com/")) {
+      try {
+        await fetch(`/api/admin/upload?url=${encodeURIComponent(targetUrl)}`, {
+          method: "DELETE",
+        });
+      } catch (err) {
+        console.error("Failed to delete unused media asset from server:", err);
+      }
+    }
+  }
+
   return (
     <div className="space-y-3">
       <Label>{label}</Label>
@@ -107,7 +126,7 @@ export function MediaField({
               variant="ghost"
               size="icon"
               aria-label="Remove"
-              onClick={() => onChange(urls.filter((_, j) => j !== i))}
+              onClick={() => handleRemove(i)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

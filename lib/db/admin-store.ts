@@ -309,8 +309,28 @@ export async function discardAdminProductDraft(id: string) {
 export async function deleteAdminProduct(id: string) {
   const current = await getAdminProduct(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
+
+  const storageImages = new Set<string>();
+  if (current.draft?.images) {
+    for (const url of current.draft.images) {
+      if (typeof url === 'object' && (url as any).asset?._ref) {
+           // sanuty image
+      } else if (typeof url === "string" && url.includes("/storage/v1/object/public/product-images/")) {
+        const path = url.split("/storage/v1/object/public/product-images/")[1];
+        if (path) storageImages.add(path);
+      }
+    }
+  }
+
   const { error } = await db().from("products").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+
+  // Best effort delete from Supabase storage
+  if (storageImages.size > 0) {
+    const client = getServiceClient();
+    await client.storage.from("product-images").remove(Array.from(storageImages));
+  }
+
   revalidatePath("/");
   revalidatePath("/products");
   revalidatePath(`/product/${current.slug}`);
