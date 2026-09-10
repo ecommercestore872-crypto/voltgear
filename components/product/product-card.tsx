@@ -62,8 +62,8 @@ export function ProductCard({
               alt={product.name}
               fill
               quality={90}
+              className="object-contain transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -152,8 +152,7 @@ export function ProductCard({
                 price: defaultVariant?.price ?? product.price,
                 image: image ? imageUrl(image, { w: 128 }) : undefined,
                 productId: product._id,
-        freeShipping: Boolean(product.freeShipping),
-        freeShipping: Boolean(product.freeShipping),
+                freeShipping: Boolean(product.freeShipping),
                 ...(product.sku ? { sku: product.sku } : {}),
                 ...(defaultVariant
                   ? {

@@ -57,6 +57,10 @@ export type DashboardSnapshot = {
   draftProductCount: number;
   firstDraftProductId: string | null;
   practiceOrderCount: number;
+  monthRevenue: number;
+  monthDeliveredRevenue: number;
+  monthCancelledRevenue: number;
+  monthOrderCount: number;
 };
 
 function karachiYmd(d: Date): string {
@@ -138,6 +142,26 @@ export function buildDashboardSnapshot(
     .filter((o) => (o.status ?? "new") !== "cancelled")
     .reduce((sum, o) => sum + (typeof o.total === "number" ? o.total : 0), 0);
 
+  // Month to date computation (last 30 days roughly, or current calendar month)
+  // We'll use the last 30 days for a rolling 'Month' view.
+  const thirtyDaysAgoMs = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+  const monthLive = live.filter((o) => {
+    const t = Date.parse(o.createdAt);
+    return !Number.isNaN(t) && t >= thirtyDaysAgoMs;
+  });
+  
+  const monthRevenue = monthLive
+    .filter((o) => (o.status ?? "new") !== "cancelled")
+    .reduce((sum, o) => sum + (typeof o.total === "number" ? o.total : 0), 0);
+    
+  const monthDeliveredRevenue = monthLive
+    .filter((o) => o.status === "delivered")
+    .reduce((sum, o) => sum + (typeof o.total === "number" ? o.total : 0), 0);
+
+  const monthCancelledRevenue = monthLive
+    .filter((o) => o.status === "cancelled")
+    .reduce((sum, o) => sum + (typeof o.total === "number" ? o.total : 0), 0);
+
   const pending = live
     .filter((o) => {
       const s = o.status ?? "new";
@@ -196,5 +220,9 @@ export function buildDashboardSnapshot(
     draftProductCount: drafts.length,
     firstDraftProductId: drafts[0]?._id ?? null,
     practiceOrderCount,
+    monthRevenue,
+    monthDeliveredRevenue,
+    monthCancelledRevenue,
+    monthOrderCount: monthLive.length,
   };
 }
