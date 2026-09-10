@@ -130,6 +130,22 @@ export const siteSettings = {
       ],
     },
     {
+      name: "headerLinks",
+      title: "Header / Hamburger Links",
+      type: "array",
+      of: [
+        {
+          type: "object",
+          name: "link",
+          fields: [
+            { name: "label", title: "Label", type: "string" },
+            { name: "href", title: "URL", type: "string" },
+          ],
+        },
+      ],
+      description: "Links to display inside the site's hamburger menu on all devices.",
+    },
+    {
       name: "freeShippingThreshold",
       title: "Free Shipping Threshold (PKR)",
       type: "number",

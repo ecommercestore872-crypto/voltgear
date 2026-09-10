@@ -145,6 +145,7 @@ export interface SiteSettings {
   whatsappConfirmFlow?: boolean;
   warrantyMonths?: number;
   returnWindowDays?: number;
+  headerLinks?: { label: string; href: string }[];
   navLinks?: { label: string; href: string }[];
   helpLinks?: { label: string; href: string }[];
   footerCompanyLinks?: { label: string; href: string }[];

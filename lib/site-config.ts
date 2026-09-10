@@ -37,6 +37,7 @@ export interface PublicSiteConfig {
   supportPhone: string | null;
   whatsappNumber: string | null;
   whatsappConfirmFlow: boolean;
+  headerLinks: { label: string; href: string }[];
   instagramUrl: string | null;
   tiktokUrl: string | null;
   facebookUrl: string | null;
@@ -101,6 +102,7 @@ export function normalizeSettings(
     supportPhone: settings?.phone?.trim() || null,
     whatsappNumber: settings?.whatsappNumber?.trim() || null,
     whatsappConfirmFlow: settings?.whatsappConfirmFlow === true,
+    headerLinks: settings?.headerLinks || [],
     instagramUrl: socialUrl(["instagram"]),
     tiktokUrl: socialUrl(["tiktok"]),
     facebookUrl: socialUrl(["facebook"]),

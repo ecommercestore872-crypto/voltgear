@@ -90,6 +90,8 @@ function fromRow(row?: SettingsRow | null) {
     ),
     navLinks:
       parseChromeLinks(d.navLinks ?? row?.nav_links) ?? DEFAULT_NAV_LINKS,
+    headerLinks:
+      parseChromeLinks(d.headerLinks ?? row?.header_links) ?? [],
     helpLinks:
       parseChromeLinks(d.helpLinks ?? row?.help_links) ?? DEFAULT_HELP_LINKS,
     footerCompanyLinks:
@@ -150,6 +152,7 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
       },
       seo: { title: form.seoTitle, description: form.seoDescription },
       navLinks: form.navLinks,
+      headerLinks: form.headerLinks,
       helpLinks: form.helpLinks,
       footerCompanyLinks: form.footerCompanyLinks,
       footerCareLinks: form.footerCareLinks,
@@ -273,6 +276,14 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
           links={form.navLinks}
           onChange={(navLinks: ChromeLink[]) =>
             setForm((f) => ({ ...f, navLinks }))
+          }
+        />
+        <ChromeLinkList
+          title="Header Links"
+          hint="Shown at the very top (e.g. tracking, contact us)."
+          links={form.headerLinks}
+          onChange={(headerLinks: ChromeLink[]) =>
+            setForm((f) => ({ ...f, headerLinks }))
           }
         />
         <ChromeLinkList

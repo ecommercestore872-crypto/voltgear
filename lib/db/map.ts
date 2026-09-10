@@ -150,6 +150,9 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     socialLinks: Array.isArray(row.social_links)
       ? (row.social_links as SiteSettings["socialLinks"])
       : undefined,
+    headerLinks: Array.isArray(row.header_links)
+      ? (row.header_links as SiteSettings["headerLinks"])
+      : undefined,
     freeShippingThreshold:
       row.free_shipping_threshold != null ? num(row.free_shipping_threshold) : undefined,
     shippingFee: row.shipping_fee != null ? num(row.shipping_fee) : undefined,

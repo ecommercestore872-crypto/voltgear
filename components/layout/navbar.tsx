@@ -33,13 +33,6 @@ import {
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const PAGE_LINKS = [
-  { label: "All Products", href: "/products" },
-  { label: "Blog", href: "/blog" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
-
 function SearchForm({
   className,
   autoFocus,
@@ -96,6 +89,15 @@ export function Navbar({
 
   const brandName = settings?.brandName || "Buy n Try";
   const links = shopTypeLinks(shopTypes);
+  
+  const headerLinks = settings?.headerLinks?.length 
+    ? settings.headerLinks 
+    : [
+        { label: "All Products", href: "/products" },
+        { label: "Blog", href: "/blog" },
+        { label: "About", href: "/about" },
+        { label: "Contact", href: "/contact" },
+      ];
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -187,7 +189,24 @@ export function Navbar({
 
       {/* --- MIDDLE BAR --- Desktop */}
       <div className="hidden md:flex h-20 w-full max-w-[1440px] mx-auto items-center px-4 lg:px-10 bg-white justify-between gap-4 lg:gap-10 border-b border-border/40">
-        <div className="flex items-center justify-start shrink-0">{Brand}</div>
+        <div className="flex items-center justify-start shrink-0 gap-3">
+          <button
+            onClick={() => setDrawerOpen((v) => !v)}
+            aria-label="Open menu"
+            aria-expanded={drawerOpen}
+            aria-controls="mobile-nav-drawer"
+            className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg transition-colors hover:bg-secondary group"
+          >
+            <Menu
+              className="h-6 w-6 text-foreground group-hover:text-primary transition-colors"
+              strokeWidth={1.5}
+            />
+            <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors tracking-wide hidden md:block">
+              Menu
+            </span>
+          </button>
+          {Brand}
+        </div>
         <div className="flex-1 w-full max-w-2xl">
           <form
             action="/search"
@@ -325,26 +344,25 @@ export function Navbar({
         </div>
       )}
 
-      {/* Full-screen mobile nav drawer */}
+      {/* Full-screen nav drawer (used by mobile AND desktop hamburger) */}
       {drawerOpen && (
         <div
           id="mobile-nav-drawer"
           ref={drawerRef}
-          className="fixed inset-0 z-50 flex flex-col bg-card md:hidden animate-in fade-in slide-in-from-left-4 duration-200"
+          className="fixed inset-0 z-50 flex flex-col bg-card animate-in fade-in slide-in-from-left-4 duration-200 lg:w-[400px] border-r border-border shadow-2xl"
         >
-          <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
+          <div className="flex h-20 shrink-0 items-center justify-between border-b border-border px-6">
+            <div className="flex items-center gap-3">{Brand}</div>
             <button
               onClick={() => setDrawerOpen(false)}
               aria-label="Close menu"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-secondary"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-secondary bg-secondary/50"
             >
               <X className="h-5 w-5" />
             </button>
-            {Brand}
-            <div className="ml-auto">{MobileCartButton}</div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 pb-8 pt-4">
+          <div className="flex-1 overflow-y-auto px-6 pb-8 pt-6">
             <SearchForm onDone={() => setDrawerOpen(false)} className="mb-6" />
 
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -384,7 +402,7 @@ export function Navbar({
               aria-label="Pages"
               className="mt-2 flex flex-col divide-y divide-border rounded-lg border border-border"
             >
-              {PAGE_LINKS.map((link) => (
+              {headerLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
