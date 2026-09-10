@@ -108,9 +108,9 @@ export function Dashboard({
       phone: o.phone,
       body: (
         <span className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1">
-          <span className="font-semibold">{o.orderId}</span>
+          <span className="font-semibold text-blue-700 dark:text-blue-400">{o.orderId}</span>
           <span className="text-muted-foreground line-clamp-1">{o.customerName || "—"}</span>
-          <Badge variant="secondary" className="w-fit text-xs px-2 py-0 h-5">
+          <Badge variant="secondary" className="w-fit text-xs px-2 py-0 h-5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200">
             {STATUS_LABEL[o.status] ?? o.status}
           </Badge>
           <span className="tabular-nums font-medium sm:ml-auto">{formatPrice(o.total)}</span>
@@ -127,9 +127,9 @@ export function Dashboard({
       phone: o.phone,
       body: (
         <span className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1">
-          <span className="font-semibold">{o.orderId}</span>
+          <span className="font-semibold text-red-700 dark:text-red-400">{o.orderId}</span>
           <span className="text-muted-foreground line-clamp-1">{o.customerName || "—"}</span>
-          <Badge variant="destructive" className="w-fit text-xs px-2 py-0 h-5">
+          <Badge variant="destructive" className="w-fit text-xs px-2 py-0 h-5 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 hover:bg-red-200">
             Shipped {o.daysShipped}d ago
           </Badge>
         </span>
@@ -144,8 +144,8 @@ export function Dashboard({
       href: "/admin/orders?status=shipped",
       body: (
         <span className="flex items-center gap-3">
-          <div className="h-2 w-2 rounded-full bg-blue-500" />
-          <span className="font-medium">{snapshot.shippedWaitingCount} shipped orders</span>
+          <div className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+          <span className="font-medium text-blue-700 dark:text-blue-400">{snapshot.shippedWaitingCount} shipped orders</span>
           <span className="text-muted-foreground text-sm">waiting to be marked as delivered</span>
         </span>
       ),
@@ -160,8 +160,8 @@ export function Dashboard({
       body: (
         <span className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1">
           <AlertCircle className="w-4 h-4 text-orange-500 shrink-0 hidden sm:block" />
-          <span className="font-medium line-clamp-1">{p.name}</span>
-          <span className="text-muted-foreground text-sm sm:ml-auto hover:text-foreground">
+          <span className="font-medium line-clamp-1 text-orange-700 dark:text-orange-400">{p.name}</span>
+          <span className="text-orange-600 dark:text-orange-300 text-sm sm:ml-auto">
             {p.stockStatus === "out-of-stock" ? "Sold out" : "Low stock"}
           </span>
         </span>
@@ -176,8 +176,8 @@ export function Dashboard({
       href: "/admin/reviews",
       body: (
          <span className="flex items-center gap-3">
-          <div className="h-2 w-2 rounded-full bg-yellow-400" />
-          <span className="font-medium">{snapshot.pendingReviewCount} new reviews</span>
+          <div className="h-2 w-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+          <span className="font-medium text-yellow-700 dark:text-yellow-400">{snapshot.pendingReviewCount} new reviews</span>
           <span className="text-muted-foreground text-sm">require your approval</span>
         </span>
       ),
@@ -186,15 +186,14 @@ export function Dashboard({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-1 md:flex-row justify-between md:items-end">
+      <div className="flex flex-col gap-3 md:flex-row justify-between md:items-start max-w-4xl">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Overview</h1>
-          <p className="mt-1 text-sm text-muted-foreground max-w-xl">
-             Here's what is happening with your store today. For deep insights, visit{" "}
-            <Link href="/admin/analytics" className="underline-offset-4 hover:underline text-primary">
-              Analytics
-            </Link>.
-          </p>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground mb-3">Dashboard Overview</h1>
+          <div className="prose prose-sm dark:prose-invert text-muted-foreground leading-relaxed">
+            <p>
+              Welcome to the central command center of your e-commerce operations. The Dashboard module is designed to give you an immediate, high-converting overview of your business health at a single glance. Here, you can actively monitor your rolling 30-day profit base, accurately track daily revenue spikes, and oversee order fulfillment velocity in real-time. Actionable alerts are strategically prioritized at the right moments—so you instantly know when low stock risks your revenue, when stale shipments require urgent courier follow-ups, or when new customer reviews need moderation. Use this space daily to understand exactly where your store is losing money and where it is succeeding, allowing you to intercept friction and scale up your daily operations effortlessly.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -205,24 +204,28 @@ export function Dashboard({
           value={formatPrice(snapshot.monthRevenue)}
           description={`${snapshot.monthOrderCount} orders placed`}
           icon={TrendingUp}
+          className="border-green-200 dark:border-green-900/50 bg-green-50/50 dark:bg-green-950/20 text-green-900 dark:text-green-100"
         />
         <MetricCard
           title="Delivered (30d Profit Base)"
           value={formatPrice(snapshot.monthDeliveredRevenue)}
           description="Total value of successfully delivered orders"
           icon={CheckCircle2}
+          className="border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-100"
         />
         <MetricCard
           title="Cancelled (30d Loss)"
           value={formatPrice(snapshot.monthCancelledRevenue)}
           description="Total value of cancelled/failed orders"
           icon={AlertCircle}
+          className="border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-100"
         />
         <MetricCard
           title="To Fulfill"
           value={String(snapshot.pendingCount)}
           description={`${snapshot.shippedWaitingCount} currently shipped & waiting`}
           icon={Package}
+          className="border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 text-blue-900 dark:text-blue-100"
         />
       </div>
 
@@ -233,23 +236,26 @@ export function Dashboard({
           value={formatPrice(snapshot.todayRevenue)}
           description={`${snapshot.todayOrderCount} orders today`}
           icon={DollarSign}
-          className="bg-primary/5 border-primary/20"
+          className="border-primary/20 bg-primary/5 text-primary"
         />
         <MetricCard
           title="Delivered Today"
           value={String(snapshot.deliveredTodayCount)}
           icon={CheckCircle2}
+          className="border-emerald-200/50 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-300"
         />
         <MetricCard
           title="Cancelled Today"
           value={String(snapshot.cancelledTodayCount)}
           icon={AlertCircle}
+          className="border-red-200/50 dark:border-red-900/30 text-red-800 dark:text-red-300"
         />
         <MetricCard
           title="Stock Alerts"
           value={String(snapshot.lowStockCount)}
           description="Products requiring attention"
           icon={AlertCircle}
+          className="border-orange-200/50 dark:border-orange-900/30 text-orange-800 dark:text-orange-300"
         />
       </div>
 
