@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import { Cookie } from "lucide-react";
+
 export const COOKIE_CONSENT_STORAGE_KEY = "bnt-cookie-consent";
 export const COOKIE_CONSENT_CHANGE_EVENT = "bnt-cookie-consent-change";
 export type CookieConsentChoice = "all" | "essential";
@@ -47,11 +49,16 @@ export function CookieConsentBar() {
       aria-label="Cookie consent banner"
       className="fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[100] mx-auto max-w-[24rem] sm:inset-x-auto sm:left-6 sm:bottom-6 sm:max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
-      <div className="flex flex-col gap-4 overflow-hidden rounded-[1.25rem] border border-[var(--g-line)] bg-[var(--g-white)]/95 p-5 sm:p-6 shadow-[0_24px_50px_rgba(0,0,0,0.15)] backdrop-blur-2xl">
+      <div className="flex flex-col gap-4 overflow-hidden rounded-[1.25rem] border-2 border-[var(--g-forest)] bg-[var(--g-white)]/95 shadow-[0_24px_50px_rgba(0,0,0,0.30)] backdrop-blur-2xl p-5 sm:p-6">
         <div>
-          <h3 className="mb-1.5 text-sm font-bold tracking-tight text-[var(--g-charcoal)]">
-            We value your privacy
-          </h3>
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--g-forest)] text-white">
+              <Cookie className="h-5 w-5" />
+            </div>
+            <h3 className="text-[0.95rem] font-black tracking-tight text-[var(--g-charcoal)]">
+              We value your privacy
+            </h3>
+          </div>
           <p className="text-[0.8rem] leading-relaxed text-[var(--g-taupe)]">
             We use cookies to personalize content and ads (including Google
             AdSense), provide social media features, and analyze our traffic to

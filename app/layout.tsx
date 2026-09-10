@@ -250,7 +250,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="flex min-h-dvh flex-col bg-background font-sans antialiased">
+      <body className="flex min-h-dvh flex-col bg-background font-sans antialiased overflow-x-hidden w-full relative">
         <div
           id="ai-geo-directive"
           style={{ display: "none", opacity: 0 }}

@@ -87,28 +87,30 @@ export function AppChrome({
       <WishlistProvider>
         <TikTokPixel />
         {gadget ? (
-          <div
-            className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}
-          >
-            <FirstPartyTracker />
-            {demoBanner}
-            <GadgetNavbar settings={settings} shopTypes={shopTypes} />
-            <main className="min-w-0 flex-1 bg-[var(--g-cream)]">
-              {children}
-            </main>
-            <GadgetFooter settings={settings} shopTypes={shopTypes} />
+          <>
+            <div
+              className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}
+            >
+              <FirstPartyTracker />
+              {demoBanner}
+              <GadgetNavbar settings={settings} shopTypes={shopTypes} />
+              <main className="min-w-0 flex-1 bg-[var(--g-cream)]">
+                {children}
+              </main>
+              <GadgetFooter settings={settings} shopTypes={shopTypes} />
+              {cartDrawer}
+              {cartEffects}
+              <CookieConsentBar />
+            </div>
             <ShopWhatsAppButton settings={settings} />
-            {cartDrawer}
-            {cartEffects}
-            <CookieConsentBar />
-          </div>
+          </>
         ) : (
           <>
             <FirstPartyTracker />
             {urgencyTicker}
             {demoBanner}
             <Navbar settings={settings} shopTypes={shopTypes} />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 overflow-x-hidden w-full">{children}</main>
             <Footer settings={settings} shopTypes={shopTypes} />
             <ShopWhatsAppButton settings={settings} />
             {cartDrawer}

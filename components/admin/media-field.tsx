@@ -14,7 +14,7 @@ export function MediaField({
   label,
   urls,
   onChange,
-  accept = "image/*",
+  accept = "image/*,.heic,.heif",
   hint,
 }: {
   label: string;

@@ -6,6 +6,7 @@ export const gadgetSans = Manrope({
   variable: "--font-gadget-sans",
   display: "swap",
   preload: false,
+  adjustFontFallback: false,
 });
 
 export const gadgetDisplay = Newsreader({
@@ -13,6 +14,7 @@ export const gadgetDisplay = Newsreader({
   variable: "--font-gadget-display",
   display: "swap",
   preload: false,
+  adjustFontFallback: false,
 });
 
 export const gadgetFontClass = `${gadgetSans.variable} ${gadgetDisplay.variable}`;
