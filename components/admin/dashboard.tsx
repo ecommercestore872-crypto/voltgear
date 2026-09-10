@@ -186,14 +186,17 @@ export function Dashboard({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-3 md:flex-row justify-between md:items-start max-w-4xl">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground mb-3">Dashboard Overview</h1>
-          <div className="prose prose-sm dark:prose-invert text-muted-foreground leading-relaxed">
-            <p>
-              Welcome to the central command center of your e-commerce operations. The Dashboard module is designed to give you an immediate, high-converting overview of your business health at a single glance. Here, you can actively monitor your rolling 30-day profit base, accurately track daily revenue spikes, and oversee order fulfillment velocity in real-time. Actionable alerts are strategically prioritized at the right moments—so you instantly know when low stock risks your revenue, when stale shipments require urgent courier follow-ups, or when new customer reviews need moderation. Use this space daily to understand exactly where your store is losing money and where it is succeeding, allowing you to intercept friction and scale up your daily operations effortlessly.
-            </p>
-          </div>
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-2">
+        <div className="space-y-1.5 max-w-2xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+            Dashboard
+            <Badge variant="outline" className="font-normal text-muted-foreground hidden sm:inline-flex">
+              Command Center
+            </Badge>
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Monitor your store’s financial heartbeat at a glance. Actively track rolling 30-day profit bases, intercept fulfillment friction, and instantly resolve stock alerts to scale operations with zero downtime.
+          </p>
         </div>
       </div>
 
@@ -204,28 +207,28 @@ export function Dashboard({
           value={formatPrice(snapshot.monthRevenue)}
           description={`${snapshot.monthOrderCount} orders placed`}
           icon={TrendingUp}
-          className="border-green-200 dark:border-green-900/50 bg-green-50/50 dark:bg-green-950/20 text-green-900 dark:text-green-100"
+          className="border-emerald-500/20 bg-emerald-50/30 dark:bg-emerald-950/20"
         />
         <MetricCard
-          title="Delivered (30d Profit Base)"
+          title="Delivered (30d Profit)"
           value={formatPrice(snapshot.monthDeliveredRevenue)}
-          description="Total value of successfully delivered orders"
+          description="Value of successful deliveries"
           icon={CheckCircle2}
-          className="border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-100"
+          className="border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/20"
         />
         <MetricCard
           title="Cancelled (30d Loss)"
           value={formatPrice(snapshot.monthCancelledRevenue)}
-          description="Total value of cancelled/failed orders"
+          description="Value of cancelled orders"
           icon={AlertCircle}
-          className="border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-100"
+          className="border-rose-500/20 bg-rose-50/30 dark:bg-rose-950/20"
         />
         <MetricCard
           title="To Fulfill"
           value={String(snapshot.pendingCount)}
-          description={`${snapshot.shippedWaitingCount} currently shipped & waiting`}
+          description={`${snapshot.shippedWaitingCount} currently shipped`}
           icon={Package}
-          className="border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 text-blue-900 dark:text-blue-100"
+          className="border-orange-500/20 bg-orange-50/30 dark:bg-orange-950/20"
         />
       </div>
 
@@ -236,26 +239,23 @@ export function Dashboard({
           value={formatPrice(snapshot.todayRevenue)}
           description={`${snapshot.todayOrderCount} orders today`}
           icon={DollarSign}
-          className="border-primary/20 bg-primary/5 text-primary"
+          className="border-primary/10 bg-primary/5 text-primary shadow-sm"
         />
         <MetricCard
           title="Delivered Today"
           value={String(snapshot.deliveredTodayCount)}
           icon={CheckCircle2}
-          className="border-emerald-200/50 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-300"
         />
         <MetricCard
           title="Cancelled Today"
           value={String(snapshot.cancelledTodayCount)}
           icon={AlertCircle}
-          className="border-red-200/50 dark:border-red-900/30 text-red-800 dark:text-red-300"
         />
         <MetricCard
           title="Stock Alerts"
           value={String(snapshot.lowStockCount)}
           description="Products requiring attention"
           icon={AlertCircle}
-          className="border-orange-200/50 dark:border-orange-900/30 text-orange-800 dark:text-orange-300"
         />
       </div>
 
