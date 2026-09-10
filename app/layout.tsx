@@ -252,6 +252,7 @@ export default async function RootLayout({
             __html: `if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');`
           }}
         />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans antialiased overflow-x-hidden w-full relative">
         <div
