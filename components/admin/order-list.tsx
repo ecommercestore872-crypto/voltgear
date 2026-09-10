@@ -140,7 +140,7 @@ export function OrderList({
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table / Mobile Cards */}
       {orders.length === 0 ? (
         <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
           No orders have been placed yet.
@@ -150,8 +150,56 @@ export function OrderList({
           No orders match your search criteria.
         </div>
       ) : (
-        <div className="space-y-3">
-          <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
+        <div className="space-y-4">
+          {/* Premium Mobile Cards View */}
+          <div className="grid grid-cols-1 gap-4 sm:hidden pb-safe">
+            {paginated.map((o) => (
+              <div 
+                key={o.orderId} 
+                className="relative overflow-hidden rounded-2xl border bg-white/70 backdrop-blur-xl p-5 shadow-sm transition-all hover:shadow-md dark:bg-zinc-900/70"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <Link
+                      href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
+                      className="text-lg font-bold tracking-tight text-foreground hover:text-blue-600 transition-colors"
+                    >
+                      {o.orderId}
+                    </Link>
+                    {o.isDemo && (
+                      <span className="ml-2 rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                        Demo
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <StatusBadge status={o.status} />
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-1.5 mb-4 text-sm text-muted-foreground">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-foreground">{o.customerName || "Unknown Customer"}</span>
+                    <span className="font-semibold text-foreground tabular-nums">{formatPrice(o.total)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span>{formatDate(o.createdAt)}</span>
+                    <span className="truncate max-w-[120px]">{o.customerEmail || "No Email"}</span>
+                  </div>
+                </div>
+
+                <Link 
+                  href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
+                  className="block w-full rounded-xl bg-muted/50 py-3 text-center text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
+                >
+                  Manage Order
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto rounded-xl border bg-white shadow-sm dark:bg-zinc-950">
             <table className="w-full text-left text-sm">
               <thead className="border-b bg-muted/40">
                 <tr>

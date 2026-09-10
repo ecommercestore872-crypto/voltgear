@@ -1,4 +1,5 @@
 import { SHOPPER_BRAND, resolveCustomerDisplayName, shouldReplaceBrandName } from "./brand";
+import { signActionUrl } from "./crypto-actions";
 import type { OrderStatus } from "./types";
 
 import { publicSiteUrl } from "./deploy-rules";
@@ -347,11 +348,32 @@ ${
 <p style="margin:0 0 20px">A customer just placed a cash-on-delivery order. Confirm the details below, then pack and dispatch.</p>
 ${contact}`;
 
+  const shipUrl = signActionUrl(p.orderId, "shipped");
+  const cancelUrl = signActionUrl(p.orderId, "cancelled");
+
   const body = `${intro}${orderBillBox(p)}
-${emailButtonHtml({
-  href: `${origin}/admin/orders/${encodeURIComponent(p.orderId)}`,
-  label: "Open this order",
-})}`;
+<div style="margin:24px 0;padding:20px;background:#fef2f2;border-left:4px solid #ef4444;border-radius:12px;text-align:left">
+  <p style="margin:0 0 16px;font-family:system-ui,-apple-system,sans-serif;font-size:15px;font-weight:700;color:#991b1b;letter-spacing:1px">🚨 EXPRESS ACTIONS</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="padding-bottom:12px;">
+        ${emailButtonHtml({ href: shipUrl, label: "MARK AS SHIPPED" })}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        ${emailButtonHtml({ href: cancelUrl, label: "CANCEL ORDER", color: "#64748b" })}
+      </td>
+    </tr>
+  </table>
+</div>
+<div style="margin-top:24px;text-align:center">
+  ${emailButtonHtml({
+    href: `${origin}/admin/orders/${encodeURIComponent(p.orderId)}`,
+    label: "Open Dashboard",
+    color: EMAIL_PALETTE.ink,
+  })}
+</div>`;
   const title = letterCopy(config, "owner").title?.trim() || "New customer order";
 
   return {

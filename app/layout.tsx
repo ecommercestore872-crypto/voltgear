@@ -132,6 +132,7 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
     languages: storeAlternatesLanguages("/").languages,
   },
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
