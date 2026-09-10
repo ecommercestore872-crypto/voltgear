@@ -98,6 +98,12 @@ function fromRow(row?: SettingsRow | null) {
     footerCareLinks:
       parseChromeLinks(d.footerCareLinks ?? row?.footer_care_links) ??
       DEFAULT_FOOTER_CARE_LINKS,
+    homeBestsellersTitle: str(d.homeBestsellersTitle ?? row?.home_bestsellers_title),
+    homeOffersTitle: str(d.homeOffersTitle ?? row?.home_offers_title),
+    homeCategoriesTitle: str(d.homeCategoriesTitle ?? row?.home_categories_title),
+    homeFeaturedEyebrow: str(d.homeFeaturedEyebrow ?? row?.home_featured_eyebrow),
+    homeFeaturedTitle: str(d.homeFeaturedTitle ?? row?.home_featured_title),
+    homeFeaturedSubtitle: str(d.homeFeaturedSubtitle ?? row?.home_featured_subtitle),
   };
 }
 
@@ -146,6 +152,12 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
       helpLinks: form.helpLinks,
       footerCompanyLinks: form.footerCompanyLinks,
       footerCareLinks: form.footerCareLinks,
+      homeBestsellersTitle: form.homeBestsellersTitle,
+      homeOffersTitle: form.homeOffersTitle,
+      homeCategoriesTitle: form.homeCategoriesTitle,
+      homeFeaturedEyebrow: form.homeFeaturedEyebrow,
+      homeFeaturedTitle: form.homeFeaturedTitle,
+      homeFeaturedSubtitle: form.homeFeaturedSubtitle,
     };
   }
 
@@ -317,6 +329,44 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
               setForm((f) => ({ ...f, seoDescription: e.target.value }))
             }
           />
+        </div>
+        
+        <div className="sm:col-span-2 space-y-4 rounded-lg border p-4 bg-muted/20 mt-4">
+          <h3 className="font-semibold text-base mb-1">
+            Homepage Typography
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Customize the text for dynamic homepage sections.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              ["homeFeaturedEyebrow", "Featured Section Eyebrow (e.g. Featured)"],
+              ["homeFeaturedTitle", "Featured Section Title (e.g. Staff pick)"],
+              ["homeBestsellersTitle", "Bestsellers Title"],
+              ["homeOffersTitle", "Offers Title"],
+              ["homeCategoriesTitle", "Categories Banner Title"],
+            ].map(([key, label]) => (
+              <div key={key} className="space-y-1.5">
+                <Label>{label}</Label>
+                <Input
+                  value={form[key as keyof typeof form] as string}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, [key]: e.target.value }))
+                  }
+                />
+              </div>
+            ))}
+            <div className="sm:col-span-2 space-y-1.5 mt-2">
+              <Label>Featured Section Subtitle</Label>
+              <Textarea
+                value={form.homeFeaturedSubtitle}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, homeFeaturedSubtitle: e.target.value }))
+                }
+                placeholder="One standout product worth a closer look — clear price, ready to buy."
+              />
+            </div>
+          </div>
         </div>
         <div className="sm:col-span-2 space-y-4 rounded-lg border p-4 bg-muted/20">
           <h3 className="font-semibold text-base mb-1">
