@@ -247,6 +247,11 @@ export default async function RootLayout({
             }}['scroll','click','touchstart','keydown','mousemove'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});})();`,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');`
+          }}
+        />
       </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans antialiased overflow-x-hidden w-full relative">
         <div
