@@ -193,18 +193,43 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold">Settings</h1>
-      <PublishBar
-        status={status}
-        saving={saving}
-        onSave={() => run("save")}
-        onPublish={() => run("publish")}
-        onDiscard={() => run("discard")}
-        hideUnpublish
-      />
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <div className="grid gap-4 sm:grid-cols-2">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-20">
+      {/* Command Center Header */}
+      <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+        <div className="space-y-1.5 max-w-2xl">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Global Settings
+            </h1>
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-slate-500/10 to-gray-500/10 text-slate-700 dark:text-slate-300 ring-1 ring-slate-500/30">
+              System Root
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Configure core platform mechanics. Manage brand identity, localized shipping rules, operational toggles, and global SEO metadata.
+          </p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Sticky Publish Bar Overlay */}
+      <div className="sticky top-4 z-50 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 backdrop-blur-md bg-white/70 dark:bg-zinc-900/80">
+        <PublishBar
+          status={status}
+          saving={saving}
+          onSave={() => run("save")}
+          onPublish={() => run("publish")}
+          onDiscard={() => run("discard")}
+          hideUnpublish
+        />
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2 mt-8">
         {(
           [
             ["brandName", "Brand name"],

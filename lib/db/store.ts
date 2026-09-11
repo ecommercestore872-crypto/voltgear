@@ -552,10 +552,21 @@ function mapOrder(row: Record<string, unknown>, items: OrderItem[], history: Ord
 
 async function loadOrderBundle(row: Record<string, unknown>): Promise<Order> {
   const id = String(row.id);
-  const [{ data: items }, { data: history }] = await Promise.all([
-    db().from("order_items").select("*").eq("order_id", id),
-    db().from("order_status_history").select("*").eq("order_id", id).order("at", { ascending: true }),
-  ]);
+  let items = row.order_items as Record<string, unknown>[] | undefined;
+  let history = row.order_status_history as Record<string, unknown>[] | undefined;
+  
+  if (!items || !history) {
+    const [{ data: fetchedItems }, { data: fetchedHistory }] = await Promise.all([
+      db().from("order_items").select("*").eq("order_id", id),
+      db().from("order_status_history").select("*").eq("order_id", id).order("at", { ascending: true }),
+    ]);
+    items = fetchedItems as Record<string, unknown>[] ?? [];
+    history = fetchedHistory as Record<string, unknown>[] ?? [];
+  } else {
+    // Ensure chronological history if eager-loaded
+    history.sort((a, b) => String(a.at || "").localeCompare(String(b.at || "")));
+  }
+
   return mapOrder(
     row,
     (items ?? []).map((i) => ({
@@ -680,7 +691,11 @@ export async function updateOrderAttributionRow(
 }
 
 export async function getOrderByPublicId(orderId: string): Promise<Order | null> {
-  const { data, error } = await db().from("orders").select("*").eq("order_id", orderId).maybeSingle();
+  const { data, error } = await db()
+    .from("orders")
+    .select("*, order_items(*), order_status_history(*)")
+    .eq("order_id", orderId)
+    .maybeSingle();
   if (error || !data) return null;
   return loadOrderBundle(data as Record<string, unknown>);
 }
@@ -688,7 +703,7 @@ export async function getOrderByPublicId(orderId: string): Promise<Order | null>
 export async function getOrdersByEmail(email: string): Promise<Order[]> {
   const { data, error } = await db()
     .from("orders")
-    .select("*")
+    .select("*, order_items(*), order_status_history(*)")
     .eq("customer->>email", email.toLowerCase().trim())
     .order("created_at", { ascending: false });
   if (error) return [];
@@ -698,7 +713,7 @@ export async function getOrdersByEmail(email: string): Promise<Order[]> {
 export async function getAllOrders(): Promise<Order[]> {
   const { data, error } = await db()
     .from("orders")
-    .select("*")
+    .select("*, order_items(*), order_status_history(*)")
     .order("created_at", { ascending: false });
   if (error) return [];
   return Promise.all((data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)));

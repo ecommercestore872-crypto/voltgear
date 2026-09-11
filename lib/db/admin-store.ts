@@ -124,10 +124,12 @@ async function allProductSlugs() {
   return (data ?? []).map((r) => ({ id: String(r.id), slug: String(r.slug) }));
 }
 
+const ADMIN_PRODUCT_LIST_EMBED = "id, name, slug, category, price, cost_price, compare_at_price, stock_status, quantity, status, is_demo, updated_at, draft, product_images ( url, sort_order )";
+
 export async function listAdminProducts(): Promise<AdminProduct[]> {
   const { data, error } = await db()
     .from("products")
-    .select(PRODUCT_EMBED)
+    .select(ADMIN_PRODUCT_LIST_EMBED)
     .order("updated_at", { ascending: false });
   if (error) throw error;
   return (data ?? [])

@@ -14,11 +14,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminSettingsPage() {
   const settings = await getAdminSettings();
   return (
-    <div className="space-y-8 pb-10">
-      <div className="mx-auto max-w-3xl">
+    <div className="space-y-12">
+      <SettingsForm settings={settings as never} />
+      <div className="mx-auto max-w-5xl border-t pt-10">
         <ChangePassword />
       </div>
-      <SettingsForm settings={settings as never} />
     </div>
   );
 }
