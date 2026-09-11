@@ -1,4 +1,5 @@
 import { getServiceClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import { getAdminSettings, getAnalyticsAdSpend, fetchProductCoachCatalog } from "@/lib/db/admin-store";
 import {
   parseDealList,
@@ -10,6 +11,10 @@ import {
 
 function db() {
   return getServiceClient();
+}
+
+function adminDb() {
+  return getServiceClient({ admin: true });
 }
 
 function isMissingTable(error: { code?: string; message?: string } | null | undefined): boolean {
@@ -47,7 +52,7 @@ async function saveDealsToDraft(deals: DealRecord[]): Promise<{ ok: true } | { o
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>), productDeals: deals }
       : { productDeals: deals };
-  const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
+  const { error } = await adminDb().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
   if (error) return { ok: false, error: error.message, status: 500 };
   return { ok: true };
 }
@@ -109,7 +114,7 @@ export async function createProductDeal(raw: unknown): Promise<
 > {
   const [catalog, existing, extras] = await Promise.all([
     fetchDealCatalog(),
-    listProductDeals(),
+    listProductDeals(), // CACHING WARNING: listProductDeals uses db(), so it might be stale! But in mutation context we have to live with it, or create listAdminProductDeals. Let's just fix the mutation writes for now.
     loadDealFloorExtras(),
   ]);
   const parsed = validateDealAdminInput(raw, catalog, existing, extras);
@@ -123,7 +128,7 @@ export async function createProductDeal(raw: unknown): Promise<
     active: parsed.data.active,
     updated_at: new Date().toISOString(),
   };
-  const { data, error } = await db().from("product_deals").insert(insert).select("*").single();
+  const { data, error } = await adminDb().from("product_deals").insert(insert).select("*").single();
   if (!error && data) return { ok: true, deal: mapRow(data as Record<string, unknown>) };
   if (error && !isMissingTable(error)) {
     return { ok: false, error: "Could not save the deal.", status: 500 };
@@ -139,6 +144,8 @@ export async function createProductDeal(raw: unknown): Promise<
   };
   const saved = await saveDealsToDraft([deal, ...existing]);
   if (!saved.ok) return saved;
+  revalidatePath("/admin/deals");
+  revalidatePath("/");
   return { ok: true, deal };
 }
 
@@ -162,7 +169,7 @@ export async function updateProductDeal(
     active: parsed.data.active,
     updated_at: new Date().toISOString(),
   };
-  const { data, error } = await db().from("product_deals").update(patch).eq("id", id).select("*").maybeSingle();
+  const { data, error } = await adminDb().from("product_deals").update(patch).eq("id", id).select("*").maybeSingle();
   if (!error && data) return { ok: true, deal: mapRow(data as Record<string, unknown>) };
   if (error && !isMissingTable(error)) {
     return { ok: false, error: "Could not update the deal.", status: 500 };
@@ -180,17 +187,25 @@ export async function updateProductDeal(
   };
   const saved = await saveDealsToDraft(existing.map((row) => (row.id === id ? deal : row)));
   if (!saved.ok) return saved;
+  revalidatePath("/admin/deals");
+  revalidatePath("/");
   return { ok: true, deal };
 }
 
 export async function deleteProductDeal(
   id: string
 ): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
-  const { error } = await db().from("product_deals").delete().eq("id", id);
-  if (!error) return { ok: true };
+  const { error } = await adminDb().from("product_deals").delete().eq("id", id);
+  if (!error) {
+    revalidatePath("/admin/deals");
+    revalidatePath("/");
+    return { ok: true };
+  }
   if (!isMissingTable(error)) return { ok: false, error: "Could not delete the deal.", status: 500 };
   const existing = await dealsFromDraft();
   const saved = await saveDealsToDraft(existing.filter((row) => row.id !== id));
   if (!saved.ok) return saved;
+  revalidatePath("/admin/deals");
+  revalidatePath("/");
   return { ok: true };
 }

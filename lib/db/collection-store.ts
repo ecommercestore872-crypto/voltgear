@@ -21,6 +21,10 @@ function db() {
   return getServiceClient();
 }
 
+function adminDb() {
+  return getServiceClient({ admin: true });
+}
+
 export type AdminCollection = {
   id: string;
   name: string;
@@ -56,7 +60,7 @@ function mapCollection(
 }
 
 export async function ensureGeneratedHomeCollections() {
-  const { data, error } = await db()
+  const { data, error } = await adminDb()
     .from("collections")
     .select("slug, home_slot");
   if (error) throw error;
@@ -96,7 +100,7 @@ export async function fetchSitemapCollections(): Promise<
 
 export async function listAdminCollections(): Promise<AdminCollection[]> {
   await ensureGeneratedHomeCollections();
-  const { data, error } = await db()
+  const { data, error } = await adminDb()
     .from("collections")
     .select("*")
     .order("sort_order", { ascending: true })
@@ -106,7 +110,7 @@ export async function listAdminCollections(): Promise<AdminCollection[]> {
   const ids = (data ?? []).map((r) => String((r as { id: string }).id));
   const productMap = new Map<string, string[]>();
   if (ids.length) {
-    const { data: links, error: lErr } = await db()
+    const { data: links, error: lErr } = await adminDb()
       .from("collection_products")
       .select("collection_id, product_id, sort_order")
       .in("collection_id", ids)
@@ -127,14 +131,14 @@ export async function listAdminCollections(): Promise<AdminCollection[]> {
 }
 
 export async function getAdminCollection(id: string): Promise<AdminCollection | null> {
-  const { data, error } = await db()
+  const { data, error } = await adminDb()
     .from("collections")
     .select("*")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const { data: links, error: lErr } = await db()
+  const { data: links, error: lErr } = await adminDb()
     .from("collection_products")
     .select("product_id, sort_order")
     .eq("collection_id", id)
@@ -147,7 +151,7 @@ export async function getAdminCollection(id: string): Promise<AdminCollection | 
 }
 
 async function slugTaken(slug: string, exceptId?: string): Promise<boolean> {
-  let q = db().from("collections").select("id").eq("slug", slug).limit(1);
+  let q = adminDb().from("collections").select("id").eq("slug", slug).limit(1);
   if (exceptId) q = q.neq("id", exceptId);
   const { data, error } = await q;
   if (error) throw error;
@@ -190,7 +194,7 @@ export async function createAdminCollection(input: {
 
   if (homeSlot) await clearHomeSlot(homeSlot);
 
-  const { data, error } = await db()
+  const { data, error } = await adminDb()
     .from("collections")
     .insert({
       name: String(input.name).trim(),
@@ -254,9 +258,11 @@ export async function updateAdminCollection(
     return { ok: false as const, error: "That slug is already used.", status: 409 };
   }
 
-  if (homeSlot) await clearHomeSlot(homeSlot, id);
+  if (homeSlot && homeSlot !== existing.homeSlot) {
+    await clearHomeSlot(homeSlot);
+  }
 
-  const { error } = await db()
+  const { error } = await adminDb()
     .from("collections")
     .update({
       name,
@@ -290,7 +296,7 @@ export async function updateAdminCollection(
 }
 
 async function clearHomeSlot(slot: CollectionHomeSlot, exceptId?: string) {
-  let q = db()
+  let q = adminDb()
     .from("collections")
     .update({ home_slot: null })
     .eq("home_slot", slot);
@@ -299,14 +305,14 @@ async function clearHomeSlot(slot: CollectionHomeSlot, exceptId?: string) {
 }
 
 export async function deleteAdminCollection(id: string) {
-  const { error } = await db().from("collections").delete().eq("id", id);
+  const { error } = await adminDb().from("collections").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
   revalidatePath("/admin/collections");
   return { ok: true as const };
 }
 
 async function replaceCollectionProducts(collectionId: string, productIds: string[]) {
-  await db().from("collection_products").delete().eq("collection_id", collectionId);
+  await adminDb().from("collection_products").delete().eq("collection_id", collectionId);
   const rows = productIds
     .map((pid) => pid.trim())
     .filter(Boolean)
@@ -316,7 +322,7 @@ async function replaceCollectionProducts(collectionId: string, productIds: strin
       sort_order,
     }));
   if (!rows.length) return;
-  const { error } = await db().from("collection_products").insert(rows);
+  const { error } = await adminDb().from("collection_products").insert(rows);
   if (error) throw error;
 }
 
@@ -490,7 +496,7 @@ export async function setProductCollections(
   );
   const wanted = new Set(desired.filter((id) => assignable.has(id)));
 
-  const { data: links, error } = await db()
+  const { data: links, error } = await adminDb()
     .from("collection_products")
     .select("collection_id")
     .eq("product_id", productId);
@@ -506,7 +512,7 @@ export async function setProductCollections(
   const toRemove = Array.from(current).filter((id) => !wanted.has(id));
 
   if (toRemove.length) {
-    const { error: delErr } = await db()
+    const { error: delErr } = await adminDb()
       .from("collection_products")
       .delete()
       .eq("product_id", productId)
@@ -515,7 +521,7 @@ export async function setProductCollections(
   }
 
   for (const collectionId of toAdd) {
-    const { data: last } = await db()
+    const { data: last } = await adminDb()
       .from("collection_products")
       .select("sort_order")
       .eq("collection_id", collectionId)
@@ -524,7 +530,7 @@ export async function setProductCollections(
     const sortOrder = last?.[0]
       ? Number((last[0] as { sort_order: number }).sort_order) + 1
       : 0;
-    const { error: insErr } = await db()
+    const { error: insErr } = await adminDb()
       .from("collection_products")
       .insert({
         collection_id: collectionId,

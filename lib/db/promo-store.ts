@@ -1,4 +1,5 @@
 import { getServiceClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import {
   normalizePromoCode,
   validatePromoAdminInput,
@@ -8,6 +9,10 @@ import {
 
 function db() {
   return getServiceClient();
+}
+
+function adminDb() {
+  return getServiceClient({ admin: true });
 }
 
 export type PromoCodeRow = PromoCodeRecord & {
@@ -63,7 +68,7 @@ export async function createPromoCode(input: Record<string, unknown>): Promise<
 > {
   const parsed = validatePromoAdminInput(input);
   if (!parsed.ok) return { ok: false, error: parsed.error, status: 400 };
-  const { data, error } = await db()
+  const { data, error } = await adminDb()
     .from("promo_codes")
     .insert({
       code: parsed.data.code,
@@ -82,6 +87,7 @@ export async function createPromoCode(input: Record<string, unknown>): Promise<
     console.error("[promo] create", error.message);
     return { ok: false, error: "Failed to create code.", status: 500 };
   }
+  revalidatePath("/admin/promos");
   return { ok: true, promo: mapRow(data as Record<string, unknown>) };
 }
 
@@ -93,7 +99,7 @@ export async function updatePromoCode(
 > {
   const parsed = validatePromoAdminInput(input);
   if (!parsed.ok) return { ok: false, error: parsed.error, status: 400 };
-  const { data, error } = await db()
+  const { data, error } = await adminDb()
     .from("promo_codes")
     .update({
       code: parsed.data.code,
@@ -114,6 +120,7 @@ export async function updatePromoCode(
     return { ok: false, error: "Failed to update.", status: 500 };
   }
   if (!data) return { ok: false, error: "Not found.", status: 404 };
+  revalidatePath("/admin/promos");
   return { ok: true, promo: mapRow(data as Record<string, unknown>) };
 }
 
@@ -148,11 +155,12 @@ export async function countPriorOrdersForEmail(email: string): Promise<number> {
 export async function deletePromoCode(
   id: string
 ): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
-  const { error } = await db().from("promo_codes").delete().eq("id", id);
+  const { error } = await adminDb().from("promo_codes").delete().eq("id", id);
   if (error) {
     console.error("[promo] delete", error.message);
     return { ok: false, error: "Failed to delete code.", status: 500 };
   }
+  revalidatePath("/admin/promos");
   return { ok: true };
 }
 

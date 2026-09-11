@@ -52,7 +52,7 @@ const PRODUCT_EMBED = `
 `;
 
 function db() {
-  return getServiceClient();
+  return getServiceClient({ admin: true });
 }
 
 function asStatus(v: unknown): AdminProduct["status"] {
