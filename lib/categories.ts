@@ -6,6 +6,7 @@ export type ShopType = {
   imageUrl?: string;
   sortOrder: number;
   productCount?: number;
+  active?: boolean;
 };
 
 export const FALLBACK_SHOP_TYPES: ShopType[] = [

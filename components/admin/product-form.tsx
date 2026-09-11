@@ -102,6 +102,8 @@ function fromProduct(
     merged.category = "";
   }
   return merged;
+}
+
 export function ProductForm({
   product,
   shopTypes,

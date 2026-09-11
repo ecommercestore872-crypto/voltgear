@@ -258,7 +258,8 @@ export const fetchShopTypes = unstable_cache(
     let dbTypes: ShopType[] = [];
     const { data, error } = await db()
       .from("categories")
-      .select("id, name, slug, description, image_url, sort_order")
+      .select("id, name, slug, description, image_url, sort_order, active")
+      .eq("active", true)
       .order("sort_order", { ascending: true });
 
     if (!error && data && data.length > 0) {

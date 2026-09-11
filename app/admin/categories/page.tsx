@@ -44,6 +44,7 @@ export default async function AdminCategoriesPage() {
             <thead className="border-b bg-muted/40">
               <tr>
                 <th className="px-3 py-2 font-medium">Name</th>
+                <th className="px-3 py-2 font-medium">Status</th>
                 <th className="px-3 py-2 font-medium">Products</th>
               </tr>
             </thead>
@@ -59,6 +60,17 @@ export default async function AdminCategoriesPage() {
                     >
                       {t.name}
                     </Link>
+                  </td>
+                  <td className="px-3 py-2">
+                    {t.active === false ? (
+                      <span className="inline-block rounded-full bg-muted/60 text-muted-foreground border px-2 py-0.5 text-xs">
+                        Hidden
+                      </span>
+                    ) : (
+                      <span className="inline-block rounded-full bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800/50 px-2 py-0.5 text-xs">
+                        Active
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2">{t.productCount ?? 0}</td>
                 </tr>

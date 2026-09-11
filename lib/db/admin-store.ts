@@ -1434,6 +1434,7 @@ function mapCategoryRow(
     imageUrl: row.image_url ? String(row.image_url) : undefined,
     sortOrder: Number(row.sort_order ?? 0),
     productCount: counts[slug] ?? 0,
+    active: row.active !== false,
   };
 }
 
@@ -1511,6 +1512,7 @@ export async function createAdminShopType(doc: {
   description?: string;
   imageUrl?: string;
   sortOrder?: number;
+  active?: boolean;
 }) {
   const name = doc.name?.trim() ?? "";
   const slug = slugify(name);
@@ -1537,6 +1539,7 @@ export async function createAdminShopType(doc: {
       description: doc.description?.trim() || null,
       image_url: doc.imageUrl?.trim() || null,
       sort_order: sortOrder,
+      active: doc.active ?? true,
     })
     .select("id")
     .single();
@@ -1559,7 +1562,7 @@ export async function createAdminShopType(doc: {
 
 export async function saveAdminShopType(
   id: string,
-  doc: { name?: string; description?: string; imageUrl?: string; sortOrder?: number }
+  doc: { name?: string; description?: string; imageUrl?: string; sortOrder?: number; active?: boolean }
 ) {
   const current = await getAdminShopType(id);
   if (!current) return { ok: false as const, error: "Shop type not found.", status: 404 };
@@ -1576,6 +1579,7 @@ export async function saveAdminShopType(
         doc.sortOrder != null && Number.isFinite(Number(doc.sortOrder))
           ? Number(doc.sortOrder)
           : current.sortOrder,
+      active: doc.active ?? current.active ?? true,
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };

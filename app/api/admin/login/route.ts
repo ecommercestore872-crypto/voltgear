@@ -29,11 +29,31 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
+  const email = body?.email ? String(body.email).trim() : "";
   const password = body?.password ? String(body.password) : "";
   const secret = getAdminSecret();
 
-  if (!password || password !== secret) {
-    return NextResponse.json({ error: "Invalid password." }, { status: 401 });
+  // Try legacy password-only fallback first (if no email is provided)
+  let isValid = false;
+  
+  if (!email && password === secret) {
+    isValid = true;
+  } else if (email && password) {
+    // Authenticate against database Identity via Supabase Auth
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false } }
+    );
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error && data?.session) {
+      isValid = true;
+    }
+  }
+
+  if (!isValid) {
+    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
   // Cookie-only session — do not return the raw secret to the browser.

@@ -21,6 +21,7 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
   const [sortOrder, setSortOrder] = useState(
     shopType?.sortOrder != null ? String(shopType.sortOrder) : "",
   );
+  const [active, setActive] = useState(shopType?.active ?? true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,7 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
       description,
       imageUrl: imageUrl || undefined,
       sortOrder: sortOrder === "" ? undefined : Number(sortOrder),
+      active,
     };
     try {
       if (isNew) {
@@ -131,6 +133,14 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
             placeholder="Leave blank to add at the end"
           />
         </div>
+        <label className="flex items-center gap-2 text-sm mt-4">
+          <input
+            type="checkbox"
+            checked={active}
+            onChange={(e) => setActive(e.target.checked)}
+          />
+          Active on storefront
+        </label>
       </div>
       <div className="flex flex-wrap gap-2">
         <Button type="button" onClick={save} disabled={saving}>
