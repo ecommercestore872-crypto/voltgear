@@ -14,12 +14,14 @@ export function MediaField({
   label,
   urls,
   onChange,
+  onBusyChange,
   accept = "image/*,.heic,.heif",
   hint,
 }: {
   label: string;
   urls: string[];
   onChange: (urls: string[]) => void;
+  onBusyChange?: (busy: boolean) => void;
   accept?: string;
   hint?: string;
 }) {
@@ -31,6 +33,7 @@ export function MediaField({
   async function onFile(file?: File) {
     if (!file) return;
     setBusy(true);
+    onBusyChange?.(true);
     setError(null);
     setWarn(null);
     try {
@@ -48,6 +51,7 @@ export function MediaField({
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
     }
   }
 
@@ -145,6 +149,15 @@ export function MediaField({
             placeholder="Paste URL"
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addPaste();
+              }
+            }}
+            onBlur={() => {
+              if (paste.trim()) addPaste();
+            }}
           />
           <Button type="button" variant="outline" onClick={addPaste}>
             <Plus className="mr-1 h-4 w-4" />

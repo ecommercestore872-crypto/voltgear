@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 
 import { StringArrayInput } from "@/components/admin/string-array-input";
 import { ObjectArrayInput } from "@/components/admin/object-array-input";
@@ -132,6 +132,7 @@ export function ProductForm({
   const [collectionList, setCollectionList] = useState(collections);
   const [selectedCollectionIds, setSelectedCollectionIds] =
     useState(collectionIds);
+  const [activeUploads, setActiveUploads] = useState(0);
   const id = product?._id;
 
   const set = <K extends keyof ProductDocument>(
@@ -146,14 +147,28 @@ export function ProductForm({
     return { ...doc, slug, description: textToPortableText(description) };
   }, [doc, description, isNew]);
 
+  // Keep a mutable ref of the latest payload to prevent 
+  // stale closures when 'onBlur' auto-commits immediately trigger 'Save'.
+  const payloadRef = useRef(payload);
+  payloadRef.current = payload;
+
   async function run(
     action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
   ) {
+    if (activeUploads > 0 && action !== "delete") {
+      setError("Please wait for media uploads to finish before saving.");
+      return;
+    }
+
+    // Yield to the event loop so any pending onBlur auto-commits can flush state
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const latestPayload = payloadRef.current;
+
     setSaving(true);
     setError(null);
     try {
       if (action === "create" || action === "save" || action === "publish") {
-        if (!shopTypes.some((t) => t.slug === payload.category)) {
+        if (!shopTypes.some((t) => t.slug === latestPayload.category)) {
           setError("Pick a category.");
           return;
         }
@@ -162,7 +177,7 @@ export function ProductForm({
         const json = await adminFetch("/api/admin/products", {
           method: "POST",
           body: JSON.stringify({
-            doc: payload,
+            doc: latestPayload,
             collectionIds: selectedCollectionIds,
           }),
         });
@@ -180,7 +195,7 @@ export function ProductForm({
         method: "PATCH",
         body: JSON.stringify({
           action,
-          doc: payload,
+          doc: latestPayload,
           collectionIds: selectedCollectionIds,
         }),
       });
@@ -197,6 +212,10 @@ export function ProductForm({
       setSaving(false);
     }
   }
+
+  const handleBusyChange = (busy: boolean) => {
+    setActiveUploads((prev) => Math.max(0, prev + (busy ? 1 : -1)));
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -231,6 +250,7 @@ export function ProductForm({
               variant="destructive"
               onClick={() => run("delete")}
               className="shrink-0 shadow-sm"
+              disabled={saving}
             >
               Delete Product
             </Button>
@@ -239,13 +259,13 @@ export function ProductForm({
       </div>
 
       {isNew ? (
-        <Button type="button" onClick={() => run("create")} disabled={saving}>
-          Save draft
+        <Button type="button" onClick={() => run("create")} disabled={saving || activeUploads > 0}>
+          Save draft {activeUploads > 0 && "(Uploading...)"}
         </Button>
       ) : (
         <PublishBar
           status={status}
-          saving={saving}
+          saving={saving || activeUploads > 0}
           onSave={() => run("save")}
           onPublish={() => run("publish")}
           onUnpublish={() => run("unpublish")}
@@ -269,6 +289,7 @@ export function ProductForm({
             hint={PRODUCT_PHOTO_HINT}
             urls={doc.images ?? []}
             onChange={(images) => set("images", images)}
+            onBusyChange={handleBusyChange}
           />
           <div className="space-y-1.5">
             <Label htmlFor="tiktok-url">TikTok Video Link</Label>
@@ -294,6 +315,7 @@ export function ProductForm({
             onChange={(urls) =>
               set("productVideo", { ...doc.productVideo, poster: urls[urls.length - 1] })
             }
+            onBusyChange={handleBusyChange}
           />
           <div className="space-y-1.5">
             <Label htmlFor="short">Short summary</Label>

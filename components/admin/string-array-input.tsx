@@ -109,6 +109,9 @@ export function StringArrayInput({
               handleAdd();
             }
           }}
+          onBlur={() => {
+            if (newValue.trim()) handleAdd();
+          }}
           placeholder={placeholder}
           className="flex-1"
         />

@@ -118,6 +118,9 @@ export function ObjectArrayInput({
         <Input
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
+          onBlur={() => {
+            if (newLabel.trim() && newValue.trim()) handleAdd();
+          }}
           placeholder="New label..."
           className="flex-1"
         />
@@ -129,6 +132,9 @@ export function ObjectArrayInput({
               e.preventDefault();
               handleAdd();
             }
+          }}
+          onBlur={() => {
+            if (newLabel.trim() && newValue.trim()) handleAdd();
           }}
           placeholder="New value..."
           className="flex-1"
