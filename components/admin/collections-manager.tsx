@@ -61,110 +61,181 @@ export function CollectionsManager({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Collections</h1>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Best Sellers, Featured, and Best Offers are created here so they are not
-        hardcoded on the home page. Edit or add more collections anytime.
-      </p>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-
-      <div className="rounded-lg border bg-white p-4 space-y-3">
-        <h2 className="font-medium">New collection</h2>
-        <Input
-          placeholder="Name (e.g. Bestsellers)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          aria-label="Collection name"
-        />
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant={mode === "manual" ? "default" : "outline"}
-            onClick={() => setMode("manual")}
-          >
-            Manual picks
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={mode === "auto" ? "default" : "outline"}
-            onClick={() => setMode("auto")}
-          >
-            Auto rule
-          </Button>
-        </div>
-        {mode === "auto" ? (
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={autoRule === "bestsellers" ? "default" : "outline"}
-              onClick={() => setAutoRule("bestsellers")}
-            >
-              Bestsellers
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={autoRule === "featured" ? "default" : "outline"}
-              onClick={() => setAutoRule("featured")}
-            >
-              Featured flag
-            </Button>
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-10">
+      {/* SaaS Command Center Header */}
+      <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+        <div className="space-y-1.5 max-w-2xl">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Collections
+            </h1>
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-blue-500/10 to-indigo-500/10 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500/30">
+              Curation
+</span>
           </div>
-        ) : null}
-        <Button type="button" disabled={busy || !name.trim()} onClick={create}>
-          Create
-        </Button>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Curate "Best Sellers", "Featured", and "New Arrivals" directly from here. These collections dynamically populate your storefront sections, completely avoiding hardcoded categories.
+          </p>
+        </div>
       </div>
 
-      <div>
-        <h2 className="mb-2 text-sm font-semibold">Created collections</h2>
-        <ul className="space-y-2">
-          {items.length === 0 ? (
-            <li className="text-sm text-muted-foreground">
-              No collections yet.
-            </li>
-          ) : (
-            items.map((c) => (
-              <li
-                key={c.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white px-3 py-3"
-              >
-                <div>
-                  <Link
-                    href={`/admin/collections/${c.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {c.name}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">
-                    {c.slug} · {c.mode}
-                    {c.autoRule ? ` · ${c.autoRule}` : ""} ·{" "}
-                    {c.mode === "manual"
-                      ? `${c.productIds.length} products`
-                      : "auto"}
-                    {c.homeSlot ? ` · on home` : ""}
-                    {!c.active ? " · inactive" : ""}
-                  </p>
-                </div>
+      {error ? (
+        <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm">
+          {error}
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Creator Panel */}
+        <div className="lg:col-span-1 h-fit bg-card border rounded-2xl p-6 shadow-sm sticky top-6">
+          <h2 className="font-semibold text-lg mb-4 text-foreground">Launch New Collection</h2>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Collection Name</label>
+              <Input
+                placeholder="e.g. Best Deals"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-muted/50 border-border/50 focus-visible:ring-primary/20"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Curation Mode</label>
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => remove(c.id)}
+                  variant={mode === "manual" ? "default" : "outline"}
+                  onClick={() => setMode("manual")}
+                  className="w-full text-xs font-medium"
                 >
-                  Delete
+                  Manual Picks
                 </Button>
-              </li>
-            ))
+                <Button
+                  type="button"
+                  variant={mode === "auto" ? "default" : "outline"}
+                  onClick={() => setMode("auto")}
+                  className="w-full text-xs font-medium"
+                >
+                  Auto Rule
+                </Button>
+              </div>
+            </div>
+
+            {mode === "auto" ? (
+              <div className="space-y-2 pt-2 border-t border-border/50">
+                <label className="text-sm font-medium text-foreground">Algorithm</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={autoRule === "bestsellers" ? "default" : "outline"}
+                    onClick={() => setAutoRule("bestsellers")}
+                    className="w-full text-xs"
+                    size="sm"
+                  >
+                    Bestsellers
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={autoRule === "featured" ? "default" : "outline"}
+                    onClick={() => setAutoRule("featured")}
+                    className="w-full text-xs"
+                    size="sm"
+                  >
+                    Featured Flag
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+            
+            <Button 
+              type="button" 
+              className="w-full font-semibold shadow-sm mt-4" 
+              disabled={busy || !name.trim()} 
+              onClick={create}
+            >
+              {busy ? "Creating..." : "Build Collection"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Collections List */}
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground px-1">
+            Active Curation ({items.length})
+          </h2>
+          
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-10 text-center rounded-2xl border border-dashed bg-muted/20">
+              <p className="text-sm text-muted-foreground">
+                No collections have been created yet.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {items.map((c) => (
+                <div
+                  key={c.id}
+                  className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-sm transition-all hover:border-primary/50"
+                >
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/collections/${c.id}`}
+                        className="font-bold text-base hover:text-primary transition-colors block truncate"
+                      >
+                        {c.name}
+                      </Link>
+                      {!c.active && (
+                        <span className="inline-block rounded-full bg-muted/60 text-muted-foreground border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shrink-0">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
+                      <span className="bg-muted px-2 py-1 rounded-md text-foreground/80 font-mono text-[10px] uppercase tracking-wider">
+                        /{c.slug}
+                      </span>
+                      
+                      <span className="flex items-center px-1.5 opacity-60">|</span>
+                      
+                      {c.mode === "manual" ? (
+                         <span className="flex items-center text-primary/80 bg-primary/5 px-2 py-1 rounded-md">
+                           Manual ({c.productIds.length} items)
+                         </span>
+                      ) : (
+                         <span className="flex items-center text-amber-600/80 dark:text-amber-400/80 bg-amber-500/10 px-2 py-1 rounded-md">
+                           Automated: {c.autoRule}
+                         </span>
+                      )}
+                      
+                      {c.homeSlot && (
+                        <>
+                          <span className="flex items-center px-1.5 opacity-60">|</span>
+                          <span className="flex items-center px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                            Home Slot {c.homeSlot}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive border-border/50"
+                    disabled={busy}
+                    onClick={() => remove(c.id)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
-        </ul>
+        </div>
       </div>
     </div>
   );
