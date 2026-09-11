@@ -10,6 +10,7 @@ import { ObjectArrayInput } from "@/components/admin/object-array-input";
 import { MediaField } from "@/components/admin/media-field";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,8 +102,6 @@ function fromProduct(
     merged.category = "";
   }
   return merged;
-}
-
 export function ProductForm({
   product,
   shopTypes,
@@ -198,20 +197,43 @@ export function ProductForm({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="min-w-0 text-xl font-semibold sm:text-2xl">
-          {isNew ? "Add product" : doc.name || "Edit product"}
-        </h1>
-        {!isNew ? (
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={() => run("delete")}
-          >
-            Delete
-          </Button>
-        ) : null}
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-4">
+        <Link
+          href="/admin/products"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+        >
+          &larr; Back to Catalog
+        </Link>
+        
+        <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+          <div className="space-y-1.5 max-w-2xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              {isNew ? "Add New Product" : doc.name || "Edit Product"}
+              {!isNew && (
+                <Badge variant="outline" className="font-normal text-muted-foreground hidden sm:inline-flex bg-muted/30">
+                  {status === "published" ? "Published" : "Draft"}
+                </Badge>
+              )}
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {isNew 
+                ? "Construct a beautiful new listing for your storefront. Optimize images, set accurate pricing, and select the correct shop category."
+                : "Modify this item’s metadata, variant availability, or live pricing. Changes made here will immediately reflect to your customers once published."}
+            </p>
+          </div>
+
+          {!isNew ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => run("delete")}
+              className="shrink-0 shadow-sm"
+            >
+              Delete Product
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {isNew ? (
