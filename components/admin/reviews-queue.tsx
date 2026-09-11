@@ -6,12 +6,15 @@ import { useState } from "react";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 
+import { Textarea } from "@/components/ui/textarea";
+
 type Submission = {
   id: string;
   name?: string;
   email?: string;
   rating?: number;
   comment?: string;
+  reply?: string;
   status?: string;
   product_name?: string;
   created_at?: string;
@@ -27,14 +30,16 @@ export function ReviewsQueue({ reviews }: { reviews: Submission[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [replies, setReplies] = useState<Record<string, string>>({});
 
   async function act(id: string, action: "approve" | "reject") {
     setBusy(id + action);
     setError(null);
     try {
+      const reply = replies[id];
       await adminFetch("/api/admin/reviews", {
         method: "PATCH",
-        body: JSON.stringify({ id, action }),
+        body: JSON.stringify({ id, action, reply }),
       });
       router.refresh();
     } catch (err) {
@@ -159,6 +164,18 @@ export function ReviewsQueue({ reviews }: { reviews: Submission[] }) {
                 <div className="p-3 bg-muted/40 rounded-xl border border-border/50 text-sm text-foreground/90 leading-relaxed max-w-3xl">
                   {r.comment ? `"${r.comment}"` : <span className="italic text-muted-foreground/60">No written feedback provided.</span>}
                 </div>
+                
+                {r.status === "pending" || r.reply ? (
+                  <div className="mt-3">
+                    <Textarea
+                      placeholder={r.status === "pending" ? "Write a public reply (optional)..." : "Store Reply"}
+                      value={replies[r.id] ?? r.reply ?? ""}
+                      onChange={(e) => setReplies({ ...replies, [r.id]: e.target.value })}
+                      disabled={r.status !== "pending"}
+                      className="min-h-[80px] text-sm resize-none bg-background shadow-none"
+                    />
+                  </div>
+                ) : null}
               </div>
 
               {/* Action Buttons */}

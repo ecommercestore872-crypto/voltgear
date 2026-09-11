@@ -1308,7 +1308,7 @@ export async function listReviewSubmissions() {
   return data ?? [];
 }
 
-export async function moderateReview(id: string, action: "approve" | "reject") {
+export async function moderateReview(id: string, action: "approve" | "reject", reply?: string) {
   const { data: submission, error: loadError } = await db()
     .from("review_submissions")
     .select("*")
@@ -1318,7 +1318,10 @@ export async function moderateReview(id: string, action: "approve" | "reject") {
   if (!submission) return { ok: false as const, error: "Review not found.", status: 404 };
 
   if (action === "reject") {
-    const { error } = await db().from("review_submissions").update({ status: "rejected" }).eq("id", id);
+    const { error } = await db()
+      .from("review_submissions")
+      .update({ status: "rejected", reply: reply ?? null })
+      .eq("id", id);
     if (error) return { ok: false as const, error: error.message, status: 500 };
     return { ok: true as const };
   }
@@ -1329,6 +1332,7 @@ export async function moderateReview(id: string, action: "approve" | "reject") {
     rating: submission.rating != null ? Number(submission.rating) : undefined,
     date: new Date().toISOString(),
     comment: submission.comment ? String(submission.comment) : undefined,
+    reply: reply ? String(reply) : undefined,
     verified: Boolean(submission.verified),
     image: submission.image ? String(submission.image) : undefined,
     isDemo: Boolean(submission.is_demo),
@@ -1343,6 +1347,7 @@ export async function moderateReview(id: string, action: "approve" | "reject") {
     rating: approved.rating ?? null,
     review_date: approved.date,
     comment: approved.comment ?? null,
+    reply: approved.reply ?? null,
     verified: Boolean(approved.verified),
     image: approved.image ?? null,
     is_demo: Boolean(submission.is_demo),
@@ -1355,7 +1360,7 @@ export async function moderateReview(id: string, action: "approve" | "reject") {
       updated_at: new Date().toISOString(),
     })
     .eq("id", productId);
-  await db().from("review_submissions").update({ status: "approved" }).eq("id", id);
+  await db().from("review_submissions").update({ status: "approved", reply: reply ?? null }).eq("id", id);
   revalidatePath(`/product/${product.slug}`);
   return { ok: true as const };
 }

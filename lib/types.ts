@@ -10,6 +10,7 @@ export interface ProductReview {
   comment?: string;
   verified?: boolean;
   image?: string;
+  reply?: string;
   isDemo?: boolean;
 }
 

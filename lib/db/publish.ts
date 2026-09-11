@@ -49,6 +49,7 @@ export interface ProductDocument {
     rating?: number;
     date?: string;
     comment?: string;
+    reply?: string;
     verified?: boolean;
     image?: string;
     isDemo?: boolean;
@@ -315,6 +316,7 @@ export function toReviewRows(
     rating: r.rating ?? null,
     review_date: r.date ?? null,
     comment: r.comment ?? null,
+    reply: r.reply ?? null,
     verified: Boolean(r.verified),
     image: r.image ?? null,
     is_demo: Boolean(r.isDemo),

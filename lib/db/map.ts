@@ -67,6 +67,7 @@ export function mapProduct(
           rating: r.rating != null ? num(r.rating) : undefined,
           date: r.review_date ? String(r.review_date) : undefined,
           comment: r.comment ? String(r.comment) : undefined,
+          reply: r.reply ? String(r.reply) : undefined,
           verified: Boolean(r.verified),
           image: r.image ? String(r.image) : undefined,
           isDemo: Boolean(r.is_demo),

@@ -281,6 +281,16 @@ export function ReviewsSection({
                 <p className="mt-3 text-sm leading-relaxed text-foreground/80">
                   {review.comment}
                 </p>
+                {review.reply && (
+                  <div className="mt-4 rounded-lg bg-primary/5 p-3 sm:ml-6 sm:p-4 border border-primary/10 relative">
+                    <div className="absolute -left-2 top-4 h-4 w-4 rotate-45 border-l border-t border-primary/10 bg-primary/5 hidden sm:block" />
+                    <div className="flex items-center gap-1.5 mb-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                      <BadgeCheck className="h-3.5 w-3.5" />
+                      Store Response
+                    </div>
+                    <p className="text-sm text-foreground/80 leading-relaxed">{review.reply}</p>
+                  </div>
+                )}
                 {review.image && (
                   <div className="mt-4">
                     <a

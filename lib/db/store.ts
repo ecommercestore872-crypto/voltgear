@@ -521,6 +521,7 @@ export async function fetchApprovedReviews(
     rating: r.rating != null ? Number(r.rating) : undefined,
     date: r.created_at ? String(r.created_at) : undefined,
     comment: r.comment ? String(r.comment) : undefined,
+    reply: r.reply ? String(r.reply) : undefined,
     verified: Boolean(r.verified),
     image: r.image ? String(r.image) : undefined,
     isDemo: Boolean(r.is_demo),
