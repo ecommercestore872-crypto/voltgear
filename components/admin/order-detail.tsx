@@ -14,7 +14,7 @@ import {
 } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
-
+import { StatusBadge } from "@/components/admin/status-badge";
 import { PostExChitModal } from "@/components/admin/postex-chit-modal";
 import { Badge } from "@/components/ui/badge";
 import { Printer, Truck } from "lucide-react";
@@ -327,8 +327,8 @@ export function OrderDetail({
           <ol className="mt-3 space-y-3">
             {history.map((h, i) => (
               <li key={`${h.status}-${h.at}-${i}`} className="text-sm">
-                <p className="font-medium">
-                  {STATUS_LABEL[h.status] ?? h.status}
+                <p className="font-medium mb-1">
+                  <StatusBadge status={h.status} />
                 </p>
                 {h.note ? (
                   <p className="text-muted-foreground">{h.note}</p>
