@@ -89,12 +89,12 @@ export function AppChrome({
         {gadget ? (
           <>
             <div
-              className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}
+              className={`gadget-theme ${pathname.startsWith("/beta") ? "beta-theme dark" : ""} flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}
             >
               <FirstPartyTracker />
               {demoBanner}
               <GadgetNavbar settings={settings} shopTypes={shopTypes} />
-              <main className="min-w-0 flex-1 bg-[var(--g-cream)]">
+              <main className={`min-w-0 flex-1 ${pathname.startsWith("/beta") ? "bg-[var(--g-cream)]" : "bg-[var(--g-cream)]"}`}>
                 {children}
               </main>
               <GadgetFooter settings={settings} shopTypes={shopTypes} />

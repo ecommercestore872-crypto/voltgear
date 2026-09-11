@@ -1767,4 +1767,77 @@
   }
 }
 
+/* ───────────────────────────────────────────────────────────
+   BETA GAMING / DARK AESTHETIC OVERRIDES (Only active on /beta) 
+   ─────────────────────────────────────────────────────────── */
+.beta-theme.gadget-theme {
+  --g-cream: #09090b;          /* Deep Void Black */
+  --g-cream-deep: #18181b;     /* Slate / Zinc */
+  
+  --g-forest: #06b6d4;         /* Cyber Cyan */
+  --g-forest-mid: #0891b2;     
+  --g-sage: #3f3f46;           
+  
+  --g-charcoal: #fafafa;       /* High Contrast White */
+  --g-taupe: #a1a1aa;          /* Muted Silver */
+  
+  --g-sale: #db2777;           /* Neon Pink */
+  --g-terracotta: #ec4899;     /* Fuchsia Accent */
+  
+  --g-amber: #8b5cf6;          /* Violet / RGB */
+  --g-amber-hover: #c084fc;    
+  --g-amber-text: #f3e8ff;     
+  
+  --g-sand: #18181b;           /* Card Dark Background */
+  --g-olive: #3f3f46;          
+  
+  --g-line: #27272a;           /* Sharp UI Borders */
+  --g-card-border: rgba(6, 182, 212, 0.15); /* Subtle Neon Border */
+  
+  --g-blush: #1e1e24;          
+  --g-leaf: #3b82f6;           /* Electric Blue */
 
+  /* Override background with a mesh/glow effect */
+  background: 
+    radial-gradient(circle at 10% -5%, rgba(6, 182, 212, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 90% 40%, rgba(236, 72, 153, 0.08) 0%, transparent 45%),
+    var(--g-cream);
+}
+
+.beta-theme.gadget-theme .gadget-glass, 
+.beta-theme.gadget-theme .gadget-glass-deep,
+.beta-theme.gadget-theme .gadget-surface {
+  background: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(1.8);
+  -webkit-backdrop-filter: blur(12px) saturate(1.8);
+}
+
+/* Neon hover glow on product cards */
+.beta-theme.gadget-theme .gadget-hover-lift:hover {
+  border-color: rgba(6, 182, 212, 0.5); /* Cyan Glow */
+  box-shadow: 0 0 24px rgba(6, 182, 212, 0.15), 0 10px 40px rgba(0, 0, 0, 0.4);
+  transform: translateY(-4px) scale(1.01);
+}
+
+/* Navbar specific override */
+.beta-theme.gadget-theme header .bg-\\[var\\(--g-cream\\)\\]\\/95 {
+  background: rgba(9, 9, 11, 0.85) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+.beta-theme.gadget-theme header .bg-\\[var\\(--g-forest\\)\\] {
+  background: #000 !important;
+}
+
+/* Re-style the primary button to be cyber-metallic */
+.beta-theme.gadget-theme .gadget-btn-primary {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  color: #000;
+  font-weight: 800;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+}
+.beta-theme.gadget-theme .gadget-btn-primary:hover {
+  background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.5);
+}
