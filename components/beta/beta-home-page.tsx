@@ -230,59 +230,7 @@ export async function BetaHomePage() {
   }
 
   return (
-    <div className="text-[var(--g-charcoal)] beta-theme-container">
-      <style dangerouslySetInnerHTML={{ __html: `
-        /* Enforce Dark Theme on the Parent AppChrome too */
-        :root, body, .gadget-theme {
-          --g-cream: #09090b !important;
-          --g-cream-deep: #18181b !important;
-          --g-forest: #06b6d4 !important;
-          --g-forest-mid: #0891b2 !important;
-          --g-sage: #3f3f46 !important;
-          --g-charcoal: #fafafa !important;
-          --g-taupe: #a1a1aa !important;
-          --g-sale: #db2777 !important;
-          --g-terracotta: #ec4899 !important;
-          --g-amber: #8b5cf6 !important;
-          --g-amber-hover: #c084fc !important;
-          --g-amber-text: #f3e8ff !important;
-          --g-sand: #18181b !important;
-          --g-olive: #3f3f46 !important;
-          --g-line: #27272a !important;
-          --g-card-border: rgba(6,182,212,0.15) !important;
-          --g-blush: #1e1e24 !important;
-          --g-leaf: #3b82f6 !important;
-          background-color: var(--g-cream) !important;
-          color: var(--g-charcoal) !important;
-        }
-        
-        .gadget-theme .gadget-glass, 
-        .gadget-theme .gadget-glass-deep,
-        .gadget-theme .gadget-surface {
-          background: rgba(24,24,27,0.7) !important;
-          border-color: rgba(255,255,255,0.05) !important;
-        }
-
-        header .bg-\\[var\\(--g-cream\\)\\]\\/95 {
-          background: rgba(9, 9, 11, 0.85) !important;
-          border-bottom-color: rgba(255, 255, 255, 0.05) !important;
-        }
-        header .bg-\\[var\\(--g-forest\\)\\] {
-          background: #000 !important;
-          color: #fafafa !important;
-        }
-
-        .gadget-theme .gadget-hover-lift:hover {
-          border-color: rgba(6,182,212,0.5) !important;
-          box-shadow: 0 0 24px rgba(6,182,212,0.15), 0 10px 40px rgba(0,0,0,0.4) !important;
-        }
-
-        .gadget-theme .gadget-btn-primary {
-          background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%) !important;
-          color: #000 !important;
-          box-shadow: 0 0 15px rgba(6,182,212,0.3) !important;
-        }
-      `}} />
+    <div className="text-[var(--g-charcoal)]">
       <GadgetHeroSlider slides={slides} fallbackBanners={demoBanners} />
 
       {layout.map((id) => {
