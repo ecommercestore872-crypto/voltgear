@@ -13,21 +13,28 @@ import { formatPrice } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";
 
-function ProductStatusBadge({ status, draft }: { status: string; draft: boolean }) {
-  if (draft) {
+function ProductStatusBadge({ status, draft }: { status: string; draft: any }) {
+  if (status === "published" || status === "active") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30">
+          Published
+        </span>
+        {draft ? (
+          <span className="text-[10px] uppercase font-bold text-amber-500/80 tracking-widest" title="Has unpublished changes">*Draft</span>
+        ) : null}
+      </div>
+    );
+  }
+  
+  if (status === "draft" || draft) {
     return (
       <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500/30">
         Draft
       </span>
     );
   }
-  if (status === "active") {
-    return (
-      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30">
-        Active
-      </span>
-    );
-  }
+
   return (
     <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-gray-500/10 to-slate-500/10 text-gray-700 dark:text-gray-300 ring-1 ring-gray-500/30">
       {status}
