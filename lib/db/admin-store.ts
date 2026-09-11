@@ -182,6 +182,7 @@ export async function createAdminProduct(doc: ProductDocument) {
     }
     return { ok: false as const, error: error.message, status: 500 };
   }
+  revalidatePath("/admin/products");
   return { ok: true as const, id: String(data.id) };
 }
 
@@ -207,6 +208,9 @@ export async function saveAdminProduct(id: string, doc: ProductDocument) {
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath("/admin/products");
   return { ok: true as const };
 }
 
@@ -280,6 +284,8 @@ export async function publishAdminProduct(id: string, doc: ProductDocument) {
   revalidatePath(`/product/${merged.slug}`);
   revalidatePath("/search");
   revalidatePath("/api/store/products");
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath("/admin/products");
   if (current.slug !== merged.slug) revalidatePath(`/product/${current.slug}`);
   return { ok: true as const };
 }
@@ -296,6 +302,8 @@ export async function unpublishAdminProduct(id: string) {
   revalidatePath("/products");
   revalidatePath(`/product/${current.slug}`);
   revalidatePath("/api/store/products");
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath("/admin/products");
   return { ok: true as const };
 }
 
@@ -305,6 +313,8 @@ export async function discardAdminProductDraft(id: string) {
     .update({ draft: null, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath("/admin/products");
   return { ok: true as const };
 }
 
@@ -337,6 +347,7 @@ export async function deleteAdminProduct(id: string) {
   revalidatePath("/products");
   revalidatePath(`/product/${current.slug}`);
   revalidatePath("/api/store/products");
+  revalidatePath("/admin/products");
   return { ok: true as const };
 }
 
