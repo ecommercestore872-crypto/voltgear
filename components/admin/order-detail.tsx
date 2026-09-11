@@ -16,6 +16,7 @@ import type { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 import { PostExChitModal } from "@/components/admin/postex-chit-modal";
+import { Badge } from "@/components/ui/badge";
 import { Printer, Truck } from "lucide-react";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -146,41 +147,42 @@ export function OrderDetail({
   }
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-4">
         <Link
           href="/admin/orders"
-          className="text-sm text-muted-foreground hover:underline"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
         >
-          ← Orders
+          &larr; Back to Orders
         </Link>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">
-              Order <span className="tabular-nums">{order.orderId}</span>
+        <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+          <div className="space-y-1.5 max-w-2xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              Order <span className="tabular-nums font-mono text-blue-600 dark:text-blue-400">{order.orderId}</span>
               {order.isDemo ? (
-                <span className="ml-2 align-middle rounded bg-amber-400 px-1.5 py-0.5 text-xs font-semibold uppercase text-black">
+                <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
                   Demo
-                </span>
+                </Badge>
               ) : null}
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Placed {formatDate(order.createdAt)}
-              {order.statusUpdatedAt
-                ? ` · Updated ${formatDate(order.statusUpdatedAt)}`
-                : ""}
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Resolve fulfillment checkpoints, review comprehensive customer details, and modify the shipment lifecycle here. Manage this specific order’s ledger directly to ensure seamless last-mile delivery and accurate accounting.
+            </p>
+            <p className="text-xs font-semibold text-muted-foreground mt-2">
+              Placed {formatDate(order.createdAt)} 
+              {order.statusUpdatedAt && ` • Line updated ${formatDate(order.statusUpdatedAt)}`}
             </p>
           </div>
 
           {/* PostEx Dispatch Actions */}
-          <div className="flex items-center gap-2">
-            <Button asChild type="button" variant="outline">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+            <Button asChild type="button" variant="outline" className="shadow-sm">
               <Link
                 href={`/order/${encodeURIComponent(order.orderId)}/invoice?print=1`}
                 target="_blank"
                 rel="noreferrer"
               >
-                Download invoice
+                Download Invoice
               </Link>
             </Button>
             <Button
@@ -188,15 +190,15 @@ export function OrderDetail({
               variant="outline"
               disabled={bookingPostEx}
               onClick={handleBookPostEx}
-              className="inline-flex items-center gap-1.5 border-[#1F3626] text-[#1F3626] hover:bg-[#1F3626]/10"
+              className="inline-flex items-center gap-1.5 shadow-sm border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-900 dark:text-blue-300 dark:bg-blue-950/30 dark:hover:bg-blue-900/50"
             >
               <Truck className="h-4 w-4" />
-              {bookingPostEx ? "Booking PostEx…" : "Book with PostEx"}
+              {bookingPostEx ? "Pushing to PostEx…" : "Book with PostEx"}
             </Button>
             <Button
               type="button"
               onClick={() => setShowChitModal(true)}
-              className="inline-flex items-center gap-1.5 bg-[#1F3626] text-white hover:bg-[#2a4633]"
+              className="inline-flex items-center gap-1.5 shadow-sm"
             >
               <Printer className="h-4 w-4" />
               Print PostEx Chit

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { AdminOrderListItem } from "@/lib/db/order-rules";
 import { formatPrice } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { RemoveDemoData } from "@/components/admin/remove-demo-data";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -29,16 +30,16 @@ function formatDate(iso: string): string {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    new: "bg-blue-100 text-blue-700",
-    processing: "bg-amber-100 text-amber-700",
-    shipped: "bg-purple-100 text-purple-700",
-    delivered: "bg-emerald-100 text-emerald-700",
-    cancelled: "bg-rose-100 text-rose-700",
+    new: "bg-blue-100/80 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800/50",
+    processing: "bg-amber-100/80 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800/50",
+    shipped: "bg-purple-100/80 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800/50",
+    delivered: "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50",
+    cancelled: "bg-rose-100/80 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200 dark:border-rose-800/50",
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-        styles[status] ?? "bg-gray-100 text-gray-700"
+      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+        styles[status] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700"
       }`}
     >
       {STATUS_LABEL[status] ?? status}
@@ -54,7 +55,7 @@ export function OrderList({
   statusFilter?: string;
 }) {
   const [q, setQ] = useState("");
-  const [activeTab, setActiveTab] = useState(statusFilter || "new");
+  const [activeTab, setActiveTab] = useState(statusFilter || "all");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 50;
 
@@ -89,13 +90,19 @@ export function OrderList({
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Manage all incoming orders. Select an order to view details and
-          confirm dispatch.
-        </p>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-2">
+        <div className="space-y-1.5 max-w-2xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+            Orders
+            <Badge variant="outline" className="font-normal text-muted-foreground hidden sm:inline-flex">
+              Fulfillment Hub
+            </Badge>
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Process pending shipments, verify customer addresses, and track real-time delivery lifecycle. Use the search to quickly locate specific order IDs or intercept high-risk orders before dispatch.
+          </p>
+        </div>
       </div>
 
       {/* Tabs + Search */}
