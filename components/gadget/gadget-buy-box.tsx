@@ -169,10 +169,17 @@ export function GadgetBuyBox({
         </div>
 
         <div className="flex min-w-0 flex-col">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
-            {product.category.replace(/-/g, " ")}
-            {product.badge ? ` · ${product.badge}` : ""}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+              {product.category.replace(/-/g, " ")}
+              {product.badge ? ` · ${product.badge}` : ""}
+            </p>
+            {outOfStock ? (
+              <span className="rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm">
+                OUT OF STOCK
+              </span>
+            ) : null}
+          </div>
           <h1 className="mt-2 text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] text-[var(--g-charcoal)] sm:text-4xl">
             {product.name}
           </h1>
@@ -235,7 +242,7 @@ export function GadgetBuyBox({
             className={cn(
               "mt-2 text-sm font-semibold",
               outOfStock
-                ? "text-[var(--g-taupe)]"
+                ? "text-red-600"
                 : stock.status === "low-stock"
                   ? "text-amber-700"
                   : "text-[var(--g-forest)]",

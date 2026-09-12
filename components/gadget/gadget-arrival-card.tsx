@@ -99,14 +99,19 @@ export function GadgetArrivalCard({
             isGrid ? "aspect-square" : "aspect-square",
           )}
         >
-          <div className="pointer-events-none absolute inset-x-2.5 top-2.5 z-10 flex items-start gap-1.5 pr-11">
-            {off ? (
-              <span className="shrink-0 rounded-md bg-[#7a2e12] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white">
+          <div className="pointer-events-none absolute inset-x-2.5 top-2.5 z-10 flex items-start gap-1.5 flex-wrap pr-11">
+            {stock.soldOut ? (
+              <span className="shrink-0 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm z-20">
+                Out of Stock
+              </span>
+            ) : null}
+            {!stock.soldOut && off ? (
+              <span className="shrink-0 rounded-md bg-[#7a2e12] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white shadow-sm z-20">
                 −{off}%
               </span>
             ) : null}
             {tag ? (
-              <span className="max-w-[70%] text-shadow-sm truncate rounded-md border border-[var(--g-line)] bg-white/95 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-black shadow-sm dark:border-white/20 dark:bg-black/80 dark:text-white">
+              <span className="max-w-[70%] text-shadow-sm truncate rounded-md border border-[var(--g-line)] bg-white/95 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-black shadow-sm dark:border-white/20 dark:bg-black/80 dark:text-white z-20">
                 {tag}
               </span>
             ) : null}
