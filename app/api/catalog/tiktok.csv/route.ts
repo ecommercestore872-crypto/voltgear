@@ -31,7 +31,7 @@ export function extractPlainText(blocks: any): string {
 }
 
 export function generateCSV(products: any[]): string {
-  let csv = `sku_id,title,description,availability,condition,price,link,image_link\n`;
+  let csv = `sku_id,title,description,availability,condition,price,link,image_link,brand\n`;
   const seenSkuIds = new Set<string>();
 
   for (const product of products) {
@@ -46,6 +46,8 @@ export function generateCSV(products: any[]): string {
 
     const rawDesc = extractPlainText(product.description) || product.shortDescription || product.name || "";
     const cleanDesc = rawDesc.replace(/\s+/g, " ").trim() || "Amazing product by Buy n Try";
+    
+    const brand = product.brand ? product.brand.trim() : "Unbranded";
 
     if (product.variants && product.variants.length > 0) {
       for (const variant of product.variants) {
@@ -78,7 +80,8 @@ export function generateCSV(products: any[]): string {
           escapeCSV("new"),
           escapeCSV(`${price} PKR`),
           escapeCSV(baseLink),
-          escapeCSV(varImage)
+          escapeCSV(varImage),
+          escapeCSV(brand)
         ].join(",") + "\n";
       }
     } else {
@@ -104,7 +107,8 @@ export function generateCSV(products: any[]): string {
         escapeCSV("new"),
         escapeCSV(`${price} PKR`),
         escapeCSV(baseLink),
-        escapeCSV(imageLink)
+        escapeCSV(imageLink),
+        escapeCSV(brand)
       ].join(",") + "\n";
     }
   }

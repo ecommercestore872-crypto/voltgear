@@ -69,6 +69,7 @@ describe("TikTok Catalog CSV Feed", () => {
         sku: "TP-MAX",
         price: 1500,
         stockStatus: "out-of-stock",
+        brand: "Sony",
         images: ["https://res.cloudinary.com/demo.jpg"]
       }
     ];
@@ -78,7 +79,7 @@ describe("TikTok Catalog CSV Feed", () => {
 
     // Header + Variant Row + Tripod Row = 3 lines total. Demo & Dupe are dropped.
     assert.equal(lines.length, 3);
-    assert.equal(lines[0], "sku_id,title,description,availability,condition,price,link,image_link");
+    assert.equal(lines[0], "sku_id,title,description,availability,condition,price,link,image_link,brand");
 
     // Line 1: White variant
     // Expected: SKU, Title, Desc, In Stock, New, 5499 PKR, Absolute Link, Absolute Image
@@ -89,6 +90,7 @@ describe("TikTok Catalog CSV Feed", () => {
     assert.ok(varRow.includes("https://buyntryy.com/product/airpods-clone"), "link resolved absolute");
     assert.ok(varRow.includes("https://buyntryy.com/uploads/img1.png"), "image link resolved absolute from root slash");
     assert.ok(varRow.includes("in stock"), "in stock correctly calculated");
+    assert.ok(varRow.includes("Unbranded"), "unbranded fallback works");
 
     // Line 2: Tripod
     const tripodRow = lines[2];
@@ -96,5 +98,6 @@ describe("TikTok Catalog CSV Feed", () => {
     assert.ok(tripodRow.includes("out of stock"), "resolves out-of-stock accurately");
     assert.ok(tripodRow.includes("1500 PKR"), "base price fallback");
     assert.ok(tripodRow.includes("https://res.cloudinary.com/demo.jpg"), "absolute URL preserved without prepending");
+    assert.ok(tripodRow.includes("Sony"), "custom brand appended");
   });
 });
