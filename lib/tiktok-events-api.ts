@@ -14,6 +14,7 @@ export async function trackTikTokServerPurchase(input: {
   ip?: string;
   userAgent?: string;
   url?: string;
+  consent?: string | null;
   lines: Array<{
     slug?: string;
     variantKey?: string;
@@ -28,6 +29,7 @@ export async function trackTikTokServerPurchase(input: {
   const token = process.env.TIKTOK_ACCESS_TOKEN;
   const enabled = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED;
 
+  if (input.consent !== "all") return;
   if (!pixelId || !token || enabled !== "true") return;
 
   // The event_id matches the browser implementation exactly for 100% accurate deduplication
@@ -87,12 +89,19 @@ export async function trackTikTokServerPurchase(input: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
     });
     
     if (!res.ok) {
-      console.error("[tiktok-events-api] API response error:", await res.text());
+      let message = await res.text();
+      try { message = JSON.parse(message).message || message; } catch {}
+      console.error("[tiktok-events-api] API response error:", message);
     }
   } catch (error) {
-    console.error("[tiktok-events-api] Request failed:", error);
+    if (error instanceof Error && error.name === "TimeoutError") {
+      console.error("[tiktok-events-api] Request timed out");
+    } else {
+      console.error("[tiktok-events-api] Request failed:", error);
+    }
   }
 }

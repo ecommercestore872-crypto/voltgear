@@ -61,6 +61,7 @@ interface CheckoutBody {
   giftWrap?: boolean;
   promoCode?: string;
   idempotencyKey?: string;
+  consent?: string | null;
   // Present only for backwards-compatible clients; never trusted.
   subtotal?: number;
   shipping?: number;
@@ -84,7 +85,7 @@ interface CheckoutBody {
 export async function POST(request: Request) {
   try {
     const body: CheckoutBody = await request.json();
-    const { items = [], customer, payment, giftWrap } = body;
+    const { items = [], customer, payment, giftWrap, consent } = body;
 
     if (!items.length) {
       return NextResponse.json(
@@ -322,6 +323,7 @@ export async function POST(request: Request) {
           userAgent: request.headers.get("user-agent") || undefined,
           url: request.headers.get("referer") || "https://buyntryy.com/checkout",
           lines: baseOrder.items,
+          consent,
         });
       }
     } catch (err) {

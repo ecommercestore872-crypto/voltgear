@@ -333,6 +333,7 @@ export default function CheckoutPage() {
           giftWrap,
           giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
           idempotencyKey: idempotencyKeyRef.current,
+          consent: typeof window !== "undefined" ? window.localStorage.getItem("bnt-cookie-consent") : null,
           ...(activePromo?.code && !activePromo.error
             ? { promoCode: activePromo.code }
             : {}),
