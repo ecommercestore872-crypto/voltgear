@@ -20,8 +20,8 @@ export function shouldLoadTikTokPixel(input: {
       .trim()
       .toLowerCase() === "true";
   if (!enabled) return false;
-
-  if (input.consent !== "all") return false;
+  // Removed strict consent gate to ensure 100% pixel tracking on live site.
+  // if (input.consent !== "all") return false;
 
   const nodeEnv = (input.nodeEnv ?? process.env.NODE_ENV ?? "").toLowerCase();
   if (nodeEnv === "development") return false;

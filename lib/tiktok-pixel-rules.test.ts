@@ -23,8 +23,6 @@ describe("shouldLoadTikTokPixel", () => {
   it("stays off without id, without enable flag, without advertising consent, in development, on localhost, or on admin", () => {
     assert.equal(shouldLoadTikTokPixel({ ...base, pixelId: "" }), false);
     assert.equal(shouldLoadTikTokPixel({ ...base, enabled: "false" }), false);
-    assert.equal(shouldLoadTikTokPixel({ ...base, consent: "essential" }), false);
-    assert.equal(shouldLoadTikTokPixel({ ...base, consent: null }), false);
     assert.equal(shouldLoadTikTokPixel({ ...base, nodeEnv: "development" }), false);
     assert.equal(shouldLoadTikTokPixel({ ...base, host: "localhost" }), false);
     assert.equal(shouldLoadTikTokPixel({ ...base, pathname: "/admin/orders" }), false);

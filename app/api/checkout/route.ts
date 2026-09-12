@@ -39,6 +39,7 @@ import {
   takeCheckoutRateLimit,
 } from "@/lib/checkout-guard";
 import { normalizePhone } from "@/lib/messaging";
+import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -307,6 +308,24 @@ export async function POST(request: Request) {
       await attachOrderAttribution(orderId, request);
     } catch {
       console.error("[analytics-checkout]", "attach failed");
+    }
+
+    // TikTok Server Events API (Purchase)
+    try {
+      if (typeof trackTikTokServerPurchase === "function" && !baseOrder.isDemo) {
+        await trackTikTokServerPurchase({
+          orderId,
+          total: baseOrder.total,
+          email: baseOrder.customer.email,
+          phone: baseOrder.customer.phone,
+          ip: checkoutClientIp(request),
+          userAgent: request.headers.get("user-agent") || undefined,
+          url: request.headers.get("referer") || "https://buyntryy.com/checkout",
+          lines: baseOrder.items,
+        });
+      }
+    } catch (err) {
+      console.error("[tiktok-server] root error", err);
     }
 
     const emailPayload = {
