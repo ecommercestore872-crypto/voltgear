@@ -113,7 +113,7 @@ export function GadgetFeaturedProduct({
                   fill
                   quality={72}
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-contain transition duration-500 hover:scale-[1.03] p-4 lg:p-6"
+                  className="object-contain transition duration-500 hover:scale-[1.03] p-4 lg:p-6 mix-blend-multiply"
                 />
               </div>
             ) : (

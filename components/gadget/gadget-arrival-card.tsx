@@ -122,7 +122,7 @@ export function GadgetArrivalCard({
                   ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
                   : "260px"
               }
-              className="object-contain transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+              className="object-contain transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] mix-blend-multiply"
             />
           ) : (
             <span className="flex h-full items-center justify-center text-sm text-[var(--g-taupe)]">

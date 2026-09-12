@@ -249,7 +249,7 @@ export function HeroSlidesForm({
               imageUrl: (urls[urls.length - 1] ?? "").trim(),
             }))
           }
-          hint="Upload a full campaign banner (like a Ronin promo slide). Wide images work best — the art fills the hero."
+          hint="Upload a full campaign banner (like a Ronin promo slide). Wide images work best — the art fills the hero. Recommended size: 1920x1080px (16:9)."
         />
         {draft.imageUrl ? (
           <p className="truncate text-xs text-muted-foreground">
@@ -364,6 +364,7 @@ export function HeroSlidesForm({
             </div>
             <MediaField
               label="Replace image"
+              hint="Recommended size: 1920x1080px (16:9)."
               urls={slide.image_url ? [slide.image_url] : []}
               onChange={(urls) => updateSlideImage(slide.id, urls)}
             />

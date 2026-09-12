@@ -26,7 +26,7 @@ export async function trackTikTokServerPurchase(input: {
   }>;
 }) {
   const pixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
-  const token = process.env.TIKTOK_ACCESS_TOKEN;
+  const token = process.env.TIKTOK_EVENTS_API_ACCESS_TOKEN;
   const enabled = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED;
 
   if (input.consent !== "all") return;

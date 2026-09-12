@@ -102,6 +102,10 @@ async function deliver(message: EmailMessage, purpose: EmailSendPurpose): Promis
     html: message.html,
     bcc: message.bcc,
     replyTo,
+    headers: {
+      "X-Entity-Ref-ID": `${Date.now()}-${Math.random().toString(36).substring(2)}`,
+      "List-Unsubscribe": `<mailto:unsubscribe@${BRAND_NAME.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}.com?subject=unsubscribe>`,
+    },
   });
 
   if (!apiKey) {

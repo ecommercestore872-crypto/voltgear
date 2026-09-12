@@ -177,6 +177,7 @@ export type ResendSendInput = {
   html: string;
   bcc?: string[];
   replyTo?: string;
+  headers?: Record<string, string>;
 };
 
 export function resendSendInput(input: {
@@ -187,6 +188,7 @@ export function resendSendInput(input: {
   html: string;
   bcc?: string[];
   replyTo?: string;
+  headers?: Record<string, string>;
 }): ResendSendInput {
   const payload: ResendSendInput = {
     from: input.from,
@@ -196,6 +198,7 @@ export function resendSendInput(input: {
     html: input.html,
   };
   if (input.bcc?.length) payload.bcc = input.bcc;
+  if (input.headers) payload.headers = input.headers;
   const replyTo = input.replyTo?.trim();
   if (replyTo) payload.replyTo = replyTo;
   return payload;

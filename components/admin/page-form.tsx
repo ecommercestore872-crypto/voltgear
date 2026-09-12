@@ -258,7 +258,7 @@ export function PageForm({
         <div className="sm:col-span-2 space-y-1.5">
           <MediaField
             label="Cover photo"
-            hint="Upload a wide photo (16:9 works best on cards and Google)."
+            hint="Upload a wide photo (16:9 works best on cards and Google). Recommended size: 1920x1080px."
             urls={form.coverImage ? [form.coverImage] : []}
             onChange={(urls) =>
               setForm((f) => ({ ...f, coverImage: urls.at(-1) ?? "" }))

@@ -148,7 +148,7 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
         </div>
         <MediaField
           label="Hero Slider Images"
-          hint="Upload or paste image URLs for the homepage hero section. Uploading 1 image displays a static hero; uploading 2 or more displays a slider carousel in the exact order shown below."
+          hint="Upload or paste image URLs for the homepage hero section. Uploading 1 image displays a static hero; uploading 2 or more displays a slider carousel in the exact order shown below. Recommended size: 1920x1080px (16:9)."
           urls={form.backgroundImages}
           onChange={(urls) =>
             setForm((f) => ({ ...f, backgroundImages: urls }))

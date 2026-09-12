@@ -92,6 +92,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
         <h3 className="text-sm font-semibold">Featured banner</h3>
         <MediaField
           label="Banner image"
+          hint="Recommended size: 1080x1350px (Portrait) or 1080x1080px (Square)."
           urls={shop.banner.imageUrl ? [shop.banner.imageUrl] : []}
           onChange={(urls) => setBanner("imageUrl", urls[0] ?? "")}
         />
@@ -144,6 +145,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
             </p>
             <MediaField
               label="Card image"
+              hint="Recommended size: 1080x1080px (Square)."
               urls={tile.imageUrl ? [tile.imageUrl] : []}
               onChange={(urls) => setTile(index, { imageUrl: urls[0] ?? "" })}
             />

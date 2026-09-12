@@ -311,6 +311,7 @@ export function ProductForm({
           </div>
           <MediaField
             label="Cover photo (optional)"
+            hint="Video thumbnail poster. Recommended size: match your video's dimension (e.g. 1920x1080 or 1080x1920)."
             urls={doc.productVideo?.poster ? [doc.productVideo.poster] : []}
             onChange={(urls) =>
               set("productVideo", { ...doc.productVideo, poster: urls[urls.length - 1] })
@@ -466,6 +467,7 @@ export function ProductForm({
                     <div className="col-span-2 space-y-1">
                       <MediaField
                         label="Image (optional)"
+                        hint="Recommended size: 400x400px (Square)."
                         urls={addon.image ? [addon.image] : []}
                         onChange={(urls) => {
                           const next = [...(doc.addons ?? [])];

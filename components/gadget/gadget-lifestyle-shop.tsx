@@ -95,7 +95,7 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
                     fill
                     quality={70}
                     sizes="(max-width: 640px) 45vw, 20vw"
-                    className="object-contain p-1 transition duration-500 group-hover:scale-[1.05] sm:p-2"
+                    className="object-contain p-1 transition duration-500 group-hover:scale-[1.05] sm:p-2 mix-blend-multiply"
                   />
                 </div>
               </Link>

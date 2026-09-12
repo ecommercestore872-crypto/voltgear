@@ -25,6 +25,8 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     "calling smartwatch",
     "AMOLED smartwatch",
     "smartwatch Pakistan",
+    "smartwatch under 5000 Pakistan",
+    "budget calling smartwatch Pakistan",
   ],
   "power-bank": [
     "power bank",
@@ -33,6 +35,8 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     "20000mAh power bank",
     "10000mAh power bank",
     "power bank Pakistan",
+    "best 20000mah power bank Pakistan",
+    "best powerbank for iphone pakistan",
   ],
   charger: [
     "charger",
@@ -73,6 +77,9 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     "wireless mic",
     "lapel mic",
     "wireless microphone Pakistan",
+    "J10 wireless mic price in Pakistan",
+    "K9 wireless mic pakistan",
+    "best vlogging mic pakistan",
   ],
   accessories: [
     "stylus pen",
