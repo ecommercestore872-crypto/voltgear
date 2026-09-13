@@ -103,7 +103,7 @@ export function GadgetFeaturedProduct({
             href={href}
             prefetch={false}
             aria-label={product.name}
-            className="flex relative min-h-[16rem] sm:min-h-[20rem] lg:min-h-0 h-full bg-[var(--g-cream)]"
+            className="flex relative min-h-[23rem] sm:min-h-[26rem] lg:min-h-0 h-full bg-[var(--g-cream)]"
           >
             {image ? (
               <div className="relative w-full h-full flex items-center justify-center p-0 sm:p-8 lg:p-8">
@@ -111,9 +111,9 @@ export function GadgetFeaturedProduct({
                   src={image}
                   alt=""
                   fill
-                  quality={72}
+                  quality={90}
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-contain transition duration-500 hover:scale-[1.03] p-4 lg:p-6 mix-blend-multiply"
+                  className="object-contain transition duration-500 hover:scale-[1.03] p-2 sm:p-4 lg:p-6 mix-blend-multiply"
                 />
               </div>
             ) : (

@@ -47,6 +47,7 @@ export function HeroSlidesForm({
     imageUrl: "",
     title: "",
     subtitle: "",
+    ctaText: "",
   });
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export function HeroSlidesForm({
             productId,
             imageUrl,
             title: draft.title,
-            subtitle: draft.subtitle,
+            subtitle: JSON.stringify({ text: draft.subtitle, cta: draft.ctaText }),
           },
         }),
       });
@@ -103,7 +104,7 @@ export function HeroSlidesForm({
           },
         ]);
       }
-      setDraft((d) => ({ ...d, imageUrl: "", title: "", subtitle: "" }));
+      setDraft((d) => ({ ...d, imageUrl: "", title: "", subtitle: "", ctaText: "" }));
     });
   }
 
@@ -249,7 +250,7 @@ export function HeroSlidesForm({
               imageUrl: (urls[urls.length - 1] ?? "").trim(),
             }))
           }
-          hint="Upload a full campaign banner (like a Ronin promo slide). Wide images work best — the art fills the hero. Recommended size: 1920x1080px (16:9)."
+          hint="Upload a full campaign banner (like a promo slide). Format: JPG, WEBP, or PNG. Wide images work best. Recommended size: 1920x1080px (16:9) to prevent distortion."
         />
         {draft.imageUrl ? (
           <p className="truncate text-xs text-muted-foreground">
@@ -274,6 +275,17 @@ export function HeroSlidesForm({
               onChange={(e) =>
                 setDraft((d) => ({ ...d, subtitle: e.target.value }))
               }
+              placeholder="Short text above CTA"
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Shop Button Text</Label>
+            <Input
+              value={draft.ctaText}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, ctaText: e.target.value }))
+              }
+              placeholder="e.g. SHOP EARBUDS (Defaults to product title)"
             />
           </div>
         </div>
@@ -291,7 +303,17 @@ export function HeroSlidesForm({
             No slides yet. Add at least one.
           </p>
         )}
-        {slides.map((slide, index) => (
+        {slides.map((slide, index) => {
+          let sub = slide.subtitle || "";
+          let cta = "";
+          if (sub.trim().startsWith("{")) {
+            try { 
+              const p = JSON.parse(sub); 
+              sub = p.text || ""; 
+              cta = p.cta || ""; 
+            } catch {}
+          }
+          return (
           <div
             key={slide.id}
             className="flex flex-col gap-3 rounded-lg border p-4"
@@ -313,9 +335,10 @@ export function HeroSlidesForm({
                 <p className="truncate text-xs text-muted-foreground">
                   {slide.image_url || "No image URL"}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {slide.subtitle}
-                </p>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  {sub ? <p>Subtitle: {sub}</p> : null}
+                  {cta ? <p>CTA: {cta}</p> : null}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     size="sm"
@@ -364,12 +387,12 @@ export function HeroSlidesForm({
             </div>
             <MediaField
               label="Replace image"
-              hint="Recommended size: 1920x1080px (16:9)."
+              hint="Format: JPG, WEBP, or PNG. Recommended size: 1920x1080px (16:9) to prevent distortion."
               urls={slide.image_url ? [slide.image_url] : []}
               onChange={(urls) => updateSlideImage(slide.id, urls)}
             />
           </div>
-        ))}
+        );})}
       </div>
     </div>
   );

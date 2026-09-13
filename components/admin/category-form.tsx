@@ -150,7 +150,7 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
 
           <MediaField
             label="Cover Photo (optional)"
-            hint="Recommended size: 1080x1080px (Square). Sharpest on mobile and desktop."
+            hint="Format: JPG, WEBP, or PNG. Recommended size: 1080x1080px (Square). Sharpest on mobile and desktop without distortion."
             urls={imageUrl ? [imageUrl] : []}
             onChange={(urls) => setImageUrl(urls[0] ?? "")}
           />

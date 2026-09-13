@@ -17,20 +17,39 @@ const FADE_MS = 700;
 export type GadgetHeroBanner = {
   id: string;
   title: string;
+  subtitle?: string | null;
   imageUrl: string;
   href: string;
   ctaDisabled?: boolean;
+  ctaLabel?: string;
 };
 
 function fromAdminSlides(slides: HeroSlide[]): GadgetHeroBanner[] {
   return slides.map((slide) => {
     const cta = resolveSlideCta(slide.product.stockStatus);
+    let subtitle = slide.subtitle;
+    let ctaLabel = "Shop " + (slide.title || "this offer");
+
+    if (subtitle && subtitle.trim().startsWith("{")) {
+      try {
+        const parsed = JSON.parse(subtitle);
+        subtitle = parsed.text || "";
+        if (parsed.cta) {
+          ctaLabel = parsed.cta;
+        }
+      } catch (e) {
+        // Fallback to plain string if parse fails
+      }
+    }
+
     return {
       id: slide.id,
-      title: slide.title || "Campaign",
+      title: slide.title || slide.product.name || "Campaign",
+      subtitle,
       imageUrl: slide.imageUrl,
       href: product2Href(slide.product.slug),
       ctaDisabled: cta.disabled,
+      ctaLabel,
     };
   });
 }
@@ -48,8 +67,10 @@ export function GadgetHeroSlider({
       : fallbackBanners.map((b) => ({
           id: b.id,
           title: b.title,
+          subtitle: undefined,
           imageUrl: b.imageUrl,
           href: b.href,
+          ctaLabel: "Shop this offer",
         }));
 
   const [index, setIndex] = useState(0);
@@ -132,7 +153,7 @@ export function GadgetHeroSlider({
       aria-label="Campaign banners"
     >
       <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
-        <div className="relative aspect-[16/10] w-full sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
+        <div className="relative min-h-[24rem] w-full sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
@@ -157,7 +178,7 @@ export function GadgetHeroSlider({
                     fill
                     priority={i === 0}
                     fetchPriority={i === 0 ? "high" : "auto"}
-                    quality={70}
+                    quality={90}
                     className="object-cover object-center"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1152px"
                   />
@@ -197,6 +218,11 @@ export function GadgetHeroSlider({
               {active.title ? (
                 <p className="gadget-display text-left text-lg font-bold leading-tight tracking-[-0.02em] text-white drop-shadow-md sm:text-xl lg:text-2xl">
                   {active.title}
+                </p>
+              ) : null}
+              {active.subtitle ? (
+                <p className="max-w-[40ch] text-left text-sm text-white/90 drop-shadow sm:text-base">
+                  {active.subtitle}
                 </p>
               ) : null}
 
@@ -243,7 +269,7 @@ export function GadgetHeroSlider({
               >
                 <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
                 <span className="max-w-[16ch] truncate sm:max-w-none">
-                  Shop {active.title || "this offer"}
+                  {active.ctaLabel || "Shop Now"}
                 </span>
               </Link>
             ) : (

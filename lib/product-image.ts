@@ -9,7 +9,7 @@ export const PRODUCT_IMAGE = {
 } as const;
 
 export const PRODUCT_PHOTO_HINT =
-  "Use a square photo, 2048 × 2048 pixels. That stays sharp and does not stretch. Crop phone photos to a square first. Avoid tiny screenshots.";
+  "Format: JPG, WEBP, or PNG. Use a square photo, 2048 × 2048 pixels (1:1 ratio). That stays sharp and does not stretch. Crop phone photos to a square first. Avoid tiny screenshots.";
 
 export function isProductImageTooSmall(width?: number, height?: number): boolean {
   if (!width || !height) return false;
