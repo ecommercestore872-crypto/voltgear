@@ -310,7 +310,7 @@ export function ProductForm({
             />
           </div>
           <MediaField
-            label="Cover photo (optional)"
+            label="Video Thumbnail (optional)"
             hint="Format: JPG, WEBP, or PNG. Video thumbnail poster. Recommended size: match your video's dimension (e.g. 1920x1080 or 1080x1920)."
             urls={doc.productVideo?.poster ? [doc.productVideo.poster] : []}
             onChange={(urls) =>
