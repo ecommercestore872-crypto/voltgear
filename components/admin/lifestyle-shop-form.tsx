@@ -94,7 +94,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
           label="Banner image"
           hint="Format: JPG, WEBP, or PNG. Recommended size: 1080x1350px (Portrait) or 1080x1080px (Square) to prevent distortion."
           urls={shop.banner.imageUrl ? [shop.banner.imageUrl] : []}
-          onChange={(urls) => setBanner("imageUrl", urls[0] ?? "")}
+          onChange={(urls) => setBanner("imageUrl", urls[urls.length - 1] ?? "")}
         />
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
@@ -147,7 +147,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
               label="Card image"
               hint="Format: JPG, WEBP, or PNG. Recommended size: 1080x1080px (Square) to prevent distortion."
               urls={tile.imageUrl ? [tile.imageUrl] : []}
-              onChange={(urls) => setTile(index, { imageUrl: urls[0] ?? "" })}
+              onChange={(urls) => setTile(index, { imageUrl: urls[urls.length - 1] ?? "" })}
             />
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">

@@ -152,7 +152,7 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
             label="Cover Photo (optional)"
             hint="Format: JPG, WEBP, or PNG. Recommended size: 1080x1080px (Square). Sharpest on mobile and desktop without distortion."
             urls={imageUrl ? [imageUrl] : []}
-            onChange={(urls) => setImageUrl(urls[0] ?? "")}
+            onChange={(urls) => setImageUrl(urls[urls.length - 1] ?? "")}
           />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
