@@ -322,7 +322,7 @@ export function HeroSlidesForm({
               mobileImageUrl: (urls[urls.length - 1] ?? "").trim(),
             }))
           }
-          hint="If provided, this image will load specifically for mobile phones. Leave blank to automatically adapt the Desktop image."
+          hint="If provided, this image will load specifically for mobile phones. Leave blank to manually adapt the Desktop image with the blurred cinematic effect. Recommended size: 1080x1080px (Square) to prevent distortion."
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
