@@ -373,14 +373,25 @@ export function HeroSlidesForm({
         )}
         {slides.map((slide, index) => {
           let sub = slide.subtitle || "";
-          let cta = "";
-          if (sub.trim().startsWith("{")) {
-            try { 
-              const p = JSON.parse(sub); 
+          let cta = ""; 
+          let linkType = "product";
+          if (sub && sub.trim().startsWith("{")) {
+            try {
+              const p = JSON.parse(sub);
               sub = p.text || ""; 
               cta = p.cta || ""; 
+              linkType = p.linkType || "product";
             } catch {}
           }
+          
+          let displayName = slide.title || "Untitled";
+          if (!slide.title) {
+            if (linkType === "all") displayName = "All Products (Generic Banner)";
+            else if (linkType === "none") displayName = "Unclickable Image Banner";
+            else if (linkType === "category") displayName = "Category Banner";
+            else displayName = slide.products?.name || "Untitled";
+          }
+
           return (
           <div
             key={slide.id}
@@ -395,7 +406,7 @@ export function HeroSlidesForm({
               />
               <div className="min-w-0 flex-1 space-y-2">
                 <p className="font-medium">
-                  {slide.title || slide.products?.name || "Untitled"}{" "}
+                  {displayName}{" "}
                   <span className="text-xs font-normal uppercase text-muted-foreground">
                     {slide.status}
                   </span>
