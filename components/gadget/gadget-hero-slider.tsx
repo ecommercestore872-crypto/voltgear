@@ -44,12 +44,12 @@ function fromAdminSlides(slides: HeroSlide[]): GadgetHeroBanner[] {
 
     return {
       id: slide.id,
-      title: slide.title || slide.product.name || "Campaign",
+      title: slide.title, // NO fallback to product name! If they leave it blank, no text overlay!
       subtitle,
       imageUrl: slide.imageUrl,
       href: product2Href(slide.product.slug),
       ctaDisabled: cta.disabled,
-      ctaLabel,
+      ctaLabel: ctaLabel === "Shop this offer" ? "" : ctaLabel, // If empty, we can just omit it
     };
   });
 }
@@ -153,7 +153,7 @@ export function GadgetHeroSlider({
       aria-label="Campaign banners"
     >
       <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
-        <div className="relative aspect-[16/10] w-full sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[2.4/1]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
@@ -179,7 +179,7 @@ export function GadgetHeroSlider({
                     priority={i === 0}
                     fetchPriority={i === 0 ? "high" : "auto"}
                     quality={100}
-                    className="object-cover object-center"
+                    className="object-contain sm:object-cover object-center"
                     sizes="100vw"
                   />
                 ) : null}
@@ -187,8 +187,10 @@ export function GadgetHeroSlider({
             );
           })}
 
-          {/* Vignette Overlay */}
-          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/60 via-transparent to-black/10" />
+          {/* Vignette Overlay: only if there's text */}
+          {(active.title || active.subtitle || active.ctaLabel) ? (
+            <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/80 sm:from-black/60 via-transparent to-black/10" />
+          ) : null}
 
           {/* Left / Right Arrow Navigation (Visible on Hover / Focus) */}
           {banners.length > 1 ? (
@@ -262,15 +264,17 @@ export function GadgetHeroSlider({
 
             {/* CTA Button */}
             {!active.ctaDisabled ? (
-              <Link
-                href={active.href}
-                className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[#f0b429] px-5 py-2 text-xs font-black uppercase tracking-wider text-[#1a1a1a] shadow-[0_8px_20px_rgba(245,166,35,0.4)] transition-all hover:scale-105 hover:bg-[#f5c14d] sm:px-6 sm:text-sm"
-              >
-                <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
-                <span className="max-w-[16ch] truncate sm:max-w-none">
-                  {active.ctaLabel || "Shop Now"}
-                </span>
-              </Link>
+              active.ctaLabel ? (
+                <Link
+                  href={active.href}
+                  className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[#f0b429] px-5 py-2 text-xs font-black uppercase tracking-wider text-[#1a1a1a] shadow-[0_8px_20px_rgba(245,166,35,0.4)] transition-all hover:scale-105 hover:bg-[#f5c14d] sm:px-6 sm:text-sm"
+                >
+                  <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
+                  <span className="max-w-[16ch] truncate sm:max-w-none">
+                    {active.ctaLabel}
+                  </span>
+                </Link>
+              ) : null
             ) : (
               <span className="inline-flex min-h-11 items-center rounded-full bg-white/20 backdrop-blur-md px-5 text-xs font-bold uppercase tracking-wide text-white border border-white/20">
                 Out of stock
@@ -279,6 +283,11 @@ export function GadgetHeroSlider({
           </div>
         </div>
         </div>
+      
+      {/* Invisible link covering entire banner if no button is used */}
+      {(!active.ctaLabel || active.title === "") ? (
+         <Link href={active.href} className="absolute inset-0 z-[5]" aria-label="View product" />
+      ) : null}
     </section>
   );
 }
