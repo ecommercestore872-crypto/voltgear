@@ -221,7 +221,7 @@ export function mapHeroSlide(
   const overrideSubtitle = row.subtitle ? String(row.subtitle).trim() : "";
   return {
     id: String(row.id),
-    title: overrideTitle || product.name,
+    title: overrideTitle || "",
     subtitle: overrideSubtitle || undefined,
     imageUrl: String(row.image_url ?? ""),
     product,

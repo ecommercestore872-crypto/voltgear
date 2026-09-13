@@ -16,7 +16,7 @@ const FADE_MS = 700;
 
 export type GadgetHeroBanner = {
   id: string;
-  title: string;
+  title?: string;
   subtitle?: string | null;
   imageUrl: string;
   mobileImageUrl?: string;
