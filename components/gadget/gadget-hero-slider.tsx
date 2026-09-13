@@ -153,7 +153,7 @@ export function GadgetHeroSlider({
       aria-label="Campaign banners"
     >
       <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
-        <div className="relative w-full min-h-[280px] aspect-[4/3] sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1]">
+        <div className="relative w-full min-h-[320px] aspect-square sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
@@ -172,16 +172,31 @@ export function GadgetHeroSlider({
                 aria-hidden={!isActive}
               >
                 {shouldPaint ? (
-                  <Image
-                    src={banner.imageUrl}
-                    alt=""
-                    fill
-                    priority={i === 0}
-                    fetchPriority={i === 0 ? "high" : "auto"}
-                    quality={100}
-                    className="object-cover object-center"
-                    sizes="100vw"
-                  />
+                  <>
+                    {/* Cinematic Blurred Backdrop for Mobile */}
+                    <div className="absolute inset-0 overflow-hidden sm:hidden select-none pointer-events-none">
+                      <Image
+                        src={banner.imageUrl}
+                        alt=""
+                        fill
+                        quality={10}
+                        className="object-cover object-center scale-125 blur-2xl opacity-60 saturate-150"
+                        sizes="(max-width: 640px) 100vw, 1vw"
+                        aria-hidden
+                      />
+                    </div>
+                    {/* Foreground Uncropped Image (Contain on Mobile, Cover on Desktop) */}
+                    <Image
+                      src={banner.imageUrl}
+                      alt=""
+                      fill
+                      priority={i === 0}
+                      fetchPriority={i === 0 ? "high" : "auto"}
+                      quality={100}
+                      className="object-contain sm:object-cover object-center z-[1]"
+                      sizes="100vw"
+                    />
+                  </>
                 ) : null}
               </div>
             );
