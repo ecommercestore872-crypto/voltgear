@@ -144,7 +144,7 @@ export function GadgetNavbar({
               onClick={() => setOpen(false)}
               className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm font-semibold text-[var(--g-forest)]"
             >
-              All products
+              {settings?.navShopAllText?.trim() || "All products"}
             </Link>
             {links.map((link) => (
               <Link
@@ -230,7 +230,9 @@ export function GadgetNavbar({
           <p className="min-w-0 truncate">
             <span className="text-[var(--g-cream)]">{tagline}</span>
             <span className="mx-2.5 text-white/70">·</span>
-            <span className="text-[var(--g-cream)]">Cash on delivery</span>
+            <span className="text-[var(--g-cream)]">
+              {settings?.topbarAccent?.trim() || "Cash on delivery"}
+            </span>
           </p>
           <nav
             className="flex shrink-0 items-center gap-4 text-[var(--g-cream)]"
@@ -302,7 +304,7 @@ export function GadgetNavbar({
                     className="flex items-center justify-between px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-forest)] hover:bg-[color-mix(in_srgb,var(--g-sage)_12%,var(--g-cream))]"
                     onClick={() => setShopOpen(false)}
                   >
-                    <span>All products</span>
+                    <span>{settings?.navShopAllText?.trim() || "All products"}</span>
                     <span className="text-[var(--g-terracotta)]">→</span>
                   </Link>
                   <div className="mx-3 border-t border-[var(--g-line)]" />

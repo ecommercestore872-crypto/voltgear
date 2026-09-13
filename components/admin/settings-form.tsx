@@ -115,6 +115,10 @@ function fromRow(row?: SettingsRow | null) {
     homeFeaturedProductDescription: str(d.homeFeaturedProductDescription ?? row?.home_featured_product_description),
     homeFeaturedProductSlug: str((d as any).homeFeaturedProductSlug ?? (row as any)?.home_featured_product_slug ?? ""),
     homeFeaturedCustomImage: str((d as any).homeFeaturedCustomImage ?? (row as any)?.home_featured_custom_image ?? ""),
+    homeTrustHeadline: str((d as any).homeTrustHeadline ?? (row as any)?.home_trust_headline ?? ""),
+    homeTrustAccent: str((d as any).homeTrustAccent ?? (row as any)?.home_trust_accent ?? ""),
+    topbarAccent: str((d as any).topbarAccent ?? (row as any)?.topbar_accent ?? ""),
+    navShopAllText: str((d as any).navShopAllText ?? (row as any)?.nav_shop_all_text ?? ""),
   };
 }
 
@@ -191,6 +195,10 @@ export function SettingsForm({
       homeFeaturedProductDescription: form.homeFeaturedProductDescription,
       homeFeaturedProductSlug: form.homeFeaturedProductSlug || null,
       homeFeaturedCustomImage: form.homeFeaturedCustomImage || null,
+      homeTrustHeadline: form.homeTrustHeadline,
+      homeTrustAccent: form.homeTrustAccent,
+      topbarAccent: form.topbarAccent,
+      navShopAllText: form.navShopAllText,
     };
   }
 
@@ -432,6 +440,10 @@ export function SettingsForm({
               ["homeBestsellersTitle", "Bestsellers Title"],
               ["homeOffersTitle", "Offers Title"],
               ["homeCategoriesTitle", "Categories Banner Title"],
+              ["homeTrustHeadline", "Trust Strip Headline (e.g. Exceptional Quality)"],
+              ["homeTrustAccent", "Trust Strip Accent (e.g. Delivered)"],
+              ["topbarAccent", "Topbar Message (e.g. Cash on delivery)"],
+              ["navShopAllText", "Navbar 'All products' Link Text"],
             ].map(([key, label]) => (
               <div key={key} className="space-y-1.5">
                 <Label>{label}</Label>

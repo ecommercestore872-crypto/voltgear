@@ -250,7 +250,12 @@ export async function GadgetHomePage() {
         switch (id) {
           case "trust":
             section = trustItems.length ? (
-              <GadgetTrustStrip key={id} items={trustItems} />
+              <GadgetTrustStrip 
+                key={id} 
+                items={trustItems} 
+                headline={config.homeTrustHeadline ?? undefined}
+                accent={config.homeTrustAccent ?? undefined}
+              />
             ) : null;
             break;
           case "bestsellers":
