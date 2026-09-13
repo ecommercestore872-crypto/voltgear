@@ -8,6 +8,7 @@ import {
   listAdminHeroSlides,
   listAdminProducts,
 } from "@/lib/db/admin-store";
+import { fetchActiveCategories } from "@/lib/db/store";
 
 export const metadata: Metadata = {
   title: "Hero",
@@ -34,12 +35,14 @@ export default async function AdminHeroPage() {
     id: p._id,
     name: p.name || p.slug || p._id,
   }));
+  const categories = await fetchActiveCategories();
 
   return (
     <div className="mx-auto max-w-3xl space-y-12">
       <HeroSlidesForm
         slides={slides as never}
         products={products}
+        categories={categories}
         blockers={blockers}
       />
       <details className="rounded-lg border p-4">

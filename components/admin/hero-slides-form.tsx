@@ -32,10 +32,12 @@ type SlideRow = {
 export function HeroSlidesForm({
   slides: initialSlides,
   products,
+  categories = [],
   blockers,
 }: {
   slides: SlideRow[];
   products: ProductOption[];
+  categories: string[];
   blockers: string[];
 }) {
   const router = useRouter();
@@ -43,8 +45,11 @@ export function HeroSlidesForm({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState({
+    linkType: "product" as "product" | "category" | "all",
+    categoryId: categories[0] ?? "",
     productId: products[0]?.id ?? "",
     imageUrl: "",
+    mobileImageUrl: "",
     title: "",
     subtitle: "",
     ctaText: "",
@@ -88,7 +93,13 @@ export function HeroSlidesForm({
             productId,
             imageUrl,
             title: draft.title,
-            subtitle: JSON.stringify({ text: draft.subtitle, cta: draft.ctaText }),
+            subtitle: JSON.stringify({ 
+              text: draft.subtitle, 
+              cta: draft.ctaText,
+              mobile: draft.mobileImageUrl,
+              linkType: draft.linkType,
+              category: draft.categoryId
+            }),
           },
         }),
       });
@@ -104,7 +115,7 @@ export function HeroSlidesForm({
           },
         ]);
       }
-      setDraft((d) => ({ ...d, imageUrl: "", title: "", subtitle: "", ctaText: "" }));
+      setDraft((d) => ({ ...d, imageUrl: "", mobileImageUrl: "", title: "", subtitle: "", ctaText: "" }));
     });
   }
 
@@ -225,24 +236,63 @@ export function HeroSlidesForm({
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Add slide
         </h2>
-        <div className="space-y-1.5">
-          <Label>Product</Label>
-          <select
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={draft.productId}
-            onChange={(e) =>
-              setDraft((d) => ({ ...d, productId: e.target.value }))
-            }
-          >
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label>Click Destination Mode</Label>
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={draft.linkType}
+              onChange={(e) => setDraft((d) => ({ ...d, linkType: e.target.value as any }))}
+            >
+              <option value="product">Specific Product</option>
+              <option value="category">Category</option>
+              <option value="all">All Products (Generic)</option>
+            </select>
+          </div>
+          
+          {draft.linkType === "product" ? (
+            <div className="space-y-1.5">
+              <Label>Featured product</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={draft.productId}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, productId: e.target.value }))
+                }
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : draft.linkType === "category" ? (
+            <div className="space-y-1.5">
+              <Label>Select Category</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={draft.categoryId}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, categoryId: e.target.value }))
+                }
+              >
+                {categories.map((c: string) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="space-y-1.5 flex items-center justify-center">
+              <p className="text-sm text-muted-foreground mt-8 text-center">Links to general /products</p>
+            </div>
+          )}
         </div>
+
         <MediaField
-          label="Slide image"
+          label="Desktop / Base Slide image"
           urls={draft.imageUrl ? [draft.imageUrl] : []}
           onChange={(urls) =>
             setDraft((d) => ({
@@ -257,6 +307,19 @@ export function HeroSlidesForm({
             Ready: {draft.imageUrl}
           </p>
         ) : null}
+        
+        <MediaField
+          label="Mobile Image (Optional)"
+          urls={draft.mobileImageUrl ? [draft.mobileImageUrl] : []}
+          onChange={(urls) =>
+            setDraft((d) => ({
+              ...d,
+              mobileImageUrl: (urls[urls.length - 1] ?? "").trim(),
+            }))
+          }
+          hint="If provided, this image will load specifically for mobile phones. Leave blank to automatically adapt the Desktop image."
+        />
+
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Title override</Label>

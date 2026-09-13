@@ -19,6 +19,7 @@ export type GadgetHeroBanner = {
   title: string;
   subtitle?: string | null;
   imageUrl: string;
+  mobileImageUrl?: string;
   href: string;
   ctaDisabled?: boolean;
   ctaLabel?: string;
@@ -29,6 +30,8 @@ function fromAdminSlides(slides: HeroSlide[]): GadgetHeroBanner[] {
     const cta = resolveSlideCta(slide.product.stockStatus);
     let subtitle = slide.subtitle;
     let ctaLabel = "Shop " + (slide.title || "this offer");
+    let mobileImageUrl = "";
+    let href = product2Href(slide.product.slug);
 
     if (subtitle && subtitle.trim().startsWith("{")) {
       try {
@@ -36,6 +39,14 @@ function fromAdminSlides(slides: HeroSlide[]): GadgetHeroBanner[] {
         subtitle = parsed.text || "";
         if (parsed.cta) {
           ctaLabel = parsed.cta;
+        }
+        if (parsed.mobile) {
+          mobileImageUrl = parsed.mobile;
+        }
+        if (parsed.linkType === "all") {
+          href = "/products";
+        } else if (parsed.linkType === "category" && parsed.category) {
+          href = `/products?category=${parsed.category}`;
         }
       } catch (e) {
         // Fallback to plain string if parse fails
@@ -47,7 +58,8 @@ function fromAdminSlides(slides: HeroSlide[]): GadgetHeroBanner[] {
       title: slide.title, // NO fallback to product name! If they leave it blank, no text overlay!
       subtitle,
       imageUrl: slide.imageUrl,
-      href: product2Href(slide.product.slug),
+      mobileImageUrl,
+      href,
       ctaDisabled: cta.disabled,
       ctaLabel: ctaLabel === "Shop this offer" ? "" : ctaLabel, // If empty, we can just omit it
     };
@@ -176,7 +188,7 @@ export function GadgetHeroSlider({
                     {/* Cinematic Blurred Backdrop for Mobile */}
                     <div className="absolute inset-0 overflow-hidden sm:hidden select-none pointer-events-none">
                       <Image
-                        src={banner.imageUrl}
+                        src={banner.mobileImageUrl || banner.imageUrl}
                         alt=""
                         fill
                         quality={10}
@@ -185,7 +197,19 @@ export function GadgetHeroSlider({
                         aria-hidden
                       />
                     </div>
-                    {/* Foreground Uncropped Image (Contain on Mobile, Cover on Desktop) */}
+                    {/* Foreground Uncropped Image (Selectively render mobile version if provided) */}
+                    {banner.mobileImageUrl ? (
+                      <Image
+                        src={banner.mobileImageUrl}
+                        alt=""
+                        fill
+                        priority={i === 0}
+                        fetchPriority={i === 0 ? "high" : "auto"}
+                        quality={100}
+                        className="object-cover sm:hidden object-center z-[1]"
+                        sizes="100vw"
+                      />
+                    ) : null}
                     <Image
                       src={banner.imageUrl}
                       alt=""
@@ -193,7 +217,7 @@ export function GadgetHeroSlider({
                       priority={i === 0}
                       fetchPriority={i === 0 ? "high" : "auto"}
                       quality={100}
-                      className="object-contain sm:object-cover object-center z-[1]"
+                      className={banner.mobileImageUrl ? "hidden sm:block object-cover object-center z-[1]" : "object-contain sm:object-cover object-center z-[1]"}
                       sizes="100vw"
                     />
                   </>
