@@ -230,7 +230,7 @@ export function TrackOrder() {
               onChange={(e) => setOrderId(e.target.value)}
               required
               autoComplete="off"
-              placeholder="e.g. VG-1042"
+              placeholder="e.g. BNT-1042"
               className="h-12 rounded-xl bg-slate-50/50"
             />
             <p className="text-[13px] text-muted-foreground/80">

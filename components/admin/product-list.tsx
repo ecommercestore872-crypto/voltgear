@@ -220,25 +220,30 @@ export function ProductList({
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <Input
-          placeholder="Search name, slug, status, or category"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Search products"
-          className="max-w-md h-10 shadow-sm"
-        />
+      <div className="flex flex-col gap-4">
+        <div className="relative w-full max-w-md">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+          <Input
+            placeholder="Search name, slug, status, or category"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Search products"
+            className="h-10 pl-9 shadow-sm bg-white dark:bg-zinc-900/50"
+          />
+        </div>
         <div
-          className="flex flex-wrap gap-2"
+          className="flex flex-wrap items-center gap-2"
           role="group"
           aria-label="Filter by category"
         >
           <Button
             type="button"
             size="sm"
-            variant={categoryFilter === "all" ? "default" : "outline"}
+            variant={categoryFilter === "all" ? "default" : "secondary"}
             onClick={() => setCategoryFilter("all")}
-            className="shadow-sm"
+            className={`shadow-sm rounded-full px-4 transition-all ${categoryFilter === "all" ? "" : "bg-muted/50 hover:bg-muted"}`}
           >
             All
           </Button>
@@ -247,12 +252,14 @@ export function ProductList({
               key={g.slug}
               type="button"
               size="sm"
-              variant={categoryFilter === g.slug ? "default" : "outline"}
+              variant={categoryFilter === g.slug ? "default" : "secondary"}
               onClick={() => setCategoryFilter(g.slug)}
-              className="shadow-sm"
+              className={`shadow-sm rounded-full px-4 transition-all ${categoryFilter === g.slug ? "" : "bg-muted/50 hover:bg-muted"}`}
             >
               {g.name}
-              <span className="ml-1 opacity-70">({g.products.length})</span>
+              <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${categoryFilter === g.slug ? "bg-primary-foreground/20 text-primary-foreground" : "bg-foreground/10 text-foreground"}`}>
+                {g.products.length}
+              </span>
             </Button>
           ))}
         </div>

@@ -1,12 +1,12 @@
 const FIRST_ORDER_NUMBER = 1001;
 
-/** Store + running number. Example: VG-1042 */
+/** Store + running number. Example: BNT-1042 */
 export function formatOrderId(n: number): string {
-  return `VG-${n}`;
+  return `BNT-${n}`;
 }
 
 export function parseSequentialOrderNumber(id: string): number | null {
-  const match = /^VG-(\d+)$/.exec(id.trim());
+  const match = /^BNT-(\d+)$/.exec(id.trim());
   if (!match) return null;
   const n = Number(match[1]);
   if (!Number.isInteger(n) || n < 1) return null;

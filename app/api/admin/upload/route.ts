@@ -64,10 +64,20 @@ export async function POST(request: Request) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const mimeType = file.type || "application/octet-stream";
       const base64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
-      const result = await cloudinary.uploader.upload(base64, {
+      
+      const fileExt = (file.name || "").split(".").pop()?.toLowerCase();
+      const isHeic = fileExt === "heic" || fileExt === "heif" || mimeType.includes("heic") || mimeType.includes("heif");
+      
+      const uploadOptions: Record<string, any> = {
         folder,
         resource_type: isVideo ? "video" : "image",
-      });
+      };
+      
+      if (isHeic) {
+        uploadOptions.format = "webp";
+      }
+      
+      const result = await cloudinary.uploader.upload(base64, uploadOptions);
       return NextResponse.json({
         publicId: result.public_id,
         secureUrl: result.secure_url,

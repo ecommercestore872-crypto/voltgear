@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { ArrowDown, ArrowUp, Plus, Trash2, Upload, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ export function MediaField({
   accept?: string;
   hint?: string;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [paste, setPaste] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +53,7 @@ export function MediaField({
     } finally {
       setBusy(false);
       onBusyChange?.(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -137,17 +139,33 @@ export function MediaField({
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Input
-          type="file"
-          accept={accept}
-          disabled={busy}
-          onChange={(e) => onFile(e.target.files?.[0])}
-        />
-        <div className="flex flex-1 gap-2">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => fileInputRef.current?.click()}
+            className="shrink-0 shadow-sm"
+          >
+            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+            {busy ? "Uploading..." : "Upload File"}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            disabled={busy}
+            className="hidden"
+            onChange={(e) => onFile(e.target.files?.[0])}
+          />
+          <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">or paste link:</span>
+        </div>
+        <div className="flex flex-1 gap-2 w-full min-w-0">
           <Input
-            placeholder="Paste URL"
+            placeholder="https://..."
             value={paste}
+            className="min-w-0 shadow-sm"
             onChange={(e) => setPaste(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -159,7 +177,7 @@ export function MediaField({
               if (paste.trim()) addPaste();
             }}
           />
-          <Button type="button" variant="outline" onClick={addPaste}>
+          <Button type="button" variant="outline" onClick={addPaste} className="shrink-0 shadow-sm">
             <Plus className="mr-1 h-4 w-4" />
             Add
           </Button>

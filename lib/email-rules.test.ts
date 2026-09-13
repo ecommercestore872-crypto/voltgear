@@ -124,7 +124,7 @@ describe("buildAdminNewOrderEmail", () => {
     assert.match(msg.html, /because a customer placed an order/);
     assert.match(msg.html, /bnt-seal\.png/);
     assert.match(msg.html, /Staff alert/);
-    assert.match(msg.html, /Open this order/);
+    assert.match(msg.html, /Open Dashboard/);
     assert.equal(msg.html.includes("ECOMMERCE STORE"), false);
   });
 

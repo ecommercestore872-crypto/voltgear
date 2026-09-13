@@ -73,7 +73,7 @@ describe("validateBlogDoc", () => {
       assert.equal(check.ok, true, `${post.slug}: ${check.ok ? "" : check.error}`);
       assert.ok(post.coverImage, `${post.slug} needs a cover`);
     }
-    assert.equal(FALLBACK_BLOG_POSTS.length, 6);
+    assert.equal(FALLBACK_BLOG_POSTS.length, 11);
   });
 });
 
