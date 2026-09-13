@@ -9,40 +9,30 @@ export const CANONICAL_PUBLIC_ORIGIN = "https://buyntryy.com";
  */
 const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
   earbuds: [
-    "earbuds",
-    "airbuds",
-    "air buds",
-    "wireless earbuds",
-    "TWS earbuds",
-    "handsfree",
-    "earbuds Pakistan",
-    "earbuds COD",
+    "true wireless earbuds",
+    "noise cancelling bluetooth earphones",
+    "best wireless earbuds for running that don't fall out",
+    "gaming earbuds with low latency mic",
+    "transparent case wireless earbuds",
+    "earbuds COD Pakistan",
   ],
   smartwatch: [
-    "smartwatch",
-    "smart watch",
-    "smartwatches",
-    "calling smartwatch",
-    "AMOLED smartwatch",
+    "Bluetooth calling smartwatch",
+    "Fitness tracker watch",
+    "smartwatch with blood pressure monitor and calling",
+    "waterproof smartwatch for swimming",
+    "best android smartwatch for fitness",
     "smartwatch Pakistan",
-    "smartwatch under 5000 Pakistan",
-    "budget calling smartwatch Pakistan",
   ],
   "power-bank": [
-    "power bank",
-    "powerbank",
-    "power banks",
-    "20000mAh power bank",
-    "10000mAh power bank",
-    "power bank Pakistan",
-    "best 20000mah power bank Pakistan",
-    "best powerbank for iphone pakistan",
+    "Fast charging power bank",
+    "Magnetic portable charger",
+    "20000mAh power bank 65w for laptop and phone",
+    "magsafe wireless power bank for iPhone 15",
+    "mini pocket power bank type-c",
+    "power bank Pakistan COD",
   ],
   charger: [
-    "charger",
-    "chargers",
-    "adapters",
-    "adapter",
     "fast charger",
     "GaN charger",
     "65W charger",
@@ -50,42 +40,34 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     "charger Pakistan",
   ],
   "ring-light": [
-    "ring light",
-    "ring lights",
-    "studio light",
-    "LED ring light",
+    "LED ring light with stand",
+    "Content creator lighting kit",
+    "18 inch dimmable ring light with tripod for makeup",
+    "clip-on selfie ring light for phone cases",
+    "desktop ring light for zoom meetings",
     "ring light Pakistan",
   ],
   "selfie-stick": [
-    "selfie stick",
-    "selfie sticks",
     "bluetooth selfie stick",
     "selfie stick Pakistan",
   ],
   tripod: [
-    "tripod",
-    "tripods",
-    "camera tripod",
-    "phone tripod",
-    "light stand",
-    "ring light stand",
+    "Mobile tripod stand",
+    "Flexible camera mount",
+    "overhead video tripod stand for flat lay recording",
+    "flexible octopus tripod for vlogging on the go",
+    "heavy duty 60-inch aluminum phone tripod",
     "tripod Pakistan",
   ],
   microphones: [
-    "microphone",
-    "lavalier",
-    "wireless mic",
-    "lapel mic",
-    "wireless microphone Pakistan",
-    "J10 wireless mic price in Pakistan",
-    "K9 wireless mic pakistan",
-    "best vlogging mic pakistan",
+    "Wireless collar mic",
+    "USB streaming microphone",
+    "dual wireless lavalier microphone for iPhone Type-C",
+    "plug and play podcast mic with noise reduction",
+    "vlogging mic for mobile phone outdoors",
+    "wireless mic Pakistan",
   ],
   accessories: [
-    "stylus pen",
-    "universal stylus",
-    "touch screen pen",
-    "active stylus",
     "stylus pen Pakistan",
     "accessories",
   ],
@@ -112,6 +94,33 @@ const CATEGORY_HUB_BLURBS: Record<string, string> = {
     "Shop universal stylus pens and tech accessories in Pakistan at Buy n Try. Precise writing for phones, tablets and touchscreens — cash on delivery from buyntryy.com.",
 };
 
+export const CATEGORY_FAQS: Record<string, { question: string; answer: string }[]> = {
+  earbuds: [
+    { question: "How to fix one earbud not pairing", answer: "Ensure both earbuds are fully charged, place them back in the case, hold the reset button for 10 seconds, and repair via Bluetooth." },
+    { question: "Differences between ANC and ENC in earbuds", answer: "ANC (Active Noise Cancellation) blocks outside sounds for the listener, while ENC (Environmental Noise Cancellation) filters out background noise for the person you are calling." }
+  ],
+  smartwatch: [
+    { question: "How to connect a bluetooth smartwatch to iPhone", answer: "Download the companion app from the App Store, turn on Bluetooth on your iPhone, open the app, and follow the setup wizard to pair the device." },
+    { question: "Which smartwatches have the best battery life?", answer: "AMOLED smartwatches typically offer 7-10 days of battery life, while more basic LCD fitness trackers can last up to 14 days on a single charge." }
+  ],
+  "power-bank": [
+    { question: "How many times can a 10000mah power bank charge an iPhone?", answer: "A 10000mAh power bank can typically charge a standard iPhone about 2 to 2.5 times from 0 to 100%." },
+    { question: "Can I take a 20000mah power bank on a plane?", answer: "Yes, 20000mAh power banks are roughly 74Wh, which is well below the 100Wh limit set by most airlines for carry-on luggage." }
+  ],
+  "ring-light": [
+    { question: "What size ring light is best for TikTok videos?", answer: "A 12-inch to 18-inch ring light is ideal for TikTok videos. 18-inch models provide full-body lighting, while 12-inch is perfect for close-up seated videos." },
+    { question: "How to setup a ring light to avoid glasses glare", answer: "Position the ring light slightly above your head level and angle it downward at a 45-degree angle to bounce the light away from your glasses." }
+  ],
+  microphones: [
+    { question: "How to record clear audio on phone outdoors", answer: "Use a wireless lavalier microphone with a furry wind muff (deadcat) to block wind noise, and clip it close to your mouth." },
+    { question: "Do I need an adapter for a wireless lavalier mic?", answer: "It depends on your phone. Newer iPhones and Androids use Type-C, so you must select a Type-C receiver. Older iPhones require an Apple Lightning receiver or adapter." }
+  ],
+  tripod: [
+    { question: "Best tripod stand for shooting top-down videos", answer: "You need an overhead tripod stand with a boom arm or a flat-lay extension arm to shoot straight down without getting the legs in the shot." },
+    { question: "How to stabilize a tall tripod outdoors", answer: "Hang a heavy bag or sandbags from the center column hook, and spread the tripod legs wider for maximum ground stability." }
+  ],
+};
+
 /** Spellings people type when searching for this store. */
 export function brandSearchAliases(): string[] {
   const names = [
@@ -124,7 +133,7 @@ export function brandSearchAliases(): string[] {
     "BNT store",
     "buy and try",
   ];
-  return [...new Set(names)];
+  return Array.from(new Set(names));
 }
 
 export function indexSiteUrl(env: Record<string, string | undefined> = process.env): string {
@@ -390,8 +399,11 @@ export function categoryStructuredData(input: {
   path: string;
   description?: string;
   items: { name: string; path: string }[];
+  slug?: string;
 }) {
   const pageUrl = absoluteUrl(input.path, input.siteUrl);
+  const faqs = (input.slug && CATEGORY_FAQS[input.slug]) || [];
+  
   return {
     collection: {
       "@context": "https://schema.org",
@@ -421,6 +433,18 @@ export function categoryStructuredData(input: {
         { "@type": "ListItem", position: 3, name: input.name, item: pageUrl },
       ],
     },
+    faq: faqs.length > 0 ? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map(f => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: f.answer
+        }
+      }))
+    } : undefined,
   };
 }
 

@@ -22,7 +22,16 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [...SEARCH_CRAWL_DISALLOW],
       },
       {
-        userAgent: ["Bingbot", "BingPreview"],
+        userAgent: [
+          "Bingbot", 
+          "BingPreview",
+          "GPTBot",
+          "ChatGPT-User",
+          "PerplexityBot",
+          "ClaudeBot",
+          "anthropic-ai",
+          "Google-Extended"
+        ],
         allow: "/",
         disallow: [...SEARCH_CRAWL_DISALLOW],
       },

@@ -17,7 +17,14 @@ import {
   categoryStructuredData,
   indexSiteUrl,
   storeAlternatesLanguages,
+  CATEGORY_FAQS,
 } from "@/lib/seo-rules";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const revalidate = 60;
 
@@ -89,6 +96,7 @@ export default async function Products2CategoryPage({
     siteUrl: indexSiteUrl(),
     name: title,
     path: `/products/${params.category}`,
+    slug: params.category,
     description: hubCopy,
     items: categoryProducts.slice(0, 20).map((product) => ({
       name: product.name,
@@ -96,16 +104,21 @@ export default async function Products2CategoryPage({
     })),
   });
 
+  const faqs = CATEGORY_FAQS[params.category] || [];
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            structured.collection,
-            structured.itemList,
-            structured.breadcrumb,
-          ]).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(
+            [
+              structured.collection,
+              structured.itemList,
+              structured.breadcrumb,
+              structured.faq,
+            ].filter(Boolean)
+          ).replace(/</g, "\\u003c"),
         }}
       />
       <Suspense
@@ -129,6 +142,31 @@ export default async function Products2CategoryPage({
           ]}
         />
       </Suspense>
+
+      {faqs.length > 0 && (
+        <section className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+              Common Questions About {title}
+            </h2>
+            <p className="mt-4 text-lg text-slate-600">
+              Expert answers to help you choose the right {title.toLowerCase()} in Pakistan.
+            </p>
+          </div>
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {faqs.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border border-slate-200 bg-white px-6 rounded-xl shadow-sm data-[state=open]:ring-2 data-[state=open]:ring-primary/20 transition-all">
+                <AccordionTrigger className="text-left text-[17px] font-bold text-slate-800 hover:text-primary hover:no-underline py-5">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-slate-600 text-base leading-relaxed pb-6">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
+      )}
     </>
   );
 }
