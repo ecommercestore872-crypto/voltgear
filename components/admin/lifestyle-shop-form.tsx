@@ -116,15 +116,45 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
             />
           </div>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="ls-title">Heading</Label>
-          <Input
-            id="ls-title"
-            value={shop.banner.title}
-            onChange={(e) => setBanner("title", e.target.value)}
-            placeholder="Rethinking everyday tech"
-          />
-        </div>
+        {(() => {
+          let parsedTitle = shop.banner.title;
+          let subtitle = "";
+          if (parsedTitle.trim().startsWith("{")) {
+            try {
+              const p = JSON.parse(parsedTitle);
+              parsedTitle = p.text || "";
+              subtitle = p.subtitle || "";
+            } catch {}
+          }
+          
+          const updateJson = (key: string, val: string) => {
+            const payload = { text: parsedTitle, subtitle, [key]: val };
+            setBanner("title", JSON.stringify(payload));
+          };
+
+          return (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="ls-title">Main Heading</Label>
+                <Input
+                  id="ls-title"
+                  value={parsedTitle}
+                  onChange={(e) => updateJson("text", e.target.value)}
+                  placeholder="Upgrade Everyday Tech"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ls-sub">Subtitle (Optional)</Label>
+                <Input
+                  id="ls-sub"
+                  value={subtitle}
+                  onChange={(e) => updateJson("subtitle", e.target.value)}
+                  placeholder="Premium accessories for work..."
+                />
+              </div>
+            </div>
+          );
+        })()}
         <div className="space-y-1.5">
           <Label htmlFor="ls-href">Button link</Label>
           <Input
@@ -138,39 +168,66 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
 
       <div className="space-y-4">
         <h3 className="text-sm font-semibold">Four cards</h3>
-        {shop.tiles.map((tile, index) => (
-          <div key={index} className="space-y-3 rounded-md border p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Card {index + 1}
-            </p>
-            <MediaField
-              label="Card image"
-              hint="Format: JPG, WEBP, or PNG. Recommended size: 1080x1080px (Square) to prevent distortion."
-              urls={tile.imageUrl ? [tile.imageUrl] : []}
-              onChange={(urls) => setTile(index, { imageUrl: urls[urls.length - 1] ?? "" })}
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor={`ls-tile-title-${index}`}>Title</Label>
-                <Input
-                  id={`ls-tile-title-${index}`}
-                  value={tile.title}
-                  onChange={(e) => setTile(index, { title: e.target.value })}
-                  placeholder="For Everyday"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor={`ls-tile-href-${index}`}>Link</Label>
-                <Input
-                  id={`ls-tile-href-${index}`}
-                  value={tile.href}
-                  onChange={(e) => setTile(index, { href: e.target.value })}
-                  placeholder="/products2/smartwatch"
-                />
+        {shop.tiles.map((tile, index) => {
+          let parsedTitle = tile.title;
+          let eyebrow = "";
+          let subtitle = "";
+          let footer = "";
+          if (tile.title.trim().startsWith("{")) {
+            try {
+              const p = JSON.parse(tile.title);
+              parsedTitle = p.text || "";
+              eyebrow = p.eyebrow || "";
+              subtitle = p.sub || "";
+              footer = p.footer || "";
+            } catch {}
+          }
+
+          const updateJson = (key: string, val: string) => {
+            const payload = { text: parsedTitle, eyebrow, sub: subtitle, footer, [key]: val };
+            setTile(index, { title: JSON.stringify(payload) });
+          };
+
+          return (
+            <div key={index} className="space-y-4 rounded-lg border p-4 bg-muted/10">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Card {index + 1}
+              </p>
+              <MediaField
+                label="Card image"
+                hint="Format: JPG, WEBP, or PNG. Fill-bleed layout."
+                urls={tile.imageUrl ? [tile.imageUrl] : []}
+                onChange={(urls) => setTile(index, { imageUrl: urls[urls.length - 1] ?? "" })}
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5 border-t pt-2">
+                  <Label>Top Eyebrow (e.g. WRIST TECH)</Label>
+                  <Input value={eyebrow} onChange={(e) => updateJson("eyebrow", e.target.value)} />
+                </div>
+                <div className="space-y-1.5 border-t pt-2">
+                  <Label>Main Title (e.g. For Everyday)</Label>
+                  <Input value={parsedTitle} onChange={(e) => updateJson("text", e.target.value)} />
+                </div>
+                <div className="space-y-1.5 border-t pt-2">
+                  <Label>Subtitle (e.g. Style that keeps up)</Label>
+                  <Input value={subtitle} onChange={(e) => updateJson("sub", e.target.value)} />
+                </div>
+                <div className="space-y-1.5 border-t pt-2">
+                  <Label>Bottom Footer Text</Label>
+                  <Input value={footer} onChange={(e) => updateJson("footer", e.target.value)} />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2 border-t pt-2">
+                  <Label>Target Link Destination</Label>
+                  <Input
+                    value={tile.href}
+                    onChange={(e) => setTile(index, { href: e.target.value })}
+                    placeholder="/products/smartwatch"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <Button type="button" disabled={busy} onClick={() => void save()}>
