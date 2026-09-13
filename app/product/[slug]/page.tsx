@@ -324,6 +324,30 @@ export default async function Product2Page({
             </div>
           </section>
         ) : null}
+
+        {/* SEO Internal Link Matrix */}
+        <section className="mt-16 border-t border-[var(--g-border)]/20 pt-10 pb-8">
+          <h3 className="text-xl font-bold text-slate-800 mb-6">Explore Popular Categories in Pakistan</h3>
+          <div className="flex flex-wrap gap-3">
+            {[
+              { name: "Bluetooth Calling Smartwatches", path: "/products/smartwatch" },
+              { name: "Noise Cancelling Earbuds", path: "/products/earbuds" },
+              { name: "Fast Charging Power Banks", path: "/products/power-bank" },
+              { name: "Wireless Vlogging Mics", path: "/products/microphones" },
+              { name: "Tripod Stands for Mobile", path: "/products/tripod" },
+              { name: "Selfie Ring Lights", path: "/products/ring-light" },
+              { name: "GaN Fast Chargers", path: "/products/charger" },
+            ].map((link) => (
+              <Link 
+                key={link.name} 
+                href={link.path}
+                className="bg-white border border-slate-200 text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 transition-colors px-4 py-2 rounded-full text-sm font-medium shadow-sm"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
