@@ -153,7 +153,7 @@ export function GadgetHeroSlider({
       aria-label="Campaign banners"
     >
       <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
-        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[2.4/1]">
+        <div className="relative w-full min-h-[280px] aspect-[4/3] sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
@@ -179,7 +179,7 @@ export function GadgetHeroSlider({
                     priority={i === 0}
                     fetchPriority={i === 0 ? "high" : "auto"}
                     quality={100}
-                    className="object-contain sm:object-cover object-center"
+                    className="object-cover object-center"
                     sizes="100vw"
                   />
                 ) : null}
