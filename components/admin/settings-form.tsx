@@ -10,6 +10,7 @@ import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MediaField } from "@/components/admin/media-field";
 import type { PublishStatus } from "@/lib/db/publish";
 import {
   DEFAULT_FOOTER_CARE_LINKS,
@@ -508,15 +509,15 @@ export function SettingsForm({
                   </select>
                 </div>
                 
-                <div className="sm:col-span-2 space-y-1.5 mt-2">
-                  <Label>Custom Banner Layout Image (Optional)</Label>
-                  <p className="text-[10px] text-muted-foreground pb-1">Upload a highly-polished lifestyle shot exactly for this home banner instead of the standard white background.</p>
-                  <Input
-                    placeholder="https://... (image URL)"
-                    value={form.homeFeaturedCustomImage}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, homeFeaturedCustomImage: e.target.value }))
+                <div className="sm:col-span-2 space-y-1.5 mt-4">
+                  <MediaField
+                    label="Custom Banner Layout Image (Optional)"
+                    hint="Recommended size: 1000 × 1000px (1:1 Square) transparent PNG or high-res JPG. This replaces the default product image exclusively in the banner."
+                    urls={form.homeFeaturedCustomImage ? [form.homeFeaturedCustomImage] : []}
+                    onChange={(urls) =>
+                      setForm((f) => ({ ...f, homeFeaturedCustomImage: urls[0] || "" }))
                     }
+                    onBusyChange={setSaving}
                   />
                 </div>
               </div>
