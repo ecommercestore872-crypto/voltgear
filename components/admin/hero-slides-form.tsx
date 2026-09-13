@@ -157,6 +157,27 @@ export function HeroSlidesForm({
     });
   }
 
+  function updateSlideContent(slideId: string, updates: any) {
+    setSlides((prev) =>
+      prev.map((s) => {
+        if (s.id !== slideId) return s;
+        let p: any = { text: "", cta: "", linkType: "product", category: "", mobile: "" };
+        if (s.subtitle && s.subtitle.startsWith("{")) {
+          try { p = { ...p, ...JSON.parse(s.subtitle) }; } catch {}
+        }
+        if (updates.title !== undefined) s.title = updates.title;
+        if (updates.productId !== undefined) s.product_id = updates.productId;
+        if (updates.subtitleText !== undefined) p.text = updates.subtitleText;
+        if (updates.cta !== undefined) p.cta = updates.cta;
+        if (updates.linkType !== undefined) p.linkType = updates.linkType;
+        if (updates.category !== undefined) p.category = updates.category;
+        if (updates.mobile !== undefined) p.mobile = updates.mobile;
+        s.subtitle = JSON.stringify(p);
+        return { ...s };
+      })
+    );
+  }
+
   async function updateSlideImage(id: string, urls: string[]) {
     const imageUrl = urls[urls.length - 1] ?? "";
     const row = slides.find((s) => s.id === id);
@@ -375,12 +396,14 @@ export function HeroSlidesForm({
           let sub = slide.subtitle || "";
           let cta = ""; 
           let linkType = "product";
+          let categoryId = "";
           if (sub && sub.trim().startsWith("{")) {
             try {
               const p = JSON.parse(sub);
               sub = p.text || ""; 
               cta = p.cta || ""; 
               linkType = p.linkType || "product";
+              categoryId = p.category || "";
             } catch {}
           }
           
@@ -464,12 +487,103 @@ export function HeroSlidesForm({
                 </div>
               </div>
             </div>
-            <MediaField
-              label="Replace image"
-              hint="Format: JPG, WEBP, or PNG. Recommended size: 1920x1080px (16:9) to prevent distortion."
-              urls={slide.image_url ? [slide.image_url] : []}
-              onChange={(urls) => updateSlideImage(slide.id, urls)}
-            />
+            
+            <div className="mt-2">
+              <details className="group [&_summary::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer select-none items-center gap-2 text-sm font-semibold text-primary hover:opacity-80">
+                  <span className="group-open:hidden">▶ Edit Details</span>
+                  <span className="hidden group-open:inline">▼ Hide Details</span>
+                </summary>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 rounded-lg border bg-muted/20 p-4">
+                  <div className="space-y-1.5">
+                    <Label>Title override</Label>
+                    <Input
+                      value={slide.title || ""}
+                      onChange={(e) => updateSlideContent(slide.id, { title: e.target.value })}
+                      placeholder="Optional title"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Subtitle override</Label>
+                    <Input
+                      value={sub}
+                      onChange={(e) => updateSlideContent(slide.id, { subtitleText: e.target.value })}
+                      placeholder="Optional subtitle"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Shop Button Text</Label>
+                    <Input
+                      value={cta}
+                      onChange={(e) => updateSlideContent(slide.id, { cta: e.target.value })}
+                      placeholder="e.g. SHOP EARBUDS"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Click Destination Mode</Label>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      value={linkType}
+                      onChange={(e) => updateSlideContent(slide.id, { linkType: e.target.value })}
+                    >
+                      <option value="product">Specific Product</option>
+                      <option value="category">Category</option>
+                      <option value="all">All Products (Generic)</option>
+                      <option value="none">No Link (Unclickable)</option>
+                    </select>
+                  </div>
+                  
+                  {linkType === "product" && (
+                    <div className="space-y-1.5">
+                      <Label>Product ID</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={slide.product_id || ""}
+                        onChange={(e) => updateSlideContent(slide.id, { productId: e.target.value })}
+                      >
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {linkType === "category" && (
+                    <div className="space-y-1.5">
+                      <Label>Category Slug</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={categoryId || categories[0]}
+                        onChange={(e) => updateSlideContent(slide.id, { category: e.target.value })}
+                      >
+                        {categories.map((c: string) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="sm:col-span-2 pt-2 border-t flex gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => patchSlide(slide.id, "save", slide)}
+                      disabled={busy}
+                    >
+                      Save Slide Details
+                    </Button>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <div className="mt-4 border-t pt-4 space-y-4">
+              <MediaField
+                label="Replace image"
+                hint="Format: JPG, WEBP, or PNG. Recommended size: 1920x1080px (16:9) to prevent distortion."
+                urls={slide.image_url ? [slide.image_url] : []}
+                onChange={(urls) => updateSlideImage(slide.id, urls)}
+              />
+            </div>
           </div>
         );})}
       </div>
