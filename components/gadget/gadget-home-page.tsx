@@ -12,6 +12,7 @@ import {
   fetchBlogPosts,
   fetchHeroSlides,
   fetchHomepageProducts,
+  fetchProductBySlug,
   fetchShopTypes,
   fetchSiteSettings,
   fetchTestimonials,
@@ -86,6 +87,13 @@ export async function GadgetHomePage() {
       ...rail,
       products: applyGadgetStudioImagesList(rail.products),
     }));
+
+    if (settings?.draft?.homeFeaturedProductSlug) {
+      const over = await fetchProductBySlug(String(settings.draft.homeFeaturedProductSlug), demo).catch(() => null);
+      if (over && !products.some(p => p.slug === over.slug)) {
+        products.push(...applyGadgetStudioImagesList([over]));
+      }
+    }
   } catch {
     products = [];
   }
