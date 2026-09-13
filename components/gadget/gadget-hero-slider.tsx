@@ -47,6 +47,8 @@ function fromAdminSlides(slides: HeroSlide[]): GadgetHeroBanner[] {
           href = "/products";
         } else if (parsed.linkType === "category" && parsed.category) {
           href = `/products?category=${parsed.category}`;
+        } else if (parsed.linkType === "none") {
+          href = "";
         }
       } catch (e) {
         // Fallback to plain string if parse fails
@@ -324,7 +326,7 @@ export function GadgetHeroSlider({
         </div>
       
       {/* Invisible link covering entire banner if no button is used */}
-      {(!active.ctaLabel || active.title === "") ? (
+      {(!active.ctaLabel || active.title === "") && active.href ? (
          <Link href={active.href} className="absolute inset-0 z-[5]" aria-label="View product" />
       ) : null}
     </section>

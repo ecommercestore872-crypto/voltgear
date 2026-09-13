@@ -22,17 +22,19 @@ export function GadgetFeaturedProduct({
   title,
   subtitle,
   productDescription,
+  customImage,
 }: {
   product: Product;
   eyebrow?: string | null;
   title?: string | null;
   subtitle?: string | null;
   productDescription?: string | null;
+  customImage?: string | null;
 }) {
   const { addItem, openCart } = useCart();
   const [added, setAdded] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const image = gadgetImageSrc(product, PRODUCT_IMAGE.gallery);
+  const image = customImage || gadgetImageSrc(product, PRODUCT_IMAGE.gallery);
   const stock = getStockState(product.stockStatus);
   const href = product2Href(product.slug);
   const off = salePercent(product.price, product.compareAtPrice);

@@ -150,18 +150,22 @@ export async function GadgetHomePage() {
     slotBestsellers?.length ? slotBestsellers : newArrivals
   ).slice(0, 8);
 
-  const featuredProduct =
-    slotFeatured?.find(
-      (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p),
-    ) ??
-    products.find(
-      (p) =>
-        p.featured &&
-        !getStockState(p.stockStatus).soldOut &&
-        hasUsableImage(p),
-    ) ??
-    railProducts.find((p) => hasUsableImage(p)) ??
-    null;
+  const overrideSlug = (settings as any)?.draft?.homeFeaturedProductSlug as string | undefined;
+  const customImage = (settings as any)?.draft?.homeFeaturedCustomImage as string | undefined;
+
+  const featuredProduct = overrideSlug
+    ? products.find(p => p.slug === overrideSlug) ?? null
+    : (slotFeatured?.find(
+        (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p),
+      ) ??
+      products.find(
+        (p) =>
+          p.featured &&
+          !getStockState(p.stockStatus).soldOut &&
+          hasUsableImage(p),
+      ) ??
+      railProducts.find((p) => hasUsableImage(p)) ??
+      null);
 
   const featuredId = featuredProduct?._id;
   const offerProducts = (
@@ -262,6 +266,7 @@ export async function GadgetHomePage() {
                 title={config.homeFeaturedTitle}
                 subtitle={config.homeFeaturedSubtitle}
                 productDescription={config.homeFeaturedProductDescription}
+                customImage={customImage}
               />
             ) : null;
             break;

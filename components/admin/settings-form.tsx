@@ -112,10 +112,18 @@ function fromRow(row?: SettingsRow | null) {
     homeFeaturedTitle: str(d.homeFeaturedTitle ?? row?.home_featured_title),
     homeFeaturedSubtitle: str(d.homeFeaturedSubtitle ?? row?.home_featured_subtitle),
     homeFeaturedProductDescription: str(d.homeFeaturedProductDescription ?? row?.home_featured_product_description),
+    homeFeaturedProductSlug: str((d as any).homeFeaturedProductSlug ?? (row as any)?.home_featured_product_slug ?? ""),
+    homeFeaturedCustomImage: str((d as any).homeFeaturedCustomImage ?? (row as any)?.home_featured_custom_image ?? ""),
   };
 }
 
-export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
+export function SettingsForm({ 
+  settings,
+  products = [],
+}: { 
+  settings?: SettingsRow | null;
+  products?: { _id: string; name: string; slug: string; category: string }[];
+}) {
   const router = useRouter();
   const [form, setForm] = useState(() => fromRow(settings));
   const [status, setStatus] = useState<PublishStatus>(
@@ -123,6 +131,15 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    if (!form.homeFeaturedProductSlug) return "";
+    const p = products.find(p => p.slug === form.homeFeaturedProductSlug);
+    return p ? p.category : "";
+  });
+
+  const categories = Array.from(new Set(products.map(p => p.category))).sort();
+  const availableProducts = products.filter(p => !selectedCategory || p.category === selectedCategory);
 
   function doc() {
     const socialLinks = [
@@ -171,6 +188,8 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
       homeFeaturedTitle: form.homeFeaturedTitle,
       homeFeaturedSubtitle: form.homeFeaturedSubtitle,
       homeFeaturedProductDescription: form.homeFeaturedProductDescription,
+      homeFeaturedProductSlug: form.homeFeaturedProductSlug || null,
+      homeFeaturedCustomImage: form.homeFeaturedCustomImage || null,
     };
   }
 
@@ -443,6 +462,66 @@ export function SettingsForm({ settings }: { settings?: SettingsRow | null }) {
                 placeholder="Leave blank to use the product's default Short Description."
               />
             </div>
+            
+            <div className="sm:col-span-2 pt-4 border-t border-primary/10 mt-2 space-y-4">
+              <h4 className="font-semibold text-sm">Target Featured Product (Staff Pick)</h4>
+              <p className="text-xs text-muted-foreground mb-4">
+                By default this automatically selects a product. Want a specific one? Select it manually below.
+              </p>
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Filter by Category</Label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value);
+                      if (form.homeFeaturedProductSlug) {
+                        const p = products.find(prod => prod.slug === form.homeFeaturedProductSlug);
+                        if (p && p.category !== e.target.value) {
+                           setForm(f => ({ ...f, homeFeaturedProductSlug: "" }));
+                        }
+                      }
+                    }}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <Label>Override Target Product</Label>
+                  <select
+                    value={form.homeFeaturedProductSlug}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, homeFeaturedProductSlug: e.target.value }))
+                    }
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="">-- Dynamic Auto Select --</option>
+                    {availableProducts.map(p => (
+                      <option key={p._id} value={p.slug}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="sm:col-span-2 space-y-1.5 mt-2">
+                  <Label>Custom Banner Layout Image (Optional)</Label>
+                  <p className="text-[10px] text-muted-foreground pb-1">Upload a highly-polished lifestyle shot exactly for this home banner instead of the standard white background.</p>
+                  <Input
+                    placeholder="https://... (image URL)"
+                    value={form.homeFeaturedCustomImage}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, homeFeaturedCustomImage: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
         <div className="sm:col-span-2 space-y-4 rounded-lg border p-4 bg-muted/20">

@@ -833,10 +833,13 @@ export async function publishAdminSettings(doc: Record<string, unknown>) {
     current?.draft && typeof current.draft === "object"
       ? (current.draft as Record<string, unknown>)
       : null;
-  const leftover =
-    !doc.orderEmails && currentDraft?.orderEmails
+  const leftover = {
+    ...((!doc.orderEmails && currentDraft?.orderEmails)
       ? { orderEmails: parseOrderEmailConfig(currentDraft.orderEmails) }
-      : null;
+      : {}),
+    homeFeaturedProductSlug: doc.homeFeaturedProductSlug || null,
+    homeFeaturedCustomImage: doc.homeFeaturedCustomImage || null,
+  };
   let payload: Record<string, unknown> = { ...settingsLiveRow(doc), draft: leftover };
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const { error } = await db().from("site_settings").upsert(payload, { onConflict: "id" });

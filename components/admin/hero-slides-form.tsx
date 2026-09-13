@@ -45,7 +45,7 @@ export function HeroSlidesForm({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState({
-    linkType: "product" as "product" | "category" | "all",
+    linkType: "product" as "product" | "category" | "all" | "none",
     categoryId: categories[0] ?? "",
     productId: products[0]?.id ?? "",
     imageUrl: "",
@@ -247,6 +247,7 @@ export function HeroSlidesForm({
               <option value="product">Specific Product</option>
               <option value="category">Category</option>
               <option value="all">All Products (Generic)</option>
+              <option value="none">No Link (Unclickable)</option>
             </select>
           </div>
           
@@ -284,9 +285,13 @@ export function HeroSlidesForm({
                 ))}
               </select>
             </div>
-          ) : (
+          ) : draft.linkType === "all" ? (
             <div className="space-y-1.5 flex items-center justify-center">
               <p className="text-sm text-muted-foreground mt-8 text-center">Links to general /products</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5 flex items-center justify-center">
+              <p className="text-sm text-muted-foreground mt-8 text-center">Not clickable by customers.</p>
             </div>
           )}
         </div>
