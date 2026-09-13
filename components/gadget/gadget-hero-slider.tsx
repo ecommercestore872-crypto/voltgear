@@ -152,8 +152,8 @@ export function GadgetHeroSlider({
       aria-roledescription="carousel"
       aria-label="Campaign banners"
     >
-      <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)] flex flex-col sm:block">
-        <div className="relative aspect-video w-full sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
+      <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
+        <div className="relative aspect-[16/10] w-full sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1] lg:min-h-[340px] lg:max-h-[28rem]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
@@ -187,8 +187,8 @@ export function GadgetHeroSlider({
             );
           })}
 
-          {/* Vignette Overlay (Desktop Only) */}
-          <div className="pointer-events-none absolute inset-0 z-[2] hidden sm:block bg-gradient-to-t from-black/60 via-transparent to-black/10" />
+          {/* Vignette Overlay */}
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/60 via-transparent to-black/10" />
 
           {/* Left / Right Arrow Navigation (Visible on Hover / Focus) */}
           {banners.length > 1 ? (
@@ -211,18 +211,16 @@ export function GadgetHeroSlider({
               </button>
             </>
           ) : null}
-        </div> {/* End of Image Container */}
-
-        {/* Bottom Bar: Title, Progress Indicators & CTA */}
-        <div className="pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-0 z-[4] flex flex-col sm:flex-row flex-wrap sm:items-end justify-between gap-4 p-5 sm:p-6 bg-[var(--g-forest)] sm:bg-transparent text-white">
+          {/* Bottom Bar: Title, Progress Indicators & CTA */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-wrap items-end justify-between gap-3 p-4 sm:p-6">
             <div className="pointer-events-auto flex flex-col gap-2 max-w-[min(100%,32rem)]">
               {active.title ? (
-                <p className="gadget-display text-left text-lg font-bold leading-tight tracking-[-0.02em] drop-shadow-none sm:drop-shadow-md sm:text-xl lg:text-2xl">
+                <p className="gadget-display text-left text-lg font-bold leading-tight tracking-[-0.02em] text-white drop-shadow-md sm:text-xl lg:text-2xl">
                   {active.title}
                 </p>
               ) : null}
               {active.subtitle ? (
-                <p className="max-w-[40ch] text-left text-sm text-[var(--g-cream)] sm:text-white/90 drop-shadow-none sm:drop-shadow sm:text-base">
+                <p className="max-w-[40ch] text-left text-sm text-white/90 drop-shadow sm:text-base">
                   {active.subtitle}
                 </p>
               ) : null}
@@ -279,6 +277,7 @@ export function GadgetHeroSlider({
               </span>
             )}
           </div>
+        </div>
         </div>
     </section>
   );
