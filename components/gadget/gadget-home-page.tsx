@@ -150,8 +150,8 @@ export async function GadgetHomePage() {
     slotBestsellers?.length ? slotBestsellers : newArrivals
   ).slice(0, 8);
 
-  const overrideSlug = (settings as any)?.draft?.homeFeaturedProductSlug as string | undefined;
-  const customImage = (settings as any)?.draft?.homeFeaturedCustomImage as string | undefined;
+  const overrideSlug = settings?.draft?.homeFeaturedProductSlug as string | undefined;
+  const customImage = settings?.draft?.homeFeaturedCustomImage as string | undefined;
 
   const featuredProduct = overrideSlug
     ? products.find(p => p.slug === overrideSlug) ?? null

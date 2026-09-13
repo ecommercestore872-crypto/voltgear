@@ -183,6 +183,7 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     homeFeaturedProductDescription: row.home_featured_product_description ? String(row.home_featured_product_description) : undefined,
     homeSections: normalizeHomeSections(row.home_sections),
     lifestyleShop: normalizeLifestyleShop(row.lifestyle_shop),
+    draft: row.draft && typeof row.draft === "object" ? row.draft : undefined,
   };
 }
 
