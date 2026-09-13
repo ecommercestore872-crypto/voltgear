@@ -22,150 +22,84 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
       className="bg-[var(--g-cream)] px-4 py-8 sm:py-12 lg:px-8"
       aria-label="Lifestyle shop"
     >
-      <div className="mx-auto grid max-w-[1400px] gap-4 lg:grid-cols-2 lg:gap-6">
+      <div className="mx-auto grid max-w-6xl gap-3 sm:gap-4 lg:grid-cols-2 lg:gap-5">
         {showBanner ? (
           <Link
             href={featureHref}
-            className="group relative min-h-[26rem] w-full overflow-hidden rounded-[1.5rem] bg-[#e8eae3] sm:min-h-[32rem] lg:min-h-[38rem] shadow-sm transition hover:shadow-md"
+            className="group relative min-h-[18rem] overflow-hidden rounded-2xl bg-[var(--g-forest)] sm:min-h-[22rem] lg:min-h-full"
           >
             {banner.imageUrl ? (
               <Image
                 src={
-                  cloudinaryImageUrl(banner.imageUrl, { w: 1200 }) ||
+                  cloudinaryImageUrl(banner.imageUrl, { w: 900 }) ||
                   banner.imageUrl
                 }
                 alt=""
                 fill
-                quality={85}
+                quality={70}
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover object-center transition duration-700 ease-out group-hover:scale-[1.03]"
+                className="object-cover object-[center_30%] transition duration-700 ease-out group-hover:scale-[1.03]"
               />
             ) : (
               <div
-                className="absolute inset-0 bg-neutral-200"
+                className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,color-mix(in_srgb,var(--g-sage)_35%,transparent),transparent_55%),linear-gradient(160deg,var(--g-forest-mid),var(--g-forest))]"
                 aria-hidden
               />
             )}
-            
-            {(() => {
-              let parsedTitle = banner.title || "";
-              let subtitle = "";
-              if (parsedTitle.trim().startsWith("{")) {
-                try {
-                  const p = JSON.parse(parsedTitle);
-                  parsedTitle = p.text || "";
-                  subtitle = p.subtitle || "";
-                } catch {}
-              }
-
-              return (
-                <div className="absolute inset-0 flex flex-col items-start justify-start p-8 sm:p-12 text-[#1a211c]">
-                  {banner.eyebrow ? (
-                    <div className="flex items-center gap-4 mb-4">
-                      <span className="text-xs sm:text-sm font-semibold tracking-widest text-[#2f3d32] uppercase">
-                        {banner.eyebrow}
-                      </span>
-                      <span className="w-12 border-t border-[#1a211c] opacity-30" />
-                    </div>
-                  ) : null}
-                  
-                  {parsedTitle ? (
-                    <span className="gadget-display mt-2 max-w-[12ch] text-[2.75rem] font-medium leading-[1.05] tracking-tight sm:text-5xl lg:text-[4rem] text-[#131a15]">
-                      {parsedTitle}
-                    </span>
-                  ) : null}
-
-                  {subtitle ? (
-                    <span className="mt-5 max-w-[28ch] text-[1.1rem] leading-relaxed text-[#2a362c]">
-                      {subtitle}
-                    </span>
-                  ) : null}
-                  
-                  {banner.cta || parsedTitle ? (
-                    <span className="mt-8 flex h-12 items-center justify-center gap-3 rounded-full bg-[#1b3122] px-7 text-[15px] font-medium text-white shadow-lg transition duration-300 group-hover:bg-[#122217] group-hover:scale-105 pointer-events-auto">
-                      {banner.cta && !/^shop now$/i.test(banner.cta.trim())
-                        ? banner.cta
-                        : `Shop ${parsedTitle || "lifestyle picks"}`}
-                      <ArrowRight className="h-4 w-4" />
-                    </span>
-                  ) : null}
-                </div>
-              );
-            })()}
+            <span className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+            <span className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-8 text-center sm:px-10 sm:pb-10">
+              {banner.eyebrow ? (
+                <span className="text-[12px] font-normal tracking-[0.02em] text-white/85">
+                  {banner.eyebrow}
+                </span>
+              ) : null}
+              {banner.title ? (
+                <span className="gadget-display mt-1 max-w-[16ch] text-[1.65rem] font-semibold leading-[1.15] tracking-[-0.02em] text-[var(--g-white)] sm:text-3xl">
+                  {banner.title}
+                </span>
+              ) : null}
+              {banner.cta || banner.title ? (
+                <span className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-[var(--g-white)] px-5 text-sm font-medium text-[var(--g-charcoal)] shadow-[0_1px_0_rgba(26,26,26,0.06)] transition group-hover:bg-[var(--g-cream)]">
+                  {banner.cta && !/^shop now$/i.test(banner.cta.trim())
+                    ? banner.cta
+                    : `Shop ${banner.title || "lifestyle picks"}`}
+                </span>
+              ) : null}
+            </span>
           </Link>
         ) : null}
 
         {grid.length ? (
-          <div className="grid grid-cols-2 gap-4 lg:gap-6">
-            {grid.map((tile) => {
-              let parsedTitle = tile.title;
-              let eyebrow = "";
-              let subtitle = "";
-              let footer = "";
-              if (tile.title.trim().startsWith("{")) {
-                try {
-                  const p = JSON.parse(tile.title);
-                  parsedTitle = p.text || "";
-                  eyebrow = p.eyebrow || "";
-                  subtitle = p.sub || "";
-                  footer = p.footer || "";
-                } catch {}
-              }
-              
-              return (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {grid.map((tile) => (
               <Link
-                key={`${tile.href}-${parsedTitle}`}
+                key={`${tile.href}-${tile.title}`}
                 href={tile.href}
-                className="group relative flex flex-col overflow-hidden rounded-[1.5rem] bg-[#F5F2EA] shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl min-h-[16rem] sm:min-h-[22rem]"
+                className="group relative flex min-h-[10.5rem] flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3.5 shadow-[0_1px_0_rgba(26,26,26,0.03)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(31,54,38,0.1)] sm:min-h-[13rem] sm:p-4"
               >
-                <div className="absolute inset-0 z-0">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[12px] font-medium text-[var(--g-charcoal)] sm:text-[13px]">
+                    {tile.title}
+                  </span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)] text-[var(--g-white)] transition group-hover:bg-[var(--g-forest-mid)]">
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  </span>
+                </div>
+                <div className="relative mt-2 flex-1">
                   <Image
                     src={
-                      cloudinaryImageUrl(tile.imageUrl, { w: 600 }) ||
+                      cloudinaryImageUrl(tile.imageUrl, { w: 480 }) ||
                       tile.imageUrl
                     }
                     alt=""
                     fill
-                    quality={85}
-                    sizes="(max-width: 640px) 45vw, 25vw"
-                    className="object-cover transition duration-700 ease-out group-hover:scale-[1.05]"
+                    quality={70}
+                    sizes="(max-width: 640px) 45vw, 20vw"
+                    className="object-contain p-1 transition duration-500 group-hover:scale-[1.05] sm:p-2 mix-blend-multiply"
                   />
                 </div>
-                
-                <div className="relative z-10 flex w-full justify-between items-start p-5 sm:p-7 pointer-events-none">
-                  <div className="flex flex-col gap-1 items-start text-[#1a211c]">
-                    {eyebrow ? (
-                      <span className="text-[10px] font-semibold tracking-widest text-[#5c6e5e] uppercase">
-                        {eyebrow}
-                      </span>
-                    ) : null}
-                    
-                    <span className="gadget-display max-w-[10ch] text-[1.4rem] font-medium leading-[1.1] tracking-tight sm:text-3xl lg:text-[2rem] pt-1 pb-1 text-[#131a15]">
-                      {parsedTitle}
-                    </span>
-                    
-                    {subtitle ? (
-                      <span className="text-[13px] leading-snug tracking-tight text-[#455047] max-w-[14ch] mt-1 lg:max-w-xs">
-                        {subtitle}
-                      </span>
-                    ) : null}
-                  </div>
-                  
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1b3122] text-white shadow-md transition duration-300 group-hover:bg-[#122217] group-hover:scale-110 pointer-events-auto">
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </span>
-                </div>
-                
-                {footer ? (
-                  <div className="relative z-10 flex-col mt-auto items-start p-5 sm:p-7 text-[#838c85]">
-                     <span className="w-6 border-t border-[#838c85]/40 block mb-2" />
-                     <span className="text-[10px] font-semibold tracking-widest uppercase leading-tight max-w-[10ch] block">
-                       {footer}
-                     </span>
-                  </div>
-                ) : null}
               </Link>
-            )})}
+            ))}
           </div>
         ) : null}
       </div>
