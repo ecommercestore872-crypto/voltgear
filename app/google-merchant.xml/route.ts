@@ -24,8 +24,12 @@ export async function GET() {
     const isOutOfStock = product.stockStatus === 'out_of_stock' || product.stockStatus === 'discontinued';
     const availability = isOutOfStock ? "out of stock" : "in stock";
 
+    // Google Merchant Center strict 50 character limit for g:id
+    const rawId = product._id || product.id || product.sku || product.slug;
+    const safeId = String(rawId).slice(0, 50);
+
     xml += `    <item>
-      <g:id><![CDATA[${product.id || product.slug}]]></g:id>
+      <g:id><![CDATA[${safeId}]]></g:id>
       <g:title><![CDATA[${product.name}]]></g:title>
       <g:description><![CDATA[${product.shortDescription || product.name}]]></g:description>
       <g:link>${productUrl}</g:link>

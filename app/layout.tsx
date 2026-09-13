@@ -142,6 +142,7 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
     other: {
+      "p:domain_verify": "d47f126e7e13e3bacbec1c1252d3a6da",
       ...(process.env.BING_SITE_VERIFICATION
         ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
         : {}),
