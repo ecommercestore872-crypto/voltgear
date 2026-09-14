@@ -12,6 +12,7 @@ import {
   cancelOrderRestoreInventoryRow,
   updateOrderStatusRow,
   deleteOrderRow,
+  getLightweightOrders as getLightweightOrdersFromDb,
 } from "@/lib/db/store";
 import { ORDER_STATUS_VALUES } from "@/lib/db/order-rules";
 import type {
@@ -49,6 +50,10 @@ export async function getOrdersByEmail(email: string): Promise<Order[]> {
 
 export async function getAllOrders(): Promise<Order[]> {
   return getAllOrdersFromDb();
+}
+
+export async function getLightweightOrders(): Promise<Order[]> {
+  return getLightweightOrdersFromDb();
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {

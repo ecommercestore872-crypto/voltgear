@@ -136,7 +136,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
+    ],
+    apple: [
+      { url: "/favicon-48.png", type: "image/png" },
     ],
   },
   verification: {

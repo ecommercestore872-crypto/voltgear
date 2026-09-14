@@ -10,7 +10,7 @@ import {
   listAdminProducts,
 } from "@/lib/db/admin-store";
 import { buildDashboardSnapshot } from "@/lib/db/dashboard-rules";
-import { getAllOrders } from "@/lib/order-store";
+import { getLightweightOrders } from "@/lib/order-store";
 import { postExConfigured } from "@/lib/postex";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 export default async function AutopilotSettingsPage() {
   try {
     const [orders, products, row] = await Promise.all([
-      getAllOrders(),
+      getLightweightOrders(),
       listAdminProducts(),
       getAdminSettings(),
     ]);

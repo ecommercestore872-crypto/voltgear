@@ -720,6 +720,23 @@ export async function getAllOrders(): Promise<Order[]> {
   return Promise.all((data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)));
 }
 
+export async function getLightweightOrders(): Promise<Order[]> {
+  const { data, error } = await db()
+    .from("orders")
+    .select("order_id, created_at, status, status_updated_at, total, is_demo, customer")
+    .order("created_at", { ascending: false });
+  if (error) return [];
+  return (data ?? []).map((row) => ({
+    orderId: row.order_id,
+    createdAt: row.created_at,
+    status: row.status as typeof import("../types").OrderStatus,
+    statusUpdatedAt: row.status_updated_at,
+    total: row.total,
+    isDemo: row.is_demo,
+    customer: typeof row.customer === "string" ? JSON.parse(row.customer) : row.customer,
+  } as Order));
+}
+
 export async function appendOrderHistoryNote(
   orderId: string,
   note: string
