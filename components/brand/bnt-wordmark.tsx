@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
@@ -11,19 +12,18 @@ function BntSealMark({
   return (
     <span
       className={cn(
-        "shop-brand-shine shrink-0 rounded-full",
+        "shop-brand-shine shrink-0 rounded-full overflow-hidden relative",
         compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-11 sm:w-11",
       )}
       aria-hidden
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- local brand asset; keep off next/image so chrome stays a client-safe img */}
-      <img
+      <Image
         src={SHOPPER_BRAND.sealSrc}
         alt=""
-        width={44}
-        height={44}
-        decoding={priority ? "sync" : "async"}
-        fetchPriority={priority ? "high" : "auto"}
+        fill
+        sizes="44px"
+        quality={75}
+        priority={priority}
         className="h-full w-full rounded-full object-cover"
       />
     </span>

@@ -220,17 +220,6 @@ export default async function RootLayout({
   return (
     <html lang="en-PK" className={cn(heading.variable, body.variable)}>
       <head>
-        <link
-          rel="preconnect"
-          href="https://res.cloudinary.com"
-          crossOrigin="anonymous"
-        />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        <link
-          rel="preconnect"
-          href="https://zeuhfqevqjkbzwdaxjuv.supabase.co"
-          crossOrigin="anonymous"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

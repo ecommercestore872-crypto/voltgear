@@ -29,17 +29,17 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
             className="group relative min-h-[18rem] overflow-hidden rounded-2xl bg-[var(--g-forest)] sm:min-h-[22rem] lg:min-h-full"
           >
             {banner.imageUrl ? (
-              <Image
-                src={
-                  cloudinaryImageUrl(banner.imageUrl, { w: 900 }) ||
-                  banner.imageUrl
-                }
-                alt=""
-                fill
-                quality={70}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover object-[center_30%] transition duration-700 ease-out group-hover:scale-[1.03]"
-              />
+                <Image
+                  src={
+                    cloudinaryImageUrl(banner.imageUrl, { w: 900 }) ||
+                    banner.imageUrl
+                  }
+                  alt=""
+                  fill
+                  quality={70}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
+                  className="object-cover object-[center_30%] transition duration-700 ease-out group-hover:scale-[1.03]"
+                />
             ) : (
               <div
                 className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,color-mix(in_srgb,var(--g-sage)_35%,transparent),transparent_55%),linear-gradient(160deg,var(--g-forest-mid),var(--g-forest))]"
