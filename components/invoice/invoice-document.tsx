@@ -152,6 +152,14 @@ export function InvoiceDocument({
               <span>{formatPrice(shipping)}</span>
             </div>
           ) : null}
+          {subtotal + shipping > total ? (
+            <div>
+              <span>Discount</span>
+              <span className="text-[var(--invoice-accent)]">
+                -{formatPrice(subtotal + shipping - total)}
+              </span>
+            </div>
+          ) : null}
           <div className="grand">
             <span>Total</span>
             <span>{formatPrice(total)}</span>
