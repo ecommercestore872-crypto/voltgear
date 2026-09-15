@@ -36,8 +36,8 @@ export function cloudinaryImageUrl(
   const idx = base.indexOf(marker);
   if (idx === -1) return base;
 
-  const insert = `f_auto,q_${q},c_limit,w_${w}/`;
-  const endPath = base.slice(idx + marker.length).replace(/\.heic$/i, ".jpg").replace(/\.heif$/i, ".jpg");
+  const insert = `f_webp,q_${q},c_limit,w_${w}/`;
+  const endPath = base.slice(idx + marker.length).replace(/\.heic$/i, ".webp").replace(/\.heif$/i, ".webp").replace(/\.jpg$/i, ".webp").replace(/\.png$/i, ".webp");
   return `${base.slice(0, idx + marker.length)}${insert}${endPath}`;
 }
 

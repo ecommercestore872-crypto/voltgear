@@ -16,7 +16,7 @@ export function shouldLoadTikTokPixel(input: {
 
   const enabled =
     input.enabled === true ||
-    String(input.enabled ?? "")
+    String(input.enabled ?? "true")
       .trim()
       .toLowerCase() === "true";
   if (!enabled) return false;
