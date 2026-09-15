@@ -326,12 +326,12 @@ export function GadgetHeroSlider({
             )}
           </div>
         </div>
-        </div>
-      
-      {/* Invisible link covering entire banner if no button is used */}
-      {(!active.ctaLabel || active.title === "") && active.href ? (
-         <Link href={active.href} className="absolute inset-0 z-[5]" aria-label="View product" />
-      ) : null}
+        
+        {/* Invisible link covering entire banner if no button is used */}
+        {(!active.ctaLabel || active.title === "") && active.href ? (
+          <Link href={active.href} className="absolute inset-0 z-[5]" aria-label="View product" />
+        ) : null}
+      </div>
     </section>
   );
 }
