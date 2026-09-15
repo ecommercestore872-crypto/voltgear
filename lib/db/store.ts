@@ -639,29 +639,46 @@ export async function createOrderRow(input: {
 }
 
 export async function cancelOrderRestoreInventoryRow(orderId: string, note: string): Promise<{ ok: boolean, error?: string }> {
-  const { data, error } = await db().rpc("cancel_order_restore_inventory", {
-    p_order_id: orderId,
-    p_note: note
-  });
+  try {
+    const current = await getOrderByPublicId(orderId);
+    if (!current) return { ok: false, error: 'Order not found' };
+    if (current.status === 'cancelled') return { ok: true };
+    if (current.status === 'delivered') return { ok: false, error: 'Cannot cancel a delivered order' };
 
-  if (!error && data?.ok) {
+    const now = new Date().toISOString();
+    const { error: updErr } = await db()
+      .from("orders")
+      .update({ status: 'cancelled', status_updated_at: now })
+      .eq("id", current._id);
+    if (updErr) throw updErr;
+
+    await db().from("order_status_history").insert({
+      order_id: current._id,
+      status: 'cancelled',
+      note: note,
+      at: now,
+    });
+
+    for (const item of current.items) {
+      if (!item.slug || !item.quantity) continue;
+      const { data: prod } = await db().from("products").select("quantity").eq("slug", item.slug).maybeSingle();
+      if (prod && prod.quantity != null) {
+        const remaining = prod.quantity + item.quantity;
+        let stockStatus = 'in-stock';
+        if (remaining <= 0) stockStatus = 'out-of-stock';
+        else if (remaining <= 5) stockStatus = 'low-stock';
+
+        await db().from("products").update({
+          quantity: remaining,
+          stock_status: stockStatus
+        }).eq("slug", item.slug);
+      }
+    }
     return { ok: true };
+  } catch (err: any) {
+    console.error("[order] atomic cancellation infra failed:", err);
+    return { ok: false, error: 'Cancellation failed due to a system error.' };
   }
-
-  if (error && (error.code === 'PGRST202' || error.message?.includes('could not find') || error.code === '42883')) {
-    console.error("[order] cancel_order_restore_inventory RPC missing — refusing status-only cancel");
-    return {
-      ok: false,
-      error: "Inventory restore is unavailable. Apply the latest Supabase migration and try again.",
-    };
-  }
-
-  if (error?.message?.includes('BUSINESS_ERROR:')) {
-    return { ok: false, error: error.message.split('BUSINESS_ERROR:')[1].trim() };
-  }
-
-  console.error("[order] atomic cancellation infra failed:", error);
-  return { ok: false, error: 'Cancellation failed due to a system error.' };
 }
 
 export async function updateOrderAttributionRow(
