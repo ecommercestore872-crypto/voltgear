@@ -280,11 +280,9 @@ export async function updateAdminCollection(
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
 
-  if (mode === "manual" && input.productIds) {
+  if (input.productIds !== undefined) {
+    // For both manual and auto collections, productIds represents the pinned set
     await replaceCollectionProducts(id, input.productIds);
-  }
-  if (mode === "auto") {
-    await db().from("collection_products").delete().eq("collection_id", id);
   }
 
   revalidatePath("/admin/collections");
@@ -326,11 +324,19 @@ async function replaceCollectionProducts(collectionId: string, productIds: strin
   if (error) throw error;
 }
 
-/** Resolve product IDs for a collection (manual picks or auto rule). */
+/** Resolve product IDs for a collection.
+ * - Manual: returns the explicit member list.
+ * - Auto: returns pinned products (front) merged with auto-rule products (deduplicated).
+ */
 export async function resolveCollectionProductIds(
   collection: AdminCollection
 ): Promise<string[]> {
   if (collection.mode === "manual") return collection.productIds;
+
+  // --- Auto collection: pinned overrides come first ---
+  const pinnedIds = collection.productIds; // already loaded from collection_products
+
+  let autoIds: string[] = [];
   if (collection.autoRule === "featured") {
     const { data, error } = await db()
       .from("products")
@@ -339,29 +345,38 @@ export async function resolveCollectionProductIds(
       .eq("status", "published")
       .limit(24);
     if (error) throw error;
-    return (data ?? []).map((r) => String((r as { id: string }).id));
+    autoIds = (data ?? []).map((r) => String((r as { id: string }).id));
+  } else {
+    // bestsellers: featured first, then recent published
+    const { data: featured } = await db()
+      .from("products")
+      .select("id")
+      .eq("featured", true)
+      .eq("status", "published")
+      .limit(8);
+    const ids = (featured ?? []).map((r) => String((r as { id: string }).id));
+    if (ids.length < 8) {
+      const { data: rest } = await db()
+        .from("products")
+        .select("id")
+        .eq("status", "published")
+        .order("updated_at", { ascending: false })
+        .limit(16);
+      for (const r of rest ?? []) {
+        const id = String((r as { id: string }).id);
+        if (!ids.includes(id)) ids.push(id);
+        if (ids.length >= 8) break;
+      }
+    }
+    autoIds = ids;
   }
-  // bestsellers: featured first, then recent published
-  const { data: featured } = await db()
-    .from("products")
-    .select("id")
-    .eq("featured", true)
-    .eq("status", "published")
-    .limit(8);
-  const ids = (featured ?? []).map((r) => String((r as { id: string }).id));
-  if (ids.length >= 8) return ids;
-  const { data: rest } = await db()
-    .from("products")
-    .select("id")
-    .eq("status", "published")
-    .order("updated_at", { ascending: false })
-    .limit(16);
-  for (const r of rest ?? []) {
-    const id = String((r as { id: string }).id);
-    if (!ids.includes(id)) ids.push(id);
-    if (ids.length >= 8) break;
+
+  // Merge: pinned first, then auto (skip duplicates)
+  const merged: string[] = [...pinnedIds];
+  for (const id of autoIds) {
+    if (!merged.includes(id)) merged.push(id);
   }
-  return ids;
+  return merged;
 }
 
 const PRODUCT_EMBED = `
