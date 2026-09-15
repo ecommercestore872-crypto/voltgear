@@ -80,10 +80,10 @@ function SummaryPriceRow({
   tone?: "muted" | "deal" | "strong";
 }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-0.5 text-[13px] leading-snug">
+    <div className="flex items-start justify-between gap-x-4 gap-y-1 text-[13px] leading-snug">
       <span
         className={cn(
-          "min-w-0 break-words",
+          "shrink-0",
           tone === "deal" && "font-semibold text-[var(--g-sage)]",
           tone === "muted" && "text-muted-foreground",
           tone === "strong" && "font-semibold text-foreground",
@@ -93,7 +93,7 @@ function SummaryPriceRow({
       </span>
       <span
         className={cn(
-          "shrink-0 text-right tabular-nums",
+          "text-right tabular-nums",
           tone === "deal" && "font-semibold text-[var(--g-sage)]",
           tone === "muted" && "font-semibold text-foreground",
           tone === "strong" && "font-bold text-foreground",
