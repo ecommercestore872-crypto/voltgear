@@ -5,6 +5,7 @@ import { Suspense } from "react";
 
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
+import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import {
@@ -265,6 +266,7 @@ export default async function RootLayout({
         <Suspense
           fallback={<div className="flex min-h-dvh flex-col bg-background" />}
         >
+          <TikTokPixel />
           <AppChrome
             settings={settings}
             shopTypes={shopTypes}

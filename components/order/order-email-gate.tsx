@@ -27,30 +27,37 @@ export function OrderEmailGate({
   }
 
   return (
-    <div className="mx-auto flex min-h-[50vh] max-w-md flex-col justify-center px-4 py-16">
-      <h1 className="gadget-display text-2xl text-[var(--g-charcoal)]">
-        Confirm your order
-      </h1>
-      <p className="mt-2 text-sm text-[var(--g-taupe)]">
-        Enter the email you used at checkout to view order {orderId}.
-      </p>
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="order-access-email">Email</Label>
-          <Input
-            id="order-access-email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-          />
+    <div className="flex min-h-[70vh] items-center justify-center p-4 bg-muted/20">
+      <div className="w-full max-w-md rounded-xl border bg-card p-8 shadow-sm">
+        <div className="mb-6 flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Confirm your order
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter the email you used at checkout to view order {orderId}.
+          </p>
         </div>
-        <Button type="submit" className="w-full">
-          View order
-        </Button>
-      </form>
+        <form onSubmit={submit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="order-access-email" className="font-medium">
+              Email Address
+            </Label>
+            <Input
+              id="order-access-email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="h-11"
+            />
+          </div>
+          <Button type="submit" className="w-full h-11 text-base font-semibold">
+            View Order Invoice
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

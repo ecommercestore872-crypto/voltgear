@@ -90,80 +90,82 @@ export function InvoiceDocument({
         </div>
       </header>
 
-      <section className="invoice-parties">
-        <div>
-          <h2>Bill to</h2>
-          {customer?.name ? (
-            <p className="invoice-party-name">{customer.name}</p>
-          ) : null}
-          {billLines.length ? (
-            <p className="invoice-meta">{billLines.join(", ")}</p>
-          ) : null}
-          {customer?.phone ? (
-            <p className="invoice-meta">{customer.phone}</p>
-          ) : null}
-          {customer?.email ? (
-            <p className="invoice-meta">{customer.email}</p>
-          ) : null}
-        </div>
-      </section>
+      <div className="invoice-content">
+        <section className="invoice-parties">
+          <div>
+            <h2>Bill to</h2>
+            {customer?.name ? (
+              <p className="invoice-party-name">{customer.name}</p>
+            ) : null}
+            {billLines.length ? (
+              <p className="invoice-meta">{billLines.join(", ")}</p>
+            ) : null}
+            {customer?.phone ? (
+              <p className="invoice-meta">{customer.phone}</p>
+            ) : null}
+            {customer?.email ? (
+              <p className="invoice-meta">{customer.email}</p>
+            ) : null}
+          </div>
+        </section>
 
-      <table className="invoice-table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th className="num">Qty</th>
-            <th className="num">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {lines.length ? (
-            lines.map((line, i) => (
-              <tr key={`${line.name}-${i}`}>
-                <td>
-                  <span className="item-name">{line.name}</span>
-                  {line.variant ? (
-                    <span className="item-variant">{line.variant}</span>
-                  ) : null}
-                </td>
-                <td className="num">{line.quantity}</td>
-                <td className="num">{formatPrice(line.lineTotal)}</td>
-              </tr>
-            ))
-          ) : (
+        <table className="invoice-table">
+          <thead>
             <tr>
-              <td colSpan={3}>No items</td>
+              <th>Item</th>
+              <th className="num">Qty</th>
+              <th className="num">Amount</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {lines.length ? (
+              lines.map((line, i) => (
+                <tr key={`${line.name}-${i}`}>
+                  <td>
+                    <span className="item-name">{line.name}</span>
+                    {line.variant ? (
+                      <span className="item-variant">{line.variant}</span>
+                    ) : null}
+                  </td>
+                  <td className="num">{line.quantity}</td>
+                  <td className="num">{formatPrice(line.lineTotal)}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={3}>No items</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
 
-      <div className="invoice-totals">
-        {showSubtotal ? (
-          <div>
-            <span>Subtotal</span>
-            <span>{formatPrice(subtotal)}</span>
+        <div className="invoice-totals">
+          {showSubtotal ? (
+            <div>
+              <span>Subtotal</span>
+              <span>{formatPrice(subtotal)}</span>
+            </div>
+          ) : null}
+          {shipping > 0 ? (
+            <div>
+              <span>Shipping</span>
+              <span>{formatPrice(shipping)}</span>
+            </div>
+          ) : null}
+          <div className="grand">
+            <span>Total</span>
+            <span>{formatPrice(total)}</span>
           </div>
-        ) : null}
-        {shipping > 0 ? (
-          <div>
-            <span>Shipping</span>
-            <span>{formatPrice(shipping)}</span>
-          </div>
-        ) : null}
-        <div className="grand">
-          <span>Total</span>
-          <span>{formatPrice(total)}</span>
         </div>
-      </div>
 
-      {template.notes ? (
-        <p className="invoice-notes">{template.notes}</p>
-      ) : null}
-      <footer className="invoice-foot">
-        <p>{template.footer}</p>
-        <p className="invoice-file">{invoiceFileTitle(order.orderId)}</p>
-      </footer>
+        {template.notes ? (
+          <p className="invoice-notes">{template.notes}</p>
+        ) : null}
+        <footer className="invoice-foot">
+          <p>{template.footer}</p>
+          <p className="invoice-file">{invoiceFileTitle(order.orderId)}</p>
+        </footer>
+      </div>
     </article>
   );
 }

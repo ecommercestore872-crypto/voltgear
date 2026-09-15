@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 
 import { InvoiceDocument } from "@/components/invoice/invoice-document";
 import { OrderEmailGate } from "@/components/order/order-email-gate";
 import { getOrderByPublicId, fetchSiteSettings } from "@/lib/db/store";
 import { shopperLookupNotFound } from "@/lib/db/order-rules";
+import { ADMIN_COOKIE } from "@/lib/db/publish";
+import { getAdminSecret } from "@/lib/admin";
 import {
   invoiceFileTitle,
   mergeInvoiceTemplate,
@@ -34,13 +37,19 @@ export default async function InvoicePage({
   ]);
   if (!order) return notFound();
 
+  const cookieStore = cookies();
+  const isAdmin = cookieStore.get(ADMIN_COOKIE)?.value === getAdminSecret();
+
   const email =
     typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
-  if (!email) {
-    return <OrderEmailGate orderId={params.id} pathSuffix="/invoice" />;
-  }
-  if (shopperLookupNotFound(order, email)) {
-    return notFound();
+  
+  if (!isAdmin) {
+    if (!email) {
+      return <OrderEmailGate orderId={params.id} pathSuffix="/invoice" />;
+    }
+    if (shopperLookupNotFound(order, email)) {
+      return notFound();
+    }
   }
 
   const template = mergeInvoiceTemplate(settings?.invoiceTemplate);

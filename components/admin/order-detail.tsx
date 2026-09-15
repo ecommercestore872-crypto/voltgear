@@ -178,7 +178,7 @@ export function OrderDetail({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
             <Button asChild type="button" variant="outline" className="shadow-sm">
               <Link
-                href={`/order/${encodeURIComponent(order.orderId)}/invoice?print=1`}
+                href={`/order/${encodeURIComponent(order.orderId)}/invoice?print=1&email=${encodeURIComponent(customer.email || '')}`}
                 target="_blank"
                 rel="noreferrer"
               >
