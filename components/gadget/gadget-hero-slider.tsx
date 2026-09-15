@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 
-import { cloudinaryImageUrl } from "@/lib/cloudinary";
+import { cloudinaryLoader } from "@/lib/cloudinary";
 import { resolveSlideCta } from "@/lib/db/hero-slide-rules";
 import type { GadgetCreativeBanner } from "@/lib/gadget-creatives";
 import { product2Href } from "@/lib/gadget-preview";
@@ -190,6 +190,7 @@ export function GadgetHeroSlider({
                     {/* Cinematic Blurred Backdrop for Mobile */}
                     <div className="absolute inset-0 overflow-hidden sm:hidden select-none pointer-events-none">
                       <Image
+                        loader={cloudinaryLoader}
                         src={banner.mobileImageUrl || banner.imageUrl}
                         alt=""
                         fill
@@ -202,6 +203,7 @@ export function GadgetHeroSlider({
                     {/* Foreground Uncropped Image (Selectively render mobile version if provided) */}
                     {banner.mobileImageUrl ? (
                       <Image
+                        loader={cloudinaryLoader}
                         src={banner.mobileImageUrl}
                         alt=""
                         fill
@@ -213,6 +215,7 @@ export function GadgetHeroSlider({
                       />
                     ) : null}
                     <Image
+                      loader={cloudinaryLoader}
                       src={banner.imageUrl}
                       alt=""
                       fill

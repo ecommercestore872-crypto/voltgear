@@ -40,3 +40,28 @@ export function cloudinaryImageUrl(
   const endPath = base.slice(idx + marker.length).replace(/\.heic$/i, ".jpg").replace(/\.heif$/i, ".jpg");
   return `${base.slice(0, idx + marker.length)}${insert}${endPath}`;
 }
+
+import type { ImageLoaderProps } from "next/image";
+
+/**
+ * Custom Next.js Image loader that forces Cloudinary to do the resizing,
+ * completely bypassing Vercel Serverless Function latency!
+ */
+export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
+  if (!src.includes("res.cloudinary.com")) return src;
+  
+  // If the src ALREADY contains transformations (e.g. from cloudinaryImageUrl),
+  // we just return it as is, or strip them out to apply the active Next.js width.
+  // Actually, to keep it simple, if it has /upload/ with f_auto already:
+  if (src.includes("/upload/f_auto")) {
+    return src; 
+  }
+
+  const marker = "/image/upload/";
+  const idx = src.indexOf(marker);
+  if (idx === -1) return src;
+
+  const q = quality || "auto";
+  const endPath = src.slice(idx + marker.length).replace(/\.heic$/i, ".jpg").replace(/\.heif$/i, ".jpg");
+  return `${src.slice(0, idx + marker.length)}f_auto,q_${q},c_limit,w_${width}/${endPath}`;
+}

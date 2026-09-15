@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { cloudinaryImageUrl } from "@/lib/cloudinary";
+import { cloudinaryLoader } from "@/lib/cloudinary";
 import {
   lifestyleShopHasContent,
   visibleLifestyleTiles,
@@ -30,10 +30,8 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
           >
             {banner.imageUrl ? (
                 <Image
-                  src={
-                    cloudinaryImageUrl(banner.imageUrl, { w: 900 }) ||
-                    banner.imageUrl
-                  }
+                  loader={cloudinaryLoader}
+                  src={banner.imageUrl}
                   alt=""
                   fill
                   quality={70}
@@ -87,10 +85,8 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
                 </div>
                 <div className="relative mt-2 flex-1">
                   <Image
-                    src={
-                      cloudinaryImageUrl(tile.imageUrl, { w: 480 }) ||
-                      tile.imageUrl
-                    }
+                    loader={cloudinaryLoader}
+                    src={tile.imageUrl}
                     alt=""
                     fill
                     quality={70}
