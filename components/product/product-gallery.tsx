@@ -150,7 +150,7 @@ export function ProductGallery({
             alt={current.alt}
             fill
             priority
-            quality={90}
+            quality={75}
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-contain pointer-events-none"
           />
@@ -250,7 +250,7 @@ export function ProductGallery({
                   alt={lb.alt}
                   fill
                   sizes="(max-width: 768px) 90vw, 700px"
-                  quality={90}
+                  quality={75}
                   className="object-contain"
                 />
               </div>
