@@ -169,7 +169,7 @@ export default function CheckoutPage() {
   }, []);
 
   // step: 0 = Cart, 1 = Information, 2 = Review, 3 = Complete (implicit on placedOrder)
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [orderNotes, setOrderNotes] = useState("");
   const [placing, setPlacing] = useState(false);
@@ -202,7 +202,9 @@ export default function CheckoutPage() {
 
   const hasFreeShippingItem = items.some((item) => item.freeShipping);
   const baseShipping =
-    merchandise === 0 || merchandise >= config.freeShippingThreshold || hasFreeShippingItem
+    merchandise === 0 ||
+    merchandise >= config.freeShippingThreshold ||
+    hasFreeShippingItem
       ? 0
       : config.shippingFee;
   const promoStacks = !(dealDiscount > 0);
@@ -297,6 +299,14 @@ export default function CheckoutPage() {
   }, [merchandise, shipping, config.freeShippingThreshold]);
 
   async function placeOrder(e?: React.FormEvent<HTMLFormElement>) {
+    let currentCustomer = customer;
+    if (e && e.target instanceof HTMLFormElement) {
+      currentCustomer = Object.fromEntries(new FormData(e.target)) as Record<
+        string,
+        string
+      >;
+      setCustomer(currentCustomer);
+    }
     if (e) e.preventDefault();
     if (placing || placedOrder) return;
     setPlacing(true);
@@ -323,7 +333,7 @@ export default function CheckoutPage() {
             ...(i.variantSku ? { variantSku: i.variantSku } : {}),
           })),
           customer: {
-            ...customer,
+            ...currentCustomer,
             note: orderNotes.trim() || undefined,
           }, // contains name, email, phone, etc, plus order notes
           payment: { method: payment },
@@ -333,7 +343,10 @@ export default function CheckoutPage() {
           giftWrap,
           giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
           idempotencyKey: idempotencyKeyRef.current,
-          consent: typeof window !== "undefined" ? window.localStorage.getItem("bnt-cookie-consent") : null,
+          consent:
+            typeof window !== "undefined"
+              ? window.localStorage.getItem("bnt-cookie-consent")
+              : null,
           ...(activePromo?.code && !activePromo.error
             ? { promoCode: activePromo.code }
             : {}),
@@ -380,7 +393,7 @@ export default function CheckoutPage() {
       }
       setPlacedOrder(data.orderId);
       // Wait for navigation
-      const checkoutEmail = customer.email?.trim().toLowerCase() ?? "";
+      const checkoutEmail = currentCustomer.email?.trim().toLowerCase() ?? "";
       const orderQs = checkoutEmail
         ? `?email=${encodeURIComponent(checkoutEmail)}`
         : "";
@@ -388,8 +401,8 @@ export default function CheckoutPage() {
       const purchaseTotal = Number.isFinite(serverTotal) ? serverTotal : total;
       const serverLines = Array.isArray(data.lines) ? data.lines : [];
       void identifyTikTokCustomer({
-        email: customer.email,
-        phone: customer.phone,
+        email: currentCustomer.email,
+        phone: currentCustomer.phone,
       });
       try {
         trackTikTokPurchase({
@@ -411,7 +424,7 @@ export default function CheckoutPage() {
           at: Date.now(),
           orderId: data.orderId,
           email: checkoutEmail,
-          name: customer.name?.trim() ?? "",
+          name: currentCustomer.name?.trim() ?? "",
           product: { slug: first.slug, name: first.name },
         });
       }
@@ -725,6 +738,29 @@ export default function CheckoutPage() {
 
             {step === 1 && (
               <section>
+                {/* Immediate Trust Badges */}
+                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                  {[
+                    { icon: ShieldCheck, title: "1 Year", desc: "Warranty" },
+                    { icon: RotateCcw, title: "7 Days", desc: "Returns" },
+                    { icon: Banknote, title: "COD", desc: "Available" },
+                    { icon: Lock, title: "Secure", desc: "Checkout" },
+                  ].map((t) => (
+                    <div
+                      key={t.title}
+                      className="flex flex-col items-center justify-center p-3 text-center border rounded-xl bg-white shadow-sm"
+                    >
+                      <t.icon className="h-5 w-5 text-primary mb-1.5" />
+                      <p className="text-[11px] font-bold uppercase">
+                        {t.title}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {t.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold tracking-tight">
                     Delivery Details
@@ -755,12 +791,12 @@ export default function CheckoutPage() {
                     }}
                     onSubmit={(e) => {
                       e.preventDefault();
-                      setCustomer(
-                        Object.fromEntries(
-                          new FormData(e.currentTarget),
-                        ) as Record<string, string>,
-                      );
-                      nextStep(2); // Move directly to Review step
+                      const formData = new FormData(e.currentTarget);
+                      const customerData = Object.fromEntries(
+                        formData,
+                      ) as Record<string, string>;
+                      setCustomer(customerData);
+                      setTimeout(() => placeOrder(e), 0);
                     }}
                   >
                     <div className="min-w-0 space-y-2">
@@ -799,6 +835,8 @@ export default function CheckoutPage() {
                         name="phone"
                         type="tel"
                         required
+                        pattern="^\\+92 3\\d{2} \\d{7}$"
+                        title="Enter a valid Pakistani mobile number: +92 3XX XXXXXXX"
                         autoComplete="tel"
                         placeholder="+92 300 1234567"
                         defaultValue={customer.phone}
@@ -840,9 +878,24 @@ export default function CheckoutPage() {
                         id="city"
                         name="city"
                         required
+                        list="pakistan-cities"
                         autoComplete="address-level2"
                         defaultValue={customer.city}
                       />
+                      <datalist id="pakistan-cities">
+                        <option value="Karachi" />
+                        <option value="Lahore" />
+                        <option value="Islamabad" />
+                        <option value="Rawalpindi" />
+                        <option value="Faisalabad" />
+                        <option value="Multan" />
+                        <option value="Peshawar" />
+                        <option value="Quetta" />
+                        <option value="Gujranwala" />
+                        <option value="Sialkot" />
+                        <option value="Abbottabad" />
+                        <option value="Hyderabad" />
+                      </datalist>
                     </div>
                     <div className="min-w-0 space-y-2">
                       <Label htmlFor="postal" className="text-sm font-bold">
@@ -856,6 +909,42 @@ export default function CheckoutPage() {
                         defaultValue={customer.postal}
                       />
                     </div>
+
+                    <div className="col-span-1 sm:col-span-2 pt-4 mt-2 border-t text-left">
+                      <Label className="text-sm font-bold mb-3 block">
+                        Payment Method *
+                      </Label>
+                      <div className="space-y-3">
+                        {PAYMENT_METHODS.map((method) => {
+                          const selected = payment === method.id;
+                          return (
+                            <label
+                              key={method.id}
+                              className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-colors ${selected ? "border-primary bg-primary/5" : "bg-white hover:bg-secondary/50"}`}
+                            >
+                              <div
+                                className={`shrink-0 flex items-center justify-center h-5 w-5 rounded-full border-2 ${selected ? "border-primary bg-primary text-white" : "border-border"}`}
+                              >
+                                {selected && (
+                                  <Check className="h-3 w-3" strokeWidth={3} />
+                                )}
+                              </div>
+                              <method.icon
+                                className={`h-5 w-5 ${selected ? "text-primary" : "text-muted-foreground"}`}
+                              />
+                              <div className="flex-1">
+                                <p className="text-[13px] font-bold tracking-wide">
+                                  {method.label}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                                  {method.description}
+                                </p>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </form>
                 </div>
 
@@ -864,9 +953,9 @@ export default function CheckoutPage() {
                     type="button"
                     variant="ghost"
                     className="h-11 w-full sm:w-auto"
-                    onClick={() => setStep(0)}
+                    onClick={() => router.push(shopHref)}
                   >
-                    <ChevronLeft className="mr-1 h-4 w-4" /> Back to Cart
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Continue Shopping
                   </Button>
                   <Button
                     size="lg"
@@ -874,229 +963,13 @@ export default function CheckoutPage() {
                     type="submit"
                     className="h-12 w-full px-6 sm:w-auto sm:px-8"
                   >
-                    Continue to Review <ArrowRight className="ml-2 h-4 w-4" />
+                    {placing ? "Processing..." : "Place Order"}{" "}
+                    {placing ? (
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Lock className="ml-2 h-4 w-4" />
+                    )}
                   </Button>
-                </div>
-              </section>
-            )}
-
-            {step === 2 && (
-              <section className="flex flex-col gap-6">
-                {/* 1. Shipping Information Card */}
-                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
-                  <div className="flex items-center justify-between border-b pb-4 mb-4">
-                    <h3 className="font-bold text-foreground text-[15px]">
-                      Shipping Information
-                    </h3>
-                    <button
-                      onClick={() => setStep(1)}
-                      className="text-xs font-bold text-primary hover:underline"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 break-words text-sm text-foreground/80 space-y-1">
-                      <p className="font-bold text-foreground">
-                        {customer.name || "N/A"}
-                      </p>
-                      <p>{customer.phone}</p>
-                      <p>{customer.email}</p>
-                      <div className="mt-3">
-                        <p>{customer.address}</p>
-                        <p>
-                          {customer.city}
-                          {customer.postal ? `, ${customer.postal}` : ""}
-                        </p>
-                        <p>Pakistan</p>
-                      </div>
-                    </div>
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <MapPin className="h-5 w-5 text-primary" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Shipping Method Card */}
-                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
-                  <div className="flex items-center justify-between border-b pb-4 mb-4">
-                    <h3 className="font-bold text-foreground text-[15px]">
-                      Shipping Method
-                    </h3>
-                    <button className="text-xs font-bold text-primary hover:underline">
-                      Edit
-                    </button>
-                  </div>
-                  <label className="flex cursor-default items-start gap-3 rounded-lg border border-primary bg-primary/5 p-3 sm:items-center sm:gap-4 sm:p-4">
-                    <div className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground sm:mt-0">
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-bold text-foreground">
-                        Standard Delivery (2-4 Working Days)
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Free on orders over PKR{" "}
-                        {config.freeShippingThreshold.toLocaleString()}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-[13px] font-bold text-foreground">
-                      {shippingLabel || "PKR 0"}
-                    </span>
-                  </label>
-                </div>
-
-                {/* 3. Payment Method Card */}
-                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
-                  <div className="flex items-center justify-between border-b pb-4 mb-4">
-                    <h3 className="font-bold text-foreground text-[15px]">
-                      Payment Method
-                    </h3>
-                    <button
-                      onClick={() => setStep(1)}
-                      className="text-xs font-bold text-primary hover:underline"
-                    >
-                      Edit
-                    </button>
-                  </div>
-
-                  {requiresAdvance && (
-                    <div className="mb-5 rounded-lg bg-[var(--g-danger,#b42318)]/10 p-4 border border-[var(--g-danger,#b42318)]/20 shadow-sm animate-in fade-in zoom-in-95">
-                      <p className="text-[14px] font-bold text-[var(--g-danger,#b42318)] flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-                        Advance Payment Mandatory
-                      </p>
-                      <p className="text-[13px] text-[var(--g-danger,#b42318)]/80 mt-1.5 leading-snug">
-                        Orders exceeding{" "}
-                        <strong>
-                          PKR {config.maxCodAmount!.toLocaleString()}
-                        </strong>{" "}
-                        require a partial or full advance deposit to process.
-                        Our team will verify and securely collect this via Bank
-                        Transfer / EasyPaisa after you place the order.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    {PAYMENT_METHODS.map((method) => {
-                      const selected = payment === method.id;
-                      return (
-                        <label
-                          key={method.id}
-                          className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-colors ${selected ? "border-primary bg-primary/5" : "bg-white hover:bg-secondary/50"}`}
-                        >
-                          <div
-                            className={`shrink-0 flex items-center justify-center h-5 w-5 rounded-full border-2 ${selected ? "border-primary bg-primary text-white" : "border-border"}`}
-                          >
-                            {selected && (
-                              <Check className="h-3 w-3" strokeWidth={3} />
-                            )}
-                          </div>
-                          <method.icon
-                            className={`h-5 w-5 ${selected ? "text-primary" : "text-muted-foreground"}`}
-                          />
-                          <div className="flex-1">
-                            <p className="text-[13px] font-bold tracking-wide">
-                              {method.label}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                              {method.description}
-                            </p>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 4. Order Notes (Optional) */}
-                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
-                  <div className="flex items-center justify-between border-b pb-4 mb-4">
-                    <h3 className="font-bold text-foreground text-[15px]">
-                      Order Notes (Optional)
-                    </h3>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Leave a note for your order (e.g. gate code, special instructions)"
-                    className="w-full min-w-0 rounded-md border border-border px-3 py-3 text-base shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:px-4 sm:text-sm"
-                    value={orderNotes}
-                    onChange={(e) => setOrderNotes(e.target.value)}
-                  />
-                </div>
-
-                {/* 5. Items in Your Order View */}
-                <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
-                  <div className="flex items-center justify-between gap-2 border-b pb-4 mb-4">
-                    <h3 className="font-bold text-foreground text-[15px]">
-                      Items in Your Order ({items.length})
-                    </h3>
-                    <button
-                      onClick={() => setStep(0)}
-                      className="text-xs font-bold text-primary hover:underline"
-                    >
-                      Edit Cart
-                    </button>
-                  </div>
-                  <ul className="divide-y divide-border">
-                    {items.map((item) => (
-                      <li
-                        key={cartLineKey(item)}
-                        className="py-4 flex gap-4 first:pt-0 last:pb-0"
-                      >
-                        {item.image ? (
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            width={64}
-                            height={64}
-                            className="h-16 w-16 shrink-0 rounded-lg border bg-muted object-cover"
-                          />
-                        ) : (
-                          <div className="h-16 w-16 shrink-0 rounded-lg border bg-muted" />
-                        )}
-                        <div className="flex flex-1 flex-col">
-                          <div className="flex items-start justify-between gap-4">
-                            <p className="text-[13px] font-bold text-foreground line-clamp-2">
-                              {item.name}
-                            </p>
-                            <span className="text-[13px] font-bold shrink-0">
-                              {formatPrice(item.price)}
-                            </span>
-                          </div>
-                          {item.variantName && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {item.variantName}
-                            </p>
-                          )}
-                          <div className="mt-auto flex gap-4 text-xs font-medium text-muted-foreground items-center">
-                            {item.price > 0 && (
-                              <span className="text-primary font-bold">
-                                {formatPrice(item.price)}
-                              </span>
-                            )}
-                            <span>Qty: {item.quantity}</span>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Security Tag Card */}
-                <div className="flex items-center gap-4 rounded-xl border border-primary/20 bg-[#F4F9F8] p-5 shadow-sm">
-                  <div className="w-10 h-10 rounded-full bg-white border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-[13px] text-foreground">
-                      Safe & Secure Checkout
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Your information is protected with 256-bit SSL encryption.
-                    </p>
-                  </div>
                 </div>
               </section>
             )}
@@ -1175,7 +1048,7 @@ export default function CheckoutPage() {
               ) : null}
             </div>
 
-            {step === 2 && (
+            {step >= 1 && (
               <div className={SUMMARY_CARD}>
                 <h3 className="mb-3 text-[13px] font-bold text-foreground">
                   Have a promo code?
@@ -1236,7 +1109,7 @@ export default function CheckoutPage() {
               </div>
             ) : null}
 
-            {step === 2 && (
+            {step >= 1 && (
               <div className={SUMMARY_CARD}>
                 <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
                   {[
@@ -1315,8 +1188,6 @@ export default function CheckoutPage() {
           </aside>
         </div>
       </div>
-
-
     </div>
   );
 }
