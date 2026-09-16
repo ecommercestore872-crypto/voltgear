@@ -1,0 +1,56 @@
+"use client";
+
+import Script from "next/script";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+
+export function MetaPixel() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!META_PIXEL_ID) return;
+    
+    if (loaded && typeof window !== "undefined" && (window as any).fbq) {
+      // Send a PageView event on every route change (including search param changes)
+      // fbq prevents multiple initializations, so sending PageView here is safe after init
+      (window as any).fbq("track", "PageView");
+    }
+  }, [pathname, searchParams, loaded]);
+
+  if (!META_PIXEL_ID) return null;
+
+  return (
+    <>
+      <Script
+        id="meta-pixel"
+        strategy="afterInteractive"
+        onLoad={() => setLoaded(true)}
+      >
+        {`
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '${META_PIXEL_ID}');
+        `}
+      </Script>
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style={{ display: "none" }}
+          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+          alt=""
+        />
+      </noscript>
+    </>
+  );
+}
