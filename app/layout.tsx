@@ -137,12 +137,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
-      { url: "/favicon-96.png", type: "image/png", sizes: "96x96" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", type: "image/png", sizes: "192x192" },
+      { url: "/favicon-48.png", type: "image/png" },
     ],
   },
   verification: {
