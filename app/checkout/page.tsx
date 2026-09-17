@@ -58,6 +58,7 @@ import {
 } from "@/lib/gadget-preview";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
+import { trackMetaInitiateCheckout } from "@/lib/meta-pixel-events";
 
 // Replaced STEPS structure with 4 linear mock-steps matching Figma design.
 const STEPS = [
@@ -499,6 +500,23 @@ export default function CheckoutPage() {
     ) {
       return;
     }
+
+    let metaCleanup: (() => void) | void = undefined;
+    try {
+      const metaCheckoutValue = Math.max(0, merchandise - subDiscount);
+      metaCleanup = trackMetaInitiateCheckout({
+        items: items.map((i) => ({
+          productId: i.productId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+        value: metaCheckoutValue,
+      });
+    } catch {
+      // fail-open
+    }
+
     try {
       trackTikTokInitiateCheckout(
         items.map((i) => ({
@@ -519,7 +537,13 @@ export default function CheckoutPage() {
     } catch {
       // fail-open
     }
-  }, [items, total, dealQuote.ready, activePromo?.loading]);
+
+    return () => {
+      if (typeof metaCleanup === "function") {
+        metaCleanup();
+      }
+    };
+  }, [items, total, dealQuote.ready, activePromo?.loading, merchandise, subDiscount]);
 
   useEffect(() => {
     if (step === 1) {

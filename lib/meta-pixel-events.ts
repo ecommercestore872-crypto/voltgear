@@ -6,6 +6,7 @@ declare global {
     __META_PAGEVIEW_SEQUENCE__?: number;
     __META_VIEWCONTENT_LAST_KEY__?: string;
     __META_PIXEL_BOOTSTRAPPED__?: boolean;
+    __META_INITIATECHECKOUT_LAST_SEQUENCE__?: number;
   }
 }
 
@@ -119,4 +120,83 @@ export function trackMetaAddToCart({
   }
 
   window.addEventListener("meta:pixel-ready", execute, { once: true });
+}
+
+export function trackMetaInitiateCheckout({
+  items,
+  value,
+}: {
+  items: Array<{
+    productId?: string;
+    name?: string;
+    price: number;
+    quantity: number;
+  }>;
+  value: number;
+}): void | (() => void) {
+  if (typeof window === "undefined") return;
+  if (!items.length) return;
+  if (typeof value !== "number" || !isFinite(value) || value < 0) return;
+
+  const summedQuantity = items.reduce((acc, item) => {
+    if (typeof item.quantity === "number" && isFinite(item.quantity) && item.quantity > 0) {
+      return acc + item.quantity;
+    }
+    return acc;
+  }, 0);
+
+  if (summedQuantity <= 0) return;
+
+  const execute = () => {
+    if (!window.fbq) return;
+
+    const sequence =
+      ensureMetaPageView(window.location.pathname) ||
+      window.__META_PAGEVIEW_SEQUENCE__;
+      
+    if (!sequence) return;
+    
+    if (window.__META_INITIATECHECKOUT_LAST_SEQUENCE__ === sequence) return;
+
+    const allHaveId = items.every((i) => i.productId && i.productId.trim() !== "");
+
+    if (allHaveId) {
+      window.fbq("track", "InitiateCheckout", {
+        content_ids: items.map((i) => i.productId as string),
+        content_type: "product",
+        contents: items.map((i) => ({
+          id: i.productId as string,
+          quantity: i.quantity,
+          item_price: i.price,
+        })),
+        num_items: summedQuantity,
+        value: value,
+        currency: "PKR",
+      });
+    } else {
+      window.fbq("track", "InitiateCheckout", {
+        num_items: summedQuantity,
+        value: value,
+        currency: "PKR",
+      });
+    }
+
+    window.__META_INITIATECHECKOUT_LAST_SEQUENCE__ = sequence;
+  };
+
+  if (window.fbq) {
+    execute();
+    return;
+  }
+
+  const handler = () => {
+    execute();
+    window.removeEventListener("meta:pixel-ready", handler);
+  };
+  
+  window.addEventListener("meta:pixel-ready", handler, { once: true });
+  
+  return () => {
+    window.removeEventListener("meta:pixel-ready", handler);
+  };
 }
