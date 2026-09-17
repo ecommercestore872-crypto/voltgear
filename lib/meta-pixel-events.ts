@@ -158,9 +158,14 @@ export function trackMetaInitiateCheckout({
     
     if (window.__META_INITIATECHECKOUT_LAST_SEQUENCE__ === sequence) return;
 
-    const allHaveId = items.every((i) => i.productId && i.productId.trim() !== "");
+    const allItemsValid = items.every((i) => {
+      if (!i.productId || i.productId.trim() === "") return false;
+      if (typeof i.price !== "number" || !isFinite(i.price) || i.price < 0) return false;
+      if (typeof i.quantity !== "number" || !isFinite(i.quantity) || i.quantity <= 0) return false;
+      return true;
+    });
 
-    if (allHaveId) {
+    if (allItemsValid) {
       window.fbq("track", "InitiateCheckout", {
         content_ids: items.map((i) => i.productId as string),
         content_type: "product",
