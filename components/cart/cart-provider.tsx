@@ -13,6 +13,7 @@ import {
 import { pageTypeFromPath, trackFirstParty } from "@/lib/first-party-analytics";
 import { mergeRetainedSku } from "@/lib/cart-sku-rules";
 import { trackTikTokAddToCart } from "@/lib/tiktok-browser-events";
+import { trackMetaAddToCart } from "@/lib/meta-pixel-events";
 
 export interface CartItem {
   slug: string;
@@ -126,6 +127,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return [...prev, { ...item, quantity: qty }];
       });
       trackCartLine("add_to_cart", item, qty);
+      
+      try {
+        trackMetaAddToCart({
+          productId: item.productId,
+          name: item.name,
+          price: item.price,
+          quantity: qty,
+        });
+      } catch {
+        // fail-open
+      }
+
       try {
         trackTikTokAddToCart({
           slug: item.slug,

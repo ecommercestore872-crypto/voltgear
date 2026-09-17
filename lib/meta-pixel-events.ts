@@ -77,3 +77,46 @@ export function trackMetaViewContent({
     window.removeEventListener("meta:pixel-ready", handler);
   };
 }
+
+export function trackMetaAddToCart({
+  productId,
+  name,
+  price,
+  quantity,
+}: {
+  productId?: string;
+  name?: string;
+  price?: number;
+  quantity?: number;
+}): void {
+  if (typeof window === "undefined") return;
+  if (!productId || typeof name !== "string" || !name.trim()) return;
+  if (typeof price !== "number" || !isFinite(price) || price < 0) return;
+  if (typeof quantity !== "number" || !isFinite(quantity) || quantity <= 0) return;
+
+  const execute = () => {
+    if (!window.fbq) return;
+
+    window.fbq("track", "AddToCart", {
+      content_ids: [productId],
+      content_name: name,
+      content_type: "product",
+      contents: [
+        {
+          id: productId,
+          quantity: quantity,
+          item_price: price,
+        },
+      ],
+      value: price * quantity,
+      currency: "PKR",
+    });
+  };
+
+  if (window.fbq) {
+    execute();
+    return;
+  }
+
+  window.addEventListener("meta:pixel-ready", execute, { once: true });
+}
