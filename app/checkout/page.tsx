@@ -58,7 +58,7 @@ import {
 } from "@/lib/gadget-preview";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
-import { trackMetaInitiateCheckout } from "@/lib/meta-pixel-events";
+import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel-events";
 
 // Replaced STEPS structure with 4 linear mock-steps matching Figma design.
 const STEPS = [
@@ -410,6 +410,21 @@ export default function CheckoutPage() {
           orderId: data.orderId,
           total: purchaseTotal,
           lines: serverLines,
+        });
+      } catch {
+        // fail-open
+      }
+      try {
+        // This browser Purchase represents successful order placement for COD.
+        trackMetaPurchase({
+          orderId: data.orderId,
+          items: items.map((i) => ({
+            productId: i.productId,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          value: purchaseTotal,
         });
       } catch {
         // fail-open

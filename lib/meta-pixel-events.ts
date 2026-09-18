@@ -7,6 +7,8 @@ declare global {
     __META_VIEWCONTENT_LAST_KEY__?: string;
     __META_PIXEL_BOOTSTRAPPED__?: boolean;
     __META_INITIATECHECKOUT_LAST_SEQUENCE__?: number;
+    __META_PURCHASE_PENDING_ORDER_IDS__?: Set<string>;
+    __META_PURCHASE_SENT_ORDER_IDS__?: Set<string>;
   }
 }
 
@@ -204,4 +206,131 @@ export function trackMetaInitiateCheckout({
   return () => {
     window.removeEventListener("meta:pixel-ready", handler);
   };
+}
+
+export function trackMetaPurchase({
+  orderId,
+  items,
+  value,
+}: {
+  orderId: string;
+  items: Array<{
+    productId?: string;
+    name?: string;
+    price: number;
+    quantity: number;
+  }>;
+  value: number;
+}): void {
+  if (typeof window === "undefined") return;
+  if (typeof orderId !== "string" || orderId.trim().length === 0) return;
+  if (typeof value !== "number" || !isFinite(value) || value < 0) return;
+
+  const validOrderId = orderId.trim();
+
+  window.__META_PURCHASE_PENDING_ORDER_IDS__ = window.__META_PURCHASE_PENDING_ORDER_IDS__ || new Set();
+  window.__META_PURCHASE_SENT_ORDER_IDS__ = window.__META_PURCHASE_SENT_ORDER_IDS__ || new Set();
+  
+  const SS_KEY = "buy-n-try-meta-purchase-sent";
+  
+  const getSentOrders = (): Set<string> => {
+    try {
+      const stored = window.sessionStorage.getItem(SS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    } catch {
+      // fail-open
+    }
+    return new Set();
+  };
+  
+  const saveSentOrder = (id: string) => {
+    try {
+      const sent = getSentOrders();
+      sent.add(id);
+      window.sessionStorage.setItem(SS_KEY, JSON.stringify(Array.from(sent)));
+    } catch {
+      // fail-open
+    }
+  };
+
+  if (window.__META_PURCHASE_SENT_ORDER_IDS__.has(validOrderId)) return;
+  if (window.__META_PURCHASE_PENDING_ORDER_IDS__.has(validOrderId)) return;
+  
+  const sessionSent = getSentOrders();
+  if (sessionSent.has(validOrderId)) return;
+
+  const summedQuantity = items.reduce((acc, item) => {
+    if (typeof item.quantity === "number" && isFinite(item.quantity) && item.quantity > 0) {
+      return acc + item.quantity;
+    }
+    return acc;
+  }, 0);
+
+  if (summedQuantity <= 0) return;
+
+  window.__META_PURCHASE_PENDING_ORDER_IDS__.add(validOrderId);
+
+  const execute = () => {
+    if (!window.fbq) return;
+
+    const allItemsValid = items.every((i) => {
+      if (!i.productId || i.productId.trim() === "") return false;
+      if (typeof i.price !== "number" || !isFinite(i.price) || i.price < 0) return false;
+      if (typeof i.quantity !== "number" || !isFinite(i.quantity) || i.quantity <= 0) return false;
+      return true;
+    });
+
+    if (allItemsValid) {
+      window.fbq(
+        "track",
+        "Purchase",
+        {
+          content_ids: items.map((i) => i.productId as string),
+          content_type: "product",
+          contents: items.map((i) => ({
+            id: i.productId as string,
+            quantity: i.quantity,
+            item_price: i.price,
+          })),
+          num_items: summedQuantity,
+          value: value,
+          currency: "PKR",
+        },
+        {
+          eventID: validOrderId,
+        }
+      );
+    } else {
+      window.fbq(
+        "track",
+        "Purchase",
+        {
+          num_items: summedQuantity,
+          value: value,
+          currency: "PKR",
+        },
+        {
+          eventID: validOrderId,
+        }
+      );
+    }
+    
+    window.__META_PURCHASE_PENDING_ORDER_IDS__?.delete(validOrderId);
+    window.__META_PURCHASE_SENT_ORDER_IDS__?.add(validOrderId);
+    saveSentOrder(validOrderId);
+  };
+
+  if (window.fbq) {
+    execute();
+    return;
+  }
+
+  const handler = () => {
+    execute();
+  };
+  
+  window.addEventListener("meta:pixel-ready", handler, { once: true });
 }
