@@ -193,6 +193,7 @@ export default function CheckoutPage() {
     shipping: number;
     total: number;
   } | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef(
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
@@ -299,22 +300,27 @@ export default function CheckoutPage() {
       : formatPrice(shipping);
   }, [merchandise, shipping, config.freeShippingThreshold]);
 
-  async function placeOrder(e?: React.FormEvent<HTMLFormElement>) {
+  async function placeOrder(eOrData?: React.FormEvent<HTMLFormElement> | { customer?: Record<string, string> }) {
     let currentCustomer = customer;
-    if (e && e.target instanceof HTMLFormElement) {
-      currentCustomer = Object.fromEntries(new FormData(e.target)) as Record<
-        string,
-        string
-      >;
-      setCustomer(currentCustomer);
+    
+    // Check if it's an explicit data object
+    if (eOrData && !('preventDefault' in eOrData) && eOrData.customer) {
+      currentCustomer = eOrData.customer;
     }
-    if (e) e.preventDefault();
+    // Fallback for legacy direct invocations
+    else if (eOrData && 'preventDefault' in eOrData) {
+      eOrData.preventDefault();
+      if (eOrData.target instanceof HTMLFormElement) {
+        currentCustomer = Object.fromEntries(new FormData(eOrData.target)) as Record<string, string>;
+        setCustomer(currentCustomer);
+      }
+    }
+
     if (placing || placedOrder) return;
     setPlacing(true);
     setPriceChanged(null);
+    setApiError(null);
 
-    // If order notes provided, we could technically pass it to API,
-    // but preserving standard contract here:
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -449,7 +455,7 @@ export default function CheckoutPage() {
         error instanceof Error
           ? error.message
           : "Something went wrong placing your order. Please try again.";
-      alert(message);
+      setApiError(message);
     } finally {
       setPlacing(false);
     }
@@ -805,6 +811,19 @@ export default function CheckoutPage() {
                     Delivery Details
                   </h2>
                 </div>
+
+                {apiError && (
+                  <div className="mb-6 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-bold">Couldn't place order</p>
+                        <p className="mt-1 leading-snug">{apiError}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6 lg:p-8">
                   <form
                     id="details-form"
@@ -835,7 +854,7 @@ export default function CheckoutPage() {
                         formData,
                       ) as Record<string, string>;
                       setCustomer(customerData);
-                      setTimeout(() => placeOrder(e), 0);
+                      placeOrder({ customer: customerData });
                     }}
                   >
                     <div className="min-w-0 space-y-2">

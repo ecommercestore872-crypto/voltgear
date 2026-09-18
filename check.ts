@@ -9,7 +9,10 @@ const supabase = createClient(
 
 async function run() {
   const { data, error } = await supabase.from("products").select("name, slug, status").eq("slug", "rgb-led-3d-56-ring-light");
-  console.log("Product:", data, error);
+  if (error) {
+    throw error;
+  }
+  console.log("Product:", data);
 }
 
 run();
