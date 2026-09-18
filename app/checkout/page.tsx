@@ -874,7 +874,7 @@ export default function CheckoutPage() {
                         name="phone"
                         type="tel"
                         required
-                        pattern="^\\+92 3\\d{2} \\d{7}$"
+                        pattern="\\+92 3\\d{2} \\d{7}"
                         title="Enter a valid Pakistani mobile number: +92 3XX XXXXXXX"
                         autoComplete="tel"
                         placeholder="+92 300 1234567"
