@@ -40,6 +40,7 @@ import {
 } from "@/lib/checkout-guard";
 import { normalizePhone } from "@/lib/messaging";
 import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
+import { trackMetaServerPurchase } from "@/lib/meta-events-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -328,6 +329,39 @@ export async function POST(request: Request) {
       }
     } catch (err) {
       console.error("[tiktok-server] root error", err);
+    }
+
+    // Meta Conversions API (Purchase)
+    try {
+      if (!baseOrder.isDemo) {
+        const cookies = request.headers.get("cookie") || "";
+        const fbpMatch = cookies.match(/(?:^|;\s*)_fbp=([^;]+)/);
+        const fbcMatch = cookies.match(/(?:^|;\s*)_fbc=([^;]+)/);
+        
+        await trackMetaServerPurchase({
+          orderId,
+          value: baseOrder.total,
+          items: lines.map((line) => ({
+            productId: undefined, // Sanity productId currently not in ResolvedOrderItem; trigger fallback catalog tracking
+            name: line.name,
+            price: line.price,
+            quantity: line.quantity,
+          })),
+          email: baseOrder.customer.email,
+          phone: baseOrder.customer.phone,
+          fullName: baseOrder.customer.name,
+          city: baseOrder.customer.city,
+          postalCode: baseOrder.customer.postal,
+          country: "pk",
+          clientIp: checkoutClientIp(request),
+          userAgent: request.headers.get("user-agent") || undefined,
+          eventSourceUrl: request.headers.get("referer") || undefined,
+          fbp: fbpMatch ? fbpMatch[1] : undefined,
+          fbc: fbcMatch ? fbcMatch[1] : undefined,
+        });
+      }
+    } catch (err) {
+      console.error("[meta-server] root error", err);
     }
 
     const emailPayload = {
