@@ -58,6 +58,7 @@ import {
 } from "@/lib/gadget-preview";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
+import { normalizePhone } from "@/lib/messaging";
 import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel-events";
 
 // Replaced STEPS structure with 4 linear mock-steps matching Figma design.
@@ -892,27 +893,12 @@ export default function CheckoutPage() {
                         id="phone"
                         name="phone"
                         type="tel"
+                        inputMode="tel"
                         required
-                        pattern="\\+92 3\\d{2} \\d{7}"
-                        title="Enter a valid Pakistani mobile number: +92 3XX XXXXXXX"
+                        title="Enter a valid Pakistani mobile number, e.g. 0300 1234567."
                         autoComplete="tel"
-                        placeholder="+92 300 1234567"
+                        placeholder="03XX XXXXXXX"
                         defaultValue={customer.phone}
-                        onChange={(e) => {
-                          let val = e.target.value.replace(/[^\d+]/g, "");
-                          if (val.startsWith("03")) val = "+92" + val.slice(1);
-                          else if (val.startsWith("3")) val = "+92" + val;
-
-                          if (val.startsWith("+92")) {
-                            const local = val.slice(3).replace(/\D/g, "");
-                            if (local.length > 3) {
-                              val = `+92 ${local.slice(0, 3)} ${local.slice(3, 10)}`;
-                            } else if (local.length > 0) {
-                              val = `+92 ${local}`;
-                            }
-                          }
-                          e.target.value = val;
-                        }}
                       />
                     </div>
                     <div className="min-w-0 space-y-2 sm:col-span-2">

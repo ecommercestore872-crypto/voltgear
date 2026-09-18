@@ -33,9 +33,7 @@ interface ProviderEnvelope {
  * Returns null when the number doesn't look like a valid mobile number.
  */
 export function normalizePhone(raw: string): string | null {
-  let digits = (raw ?? "").replace(/[^\d+]/g, "");
-  if (digits.startsWith("+")) digits = digits.slice(1);
-  if (!/^\d+$/.test(digits)) return null;
+  const digits = (raw ?? "").replace(/[^\d]/g, "");
 
   if (digits.length === 10 && digits.startsWith("3")) {
     return `+92${digits}`;
@@ -43,12 +41,13 @@ export function normalizePhone(raw: string): string | null {
   if (digits.length === 11 && digits.startsWith("03")) {
     return `+92${digits.slice(1)}`;
   }
-  if (digits.length === 12 && digits.startsWith("92")) {
+  if (digits.length === 12 && digits.startsWith("923")) {
     return `+${digits}`;
   }
-  if (digits.length === 13 && digits.startsWith("923")) {
-    return `+${digits}`;
+  if (digits.length === 13 && digits.startsWith("00923")) {
+    return `+${digits.slice(2)}`;
   }
+  
   return null;
 }
 
