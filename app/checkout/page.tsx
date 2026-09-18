@@ -1193,7 +1193,8 @@ export default function CheckoutPage() {
                 </div>
 
                 <Button
-                  onClick={() => placeOrder()}
+                  form="details-form"
+                  type="submit"
                   disabled={placing || Boolean(placedOrder)}
                   className="h-12 w-full gap-2 text-[15px] font-bold shadow-md"
                 >
