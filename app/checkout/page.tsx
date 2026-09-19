@@ -195,11 +195,40 @@ export default function CheckoutPage() {
     total: number;
   } | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
-  const idempotencyKeyRef = useRef(
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-  );
+  const idemRef = useRef<{ fingerprint: string; key: string } | null>(null);
+
+  if (typeof window !== "undefined" && items.length > 0) {
+    const cartFingerprint = JSON.stringify(
+      items.map((i) => ({ slug: i.slug, q: i.quantity, v: i.variantKey }))
+    );
+    
+    if (!idemRef.current || idemRef.current.fingerprint !== cartFingerprint) {
+      const storedStr = window.sessionStorage.getItem("buy_n_try_checkout_idem");
+      let activeKey = "";
+
+      if (storedStr) {
+        try {
+          const stored = JSON.parse(storedStr);
+          if (stored.cartFingerprint === cartFingerprint) {
+            activeKey = stored.key;
+          }
+        } catch {}
+      }
+
+      if (!activeKey) {
+        activeKey =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        
+        window.sessionStorage.setItem(
+          "buy_n_try_checkout_idem",
+          JSON.stringify({ key: activeKey, cartFingerprint, createdAt: Date.now() })
+        );
+      }
+      idemRef.current = { fingerprint: cartFingerprint, key: activeKey };
+    }
+  }
 
   const GIFT_WRAP_FEE = 199;
 
@@ -323,11 +352,12 @@ export default function CheckoutPage() {
     setApiError(null);
 
     try {
+      const activeIdemKey = idemRef.current?.key || "";
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKeyRef.current,
+          "Idempotency-Key": activeIdemKey,
         },
         body: JSON.stringify({
           items: items.map((i) => ({
@@ -350,7 +380,7 @@ export default function CheckoutPage() {
           total, // actual final total including pseudo promos could break backend signature check in real app if api doesn't support promo, but keeping identical
           giftWrap,
           giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
-          idempotencyKey: idempotencyKeyRef.current,
+          idempotencyKey: activeIdemKey,
           consent:
             typeof window !== "undefined"
               ? window.localStorage.getItem("bnt-cookie-consent")
@@ -400,6 +430,13 @@ export default function CheckoutPage() {
         throw new Error(data.error ?? "Failed");
       }
       setPlacedOrder(data.orderId);
+      
+      // CLEAR IDEMPOTENCY KEY ON SUCCESS ONLY
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem("buy_n_try_checkout_idem");
+      }
+      idemRef.current = null;
+
       // Wait for navigation
       const checkoutEmail = currentCustomer.email?.trim().toLowerCase() ?? "";
       const orderQs = checkoutEmail
