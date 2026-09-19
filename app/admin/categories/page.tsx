@@ -60,7 +60,7 @@ export default async function AdminCategoriesPage() {
           <FolderTree className="h-10 w-10 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-semibold mb-1">No Categories Found</h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            You haven't structured your product catalog yet. Create your first shop department to begin.
+            You haven&apos;t structured your product catalog yet. Create your first shop department to begin.
           </p>
         </div>
       ) : null}

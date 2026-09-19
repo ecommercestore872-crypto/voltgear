@@ -12,7 +12,12 @@ const checkoutEmailLimiter = createMemoryRateLimiter({
   maxKeys: 8_000,
 });
 
-/** Short-lived idempotency cache (per serverless instance). */
+/** 
+ * Short-lived fast-path idempotency cache (per serverless instance).
+ * Note: POSTGRES UNIQUE IDEMPOTENCY CONSTRAINT IS THE AUTHORITY.
+ * This map is strictly a fast local optimization for rapid-fire clicks
+ * and does NOT represent strict distributed idempotency.
+ */
 const idempotencyCache = new Map<string, { orderId: string; at: number }>();
 const IDEMPOTENCY_TTL_MS = 15 * 60_000;
 

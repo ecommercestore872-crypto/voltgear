@@ -34,9 +34,11 @@ export interface NewOrderInput {
   discount?: number;
   promoCode?: string | null;
   isDemo?: boolean;
+  idempotencyKey?: string | null;
+  idempotencyFingerprint?: string | null;
 }
 
-export async function createOrder(order: NewOrderInput): Promise<string | null> {
+export async function createOrder(order: NewOrderInput): Promise<{ orderId: string; replayed: boolean } | null> {
   return createOrderRow(order);
 }
 

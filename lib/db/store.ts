@@ -599,7 +599,9 @@ export async function createOrderRow(input: {
   discount?: number;
   promoCode?: string | null;
   isDemo?: boolean;
-}): Promise<string | null> {
+  idempotencyKey?: string | null;
+  idempotencyFingerprint?: string | null;
+}): Promise<{ orderId: string; replayed: boolean } | null> {
   const rpcItems = input.items.map((i) => ({
     slug: i.slug,
     name: i.name,
@@ -622,10 +624,15 @@ export async function createOrderRow(input: {
     p_promo_code: input.promoCode ?? "",
     p_is_demo: Boolean(input.isDemo),
     p_items: rpcItems,
+    p_idempotency_key: input.idempotencyKey || null,
+    p_idempotency_fingerprint: input.idempotencyFingerprint || null,
   });
 
   if (!rpcError && rpcData?.ok) {
-    return input.orderId;
+    return {
+      orderId: rpcData.order_id || input.orderId,
+      replayed: Boolean(rpcData.replayed)
+    };
   }
 
   if (rpcError?.message?.includes("BUSINESS_ERROR:")) {

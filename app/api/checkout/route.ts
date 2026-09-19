@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "node:crypto";
 
 import { parseAutopilotConfig } from "@/lib/autopilot/config";
 import { fulfillOrderWithPostEx } from "@/lib/autopilot/dispatch-run";
@@ -280,11 +281,22 @@ export async function POST(request: Request) {
       isDemo: orderIsDemo(demoSession, false),
     };
 
+    let idempotencyFingerprint: string | undefined;
+    if (idemKey) {
+      const fgData = JSON.stringify({
+        email: baseOrder.customer.email,
+        phone: baseOrder.customer.phone,
+        items: baseOrder.items.map(i => ({ s: i.slug, q: i.quantity, v: i.variantKey })),
+        total: baseOrder.total
+      });
+      idempotencyFingerprint = crypto.createHash("sha256").update(fgData).digest("hex");
+    }
+
     let orderId = await nextPublicOrderId();
-    let persisted = await createOrder({ ...baseOrder, orderId });
+    let persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
     for (let i = 0; i < 4 && !persisted; i++) {
       orderId = await nextPublicOrderId();
-      persisted = await createOrder({ ...baseOrder, orderId });
+      persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
     }
 
     if (!persisted) {
@@ -293,9 +305,15 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+    
+    orderId = persisted.orderId;
 
     if (idemKey) {
       cacheCheckoutOrder(idemKey, orderId);
+    }
+
+    if (persisted.replayed) {
+      return NextResponse.json({ ok: true, orderId, replayed: true });
     }
 
     if (appliedPromo) {

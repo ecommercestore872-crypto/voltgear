@@ -412,29 +412,32 @@ export default function CheckoutPage() {
         email: currentCustomer.email,
         phone: currentCustomer.phone,
       });
-      try {
-        trackTikTokPurchase({
-          orderId: data.orderId,
-          total: purchaseTotal,
-          lines: serverLines,
-        });
-      } catch {
-        // fail-open
-      }
-      try {
-        // This browser Purchase represents successful order placement for COD.
-        trackMetaPurchase({
-          orderId: data.orderId,
-          items: items.map((i) => ({
-            productId: i.productId,
-            name: i.name,
-            price: i.price,
-            quantity: i.quantity,
-          })),
-          value: purchaseTotal,
-        });
-      } catch {
-        // fail-open
+
+      if (!data.replayed) {
+        try {
+          trackTikTokPurchase({
+            orderId: data.orderId,
+            total: purchaseTotal,
+            lines: serverLines,
+          });
+        } catch {
+          // fail-open
+        }
+        try {
+          // This browser Purchase represents successful order placement for COD.
+          trackMetaPurchase({
+            orderId: data.orderId,
+            items: items.map((i) => ({
+              productId: i.productId,
+              name: i.name,
+              price: i.price,
+              quantity: i.quantity,
+            })),
+            value: purchaseTotal,
+          });
+        } catch {
+          // fail-open
+        }
       }
       // Scroll to top BEFORE navigation so Next.js doesn't restore checkout's scroll position
       window.scrollTo({ top: 0, behavior: "instant" });
