@@ -19,6 +19,11 @@ export function ShopWhatsAppButton({
 
   useEffect(() => {
     if (!href) return;
+    const isMobile = () => window.innerWidth < 640;
+    
+    // Disable initial auto-open on mobile
+    if (isMobile()) return;
+    
     const openTimer = window.setTimeout(() => setExpanded(true), 1400);
     const closeTimer = window.setTimeout(() => {
       setExpanded((open) => (pinnedOpen ? open : false));
@@ -31,7 +36,12 @@ export function ShopWhatsAppButton({
 
   useEffect(() => {
     if (!href) return;
+    const isMobile = () => window.innerWidth < 640;
+    
     const onScroll = () => {
+      // Disable auto-expansion via scrolling on mobile devices
+      if (isMobile()) return;
+      
       const y = window.scrollY;
       if (y > lastScrollY.current + 12 && y > 80) {
         if (!pinnedOpen) setExpanded(false);
@@ -49,7 +59,7 @@ export function ShopWhatsAppButton({
   const showLabel = expanded || pinnedOpen;
 
   return (
-    <div className="pointer-events-none fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-[calc(1.25rem+env(safe-area-inset-right))] z-[9999] sm:bottom-6 sm:right-6 transform-gpu">
+    <div className="pointer-events-none fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-[calc(1.25rem+env(safe-area-inset-right))] z-[40] sm:bottom-6 sm:right-6 transform-gpu">
       <div className="relative inline-flex items-center justify-end">
         <span
           className={cn(

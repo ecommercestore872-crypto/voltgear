@@ -504,7 +504,7 @@ export function GadgetBuyBox({
 
       {/* Mobile sticky CTA — safe-area for iPhone home indicator */}
       {!outOfStock ? (
-        <div className="gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] dark:border-border bg-[var(--g-cream)]/95 dark:bg-background/95 px-4 pt-3 backdrop-blur-md lg:hidden">
+        <div className="gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] dark:border-border bg-[var(--g-cream)]/95 dark:bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-[var(--g-charcoal)] dark:text-foreground">
