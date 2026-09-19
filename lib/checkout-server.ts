@@ -39,6 +39,7 @@ interface CheckoutLine {
 }
 
 export interface ResolvedOrderItem extends OrderItem {
+  productId?: string;
   slug: string;
   name: string;
   price: number;
@@ -217,6 +218,7 @@ export async function resolveCheckout(
     subtotal = Math.round((subtotal + lineTotal) * 100) / 100;
 
     lines.push({
+      productId: product._id,
       slug,
       name: product.name,
       price: unitPrice,

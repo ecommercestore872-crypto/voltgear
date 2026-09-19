@@ -360,7 +360,7 @@ export async function POST(request: Request) {
           orderId,
           value: baseOrder.total,
           items: lines.map((line) => ({
-            productId: undefined, // Sanity productId currently not in ResolvedOrderItem; trigger fallback catalog tracking
+            productId: line.productId, // Sanity canonical product ID
             name: line.name,
             price: line.price,
             quantity: line.quantity,
