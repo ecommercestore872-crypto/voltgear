@@ -21,6 +21,7 @@ import {
 import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
 import type { SiteSettings } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+import { normalizeSettings } from "@/lib/site-config";
 
 function splitTwo<T>(items: T[]): [T[], T[]] {
   const mid = Math.ceil(items.length / 2);
@@ -66,10 +67,11 @@ export function GadgetFooter({
     (s) => s.platform && s.url && s.url.startsWith("http"),
   );
 
-  const threshold = settings?.freeShippingThreshold ?? 3000;
-  const warrantyMonths = settings?.warrantyMonths ?? 12;
-  const returnWindowDays = settings?.returnWindowDays ?? 7;
-  const codEnabled = settings?.codEnabled ?? true;
+  const config = normalizeSettings(settings);
+  const threshold = config.freeShippingThreshold;
+  const warrantyMonths = config.warrantyMonths ?? 12;
+  const returnWindowDays = config.returnWindowDays ?? 7;
+  const codEnabled = config.codEnabled;
 
   return (
     <footer className="bg-[var(--g-cream)] pt-6 sm:px-3 sm:pb-3 sm:pt-8">

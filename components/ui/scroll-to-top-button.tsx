@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ScrollToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -28,6 +30,8 @@ export function ScrollToTopButton() {
     });
   };
 
+  const isCheckout = pathname === '/checkout';
+
   return (
     <button
       onClick={scrollToTop}
@@ -36,6 +40,7 @@ export function ScrollToTopButton() {
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-10 pointer-events-none",
+        isCheckout && "hidden md:flex"
       )}
       aria-label="Scroll to top"
     >

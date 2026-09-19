@@ -685,32 +685,9 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* ── Mobile Sticky Total Bar (steps 1 & 2 only — lg hidden because right column is always visible) ── */}
-      {step > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--g-line)] bg-[var(--g-cream)]/95 backdrop-blur-md px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--g-sage)]">
-                {items.length} {items.length === 1 ? "item" : "items"}
-              </p>
-              <p className="text-lg font-bold tabular-nums text-[var(--g-charcoal)]">
-                {formatPrice(total)}
-              </p>
-            </div>
-            {shipping === 0 && merchandise > 0 ? (
-              <span className="rounded-full bg-[var(--g-forest)]/10 px-3 py-1 text-[11px] font-bold text-[var(--g-forest)]">
-                Free shipping
-              </span>
-            ) : shipping > 0 ? (
-              <span className="text-[12px] text-[var(--g-taupe)]">
-                +{formatPrice(shipping)} shipping
-              </span>
-            ) : null}
-          </div>
-        </div>
-      )}
 
-      <div className="relative z-20 mx-auto max-w-6xl px-4 py-6 pb-[calc(4rem+env(safe-area-inset-bottom))] sm:py-8 sm:pb-16 lg:pb-16 lg:px-8">
+
+      <div className="relative z-20 mx-auto max-w-6xl px-4 py-6 pb-[calc(8rem+env(safe-area-inset-bottom))] sm:py-8 sm:pb-16 lg:pb-16 lg:px-8">
         <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8">
           {/* ── Left Content Column ─────────────────────────────────────────── */}
           <div className="flex flex-col gap-6">
@@ -827,8 +804,8 @@ export default function CheckoutPage() {
                 {/* Immediate Trust Badges */}
                 <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                   {[
-                    { icon: ShieldCheck, title: "1 Year", desc: "Warranty" },
-                    { icon: RotateCcw, title: "7 Days", desc: "Returns" },
+                    { icon: ShieldCheck, title: `${config.warrantyMonths || 12}-Month`, desc: "Warranty" },
+                    { icon: RotateCcw, title: `${config.returnWindowDays || 7} Days`, desc: "Returns" },
                     { icon: Banknote, title: "COD", desc: "Available" },
                     { icon: Lock, title: "Secure", desc: "Checkout" },
                   ].map((t) => (
@@ -1031,30 +1008,6 @@ export default function CheckoutPage() {
                     </div>
                   </form>
                 </div>
-
-                <div className="mt-6 flex flex-col-reverse gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-11 w-full sm:w-auto"
-                    onClick={() => router.push(shopHref)}
-                  >
-                    <ChevronLeft className="mr-1 h-4 w-4" /> Continue Shopping
-                  </Button>
-                  <Button
-                    size="lg"
-                    form="details-form"
-                    type="submit"
-                    className="h-12 w-full px-6 sm:w-auto sm:px-8"
-                  >
-                    {placing ? "Processing..." : "Place Order"}{" "}
-                    {placing ? (
-                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Lock className="ml-2 h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
               </section>
             )}
           </div>
@@ -1199,12 +1152,12 @@ export default function CheckoutPage() {
                   {[
                     {
                       icon: ShieldCheck,
-                      title: "1 Year Warranty",
-                      detail: "On all products",
+                      title: `${config.warrantyMonths || 12}-Month Warranty`,
+                      detail: "Guaranteed authentic",
                     },
                     {
                       icon: RotateCcw,
-                      title: "7 Days Easy Returns",
+                      title: `${config.returnWindowDays || 7}-Day Easy Returns`,
                       detail: "Hassle-free returns",
                     },
                     {
@@ -1268,6 +1221,17 @@ export default function CheckoutPage() {
                   </Link>
                   .
                 </p>
+
+                <div className="mt-5 text-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-10 text-sm w-full sm:w-auto"
+                    onClick={() => router.push(shopHref)}
+                  >
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Continue Shopping
+                  </Button>
+                </div>
               </div>
             )}
           </aside>
