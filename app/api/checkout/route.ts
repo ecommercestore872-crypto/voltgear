@@ -293,10 +293,26 @@ export async function POST(request: Request) {
     }
 
     let orderId = await nextPublicOrderId();
-    let persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
-    for (let i = 0; i < 4 && !persisted; i++) {
-      orderId = await nextPublicOrderId();
+    let persisted: { orderId: string, replayed: boolean } | null = null;
+    
+    try {
       persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
+      for (let i = 0; i < 4 && !persisted; i++) {
+        orderId = await nextPublicOrderId();
+        persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
+      }
+    } catch (err: any) {
+      if (err.message && err.message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
+        return NextResponse.json(
+          { error: err.message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
+          { status: 400 }
+        );
+      }
+      console.error("[checkout] root creation thrown:", err);
+      return NextResponse.json(
+        { error: "We couldn't store your order. Please try again." },
+        { status: 500 }
+      );
     }
 
     if (!persisted) {

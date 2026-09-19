@@ -1,0 +1,32 @@
+
+> e-commerce-store@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.local, .env.production
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/80) ...
+   Generating static pages (20/80) 
+   Generating static pages (40/80) 
+   Generating static pages (60/80) 
+ ✓ Generating static pages (80/80)
+
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.22,1,0.36,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.22,1,0.36,1)&rsqb;` to silence this warning.
+
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Page with dynamic = "error" encountered dynamic data method on /.
+    at exportAppPage (D:\Latest code\e commerce store (1)\e commerce store\node_modules\next\dist\export\routes\app-page.js:55:23)
+    at async exportPageImpl (D:\Latest code\e commerce store (1)\e commerce store\node_modules\next\dist\export\worker.js:204:20)
+    at async Span.traceAsyncFn (D:\Latest code\e commerce store (1)\e commerce store\node_modules\next\dist\trace\trace.js:154:20)
+    at async Object.exportPage (D:\Latest code\e commerce store (1)\e commerce store\node_modules\next\dist\export\worker.js:237:20)
+
+> Export encountered errors on following paths:
+	/page: /

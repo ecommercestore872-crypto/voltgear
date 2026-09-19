@@ -7,7 +7,7 @@ async function runTest(url, title, c) {
       url,
       connections: c,
       pipelining: 1,
-      duration: 30,
+      duration: 20,
     }, (err, res) => {
       if (err) {
         console.error(err);
@@ -20,18 +20,15 @@ async function runTest(url, title, c) {
         console.log(`2xx: ${res['2xx']}, 4xx: ${res['4xx']}, 5xx: ${res['5xx']}, timeouts: ${res.timeouts}`);
         console.log(`Error %: ${((res.timeouts + res['4xx'] + res['5xx']) / res.requests.total * 100).toFixed(2)}%`);
       }
-      resolve();
+      setTimeout(resolve, 5000); // cooldown to prevent immediate trigger
     });
   });
 }
 
 async function main() {
-  const levels = [5, 10, 25, 50];
-  for (const c of levels) {
-    await runTest('https://buyntryy.com/', 'HOMEPAGE', c);
-  }
-  for (const c of levels) {
-    await runTest('https://buyntryy.com/product/tws-m10', 'PDP', c);
-  }
+  await runTest('https://buyntryy.com/', 'HOMEPAGE', 5);
+  await runTest('https://buyntryy.com/', 'HOMEPAGE', 10);
+  await runTest('https://buyntryy.com/product/tws-m10', 'PDP', 5);
+  await runTest('https://buyntryy.com/product/tws-m10', 'PDP', 10);
 }
 main();

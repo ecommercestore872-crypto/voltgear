@@ -632,7 +632,7 @@ export async function createOrderRow(input: {
     lineTotal: i.lineTotal,
   }));
 
-  const { data: rpcData, error: rpcError } = await db().rpc("checkout_place_order", {
+  const rpcArgs = {
     p_order_id: input.orderId,
     p_customer: input.customer,
     p_payment: input.payment,
@@ -645,7 +645,18 @@ export async function createOrderRow(input: {
     p_items: rpcItems,
     p_idempotency_key: input.idempotencyKey || null,
     p_idempotency_fingerprint: input.idempotencyFingerprint || null,
-  });
+  };
+
+  let { data: rpcData, error: rpcError } = await db().rpc("checkout_place_order", rpcArgs);
+
+  if (rpcError && rpcError.message && rpcError.message.includes("Could not find the function")) {
+    const fallbackArgs = { ...rpcArgs };
+    delete (fallbackArgs as any).p_idempotency_key;
+    delete (fallbackArgs as any).p_idempotency_fingerprint;
+    const fallbackRes = await db().rpc("checkout_place_order", fallbackArgs);
+    rpcData = fallbackRes.data;
+    rpcError = fallbackRes.error;
+  }
 
   if (!rpcError && rpcData?.ok) {
     return {

@@ -29,6 +29,7 @@
     "@sanity/vision": "^3.99.0",
     "@supabase/supabase-js": "^2.112.4",
     "animejs": "^4.5.0",
+    "autocannon": "^8.0.0",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
