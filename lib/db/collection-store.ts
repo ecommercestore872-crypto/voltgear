@@ -386,42 +386,45 @@ const PRODUCT_EMBED = `
   product_reviews ( name, rating, review_date, comment, verified, image, is_demo )
 `;
 
+import { unstable_cache } from "next/cache";
+
 /** Products for a home rail when an active collection claims that slot. */
-export async function fetchProductsForHomeSlot(
-  slot: CollectionHomeSlot,
-  includeDemo = false
-): Promise<Product[] | null> {
-  const { data: col, error } = await db()
-    .from("collections")
-    .select("id")
-    .eq("home_slot", slot)
-    .eq("active", true)
-    .maybeSingle();
-  if (error || !col) return null;
+export const fetchProductsForHomeSlot = unstable_cache(
+  async (slot: CollectionHomeSlot, includeDemo = false): Promise<Product[] | null> => {
+    const { data: col, error } = await db()
+      .from("collections")
+      .select("id")
+      .eq("home_slot", slot)
+      .eq("active", true)
+      .maybeSingle();
+    if (error || !col) return null;
 
-  const collection = await getAdminCollection(String((col as { id: string }).id));
-  if (!collection) return null;
-  const ids = await resolveCollectionProductIds(collection);
-  if (!ids.length) return [];
+    const collection = await getAdminCollection(String((col as { id: string }).id));
+    if (!collection) return null;
+    const ids = await resolveCollectionProductIds(collection);
+    if (!ids.length) return [];
 
-  const { data: rows, error: pErr } = await db()
-    .from("products")
-    .select(PRODUCT_EMBED)
-    .in("id", ids)
-    .eq("status", "published");
-  if (pErr) throw pErr;
+    const { data: rows, error: pErr } = await db()
+      .from("products")
+      .select(PRODUCT_EMBED)
+      .in("id", ids)
+      .eq("status", "published");
+    if (pErr) throw pErr;
 
-  const byId = new Map<string, Product>();
-  for (const row of rows ?? []) {
-    const p = mapProduct(row as Record<string, unknown>, {
-      includeDemoReviews: includeDemo,
-    });
-    if (!p) continue;
-    if (!includeDemo && p.isDemo) continue;
-    byId.set(String((row as { id: string }).id), p);
-  }
-  return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
-}
+    const byId = new Map<string, Product>();
+    for (const row of rows ?? []) {
+      const p = mapProduct(row as Record<string, unknown>, {
+        includeDemoReviews: includeDemo,
+      });
+      if (!p) continue;
+      if (!includeDemo && p.isDemo) continue;
+      byId.set(String((row as { id: string }).id), p);
+    }
+    return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+  },
+  ["fetchProductsForHomeSlot"],
+  { revalidate: 60 }
+);
 
 async function productsForIds(
   ids: string[],
@@ -455,25 +458,27 @@ export type StorefrontCollectionRail = {
 };
 
 /** Active collections that are not bound to a reserved home slot. */
-export async function fetchExtraCollectionRails(
-  includeDemo = false
-): Promise<StorefrontCollectionRail[]> {
-  const collections = await listAdminCollections();
-  const extras = extraHomeCollectionRails(collections);
-  const rails: StorefrontCollectionRail[] = [];
-  for (const collection of extras) {
-    const ids = await resolveCollectionProductIds(collection);
-    const products = await productsForIds(ids, includeDemo);
-    if (!products.length) continue;
-    rails.push({
-      id: collection.id,
-      name: collection.name,
-      slug: collection.slug,
-      products: products.slice(0, 8),
-    });
-  }
-  return rails;
-}
+export const fetchExtraCollectionRails = unstable_cache(
+  async (includeDemo = false): Promise<StorefrontCollectionRail[]> => {
+    const collections = await listAdminCollections();
+    const extras = extraHomeCollectionRails(collections);
+    const rails: StorefrontCollectionRail[] = [];
+    for (const collection of extras) {
+      const ids = await resolveCollectionProductIds(collection);
+      const products = await productsForIds(ids, includeDemo);
+      if (!products.length) continue;
+      rails.push({
+        id: collection.id,
+        name: collection.name,
+        slug: collection.slug,
+        products: products.slice(0, 8),
+      });
+    }
+    return rails;
+  },
+  ["fetchExtraCollectionRails"],
+  { revalidate: 60 }
+);
 
 export async function getStorefrontCollectionBySlug(
   slug: string,

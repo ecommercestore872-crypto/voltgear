@@ -120,24 +120,28 @@ export const fetchCatalogProducts = unstable_cache(
 const HOMEPAGE_PRODUCT_LIMIT = 36;
 
 /** Slim catalog for the homepage — avoids a second full-catalog + analytics pass. */
-export async function fetchHomepageProducts(includeDemo = false): Promise<Product[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(
-      db()
-        .from("products")
-        .select((includeDemo ? PRODUCT_EMBED : CATALOG_PRODUCT_EMBED) as "*")
-        .eq("status", LIVE),
-      includeDemo
-    )
-      .order("featured", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(HOMEPAGE_PRODUCT_LIMIT)
-  );
-  if (error) throw error;
-  return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
-    .filter(Boolean) as Product[];
-}
+export const fetchHomepageProducts = unstable_cache(
+  async (includeDemo = false): Promise<Product[]> => {
+    const { data, error } = await execDemoQuery(() =>
+      demoFilter(
+        db()
+          .from("products")
+          .select((includeDemo ? PRODUCT_EMBED : CATALOG_PRODUCT_EMBED) as "*")
+          .eq("status", LIVE),
+        includeDemo
+      )
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(HOMEPAGE_PRODUCT_LIMIT)
+    );
+    if (error) throw error;
+    return (data ?? [])
+      .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+      .filter(Boolean) as Product[];
+  },
+  ["fetchHomepageProducts"],
+  { revalidate: 60 }
+);
 
 export async function fetchProductBySlug(slug: string, includeDemo = false): Promise<Product | null> {
   const { data, error } = await execDemoQuery(() =>
@@ -327,12 +331,16 @@ export async function fetchActiveCategories(includeDemo = false): Promise<string
   return Array.from(new Set((data ?? []).map((r) => String(r.category)).filter(Boolean))).sort();
 }
 
-export async function fetchSiteSettings(): Promise<SiteSettings | null> {
-  await ensureShopperBrandSettings();
-  const { data, error } = await db().from("site_settings").select("*").eq("id", 1).maybeSingle();
-  if (error) throw error;
-  return mapSettings(data as Record<string, unknown> | null);
-}
+export const fetchSiteSettings = unstable_cache(
+  async (): Promise<SiteSettings | null> => {
+    await ensureShopperBrandSettings();
+    const { data, error } = await db().from("site_settings").select("*").eq("id", 1).maybeSingle();
+    if (error) throw error;
+    return mapSettings(data as Record<string, unknown> | null);
+  },
+  ["fetchSiteSettings"],
+  { revalidate: 60 }
+);
 
 export async function fetchHero(includeDemo = false): Promise<HeroSection | null> {
   const { data, error } = await db().from("hero_sections").select("*").eq("id", 1).maybeSingle();
@@ -358,45 +366,48 @@ export async function fetchHero(includeDemo = false): Promise<HeroSection | null
   return mapHero(data as Record<string, unknown>, featured);
 }
 
-export async function fetchHeroSlides(includeDemo = false): Promise<HeroSlide[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(db().from("hero_slides").select("*").eq("status", LIVE), includeDemo)
-      .order("sort_order", { ascending: true })
-      .limit(MAX_HERO_SLIDES)
-  );
-  if (error) {
-    // Table may not exist until migration is pushed
-    if (error.code === "42P01" || /hero_slides/i.test(error.message ?? "")) return [];
-    throw error;
-  }
-  const rows = data ?? [];
-  if (rows.length === 0) return [];
+export const fetchHeroSlides = unstable_cache(
+  async (includeDemo = false): Promise<HeroSlide[]> => {
+    const { data, error } = await execDemoQuery(() =>
+      demoFilter(db().from("hero_slides").select("*").eq("status", LIVE), includeDemo)
+        .order("sort_order", { ascending: true })
+        .limit(MAX_HERO_SLIDES)
+    );
+    if (error) {
+      if (error.code === "42P01" || /hero_slides/i.test(error.message ?? "")) return [];
+      throw error;
+    }
+    const rows = data ?? [];
+    if (rows.length === 0) return [];
 
-  const productIds = Array.from(
-    new Set(rows.map((r) => String(r.product_id)).filter(Boolean))
-  );
-  const { data: products, error: productError } = await execDemoQuery(() =>
-    demoFilter(
-      db().from("products").select(PRODUCT_EMBED).in("id", productIds).eq("status", LIVE),
-      includeDemo
-    )
-  );
-  if (productError) throw productError;
+    const productIds = Array.from(
+      new Set(rows.map((r) => String(r.product_id)).filter(Boolean))
+    );
+    const { data: products, error: productError } = await execDemoQuery(() =>
+      demoFilter(
+        db().from("products").select(PRODUCT_EMBED).in("id", productIds).eq("status", LIVE),
+        includeDemo
+      )
+    );
+    if (productError) throw productError;
 
-  const byId = new Map<string, Product>();
-  for (const row of products ?? []) {
-    const mapped = mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo });
-    if (mapped) byId.set(mapped._id, mapped);
-  }
+    const byId = new Map<string, Product>();
+    for (const row of products ?? []) {
+      const mapped = mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo });
+      if (mapped) byId.set(mapped._id, mapped);
+    }
 
-  const slides: HeroSlide[] = [];
-  for (const row of rows) {
-    const product = byId.get(String(row.product_id));
-    if (!product || !String(row.image_url ?? "").trim()) continue;
-    slides.push(mapHeroSlide(row as Record<string, unknown>, product));
-  }
-  return slides.slice(0, MAX_HERO_SLIDES);
-}
+    const slides: HeroSlide[] = [];
+    for (const row of rows) {
+      const product = byId.get(String(row.product_id));
+      if (!product || !String(row.image_url ?? "").trim()) continue;
+      slides.push(mapHeroSlide(row as Record<string, unknown>, product));
+    }
+    return slides.slice(0, MAX_HERO_SLIDES);
+  },
+  ["fetchHeroSlides"],
+  { revalidate: 60 }
+);
 
 async function fetchOrderCountsByProductId(products: Product[]): Promise<Record<string, number>> {
   const slugToId = new Map(products.map((p) => [p.slug, p._id]));
@@ -449,26 +460,34 @@ export async function fetchHomeBestsellers(includeDemo = false): Promise<Product
   return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
 }
 
-export async function fetchTestimonials(includeDemo = false): Promise<Testimonial[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(db().from("testimonials").select("*").eq("status", LIVE), includeDemo)
-      .order("sort_order", { ascending: true, nullsFirst: false })
-      .order("created_at", { ascending: false })
-  );
-  if (error) throw error;
-  return (data ?? []).map((row) => mapTestimonial(row as Record<string, unknown>));
-}
+export const fetchTestimonials = unstable_cache(
+  async (includeDemo = false): Promise<Testimonial[]> => {
+    const { data, error } = await execDemoQuery(() =>
+      demoFilter(db().from("testimonials").select("*").eq("status", LIVE), includeDemo)
+        .order("sort_order", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: false })
+    );
+    if (error) throw error;
+    return (data ?? []).map((row) => mapTestimonial(row as Record<string, unknown>));
+  },
+  ["fetchTestimonials"],
+  { revalidate: 60 }
+);
 
-export async function fetchBlogPosts(includeDemo = false): Promise<Page[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(
-      db().from("pages").select("*").eq("page_type", "blog").eq("status", LIVE),
-      includeDemo
-    ).order("published_at", { ascending: false, nullsFirst: false })
-  );
-  if (error) throw error;
-  return (data ?? []).map((row) => mapPage(row as Record<string, unknown>)).filter(Boolean) as Page[];
-}
+export const fetchBlogPosts = unstable_cache(
+  async (includeDemo = false): Promise<Page[]> => {
+    const { data, error } = await execDemoQuery(() =>
+      demoFilter(
+        db().from("pages").select("*").eq("page_type", "blog").eq("status", LIVE),
+        includeDemo
+      ).order("published_at", { ascending: false, nullsFirst: false })
+    );
+    if (error) throw error;
+    return (data ?? []).map((row) => mapPage(row as Record<string, unknown>)).filter(Boolean) as Page[];
+  },
+  ["fetchBlogPosts"],
+  { revalidate: 60 }
+);
 
 export async function fetchPageBySlug(slug: string, includeDemo = false): Promise<Page | null> {
   const { data, error } = await execDemoQuery(() =>

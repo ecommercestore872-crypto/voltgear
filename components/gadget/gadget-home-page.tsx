@@ -76,16 +76,16 @@ export async function GadgetHomePage() {
       ]);
     slides = s;
     products = applyGadgetStudioImagesList(p);
-    testimonials = t;
+    testimonials = t.map((m) => ({ ...m, product: undefined })); // Strip product data if not needed
     settings = set;
     shopTypes = gadgetShopTypeLinks(types);
-    blogPosts = blogs;
-    slotBestsellers = colBest ? applyGadgetStudioImagesList(colBest) : null;
-    slotFeatured = colFeat ? applyGadgetStudioImagesList(colFeat) : null;
-    slotOffers = colOffers ? applyGadgetStudioImagesList(colOffers) : null;
+    blogPosts = blogs.map((b) => ({ ...b, sections: [] })); // Strip full HTML bodies
+    slotBestsellers = colBest ? applyGadgetStudioImagesList(colBest).map(prod => ({...prod, reviews: [], variants: []})) : null;
+    slotFeatured = colFeat ? applyGadgetStudioImagesList(colFeat).map(prod => ({...prod, reviews: [], variants: []})) : null;
+    slotOffers = colOffers ? applyGadgetStudioImagesList(colOffers).map(prod => ({...prod, reviews: [], variants: []})) : null;
     extraRails = extra.map((rail) => ({
       ...rail,
-      products: applyGadgetStudioImagesList(rail.products),
+      products: applyGadgetStudioImagesList(rail.products).map(prod => ({...prod, reviews: [], variants: []})),
     }));
 
     if (settings?.draft?.homeFeaturedProductSlug) {
@@ -94,6 +94,9 @@ export async function GadgetHomePage() {
         products.push(...applyGadgetStudioImagesList([over]));
       }
     }
+    
+    // Globally strip arrays from all products to shrink payload
+    products = products.map((prod) => ({ ...prod, reviews: [], variants: [] }));
   } catch {
     products = [];
   }
