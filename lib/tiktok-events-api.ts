@@ -15,6 +15,7 @@ export async function trackTikTokServerPurchase(input: {
   userAgent?: string;
   url?: string;
   consent?: string | null;
+  ttclid?: string | null;
   lines: Array<{
     slug?: string;
     variantKey?: string;
@@ -72,7 +73,8 @@ export async function trackTikTokServerPurchase(input: {
       user_agent: input.userAgent || undefined,
       page: {
         url: input.url || "https://buyntryy.com/checkout"
-      }
+      },
+      ...(input.ttclid ? { ad: { callback: input.ttclid } } : {})
     },
     properties: {
       contents,

@@ -13,11 +13,11 @@ const SESSION_COOKIE = "vg_sid";
 export async function attachOrderAttribution(
   orderId: string,
   request: Request
-): Promise<void> {
+): Promise<ReturnType<typeof orderAttributionFromSession> | null> {
   try {
     const sid = readCookieValue(request.headers.get("cookie"), SESSION_COOKIE);
     if (!sid || !isAnalyticsUuid(sid)) {
-      return;
+      return null;
     }
 
     const { data, error } = await getServiceClient()
@@ -29,12 +29,12 @@ export async function attachOrderAttribution(
       .maybeSingle();
 
     if (error || !data) {
-      return;
+      return null;
     }
 
     const lastActivity = new Date(String(data.last_activity_at)).getTime();
     if (!Number.isFinite(lastActivity) || Date.now() - lastActivity > SESSION_IDLE_MS) {
-      return;
+      return null;
     }
 
     const snapshot = orderAttributionFromSession({
@@ -50,7 +50,9 @@ export async function attachOrderAttribution(
     });
 
     await updateOrderAttributionRow(orderId, snapshot);
+    return snapshot;
   } catch {
     console.error("[analytics-checkout]", "attach failed");
+    return null;
   }
 }

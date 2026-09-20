@@ -340,8 +340,10 @@ export async function POST(request: Request) {
       }
     }
 
+    let sessionTtclid: string | null = null;
     try {
-      await attachOrderAttribution(orderId, request);
+      const snapshot = await attachOrderAttribution(orderId, request);
+      sessionTtclid = snapshot?.attrib_ttclid || null;
     } catch {
       console.error("[analytics-checkout]", "attach failed");
     }
@@ -359,6 +361,7 @@ export async function POST(request: Request) {
           url: request.headers.get("referer") || "https://buyntryy.com/checkout",
           lines: baseOrder.items,
           consent,
+          ttclid: sessionTtclid,
         });
       }
     } catch (err) {

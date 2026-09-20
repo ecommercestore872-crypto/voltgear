@@ -273,7 +273,7 @@ describe("buildFirstTouch", () => {
     );
     assert.equal(touch.campaign?.length, 80);
     assert.equal(touch.campaign_id?.length, 80);
-    assert.equal(touch.ttclid?.length, 128);
+    assert.equal(touch.ttclid?.length, 200);
     assert.equal(touch.referrer?.includes("?"), false);
     assert.equal(touch.landing_path, "/product/pad");
   });
