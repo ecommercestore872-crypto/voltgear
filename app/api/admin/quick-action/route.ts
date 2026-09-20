@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
     `, {
       headers: { "Content-Type": "text/html" }
     });
-  } catch (error) {
+  } catch {
     return new NextResponse("Server mutation error", { status: 500 });
   }
 }
