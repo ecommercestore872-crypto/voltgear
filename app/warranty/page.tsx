@@ -16,6 +16,7 @@ import {
 export const metadata: Metadata = {
   title: "Warranty Policy",
   description: "Buy n Try warranty coverage and how to claim.",
+  alternates: { canonical: "/warranty" },
 };
 
 export default async function WarrantyPage() {

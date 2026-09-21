@@ -34,7 +34,10 @@ export async function generateMetadata({
   }
   if (!page) return {};
   if (page.pageType === "blog") {
-    return { alternates: { canonical: `/blog/${page.slug}` } };
+    return {
+      alternates: { canonical: `/blog/${page.slug}` },
+      robots: { index: false, follow: true },
+    };
   }
   return {
     title: page.seo?.title || page.title,

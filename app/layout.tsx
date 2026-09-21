@@ -12,7 +12,6 @@ import { SHOPPER_BRAND } from "@/lib/brand";
 import {
   indexSiteUrl,
   organizationStructuredData,
-  storeAlternatesLanguages,
   websiteStructuredData,
 } from "@/lib/seo-rules";
 import {
@@ -129,10 +128,6 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-  alternates: {
-    canonical: SITE_URL,
-    languages: storeAlternatesLanguages("/").languages,
   },
   manifest: "/manifest.json",
   icons: {

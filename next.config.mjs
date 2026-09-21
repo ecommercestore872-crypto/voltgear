@@ -16,7 +16,6 @@ const nextConfig = {
     imageSizes: [32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
-      { protocol: "https", hostname: "cdn.sanity.io" },
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "*.cloudinary.com" },
       { protocol: "https", hostname: "zeuhfqevqjkbzwdaxjuv.supabase.co" },

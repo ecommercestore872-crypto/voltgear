@@ -9,6 +9,8 @@ Single tracker for this store. Status lives here only.
 **T-38 — Autopilot** — slice B engines implemented locally  
 Spec: `docs/superpowers/specs/2026-09-05-t38b-autopilot-engines-design.md`  
 
+**T-39 — SEO (Pakistan rankings):** plan ready at `docs/plans/2026-09-21-seo-ranking-master-plan.md` — awaiting approval before implementation.
+
 ## Program
 
 Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel logs, staging, black-and-white storefront with product videos, Vercel deploy. Admin platform program adds Shopify-parity gaps (inbox, collections, marketing email, category-grouped products, nav IA).
@@ -55,6 +57,7 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-36 | Chrome CMS | ✅ Done | T-32 | Settings-driven logo, navbar, Help, footer Company/Care. |
 | T-37 | Order email CMS | ✅ Done | T-04, T-36 | Shared theme/layout + subject/body for six order letters at `/admin/order-emails`. Run `20260905050000_order_emails.sql` on live Supabase. |
 | T-38 | Autopilot honesty + engines | 🟡 In Progress | T-34 | A: honest board. B: real PostEx book/track + CSV settle. Ads/reorder not engines. |
+| T-39 | SEO — Pakistan rankings (categories, products, guides) | 🟡 In Progress | T-08 | Phase 1 shipped: root canonical fix, blog/studio noindex, category titles/keywords. Deploy + GSC revalidate. |
 
 ## Suggested build order
 

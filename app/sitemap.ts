@@ -54,7 +54,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const blogs = pages.filter((page) => page.pageType === "blog" && page.slug);
-  const cms = pages.filter((page) => page.pageType !== "blog" && page.slug);
+  const blogSlugSet = new Set(blogs.map((p) => p.slug));
+  const cms = pages.filter(
+    (page) =>
+      page.pageType !== "blog" &&
+      page.slug &&
+      !blogSlugSet.has(page.slug),
+  );
 
   const staticRoutes: MetadataRoute.Sitemap = [
     entry(`${baseUrl}/`, new Date(), "daily", 1),
@@ -99,6 +105,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           slug: post.slug,
           _updatedAt: post.publishedAt,
         }));
+  const sitemapBlogSlugSet = new Set(sitemapBlogs.map((p) => p.slug));
   const blogRoutes = sitemapBlogs.map((post) =>
     entry(`${baseUrl}/blog/${post.slug}`, post._updatedAt, "weekly", 0.55),
   );
@@ -115,7 +122,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "cookies",
   ]);
   const cmsRoutes = cms
-    .filter((page) => page.slug && !reserved.has(page.slug))
+    .filter(
+      (page) =>
+        page.slug &&
+        !reserved.has(page.slug) &&
+        !sitemapBlogSlugSet.has(page.slug),
+    )
     .map((page) =>
       entry(`${baseUrl}/${page.slug}`, page._updatedAt, "monthly", 0.4),
     );

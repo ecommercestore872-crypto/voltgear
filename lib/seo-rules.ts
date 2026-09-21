@@ -9,6 +9,7 @@ export const CANONICAL_PUBLIC_ORIGIN = "https://buyntryy.com";
  */
 const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
   earbuds: [
+    "airbuds",
     "true wireless earbuds",
     "noise cancelling bluetooth earphones",
     "best wireless earbuds for running that don't fall out",
@@ -37,6 +38,7 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     "GaN charger",
     "65W charger",
     "USB-C charger",
+    "adapters",
     "charger Pakistan",
   ],
   "ring-light": [
@@ -48,11 +50,14 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     "ring light Pakistan",
   ],
   "selfie-stick": [
+    "selfie stick",
     "bluetooth selfie stick",
     "selfie stick Pakistan",
   ],
   tripod: [
+    "tripod",
     "Mobile tripod stand",
+    "camera tripod",
     "Flexible camera mount",
     "overhead video tripod stand for flat lay recording",
     "flexible octopus tripod for vlogging on the go",
@@ -69,15 +74,17 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
   ],
   accessories: [
     "stylus pen Pakistan",
+    "stylus pen",
+    "universal stylus",
     "accessories",
   ],
 };
 
 const CATEGORY_HUB_BLURBS: Record<string, string> = {
   earbuds:
-    "Shop wireless earbuds and airbuds in Pakistan at Buy n Try (buyntryy.com). Cash on delivery — inspect TWS pairs for calls and commute at home.",
+    "Shop wireless earbuds and airbuds in Pakistan at Buy n Try (buyntryy.com). Cash on delivery to Lahore, Karachi, Islamabad, Rawalpindi and nationwide — inspect TWS at delivery.",
   smartwatch:
-    "Browse calling and AMOLED smartwatches in Pakistan at Buy n Try. Clear pricing and cash on delivery nationwide from buyntryy.com.",
+    "Browse calling and AMOLED smartwatches in Pakistan at Buy n Try. Clear pricing and cash on delivery to major cities and nationwide from buyntryy.com.",
   "power-bank":
     "Find 10,000mAh and 20,000mAh power banks in Pakistan at Buy n Try. Fast portable power with cash on delivery — try it when the courier arrives.",
   charger:
@@ -158,7 +165,7 @@ export function categorySearchMeta(input: {
   const lead = (hub || input.description || input.name).trim();
   const titleCore = input.name.replace(/\s+/g, " ").trim();
   return {
-    title: `Buy ${titleCore} in Pakistan | COD | ${SHOPPER_BRAND.spokenName}`,
+    title: `${titleCore} Price in Pakistan | Buy Online COD | ${SHOPPER_BRAND.spokenName}`,
     description: lead.slice(0, 160),
     keywords: [
       ...terms,

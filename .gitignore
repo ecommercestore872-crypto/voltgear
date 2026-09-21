@@ -27,19 +27,28 @@ yarn-error.log*
 server.log
 
 # local env files
-.env*.local
 .env
+.env*.local
 .env*
 !.env.example
 !.env.staging.example
 
 # vercel
 .vercel
+vercel_api_deployment.json
+vercel_inspect*.json
 
 # typescript
 *.tsbuildinfo
-.env*
-!.env.example
+
+# local debug / CLI dumps (never commit)
+/logs*.json
+/eslint*.json
+/db_images_output.json
+/tmp_curl_results.json
+/build*.log
+/server.log
+/tmp/
 
 # brainstorm / agent session artifacts
 .superpowers/
@@ -47,3 +56,4 @@ server.log
 # GSD + local tools
 .planning/
 Plug/
+Agents/
