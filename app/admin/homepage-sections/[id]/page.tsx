@@ -20,8 +20,10 @@ export default async function EditHomepageSectionPage({
   const section = await getAdminHomepageSection(params.id);
   if (!section) notFound();
 
-  const shopTypes = await listAdminShopTypes();
-  const simpleProducts = await listAdminProductPickers();
+  const [shopTypes, simpleProducts] = await Promise.all([
+    listAdminShopTypes(),
+    listAdminProductPickers(),
+  ]);
 
   return (
     <HomepageSectionForm

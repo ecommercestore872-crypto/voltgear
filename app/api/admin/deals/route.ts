@@ -8,7 +8,7 @@ import {
   listProductDeals,
   loadDealFloorExtras,
 } from "@/lib/db/deal-store";
-import { getAllOrders } from "@/lib/order-store";
+import { getDeliveredOrdersWithItemsForDeals } from "@/lib/order-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       listProductDeals(),
       fetchDealCatalog(),
       loadDealFloorExtras(),
-      getAllOrders(),
+      getDeliveredOrdersWithItemsForDeals(),
     ]);
     const suggestions = suggestDealPairs(orders, catalog, extras, deals);
     return NextResponse.json({

@@ -5,6 +5,8 @@ import {
   getAllOrders as getAllOrdersFromDb,
   getOrderByPublicId,
   getOrdersByEmail as getOrdersByEmailFromDb,
+  getOrdersByPhone as getOrdersByPhoneFromDb,
+  getDeliveredOrdersWithItemsForDeals as getDeliveredOrdersWithItemsForDealsFromDb,
   getPendingEmailEvents as getPendingEmailEventsFromDb,
   markEmailSent as markEmailSentRow,
   recentWinbackExists as recentWinbackExistsRow,
@@ -48,6 +50,14 @@ export async function nextPublicOrderId(): Promise<string> {
 
 export async function getOrdersByEmail(email: string): Promise<Order[]> {
   return getOrdersByEmailFromDb(email);
+}
+
+export async function getOrdersByPhone(phone: string): Promise<Order[]> {
+  return getOrdersByPhoneFromDb(phone);
+}
+
+export async function getDeliveredOrdersWithItemsForDeals(): Promise<Order[]> {
+  return getDeliveredOrdersWithItemsForDealsFromDb();
 }
 
 export async function getAllOrders(): Promise<Order[]> {

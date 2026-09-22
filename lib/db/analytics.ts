@@ -12,7 +12,8 @@ import { assembleAnalyticsBundle, type BundleOrder } from "@/lib/db/analytics-bu
 import type { TrafficEvent, TrafficSession } from "@/lib/db/analytics-traffic-rules";
 import { fetchProductCoachCatalog, fetchProductCostRows, getAdminSettings, getAnalyticsAdSpend } from "@/lib/db/admin-store";
 import { parseAdSpendStore, spendForRange } from "@/lib/db/analytics-profit-rules";
-import { getAllOrders } from "@/lib/order-store";
+import { getAllOrders, getOrderById } from "@/lib/order-store";
+import { unstable_cache } from "next/cache";
 import { getServiceClient } from "@/lib/supabase/server";
 
 const PAGE_SIZE = 1000;
@@ -150,6 +151,27 @@ async function loadFirstPartyTraffic(): Promise<{
   }
 }
 
+function analyticsBundleCacheKey(input: {
+  preset: string;
+  from?: string;
+  to?: string;
+}) {
+  return `${input.preset}:${input.from ?? ""}:${input.to ?? ""}`;
+}
+
+export async function loadAnalyticsBundleCached(input: {
+  preset: string;
+  from?: string;
+  to?: string;
+}) {
+  const key = analyticsBundleCacheKey(input);
+  return unstable_cache(
+    () => loadAnalyticsBundle(input),
+    ["admin-analytics-bundle", key],
+    { revalidate: 120, tags: ["admin-analytics"] },
+  )();
+}
+
 export async function loadAnalyticsBundle(input: {
   preset: string;
   from?: string;
@@ -214,8 +236,14 @@ export async function runSafeAnalyticsQuery(raw: unknown) {
 }
 
 export async function loadAnalyticsDrilldown(ids: string[]) {
-  const orders = await getAllOrders();
-  return drillOrdersByIds(orders, ids.slice(0, 100));
+  const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))].slice(
+    0,
+    100,
+  );
+  const orders = (
+    await Promise.all(unique.map((id) => getOrderById(id)))
+  ).filter((o): o is NonNullable<typeof o> => Boolean(o));
+  return drillOrdersByIds(orders, unique);
 }
 
 export type { AnalyticsQuery };

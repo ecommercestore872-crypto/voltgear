@@ -11,8 +11,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function NewHomepageSectionPage() {
-  const shopTypes = await listAdminShopTypes();
-  const simpleProducts = await listAdminProductPickers();
+  const [shopTypes, simpleProducts] = await Promise.all([
+    listAdminShopTypes(),
+    listAdminProductPickers(),
+  ]);
 
   return (
     <HomepageSectionForm

@@ -1,4 +1,4 @@
-import { getAllOrders } from "@/lib/order-store";
+import { getLightweightOrders } from "@/lib/order-store";
 
 export type CustomerRow = {
   key: string;
@@ -54,6 +54,6 @@ export function buildCustomerRowsFromOrders(
 }
 
 export async function listAdminCustomers(): Promise<CustomerRow[]> {
-  const orders = await getAllOrders();
+  const orders = await getLightweightOrders();
   return buildCustomerRowsFromOrders(orders);
 }

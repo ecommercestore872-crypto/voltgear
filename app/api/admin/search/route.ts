@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
 import { scoreAdminSearchHits } from "@/lib/db/admin-search-rules";
-import { listAdminProductPickers } from "@/lib/db/admin-store";
-import { listAdminCustomers } from "@/lib/db/customer-list";
+import { listAdminProductsSearch } from "@/lib/db/admin-store";
+import { buildCustomerRowsFromOrders } from "@/lib/db/customer-list";
 import { getLightweightOrders } from "@/lib/order-store";
 
 export const runtime = "nodejs";
@@ -14,21 +14,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const q = new URL(request.url).searchParams.get("q") ?? "";
-  if (q.trim().length < 2) {
+  const trimmed = q.trim();
+  if (trimmed.length < 2) {
     return NextResponse.json({ hits: [] });
   }
   try {
-    const [orders, products, customers] = await Promise.all([
+    const [orders, products] = await Promise.all([
       getLightweightOrders(),
-      listAdminProductPickers(),
-      listAdminCustomers(),
+      listAdminProductsSearch(trimmed),
     ]);
-    const hits = scoreAdminSearchHits(q, {
+    const customers = buildCustomerRowsFromOrders(
+      orders.filter((o) => !o.isDemo),
+    );
+    const hits = scoreAdminSearchHits(trimmed, {
       orders: orders
         .filter((o) => !o.isDemo)
         .map((o) => ({ orderId: o.orderId })),
       products: products.map((p) => ({
-        id: p.id,
+        id: p._id,
         name: p.name,
         slug: p.slug,
       })),

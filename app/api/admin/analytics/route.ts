@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
-import { loadAnalyticsBundle } from "@/lib/db/analytics";
+import { loadAnalyticsBundleCached } from "@/lib/db/analytics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   }
   try {
     const url = new URL(request.url);
-    const bundle = await loadAnalyticsBundle({
+    const bundle = await loadAnalyticsBundleCached({
       preset: url.searchParams.get("preset") ?? "last7",
       from: url.searchParams.get("from") ?? undefined,
       to: url.searchParams.get("to") ?? undefined,

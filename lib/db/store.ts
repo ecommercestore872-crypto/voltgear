@@ -756,13 +756,44 @@ export async function getOrderByPublicId(orderId: string): Promise<Order | null>
 }
 
 export async function getOrdersByEmail(email: string): Promise<Order[]> {
+  const normalized = email.toLowerCase().trim();
+  if (!normalized) return [];
   const { data, error } = await db()
     .from("orders")
     .select("*, order_items(*), order_status_history(*)")
-    .eq("customer->>email", email.toLowerCase().trim())
+    .eq("customer->>email", normalized)
     .order("created_at", { ascending: false });
   if (error) return [];
   return Promise.all((data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)));
+}
+
+export async function getOrdersByPhone(phone: string): Promise<Order[]> {
+  const normalized = phone.trim();
+  if (!normalized) return [];
+  const { data, error } = await db()
+    .from("orders")
+    .select("*, order_items(*), order_status_history(*)")
+    .eq("customer->>phone", normalized)
+    .order("created_at", { ascending: false });
+  if (error) return [];
+  return Promise.all((data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)));
+}
+
+/** Delivered orders with line items — for deal pair suggestions only (no full history load). */
+export async function getDeliveredOrdersWithItemsForDeals(): Promise<Order[]> {
+  const { data, error } = await db()
+    .from("orders")
+    .select(
+      "id, order_id, status, is_demo, created_at, customer, order_items(slug, name, price, quantity, line_total, variant_name, variant_key, variant_sku)",
+    )
+    .eq("status", "delivered")
+    .eq("is_demo", false)
+    .order("created_at", { ascending: false })
+    .limit(2500);
+  if (error) return [];
+  return Promise.all(
+    (data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)),
+  );
 }
 
 export async function getAllOrders(): Promise<Order[]> {

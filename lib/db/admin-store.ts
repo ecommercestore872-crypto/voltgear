@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 
 import type { AdminProduct } from "@/lib/db/admin-types";
 import { mapProduct } from "@/lib/db/map";
@@ -250,8 +250,7 @@ export async function listAdminProductsPage(opts: {
     .filter(Boolean) as AdminProduct[];
 }
 
-/** Lightweight rollup for category filter chips (category slug → count). */
-export async function listAdminProductCategoryCounts(): Promise<
+async function listAdminProductCategoryCountsUncached(): Promise<
   { slug: string; count: number }[]
 > {
   const { data, error } = await db().from("products").select("category");
@@ -265,6 +264,17 @@ export async function listAdminProductCategoryCounts(): Promise<
   return [...map.entries()]
     .map(([slug, count]) => ({ slug, count }))
     .sort((a, b) => b.count - a.count);
+}
+
+/** Lightweight rollup for category filter chips (category slug → count). */
+export async function listAdminProductCategoryCounts(): Promise<
+  { slug: string; count: number }[]
+> {
+  return unstable_cache(
+    listAdminProductCategoryCountsUncached,
+    ["admin-product-category-counts"],
+    { revalidate: 300, tags: ["admin-products"] },
+  )();
 }
 
 export async function listAdminProductsByIds(
