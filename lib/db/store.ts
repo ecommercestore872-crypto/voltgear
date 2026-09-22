@@ -154,6 +154,65 @@ export async function fetchProductBySlug(slug: string, includeDemo = false): Pro
   return mapProduct(data as Record<string, unknown> | null, { includeDemoReviews: includeDemo });
 }
 
+async function loadRelatedCatalogProducts(
+  excludeProductId: string,
+  category: string,
+  limit: number,
+): Promise<Product[]> {
+  const cat = category.trim();
+  if (!cat || !excludeProductId.trim() || limit < 1) return [];
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(CATALOG_PRODUCT_EMBED as "*")
+        .eq("status", LIVE)
+        .eq("category", cat)
+        .neq("id", excludeProductId)
+        .order("created_at", { ascending: false })
+        .limit(limit),
+      false,
+    ),
+  );
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>))
+    .filter(Boolean) as Product[];
+}
+
+/** Same-category related cards for PDP — bounded query, catalog embed only. */
+export const fetchRelatedProducts = unstable_cache(
+  async (excludeProductId: string, category: string, limit: number) =>
+    loadRelatedCatalogProducts(excludeProductId, category, limit),
+  ["fetchRelatedProducts"],
+  { revalidate: 60 },
+);
+
+/** Slim catalog rows for explicit slugs (e.g. deal pair partners). */
+export async function fetchCatalogProductsBySlugs(
+  slugs: string[],
+): Promise<Product[]> {
+  const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))];
+  if (!unique.length) return [];
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(CATALOG_PRODUCT_EMBED as "*")
+        .eq("status", LIVE)
+        .in("slug", unique),
+      false,
+    ),
+  );
+  if (error) throw error;
+  const bySlug = new Map<string, Product>();
+  for (const row of data ?? []) {
+    const p = mapProduct(row as Record<string, unknown>);
+    if (p) bySlug.set(p.slug, p);
+  }
+  return unique.map((slug) => bySlug.get(slug)).filter(Boolean) as Product[];
+}
+
 export async function fetchProductSlugs(): Promise<{ slug: string }[]> {
   const { data, error } = await execDemoQuery(() =>
     demoFilter(db().from("products").select("slug, updated_at").eq("status", LIVE), false)
@@ -528,7 +587,9 @@ export async function fetchApprovedReviews(
     demoFilter(
       db()
         .from("review_submissions")
-        .select("*")
+        .select(
+          "name, rating, created_at, comment, reply, verified, image, is_demo",
+        )
         .eq("product_id", productId)
         .eq("status", "approved"),
       includeDemo

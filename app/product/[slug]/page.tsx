@@ -13,10 +13,11 @@ import {
   applyGadgetStudioImagesList,
 } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
+import { loadPdpProductBySlug } from "@/lib/db/product-pdp";
 import {
   fetchApprovedReviews,
-  fetchCatalogProducts,
-  fetchProductBySlug,
+  fetchCatalogProductsBySlugs,
+  fetchRelatedProducts,
   fetchSiteSettings,
 } from "@/lib/db/store";
 import { publicDealsForSlug } from "@/lib/db/deal-rules";
@@ -29,14 +30,14 @@ import { SHOPPER_BRAND } from "@/lib/brand";
 
 export const revalidate = 60;
 
+const RELATED_LIMIT = 4;
+
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const product = await fetchProductBySlug(params.slug, false).catch(
-    () => null,
-  );
+  const product = await loadPdpProductBySlug(params.slug).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
 
   let title = `${product.name} Price in Pakistan | Buy n Try`;
@@ -102,22 +103,39 @@ export default async function Product2Page({
   params: { slug: string };
 }) {
   let product: Product | null = null;
-  let related: Product[] = [];
+  let relatedProducts: Product[] = [];
   let settings = null;
   let approvedReviews: ProductReview[] = [];
   let deals: Awaited<ReturnType<typeof listProductDeals>> = [];
   let dealCatalog: Awaited<ReturnType<typeof fetchDealCatalog>> = [];
+  let dealPartnerBySlug = new Map<string, Product>();
+  let dealRows: ReturnType<typeof publicDealsForSlug> = [];
   try {
-    product = await fetchProductBySlug(params.slug, false);
+    product = await loadPdpProductBySlug(params.slug);
     if (product) {
-      [related, settings, approvedReviews, deals, dealCatalog] =
+      const [settingsResult, approvedReviewsResult, dealsResult, dealCatalogResult] =
         await Promise.all([
-          fetchCatalogProducts(),
           fetchSiteSettings().catch(() => null),
           fetchApprovedReviews(product._id, false),
           listProductDeals().catch(() => []),
           fetchDealCatalog().catch(() => []),
         ]);
+      settings = settingsResult;
+      approvedReviews = approvedReviewsResult;
+      deals = dealsResult;
+      dealCatalog = dealCatalogResult;
+
+      dealRows = publicDealsForSlug(product.slug, deals, dealCatalog);
+      const dealSlugs = dealRows.map((row) => row.otherSlug);
+
+      const [related, dealPartners] = await Promise.all([
+        fetchRelatedProducts(product._id, product.category, RELATED_LIMIT),
+        dealSlugs.length
+          ? fetchCatalogProductsBySlugs(dealSlugs)
+          : Promise.resolve([]),
+      ]);
+      relatedProducts = related;
+      dealPartnerBySlug = new Map(dealPartners.map((p) => [p.slug, p]));
     }
   } catch {
     product = null;
@@ -126,7 +144,7 @@ export default async function Product2Page({
   if (!product) notFound();
 
   // Deduplicate: avoid showing the same review twice when it appears
-  // in both the Supabase product_reviews table and the legacy product.reviews array.
+  // in both the Supabase review_submissions table and the legacy product.reviews array.
   const seen = new Set<string>();
   const mergedReviews = [...approvedReviews, ...(product.reviews ?? [])].filter(
     (r) => {
@@ -147,16 +165,13 @@ export default async function Product2Page({
     : product;
 
   product = applyGadgetStudioImages(productWithReviews);
-  related = applyGadgetStudioImagesList(related);
+  relatedProducts = applyGadgetStudioImagesList(relatedProducts);
 
   const config = normalizeSettings(settings);
-  const relatedProducts = related
-    .filter((p) => p._id !== product._id && p.category === product.category)
-    .slice(0, 4);
-  const pairBlocks = publicDealsForSlug(product.slug, deals, dealCatalog)
+  const pairBlocks = dealRows
     .map((row) => ({
       percentOff: row.percentOff,
-      other: related.find((p) => p.slug === row.otherSlug) ?? null,
+      other: dealPartnerBySlug.get(row.otherSlug) ?? null,
     }))
     .filter((row): row is { percentOff: number; other: Product } =>
       Boolean(row.other),
@@ -222,18 +237,18 @@ export default async function Product2Page({
         name: `What is the price of ${product.name} in Pakistan?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `The ${product.name} is priced competitively at Rs. ${product.price} exclusively at Buy n Try in Pakistan.`
-        }
+          text: `The ${product.name} is priced competitively at Rs. ${product.price} exclusively at Buy n Try in Pakistan.`,
+        },
       },
       {
         "@type": "Question",
         name: `Can I get cash on delivery for the ${product.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! Buy n Try offers 100% Cash on Delivery across Pakistan for the ${product.name}. You can even inspect the parcel to combat fraud.`
-        }
-      }
-    ]
+          text: `Yes! Buy n Try offers 100% Cash on Delivery across Pakistan for the ${product.name}. You can even inspect the parcel to combat fraud.`,
+        },
+      },
+    ],
   };
 
   return (
@@ -338,8 +353,8 @@ export default async function Product2Page({
               { name: "Selfie Ring Lights", path: "/products/ring-light" },
               { name: "GaN Fast Chargers", path: "/products/charger" },
             ].map((link) => (
-              <Link 
-                key={link.name} 
+              <Link
+                key={link.name}
                 href={link.path}
                 className="bg-white border border-slate-200 text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 transition-colors px-4 py-2 rounded-full text-sm font-medium shadow-sm"
               >
