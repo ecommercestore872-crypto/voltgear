@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -190,20 +191,46 @@ export function ProductList({
   products,
   shopTypes,
   stockFilter,
+  serverQuery,
 }: {
   products: AdminProduct[];
   shopTypes: ShopType[];
   stockFilter?: string;
+  /** When set, the server already filtered by this query (2+ chars). */
+  serverQuery?: string;
 }) {
-  const [q, setQ] = useState("");
+  const router = useRouter();
+  const [q, setQ] = useState(serverQuery ?? "");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   useEffect(() => {
+    if (serverQuery !== undefined) {
+      setQ(serverQuery);
+      return;
+    }
     const savedQ = readAdminUiState(PRODUCTS_SEARCH_KEY);
     const savedCat = readAdminUiState(PRODUCTS_CATEGORY_KEY);
     if (savedQ) setQ(savedQ);
     if (savedCat) setCategoryFilter(savedCat);
-  }, []);
+  }, [serverQuery]);
+
+  useEffect(() => {
+    const needle = q.trim();
+    const handle = window.setTimeout(() => {
+      const params = new URLSearchParams();
+      if (stockFilter === "attention") params.set("stock", "attention");
+      if (needle.length >= 2) {
+        if (needle === serverQuery) return;
+        params.set("q", needle);
+        router.replace(`/admin/products?${params.toString()}`);
+      } else if (serverQuery) {
+        router.replace(
+          stockFilter === "attention" ? "/admin/products?stock=attention" : "/admin/products",
+        );
+      }
+    }, 450);
+    return () => window.clearTimeout(handle);
+  }, [q, router, serverQuery, stockFilter]);
 
   useEffect(() => {
     writeAdminUiState(PRODUCTS_SEARCH_KEY, q);
@@ -219,6 +246,7 @@ export function ProductList({
         ? products.filter((p) => productMatchesStockAttention(p.stockStatus))
         : products;
     const needle = q.trim().toLowerCase();
+    if (serverQuery && needle === serverQuery.toLowerCase()) return byStock;
     if (!needle) return byStock;
     return byStock.filter(
       (p) =>
@@ -227,7 +255,7 @@ export function ProductList({
         p.status.toLowerCase().includes(needle) ||
         p.category.toLowerCase().includes(needle),
     );
-  }, [products, q, stockFilter]);
+  }, [products, q, stockFilter, serverQuery]);
 
   const groups = useMemo(
     () =>
@@ -268,13 +296,25 @@ export function ProductList({
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </div>
           <Input
-            placeholder="Search name, slug, status, or category"
+            placeholder="Search name, slug, status, or category (2+ chars uses server search)"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             aria-label="Search products"
             className="h-10 pl-9 shadow-sm bg-white dark:bg-zinc-900/50"
           />
         </div>
+        {!serverQuery && products.length > 200 ? (
+          <p className="text-xs text-muted-foreground">
+            Showing all {products.length} products — type at least 2 characters to search the database
+            instead of loading everything in the browser.
+          </p>
+        ) : null}
+        {serverQuery ? (
+          <p className="text-xs text-muted-foreground">
+            Server search: &quot;{serverQuery}&quot; — {products.length} match
+            {products.length >= 500 ? " (max 500 shown)" : ""}.
+          </p>
+        ) : null}
         <div
           className="flex flex-wrap items-center gap-2"
           role="group"

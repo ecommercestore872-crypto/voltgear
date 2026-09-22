@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 
 import { ProductList } from "@/components/admin/product-list";
-import { listAdminProducts, listAdminShopTypes } from "@/lib/db/admin-store";
+import {
+  listAdminProducts,
+  listAdminProductsSearch,
+  listAdminShopTypes,
+} from "@/lib/db/admin-store";
 
 export const metadata: Metadata = {
   title: "Products",
@@ -13,10 +17,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: { stock?: string };
+  searchParams: { stock?: string; q?: string };
 }) {
+  const q = searchParams.q?.trim() ?? "";
   const [products, shopTypes] = await Promise.all([
-    listAdminProducts(),
+    q.length >= 2 ? listAdminProductsSearch(q) : listAdminProducts(),
     listAdminShopTypes().catch(() => []),
   ]);
   return (
@@ -24,6 +29,7 @@ export default async function AdminProductsPage({
       products={products}
       shopTypes={shopTypes}
       stockFilter={searchParams.stock}
+      serverQuery={q.length >= 2 ? q : undefined}
     />
   );
 }

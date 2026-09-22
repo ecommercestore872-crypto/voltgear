@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
@@ -21,10 +24,12 @@ export function HomeLayoutForm({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { dirty, resetSaved } = useAdminFormDirty(sections);
 
   useEffect(() => {
     setSections(initialSections);
-  }, [initialSections]);
+    resetSaved(initialSections);
+  }, [initialSections, resetSaved]);
 
   function move(index: number, dir: -1 | 1) {
     const next = index + dir;
@@ -55,7 +60,12 @@ export function HomeLayoutForm({
         method: "PUT",
         body: JSON.stringify({ sections }),
       });
-      if (json?.sections) setSections(json.sections);
+      if (json?.sections) {
+        setSections(json.sections);
+        resetSaved(json.sections);
+      } else {
+        syncSaved();
+      }
       setSaved(true);
       router.refresh();
     } catch (err) {
@@ -132,9 +142,19 @@ export function HomeLayoutForm({
         ))}
       </ul>
 
-      <Button type="button" disabled={busy} onClick={() => void save()}>
-        {busy ? "Saving…" : "Save layout"}
-      </Button>
+      <AdminStickyPublishBar>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/40 px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Status:{" "}
+            <span className="font-medium text-foreground">
+              {dirty ? "Unsaved changes" : "Up to date"}
+            </span>
+          </p>
+          <Button type="button" disabled={busy} onClick={() => void save()}>
+            {busy ? "Saving…" : "Save layout"}
+          </Button>
+        </div>
+      </AdminStickyPublishBar>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 
 import { MediaField } from "@/components/admin/media-field";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,19 @@ export function HeroSlidesForm({
     () => slides.filter((s) => s.status === "published").length,
     [slides],
   );
+
+  const draftDirty = useMemo(
+    () =>
+      Boolean(
+        draft.imageUrl.trim() ||
+          draft.mobileImageUrl.trim() ||
+          draft.title.trim() ||
+          draft.subtitle.trim() ||
+          draft.ctaText.trim(),
+      ),
+    [draft],
+  );
+  useUnsavedChangesGuard(draftDirty);
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);

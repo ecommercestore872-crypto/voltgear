@@ -17,7 +17,7 @@ function isSameOriginNav(href: string): boolean {
   }
 }
 
-/** Warn on refresh/close and when clicking internal admin links. */
+/** Warn on refresh/close, browser back, and internal link clicks. */
 export function useUnsavedChangesGuard(dirty: boolean) {
   useEffect(() => {
     if (!dirty) return;
@@ -46,5 +46,20 @@ export function useUnsavedChangesGuard(dirty: boolean) {
     };
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
+  }, [dirty]);
+
+  useEffect(() => {
+    if (!dirty) return;
+    const trap = () => {
+      window.history.pushState({ adminUnsavedTrap: true }, "", window.location.href);
+    };
+    trap();
+    const onPopState = () => {
+      if (!window.confirm(LEAVE_MESSAGE)) {
+        trap();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, [dirty]);
 }

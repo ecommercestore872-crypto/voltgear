@@ -48,6 +48,44 @@ import type {
 } from "@/lib/db/analytics-traffic-rules";
 import { cn, formatPrice } from "@/lib/utils";
 
+const ANALYTICS_CACHE_TTL_MS = 5 * 60 * 1000;
+const ANALYTICS_CACHE_PREFIX = "admin.analytics.bundle.v1";
+
+function analyticsCacheKey(preset: AnalyticsPreset, from: string, to: string) {
+  if (preset === "custom") {
+    return `${ANALYTICS_CACHE_PREFIX}:${preset}:${from}:${to}`;
+  }
+  return `${ANALYTICS_CACHE_PREFIX}:${preset}`;
+}
+
+function readAnalyticsCache(key: string): Bundle | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { at: number; bundle: Bundle };
+    if (!parsed?.bundle || Date.now() - parsed.at > ANALYTICS_CACHE_TTL_MS) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    return parsed.bundle;
+  } catch {
+    return null;
+  }
+}
+
+function writeAnalyticsCache(key: string, bundle: Bundle) {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      key,
+      JSON.stringify({ at: Date.now(), bundle }),
+    );
+  } catch {
+    /* quota or private mode */
+  }
+}
+
 type Bundle = {
   range: { start: string; end: string };
   executive: ExecutiveSnapshot;
@@ -281,10 +319,19 @@ export function AnalyticsConsole() {
   const [spendSaving, setSpendSaving] = useState(false);
   const [spendError, setSpendError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
     setError(null);
+    const cacheKey = analyticsCacheKey(preset, from, to);
+    const cached = readAnalyticsCache(cacheKey);
+    if (cached) {
+      setBundle(cached);
+      setLoading(false);
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const params = new URLSearchParams({ preset });
       if (preset === "custom") {
@@ -295,6 +342,7 @@ export function AnalyticsConsole() {
         `/api/admin/analytics?${params.toString()}`,
       );
       setBundle(json);
+      writeAnalyticsCache(cacheKey, json);
       const nextSpend: Record<string, string> = {
         tiktok: "",
         meta: "",
@@ -317,6 +365,7 @@ export function AnalyticsConsole() {
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [preset, from, to]);
 
@@ -496,6 +545,9 @@ export function AnalyticsConsole() {
       ) : null}
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {refreshing ? (
+        <p className="text-xs text-[var(--g-taupe)]">Refreshing latest numbers…</p>
+      ) : null}
       {loading && !bundle ? (
         <p className="text-sm text-[var(--g-taupe)]">Loading…</p>
       ) : null}

@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { MediaField } from "@/components/admin/media-field";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, resetSaved, syncSaved } = useAdminFormDirty(shop);
 
   function setBanner<K extends keyof LifestyleShopConfig["banner"]>(
     key: K,
@@ -54,7 +57,13 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
         method: "PUT",
         body: JSON.stringify({ shop }),
       });
-      if (json?.shop) setShop(normalizeLifestyleShop(json.shop));
+      if (json?.shop) {
+        const next = normalizeLifestyleShop(json.shop);
+        setShop(next);
+        resetSaved(next);
+      } else {
+        syncSaved();
+      }
       setSaved(true);
       router.refresh();
     } catch (err) {
@@ -173,9 +182,19 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
         ))}
       </div>
 
-      <Button type="button" disabled={busy} onClick={() => void save()}>
-        {busy ? "Saving…" : "Save lifestyle shop"}
-      </Button>
+      <AdminStickyPublishBar>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/40 px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Status:{" "}
+            <span className="font-medium text-foreground">
+              {dirty ? "Unsaved changes" : "Up to date"}
+            </span>
+          </p>
+          <Button type="button" disabled={busy} onClick={() => void save()}>
+            {busy ? "Saving…" : "Save lifestyle shop"}
+          </Button>
+        </div>
+      </AdminStickyPublishBar>
     </div>
   );
 }

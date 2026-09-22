@@ -202,6 +202,25 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
     .filter(Boolean) as AdminProduct[];
 }
 
+const ADMIN_PRODUCT_SEARCH_LIMIT = 500;
+
+/** Server-side catalog search (2+ chars) — avoids loading every row for large shops. */
+export async function listAdminProductsSearch(term: string): Promise<AdminProduct[]> {
+  const cleaned = term.trim().replace(/[%]/g, "").slice(0, 80);
+  if (cleaned.length < 2) return listAdminProducts();
+  const pattern = `%${cleaned}%`;
+  const { data, error } = await db()
+    .from("products")
+    .select(ADMIN_PRODUCT_LIST_EMBED)
+    .or(`name.ilike.${pattern},slug.ilike.${pattern},category.ilike.${pattern}`)
+    .order("updated_at", { ascending: false })
+    .limit(ADMIN_PRODUCT_SEARCH_LIMIT);
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => toAdminProduct(row as Record<string, unknown>))
+    .filter(Boolean) as AdminProduct[];
+}
+
 export async function getAdminProduct(id: string): Promise<AdminProduct | null> {
   const { data, error } = await db()
     .from("products")

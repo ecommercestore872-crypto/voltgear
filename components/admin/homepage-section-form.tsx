@@ -1,7 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { ArrowDown, ArrowUp, Plus, Trash2, Search } from "lucide-react";
 
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
@@ -61,6 +64,36 @@ export function HomepageSectionForm({
   const [searchQuery, setSearchQuery] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const formSnapshot = useMemo(
+    () => ({
+      title,
+      subtitle,
+      slug,
+      sourceType,
+      categoryId,
+      productLimit,
+      layout,
+      showViewAll,
+      viewAllHref,
+      isActive,
+      selectedProductIds: [...selectedProductIds].sort(),
+    }),
+    [
+      title,
+      subtitle,
+      slug,
+      sourceType,
+      categoryId,
+      productLimit,
+      layout,
+      showViewAll,
+      viewAllHref,
+      isActive,
+      selectedProductIds,
+    ],
+  );
+  const { dirty, syncSaved } = useAdminFormDirty(formSnapshot);
 
   // Map of id -> product for quick lookup
   const productMap = new Map(availableProducts.map((p) => [p.id, p]));
@@ -125,6 +158,7 @@ export function HomepageSectionForm({
         body: JSON.stringify(payload),
       });
 
+      syncSaved();
       router.push("/admin/homepage-sections");
       router.refresh();
     } catch (err) {
@@ -136,30 +170,43 @@ export function HomepageSectionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-4xl space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {isEditing ? "Edit Homepage Section" : "Create Homepage Section"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Configure section title, layout, product sources, and manual product
-            curation.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={saving}>
-            {saving
-              ? "Saving..."
-              : isEditing
-                ? "Save Changes"
-                : "Create Section"}
-          </Button>
-        </div>
+    <form
+      id="homepage-section-form"
+      onSubmit={handleSubmit}
+      className="mx-auto max-w-4xl space-y-8"
+    >
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {isEditing ? "Edit Homepage Section" : "Create Homepage Section"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Configure section title, layout, product sources, and manual product
+          curation.
+        </p>
       </div>
+
+      <AdminStickyPublishBar>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Status:{" "}
+            <span className="font-medium text-foreground">
+              {dirty ? "Unsaved changes" : "Ready to save"}
+            </span>
+          </p>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving
+                ? "Saving..."
+                : isEditing
+                  ? "Save Changes"
+                  : "Create Section"}
+            </Button>
+          </div>
+        </div>
+      </AdminStickyPublishBar>
 
       {error && <p className="text-sm font-medium text-destructive">{error}</p>}
 
