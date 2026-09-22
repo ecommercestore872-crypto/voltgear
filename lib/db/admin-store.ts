@@ -285,7 +285,7 @@ export async function listAdminProductsByIds(
 /** Server-side catalog search (2+ chars) — avoids loading every row for large shops. */
 export async function listAdminProductsSearch(term: string): Promise<AdminProduct[]> {
   const cleaned = term.trim().replace(/[%]/g, "").slice(0, 80);
-  if (cleaned.length < 2) return listAdminProducts();
+  if (cleaned.length < 2) return [];
   const pattern = `%${cleaned}%`;
   const { data, error } = await db()
     .from("products")

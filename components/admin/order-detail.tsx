@@ -77,8 +77,14 @@ export function OrderDetail({
       })) as { trackingNumber?: string };
       setOk(`PostEx booked! Tracking #: ${data.trackingNumber ?? "—"}`);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Could not book PostEx shipment.");
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        router.replace("/admin/login");
+        return;
+      }
+      setError(
+        err instanceof Error ? err.message : "Could not book PostEx shipment.",
+      );
     } finally {
       setBookingPostEx(false);
     }

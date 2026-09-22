@@ -9,7 +9,7 @@ describe("cloudinaryImageUrl", () => {
       "https://res.cloudinary.com/demo/image/upload/v1/folder/watch.jpg";
     const url = cloudinaryImageUrl(src, { w: 2000 });
     assert.match(url, /c_limit,w_2000/);
-    assert.match(url, /f_auto,q_auto/);
+    assert.match(url, /f_webp,q_auto/);
   });
 
   it("leaves files that already live on this site alone", () => {

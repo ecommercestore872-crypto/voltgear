@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { useRouter } from "next/navigation";
 import {
@@ -21,29 +22,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { adminHeaders, getAdminToken } from "@/lib/admin-token";
 import type {
   BroadcastContact,
   MessageCampaign,
   MessageRecipient,
 } from "@/lib/types";
 
-async function adminFetch(url: string, options: RequestInit = {}) {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      ...adminHeaders(),
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...options.headers,
-    },
-  });
-  if (res.status === 401) throw new AuthError();
-  const json = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(json?.error ?? "Request failed");
-  return json;
+function authMessage(
+  err: unknown,
+  router: { replace: (href: string) => void },
+) {
+  if (err instanceof AdminAuthError) {
+    router.replace("/admin/login");
+    return "Session expired. Sign in again.";
+  }
+  return err instanceof Error ? err.message : "Request failed";
 }
-
-class AuthError extends Error {}
 
 interface ContactsPayload {
   contacts: BroadcastContact[];
@@ -106,6 +100,7 @@ export function BroadcastManager() {
 /* ─────────────────────────── Recipients ─────────────────────────── */
 
 function RecipientsTab() {
+  const router = useRouter();
   const [data, setData] = useState<ContactsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,17 +110,23 @@ function RecipientsTab() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const recipientDraftDirty = useMemo(
+    () => Boolean(phone.trim() || name.trim() || city.trim()),
+    [phone, name, city],
+  );
+  useUnsavedChangesGuard(recipientDraftDirty);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       setData(await adminFetch("/api/messaging/contacts"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load contacts");
+      setError(authMessage(err, router));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     load();
@@ -147,7 +148,7 @@ function RecipientsTab() {
       setMessage(result?.updated ? "Contact updated." : "Number added.");
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add number");
+      setError(authMessage(err, router));
     } finally {
       setSaving(false);
     }
@@ -169,7 +170,7 @@ function RecipientsTab() {
       );
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not remove number");
+      setError(authMessage(err, router));
     }
   }
 
@@ -181,7 +182,7 @@ function RecipientsTab() {
       });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not restore number");
+      setError(authMessage(err, router));
     }
   }
 
@@ -329,6 +330,7 @@ function RecipientsTab() {
 /* ───────────────────────────── Send ───────────────────────────── */
 
 function SendTab() {
+  const router = useRouter();
   const [contacts, setContacts] = useState<BroadcastContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -348,9 +350,9 @@ function SendTab() {
         setContacts(d.contacts);
         setSelected(new Set(d.contacts.map((c: BroadcastContact) => c.id)));
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(authMessage(err, router)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   const target =
     manualPhone.trim().length > 0
@@ -404,7 +406,7 @@ function SendTab() {
       });
       setResult(json);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Send failed");
+      setError(authMessage(err, router));
     } finally {
       setSending(false);
     }
@@ -557,6 +559,7 @@ function statusBadge(status: MessageRecipient["status"]) {
 }
 
 function ReportsTab() {
+  const router = useRouter();
   const [campaigns, setCampaigns] = useState<MessageCampaign[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -568,9 +571,9 @@ function ReportsTab() {
       const json = await adminFetch("/api/messaging/campaigns");
       setCampaigns(json.campaigns);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load reports");
+      setError(authMessage(err, router));
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     load();
@@ -586,7 +589,7 @@ function ReportsTab() {
       setDetailId(campaignId);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Retry failed");
+      setError(authMessage(err, router));
     } finally {
       setRetrying(false);
     }
