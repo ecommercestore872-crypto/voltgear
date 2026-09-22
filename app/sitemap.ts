@@ -103,13 +103,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       entry(`${baseUrl}/product/${prod.slug}`, prod._updatedAt, "weekly", 0.7),
     );
 
-  const sitemapBlogs =
-    blogs.length > 0
-      ? blogs
-      : FALLBACK_BLOG_POSTS.map((post) => ({
-          slug: post.slug,
-          _updatedAt: post.publishedAt,
-        }));
+  const sitemapBlogs: { slug: string; _updatedAt?: string }[] = blogs.map(
+    (page) => ({ slug: page.slug, _updatedAt: page._updatedAt }),
+  );
+  for (const post of FALLBACK_BLOG_POSTS) {
+    if (!blogSlugSet.has(post.slug)) {
+      sitemapBlogs.push({ slug: post.slug, _updatedAt: post.publishedAt });
+    }
+  }
   const sitemapBlogSlugSet = new Set(sitemapBlogs.map((p) => p.slug));
   const blogRoutes = sitemapBlogs.map((post) =>
     entry(`${baseUrl}/blog/${post.slug}`, post._updatedAt, "weekly", 0.55),

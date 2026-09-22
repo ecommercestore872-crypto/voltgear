@@ -11,7 +11,7 @@ import type { Page } from "@/lib/types";
 
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { publicSiteUrl } from "@/lib/deploy-rules";
-import { sortBlogPostsForHome } from "@/lib/blog-desk-rules";
+import { mergeBlogCatalog, sortBlogPostsForHome } from "@/lib/blog-desk-rules";
 import { storeAlternatesLanguages } from "@/lib/seo-rules";
 
 export const metadata: Metadata = {
@@ -46,9 +46,7 @@ export default async function BlogPage() {
     posts = [];
   }
 
-  if (posts.length === 0) {
-    posts = FALLBACK_BLOG_POSTS;
-  }
+  posts = mergeBlogCatalog(posts, FALLBACK_BLOG_POSTS);
   posts = sortBlogPostsForHome(posts, "popular");
   const siteUrl = publicSiteUrl();
   const jsonLd = {

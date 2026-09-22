@@ -103,3 +103,13 @@ export function sortBlogPostsForHome(
   });
   return list;
 }
+
+/** DB pages win; fallback fills slugs not yet seeded (safe deploys). */
+export function mergeBlogCatalog(dbPosts: Page[], fallbackPosts: Page[]): Page[] {
+  const bySlug = new Map<string, Page>();
+  for (const post of dbPosts) bySlug.set(post.slug, post);
+  for (const post of fallbackPosts) {
+    if (!bySlug.has(post.slug)) bySlug.set(post.slug, post);
+  }
+  return [...bySlug.values()];
+}

@@ -546,4 +546,251 @@ export const FALLBACK_BLOG_POSTS: Page[] = [
       shop("Shop Touchscreen Accessories", "/products/accessories")
     ]
   }),
+  guide({
+    title: "Gaming earbuds in Pakistan: how to read latency before you waste COD",
+    slug: "gaming-earbuds-low-latency-pakistan-2026",
+    publishedAt: "2026-09-20T08:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-tws-earbuds.webp",
+    featured: true,
+    homeOrder: 8,
+    excerpt:
+      "PubG and COD Mobile need more than bass. Here is how we test Bluetooth lag on a Rs 4,000 pair before the rider leaves, and when a wired neckband still wins.",
+    keywords: [
+      "gaming earbuds Pakistan",
+      "low latency earbuds",
+      "TWS for PUBG",
+      "Bluetooth lag earbuds",
+      "gaming earphones COD",
+    ],
+    seo: {
+      title: "Gaming earbuds Pakistan 2026: latency guide",
+      description:
+        "Pick gaming earbuds in Pakistan without surprise lag. Practical latency checks, game mode claims, and COD-friendly tips from a shop that ships nationwide.",
+    },
+    sections: [
+      h2("Why your kills arrive late"),
+      p("Last month a customer in Faisalabad returned a pair because “PUBG sound is behind the screen.” The box said Gaming Mode in letters big enough to read from the street. The buds were fine for YouTube. They were lying about games."),
+      p("Bluetooth always adds delay. Game mode tries to shrink it by shrinking audio quality and skipping fancy processing. Some brands honestly drop to 40–60 ms. Some print “45 ms” on the sticker and never tell you that number only works on one phone with one codec on a full battery."),
+      h2("Numbers that matter in 2026"),
+      bullets(
+        "Under ~60 ms: Most people stop noticing gunshot delay in COD Mobile or PUBG.",
+        "60–100 ms: Playable if you are casual. Ranked players will feel it.",
+        "Above 120 ms: You will swear the enemy shot first. Returns go up in our shop at this band.",
+        "Wired 3.5 mm or USB-C gaming buds: Still the honest zero-lag option when Rs 2,000 matters more than wireless."
+      ),
+      h3("The ten-second test at the door"),
+      p("If you buy on cash on delivery, do this before you pay:"),
+      bullets(
+        "Pair the buds, open a YouTube Shorts clip with sharp claps or a snare drum.",
+        "Watch the lips or the stick hit. If sound lands clearly after the visual, note how far.",
+        "Install COD Mobile or your main game, fire one shot in training mode. Listen for echo between muzzle flash and crack.",
+        "Toggle game mode in the app if there is one. If lag does not change, game mode is marketing."
+      ),
+      note(
+        "Mic matters for squad chat",
+        "Low latency is useless if your squad hears a ceiling fan instead of callouts. Check ENC on the mic, not just gaming on the box."
+      ),
+      shop("Browse earbuds", "/products/earbuds"),
+      h2("When we tell people to skip TWS for gaming"),
+      p("Motorbike commutes, sweaty gym sessions, and kids who share one phone still buy neckbands or wired sets. If you play two hours nightly and you are competitive, spend the time on latency, not RGB case lights."),
+      faq(
+        {
+          question: "What is the best latency for gaming earbuds in Pakistan?",
+          answer:
+            "Aim for under 60 ms with game mode on your actual phone. If you cannot verify it on COD, treat advertised numbers as guesses until you test.",
+        },
+        {
+          question: "Are gaming TWS good for COD Mobile?",
+          answer:
+            "They can be, if lag is low and the mic clears fan noise. Many budget pairs fail the mic test before they fail the latency test.",
+        },
+        {
+          question: "Does iPhone need a special gaming earbud?",
+          answer:
+            "iPhone uses AAC. Some Android-first buds advertise low latency only on SBC or LHDC. Test on the phone you actually play on.",
+        }
+      ),
+    ],
+  }),
+  guide({
+    title: "MagSafe power banks for iPhone in Pakistan: magnets, heat, and honest watts",
+    slug: "magsafe-power-bank-iphone-pakistan",
+    publishedAt: "2026-09-19T08:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-power-bank.webp",
+    featured: false,
+    homeOrder: 9,
+    excerpt:
+      "Snap-on banks look clean on an iPhone 15, but magnet strength and 7.5W vs 15W wireless matter more in Pakistani heat. How we spot weak coils on COD.",
+    keywords: [
+      "MagSafe power bank Pakistan",
+      "wireless power bank iPhone",
+      "magnetic portable charger",
+      "iPhone power bank COD",
+    ],
+    seo: {
+      title: "MagSafe power bank Pakistan: iPhone guide",
+      description:
+        "MagSafe and magnetic power banks for iPhone in Pakistan: watt limits, heat in summer, and COD checks so you do not buy a fridge magnet with a USB port.",
+    },
+    sections: [
+      h2("Magnet first, math second"),
+      p("A magnetic bank that slides off in a Suzuki van is not MagSafe—it is a sticker. Real alignment keeps the coil centered. Off-center wireless charging feels like “slow charging” when the phone is actually bouncing between 5W and nothing."),
+      p("Apple caps a lot of snap-on wireless at 7.5W unless you are in their certified world. Many Pakistani listings say 15W magnetic wireless. Read whether that 15W is the USB-C port only, the phone pad only, or a number someone typed because 15 looks modern."),
+      h2("What to feel and hear in August"),
+      bullets(
+        "Back of phone should stay only warm, not hot enough to throttle brightness.",
+        "If the bank and phone separate when you pick them up one-handed, reject the unit.",
+        "Cable backup: A magnetic bank that cannot also charge by USB-C cable is a bad travel partner when wireless gets slow.",
+        "Weight on a smaller iPhone mini or SE: Thick banks mess with camera balance. Hold it before you pay."
+      ),
+      h3("Qi vs MagSafe vs “magnetic compatible”"),
+      p("Qi means wireless power, not necessarily strong magnets. “Magnetic compatible” often means a metal ring sticker in the box. That is fine if you know you are adding glue to your case. It is not the same as a phone that already has the coil layout Apple expects."),
+      shop("Shop power banks", "/products/power-bank"),
+      h2("When a normal 22.5W cable bank is smarter"),
+      p("If you carry Android too, or you want two full fills per day, a classic 20,000mAh with a proper USB-C cable beats snap-on fashion. Magnetic wins for pocketability and one-hand top-ups between meetings—not for charging a dead phone from zero before a wedding shoot."),
+      faq(
+        {
+          question: "Do MagSafe power banks work on iPhone 15 in Pakistan?",
+          answer:
+            "Magnetic banks that align well can charge iPhone 15 models wirelessly, usually at modest wattage. Verify fit and heat on COD; imports vary.",
+        },
+        {
+          question: "Is wireless power bank slower than cable?",
+          answer:
+            "Yes. Cable 22.5W typically beats magnetic wireless for speed. Use wireless for convenience, cable when you are in a hurry.",
+        },
+        {
+          question: "Can magnetic banks damage iPhone battery?",
+          answer:
+            "Heat hurts batteries more than magnets. If the pack runs hot, stop using it. Good units stay warm, not scorching.",
+        }
+      ),
+    ],
+  }),
+  guide({
+    title: "Open the box on COD: how we check electronics before the rider leaves",
+    slug: "open-box-check-electronics-cod-pakistan",
+    publishedAt: "2026-09-18T08:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-gan-charger.webp",
+    featured: true,
+    homeOrder: 10,
+    excerpt:
+      "Cash on delivery only protects you if you inspect. A plain checklist for earbuds, chargers, and power banks that saves returns and awkward neighbour signatures.",
+    keywords: [
+      "cash on delivery electronics Pakistan",
+      "COD check parcel",
+      "open box delivery Pakistan",
+      "buy electronics COD safely",
+    ],
+    seo: {
+      title: "COD electronics check Pakistan: open box guide",
+      description:
+        "Inspect electronics on cash on delivery in Pakistan: what to test at the door, what to photograph, and when to refuse a sealed fake-looking box.",
+    },
+    sections: [
+      h2("COD is not magic—it is a minute of courage"),
+      p("We ship nationwide. The part that still surprises people is this: you are allowed to look. Courier policy and shop policy both expect a quick inspection. The rider is not doing you a favour if they pressure you to sign a sealed bag and run."),
+      p("This is not a lecture about distrust. It is the same habit shop staff use when we receive cartons from distributors. A crushed corner, a security sticker that was reheated, a serial number that does not match the invoice—these take thirty seconds to spot."),
+      h2("Universal steps (any gadget)"),
+      bullets(
+        "Match the label on the box to what you ordered—model name, color, quantity.",
+        "Photograph the outer carton and the shipping label before you open. WhatsApp it to yourself. Boring now, gold if you need support later.",
+        "Power on if battery allows. Dead-on-arrival happens. Plug in for two minutes if it will not wake.",
+        "Run one feature you care about: one call on earbuds, one watt reading on a charger if you carry a meter, one light level on a ring light."
+      ),
+      h2("Category quick checks"),
+      h3("Earbuds and neckbands"),
+      p("Pair both sides. Play a voice note you recorded on the spot. Walk three meters from the phone. If one side never connects, that is a return, not “maybe it fixes later.”"),
+      h3("Chargers and power banks"),
+      p("Feel the brick after five minutes on load. Smell matters—burning plastic is instant no. For banks, check that USB-C in and out both work, not just the built-in cable."),
+      h3("Tripods and ring lights"),
+      p("Extend legs once. If a clasp slips under light hand pressure, the stand will drop a phone during your first reel."),
+      note(
+        "When to refuse delivery",
+        "Wrong item, obvious repack, or a seller who will not let you inspect despite COD promise—refuse and tell us the same day. Waiting a week turns a courier issue into a he-said-she-said."
+      ),
+      shop("Shop with COD", "/products"),
+      faq(
+        {
+          question: "Can I open the parcel on cash on delivery in Pakistan?",
+          answer:
+            "Most reputable electronics sellers expect a brief inspection at delivery. Confirm with the shop, then check before you pay the rider.",
+        },
+        {
+          question: "What if only part of the order is wrong?",
+          answer:
+            "Note it on the slip, photograph everything, and contact the store immediately with your order number. Partial issues are easier when documented at the door.",
+        },
+        {
+          question: "Does refusing COD hurt my address?",
+          answer:
+            "Repeated fake refusals can flag an address with couriers. Legitimate refusals with photos protect you more than silent accepts of bad goods.",
+        }
+      ),
+    ],
+  }),
+  guide({
+    title: "Neckband vs TWS in Pakistan: which survives the metro, bike, and gym",
+    slug: "neckband-vs-tws-pakistan-commute",
+    publishedAt: "2026-09-17T08:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-tws-earbuds.webp",
+    featured: false,
+    homeOrder: 11,
+    excerpt:
+      "TWS looks cleaner in photos. Neckbands still win for Orange Line rides, gym pockets, and riders who lose one bud a month. A commute-first pick without influencer noise.",
+    keywords: [
+      "neckband vs TWS Pakistan",
+      "best neckband earphones Pakistan",
+      "wireless earphones for bike",
+      "earbuds fall out running",
+    ],
+    seo: {
+      title: "Neckband vs TWS Pakistan: commute guide",
+      description:
+        "Neckband or TWS for Pakistan commutes? Honest comparison for bikes, metro, calls, and COD buyers tired of losing a single bud in Saddar traffic.",
+    },
+    sections: [
+      h2("The lost bud tax"),
+      p("We keep a drawer of single earbuds customers bring back. Left only. Right only. Almost always after a rickshaw or a gym session. TWS is brilliant until one piece is in your ear and the other is under a bench at Anarkali."),
+      p("Neckbands look old in Instagram ads. They still hang around your neck when you pay the vendor. That is not fashion. That is insurance."),
+      h2("Pick TWS if…"),
+      bullets(
+        "Your ears seal well with the included tips and buds do not pop out when you chew.",
+        "You mostly walk, drive with AC, or sit in office—not lean over a bike handle daily.",
+        "You want a small case and you are disciplined about putting both pieces back.",
+        "Calls matter and you verified ENC on your phone, not on a demo video."
+      ),
+      h2("Pick a neckband if…"),
+      bullets(
+        "You ride a bike or metro and take one side off constantly.",
+        "You sweat hard and hate wiping a case lid.",
+        "You lose small objects and you know it about yourself.",
+        "You want ten-hour battery without charging the case at lunch."
+      ),
+      h3("Hybrid reality in 2026"),
+      p("Some TWS cases clip to bags. Some neckbands fold small. Neither category is pure anymore. Still, physics has not changed: two separate buds will always be easier to misplace than one band."),
+      shop("Compare earbuds", "/products/earbuds"),
+      faq(
+        {
+          question: "Are neckbands outdated in Pakistan?",
+          answer:
+            "No. Commuters and riders still buy them because they are harder to lose and easier to hang while you talk to a shopkeeper.",
+        },
+        {
+          question: "Which is better for calls in traffic?",
+          answer:
+            "Either can work with good ENC. TWS with strong mics wins in wind if the fit is secure. Loose TWS loses to a stable neckband mic hanging near your mouth.",
+        },
+        {
+          question: "Neckband or TWS for gym?",
+          answer:
+            "Neckbands survive being tossed in a bag. TWS wins if you need seal for bass and you never drop a bud off the treadmill.",
+        }
+      ),
+    ],
+  }),
 ];

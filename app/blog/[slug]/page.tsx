@@ -13,6 +13,7 @@ import { imageUrl } from "@/lib/sanity/image";
 import type { ContentBlock, Page } from "@/lib/types";
 
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
+import { mergeBlogCatalog } from "@/lib/blog-desk-rules";
 import {
   blogInventoryReadyForAds,
   sanitizeBlogSections,
@@ -23,7 +24,7 @@ export const revalidate = 60;
 export async function generateStaticParams() {
   try {
     const posts = await fetchBlogPosts();
-    const list = posts.length > 0 ? posts : FALLBACK_BLOG_POSTS;
+    const list = mergeBlogCatalog(posts, FALLBACK_BLOG_POSTS);
     return list.map((post) => ({ slug: post.slug }));
   } catch {
     return FALLBACK_BLOG_POSTS.map((post) => ({ slug: post.slug }));
