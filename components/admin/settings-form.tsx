@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { ChromeLinkList } from "@/components/admin/chrome-link-list";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
+import { adminFormFingerprint } from "@/lib/admin-unsaved-rules";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -146,6 +148,11 @@ export function SettingsForm({
   const categories = Array.from(new Set(products.map(p => p.category))).sort();
   const availableProducts = products.filter(p => !selectedCategory || p.category === selectedCategory);
 
+  const fingerprint = useMemo(() => adminFormFingerprint(form), [form]);
+  const savedFingerprint = useRef(fingerprint);
+  const dirty = fingerprint !== savedFingerprint.current;
+  useUnsavedChangesGuard(dirty);
+
   function doc() {
     const socialLinks = [
       form.instagram ? { platform: "instagram", url: form.instagram } : null,
@@ -211,6 +218,13 @@ export function SettingsForm({
         body: JSON.stringify({ action, doc: doc() }),
       });
       if (action === "publish") setStatus("published");
+      if (action === "discard") {
+        const reset = fromRow({ ...settings, draft: null });
+        setForm(reset);
+        savedFingerprint.current = adminFormFingerprint(reset);
+      } else {
+        savedFingerprint.current = fingerprint;
+      }
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) router.replace("/admin/login");
@@ -249,6 +263,7 @@ export function SettingsForm({
       <div className="sticky top-4 z-50 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 backdrop-blur-md bg-white/70 dark:bg-zinc-900/80">
         <PublishBar
           status={status}
+          dirty={dirty}
           saving={saving}
           onSave={() => run("save")}
           onPublish={() => run("publish")}

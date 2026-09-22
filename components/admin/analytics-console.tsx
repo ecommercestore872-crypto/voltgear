@@ -230,6 +230,24 @@ function TableFrame({ children }: { children: ReactNode }) {
   return <div className="admin-analytics-table">{children}</div>;
 }
 
+function LazyAnalyticsTab({
+  activeTab,
+  value,
+  className,
+  children,
+}: {
+  activeTab: string;
+  value: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <TabsContent value={value} className={className}>
+      {activeTab === value ? children : null}
+    </TabsContent>
+  );
+}
+
 function RetentionBanner({ show }: { show: boolean }) {
   if (!show) return null;
   return (
@@ -262,6 +280,7 @@ export function AnalyticsConsole() {
   const [spendDraft, setSpendDraft] = useState<Record<string, string>>({});
   const [spendSaving, setSpendSaving] = useState(false);
   const [spendError, setSpendError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -306,10 +325,11 @@ export function AnalyticsConsole() {
   }, [load]);
 
   useEffect(() => {
+    if (activeTab !== "query") return;
     void adminFetch("/api/admin/analytics/reports")
       .then((json) => setReports(json.reports ?? []))
       .catch(() => setReports([]));
-  }, []);
+  }, [activeTab]);
 
   async function openDrill(title: string, ids: string[]) {
     setDrillTitle(title);
@@ -481,7 +501,7 @@ export function AnalyticsConsole() {
       ) : null}
 
       {exec ? (
-        <Tabs defaultValue="overview">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="admin-analytics-tabs">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="coach">Coach</TabsTrigger>
@@ -494,7 +514,7 @@ export function AnalyticsConsole() {
             <TabsTrigger value="query">Query</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4">
+          <LazyAnalyticsTab activeTab={activeTab} value="overview" className="space-y-4">
             <AnalyticsProfitBoard
               story={bundle.moneyStory}
               comparison={bundle.comparison}
@@ -592,9 +612,9 @@ export function AnalyticsConsole() {
                 </ul>
               </Card>
             </div>
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="coach">
+          <LazyAnalyticsTab activeTab={activeTab} value="coach">
             <AnalyticsCoachPanel
               key={`${bundle.range.start}-${bundle.range.end}-${bundle.coach.packingFee}-${bundle.coach.codFee}-${bundle.coach.products
                 .map((p) => `${p.slug}:${p.costPrice}`)
@@ -603,9 +623,9 @@ export function AnalyticsConsole() {
               sourceMoney={bundle.sourceMoney}
               onSaved={() => void load()}
             />
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="products" className="space-y-3">
+          <LazyAnalyticsTab activeTab={activeTab} value="products" className="space-y-3">
             {bundle.products.length === 0 &&
             bundle.productConversion.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -730,9 +750,9 @@ export function AnalyticsConsole() {
                 </TableFrame>
               </>
             )}
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="cities" className="space-y-3">
+          <LazyAnalyticsTab activeTab={activeTab} value="cities" className="space-y-3">
             {bundle.cities.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No city data in this range.
@@ -810,9 +830,9 @@ export function AnalyticsConsole() {
                 </TableFrame>
               </>
             )}
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="customers" className="space-y-4">
+          <LazyAnalyticsTab activeTab={activeTab} value="customers" className="space-y-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {(
                 [bundle.customers.firstTime, bundle.customers.repeat] as const
@@ -854,9 +874,9 @@ export function AnalyticsConsole() {
                 and were not merged into customer stats.
               </p>
             ) : null}
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="traffic" className="space-y-4">
+          <LazyAnalyticsTab activeTab={activeTab} value="traffic" className="space-y-4">
             <RetentionBanner show={bundle.retentionNotice} />
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <MetricButton
@@ -1109,9 +1129,9 @@ export function AnalyticsConsole() {
                 </TableFrame>
               )}
             </div>
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="funnel" className="space-y-8">
+          <LazyAnalyticsTab activeTab={activeTab} value="funnel" className="space-y-8">
             <RetentionBanner show={bundle.retentionNotice} />
             <AnalyticsFunnelPanel
               title="Shop conversion"
@@ -1133,9 +1153,9 @@ export function AnalyticsConsole() {
                 if (full) void openDrill(full.label, full.orderIds);
               }}
             />
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="insights" className="space-y-4">
+          <LazyAnalyticsTab activeTab={activeTab} value="insights" className="space-y-4">
             <RetentionBanner show={bundle.retentionNotice} />
             {bundle.insights.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -1192,9 +1212,9 @@ export function AnalyticsConsole() {
                 ))}
               </ul>
             )}
-          </TabsContent>
+          </LazyAnalyticsTab>
 
-          <TabsContent value="query" className="space-y-4">
+          <LazyAnalyticsTab activeTab={activeTab} value="query" className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-1.5">
                 <Label htmlFor="metric">Metric</Label>
@@ -1334,7 +1354,7 @@ export function AnalyticsConsole() {
                 </ul>
               </div>
             ) : null}
-          </TabsContent>
+          </LazyAnalyticsTab>
         </Tabs>
       ) : null}
 

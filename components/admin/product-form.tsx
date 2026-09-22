@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { StringArrayInput } from "@/components/admin/string-array-input";
 import { ObjectArrayInput } from "@/components/admin/object-array-input";
@@ -10,6 +10,8 @@ import { ObjectArrayInput } from "@/components/admin/object-array-input";
 import { MediaField } from "@/components/admin/media-field";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
+import { adminFormFingerprint } from "@/lib/admin-unsaved-rules";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -152,6 +154,25 @@ export function ProductForm({
   const payloadRef = useRef(payload);
   payloadRef.current = payload;
 
+  const fingerprint = useMemo(
+    () =>
+      adminFormFingerprint({
+        payload,
+        collectionIds: [...selectedCollectionIds].sort(),
+      }),
+    [payload, selectedCollectionIds],
+  );
+  const savedFingerprint = useRef(fingerprint);
+  const dirty = fingerprint !== savedFingerprint.current;
+  useUnsavedChangesGuard(dirty && !isNew);
+
+  function commitSavedBaseline(latest: ProductDocument) {
+    savedFingerprint.current = adminFormFingerprint({
+      payload: latest,
+      collectionIds: [...selectedCollectionIds].sort(),
+    });
+  }
+
   async function run(
     action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
   ) {
@@ -201,6 +222,18 @@ export function ProductForm({
       });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
+      if (action === "discard" && product) {
+        const live = fromProduct({ ...product, draft: null }, knownSlugs);
+        const liveDescription = portableTextToPlain(live.description);
+        setDoc(live);
+        setDescription(liveDescription);
+        commitSavedBaseline({
+          ...live,
+          description: textToPortableText(liveDescription),
+        });
+      } else {
+        commitSavedBaseline(latestPayload);
+      }
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) {
@@ -265,6 +298,7 @@ export function ProductForm({
       ) : (
         <PublishBar
           status={status}
+          dirty={dirty}
           saving={saving || activeUploads > 0}
           onSave={() => run("save")}
           onPublish={() => run("publish")}

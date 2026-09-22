@@ -1,12 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { BlogSectionEditor } from "@/components/admin/blog-section-editor";
 import { MediaField } from "@/components/admin/media-field";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
+import { adminFormFingerprint } from "@/lib/admin-unsaved-rules";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,6 +85,11 @@ export function PageForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fingerprint = useMemo(() => adminFormFingerprint(form), [form]);
+  const savedFingerprint = useRef(fingerprint);
+  const dirty = !isNew && fingerprint !== savedFingerprint.current;
+  useUnsavedChangesGuard(dirty);
+
   function doc() {
     let sections: ContentBlock[] = isBlog ? form.sections : [];
     if (!isBlog) {
@@ -156,6 +163,13 @@ export function PageForm({
       });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
+      if (action === "discard" && page) {
+        const reset = fromRow({ ...page, draft: null }, desk);
+        setForm(reset);
+        savedFingerprint.current = adminFormFingerprint(reset);
+      } else {
+        savedFingerprint.current = fingerprint;
+      }
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) router.replace("/admin/login");
@@ -188,6 +202,7 @@ export function PageForm({
       ) : (
         <PublishBar
           status={status}
+          dirty={dirty}
           saving={saving}
           onSave={() => run("save")}
           onPublish={() => run("publish")}
