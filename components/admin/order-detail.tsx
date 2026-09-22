@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
@@ -52,6 +54,13 @@ export function OrderDetail({
   useEffect(() => {
     setStatus(order.status ?? "new");
   }, [order.status, order.statusUpdatedAt]);
+
+  const orderDirty = useMemo(
+    () =>
+      status !== (order.status ?? "new") || note.trim().length > 0,
+    [status, order.status, note],
+  );
+  useUnsavedChangesGuard(orderDirty);
 
   const customer = order.customer ?? {};
   const history = order.statusHistory ?? [];

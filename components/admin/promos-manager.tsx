@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { adminFetch } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,12 @@ export function PromosManager() {
   const [firstOrderOnly, setFirstOrderOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const createDraftDirty = useMemo(
+    () => Boolean(code.trim()) || firstOrderOnly,
+    [code, firstOrderOnly],
+  );
+  useUnsavedChangesGuard(createDraftDirty);
 
   async function load() {
     try {

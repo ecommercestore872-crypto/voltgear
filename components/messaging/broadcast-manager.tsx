@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -356,6 +358,13 @@ function SendTab() {
       : { type: "contacts" as const, value: selected };
 
   const count = target.type === "manual" ? 1 : target.value.size;
+
+  const sendDraftDirty = useMemo(
+    () =>
+      Boolean(text.trim() || campaignName.trim() || manualPhone.trim()),
+    [text, campaignName, manualPhone],
+  );
+  useUnsavedChangesGuard(sendDraftDirty);
 
   function toggle(id: string) {
     setSelected((prev) => {

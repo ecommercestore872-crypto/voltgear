@@ -19,6 +19,23 @@ const PRODUCTS_SEARCH_KEY = "admin.products.search";
 const PRODUCTS_CATEGORY_KEY = "admin.products.category";
 const PRODUCTS_INITIAL_VISIBLE = 36;
 
+function adminProductsHref(opts: {
+  q?: string;
+  stock?: string;
+  page?: number;
+  category?: string;
+}): string {
+  const params = new URLSearchParams();
+  if (opts.stock === "attention") params.set("stock", "attention");
+  if (opts.q && opts.q.length >= 2) params.set("q", opts.q);
+  else {
+    if (opts.category && opts.category !== "all") params.set("category", opts.category);
+    if (opts.page && opts.page > 1) params.set("page", String(opts.page));
+  }
+  const qs = params.toString();
+  return qs ? `/admin/products?${qs}` : "/admin/products";
+}
+
 function ProductStatusBadge({ status, draft }: { status: string; draft: any }) {
   if (status === "published" || status === "active") {
     return (
@@ -192,55 +209,86 @@ export function ProductList({
   shopTypes,
   stockFilter,
   serverQuery,
+  totalCount,
+  page = 1,
+  pageSize = PRODUCTS_INITIAL_VISIBLE,
+  serverCategory,
+  categoryCounts = [],
 }: {
   products: AdminProduct[];
   shopTypes: ShopType[];
   stockFilter?: string;
-  /** When set, the server already filtered by this query (2+ chars). */
   serverQuery?: string;
+  totalCount?: number;
+  page?: number;
+  pageSize?: number;
+  serverCategory?: string;
+  categoryCounts?: { slug: string; count: number }[];
 }) {
   const router = useRouter();
+  const paginated = totalCount != null && !serverQuery;
   const [q, setQ] = useState(serverQuery ?? "");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>(
+    serverCategory ?? "all",
+  );
 
   useEffect(() => {
     if (serverQuery !== undefined) {
       setQ(serverQuery);
       return;
     }
+    if (serverCategory) {
+      setCategoryFilter(serverCategory);
+      return;
+    }
     const savedQ = readAdminUiState(PRODUCTS_SEARCH_KEY);
     const savedCat = readAdminUiState(PRODUCTS_CATEGORY_KEY);
     if (savedQ) setQ(savedQ);
-    if (savedCat) setCategoryFilter(savedCat);
-  }, [serverQuery]);
+    if (savedCat && !paginated) setCategoryFilter(savedCat);
+  }, [serverQuery, serverCategory, paginated]);
 
   useEffect(() => {
     const needle = q.trim();
     const handle = window.setTimeout(() => {
-      const params = new URLSearchParams();
-      if (stockFilter === "attention") params.set("stock", "attention");
       if (needle.length >= 2) {
         if (needle === serverQuery) return;
-        params.set("q", needle);
-        router.replace(`/admin/products?${params.toString()}`);
+        router.replace(
+          adminProductsHref({ q: needle, stock: stockFilter }),
+        );
       } else if (serverQuery) {
         router.replace(
-          stockFilter === "attention" ? "/admin/products?stock=attention" : "/admin/products",
+          adminProductsHref({
+            stock: stockFilter,
+            category: categoryFilter !== "all" ? categoryFilter : undefined,
+          }),
         );
       }
     }, 450);
     return () => window.clearTimeout(handle);
-  }, [q, router, serverQuery, stockFilter]);
+  }, [q, router, serverQuery, stockFilter, categoryFilter]);
 
   useEffect(() => {
     writeAdminUiState(PRODUCTS_SEARCH_KEY, q);
   }, [q]);
 
   useEffect(() => {
-    writeAdminUiState(PRODUCTS_CATEGORY_KEY, categoryFilter);
-  }, [categoryFilter]);
+    if (!paginated) writeAdminUiState(PRODUCTS_CATEGORY_KEY, categoryFilter);
+  }, [categoryFilter, paginated]);
+
+  function goToCategory(slug: string) {
+    setCategoryFilter(slug);
+    if (!paginated) return;
+    router.replace(
+      adminProductsHref({
+        stock: stockFilter,
+        category: slug === "all" ? undefined : slug,
+        page: 1,
+      }),
+    );
+  }
 
   const filtered = useMemo(() => {
+    if (paginated) return products;
     const byStock =
       stockFilter === "attention"
         ? products.filter((p) => productMatchesStockAttention(p.stockStatus))
@@ -255,21 +303,56 @@ export function ProductList({
         p.status.toLowerCase().includes(needle) ||
         p.category.toLowerCase().includes(needle),
     );
-  }, [products, q, stockFilter, serverQuery]);
+  }, [products, q, stockFilter, serverQuery, paginated]);
+
+  const shopTypeBySlug = useMemo(
+    () => new Map(shopTypes.map((t) => [t.slug, t.name])),
+    [shopTypes],
+  );
+
+  const categoryChips = useMemo(() => {
+    if (paginated && categoryCounts.length > 0) {
+      return categoryCounts.map((c) => ({
+        slug: c.slug,
+        name: shopTypeBySlug.get(c.slug) ?? c.slug,
+        count: c.count,
+      }));
+    }
+    return groupProductsByCategory(
+      filtered,
+      shopTypes.map((t) => ({ slug: t.slug, name: t.name })),
+    ).map((g) => ({ slug: g.slug, name: g.name, count: g.products.length }));
+  }, [paginated, categoryCounts, filtered, shopTypes, shopTypeBySlug]);
 
   const groups = useMemo(
     () =>
-      groupProductsByCategory(
-        filtered,
-        shopTypes.map((t) => ({ slug: t.slug, name: t.name })),
-      ),
-    [filtered, shopTypes],
+      paginated
+        ? [
+            {
+              slug: serverCategory ?? "page",
+              name: serverCategory
+                ? (shopTypeBySlug.get(serverCategory) ?? serverCategory)
+                : "Products",
+              products: filtered,
+            },
+          ]
+        : groupProductsByCategory(
+            filtered,
+            shopTypes.map((t) => ({ slug: t.slug, name: t.name })),
+          ),
+    [paginated, filtered, shopTypes, serverCategory, shopTypeBySlug],
   );
 
-  const visibleGroups =
-    categoryFilter === "all"
+  const visibleGroups = paginated
+    ? groups
+    : categoryFilter === "all"
       ? groups
       : groups.filter((g) => g.slug === categoryFilter);
+
+  const totalPages =
+    paginated && totalCount != null
+      ? Math.max(1, Math.ceil(totalCount / pageSize))
+      : 1;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -303,10 +386,14 @@ export function ProductList({
             className="h-10 pl-9 shadow-sm bg-white dark:bg-zinc-900/50"
           />
         </div>
-        {!serverQuery && products.length > 200 ? (
+        {paginated && totalCount != null ? (
           <p className="text-xs text-muted-foreground">
-            Showing all {products.length} products — type at least 2 characters to search the database
-            instead of loading everything in the browser.
+            {totalCount.toLocaleString()} products
+            {stockFilter === "attention" ? " needing stock attention" : ""}
+            {serverCategory ? ` in ${shopTypeBySlug.get(serverCategory) ?? serverCategory}` : ""}
+            {" · "}
+            page {page} of {totalPages} ({products.length} on this page). Type 2+ characters to
+            search the full catalog.
           </p>
         ) : null}
         {serverQuery ? (
@@ -323,24 +410,37 @@ export function ProductList({
           <Button
             type="button"
             size="sm"
-            variant={categoryFilter === "all" ? "default" : "secondary"}
-            onClick={() => setCategoryFilter("all")}
-            className={`shadow-sm rounded-full px-4 transition-all ${categoryFilter === "all" ? "" : "bg-muted/50 hover:bg-muted"}`}
+            variant={
+              (paginated ? !serverCategory : categoryFilter === "all")
+                ? "default"
+                : "secondary"
+            }
+            onClick={() => goToCategory("all")}
+            className={`shadow-sm rounded-full px-4 transition-all ${(paginated ? !serverCategory : categoryFilter === "all") ? "" : "bg-muted/50 hover:bg-muted"}`}
           >
             All
+            {paginated && totalCount != null ? (
+              <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-foreground/10">
+                {totalCount}
+              </span>
+            ) : null}
           </Button>
-          {groups.map((g) => (
+          {categoryChips.map((g) => (
             <Button
               key={g.slug}
               type="button"
               size="sm"
-              variant={categoryFilter === g.slug ? "default" : "secondary"}
-              onClick={() => setCategoryFilter(g.slug)}
-              className={`shadow-sm rounded-full px-4 transition-all ${categoryFilter === g.slug ? "" : "bg-muted/50 hover:bg-muted"}`}
+              variant={
+                (paginated ? serverCategory === g.slug : categoryFilter === g.slug)
+                  ? "default"
+                  : "secondary"
+              }
+              onClick={() => goToCategory(g.slug)}
+              className={`shadow-sm rounded-full px-4 transition-all ${(paginated ? serverCategory === g.slug : categoryFilter === g.slug) ? "" : "bg-muted/50 hover:bg-muted"}`}
             >
               {g.name}
-              <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${categoryFilter === g.slug ? "bg-primary-foreground/20 text-primary-foreground" : "bg-foreground/10 text-foreground"}`}>
-                {g.products.length}
+              <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${(paginated ? serverCategory === g.slug : categoryFilter === g.slug) ? "bg-primary-foreground/20 text-primary-foreground" : "bg-foreground/10 text-foreground"}`}>
+                {g.count}
               </span>
             </Button>
           ))}
@@ -357,7 +457,7 @@ export function ProductList({
               className="mt-2"
               onClick={() => {
                 setQ("");
-                setCategoryFilter("all");
+                goToCategory("all");
               }}
             >
               Clear filters
@@ -370,27 +470,76 @@ export function ProductList({
             if (g.products.length === 0) return null;
             return (
               <section key={g.slug} aria-labelledby={`cat-${g.slug}`}>
-                <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b pb-2">
-                  <h2
-                    id={`cat-${g.slug}`}
-                    className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2"
-                  >
-                    {g.name}
-                    <Badge variant="outline" className="text-muted-foreground">{g.products.length}</Badge>
-                  </h2>
-                  <Link
-                    href={`/admin/categories`}
-                    className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline transition-all"
-                  >
-                    Manage Categories
-                  </Link>
-                </div>
-                <ProductRows products={g.products} />
+                {!paginated ? (
+                  <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b pb-2">
+                    <h2
+                      id={`cat-${g.slug}`}
+                      className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2"
+                    >
+                      {g.name}
+                      <Badge variant="outline" className="text-muted-foreground">
+                        {g.products.length}
+                      </Badge>
+                    </h2>
+                    <Link
+                      href="/admin/categories"
+                      className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline transition-all"
+                    >
+                      Manage Categories
+                    </Link>
+                  </div>
+                ) : null}
+                <ProductRows
+                  products={g.products}
+                  initialVisible={paginated ? g.products.length : PRODUCTS_INITIAL_VISIBLE}
+                />
               </section>
             );
           })}
         </div>
       )}
+
+      {paginated && totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() =>
+              router.replace(
+                adminProductsHref({
+                  stock: stockFilter,
+                  category: serverCategory,
+                  page: page - 1,
+                }),
+              )
+            }
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() =>
+              router.replace(
+                adminProductsHref({
+                  stock: stockFilter,
+                  category: serverCategory,
+                  page: page + 1,
+                }),
+              )
+            }
+          >
+            Next
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

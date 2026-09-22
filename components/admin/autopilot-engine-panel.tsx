@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import type { AutopilotConfig } from "@/lib/autopilot/config";
@@ -24,6 +26,19 @@ export function AutopilotEnginePanel({
   const [error, setError] = useState<string | null>(null);
   const [autoDispatch, setAutoDispatch] = useState(config.autoDispatch);
   const [autoRescue, setAutoRescue] = useState(config.autoRescue);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty({
+    autoDispatch,
+    autoRescue,
+  });
+
+  useEffect(() => {
+    setAutoDispatch(config.autoDispatch);
+    setAutoRescue(config.autoRescue);
+    resetSaved({
+      autoDispatch: config.autoDispatch,
+      autoRescue: config.autoRescue,
+    });
+  }, [config.autoDispatch, config.autoRescue, resetSaved]);
 
   async function save(next: AutopilotConfig) {
     setBusy("save");
@@ -35,6 +50,7 @@ export function AutopilotEnginePanel({
       });
       setAutoDispatch(next.autoDispatch);
       setAutoRescue(next.autoRescue);
+      syncSaved();
       setLog("Saved.");
       router.refresh();
     } catch (err) {
@@ -107,6 +123,24 @@ export function AutopilotEnginePanel({
 
   return (
     <div className="space-y-4">
+      <AdminStickyPublishBar>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/40 px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Autopilot settings:{" "}
+            <span className="font-medium text-foreground">
+              {dirty ? "Unsaved changes" : "Saved"}
+            </span>
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!dirty || busy !== null}
+            onClick={() => void save({ autoDispatch, autoRescue })}
+          >
+            Save settings
+          </Button>
+        </div>
+      </AdminStickyPublishBar>
       {!postExReady ? (
         <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">
           Set <code>POSTEX_API_TOKEN</code> before auto-book or tracking refresh
@@ -118,7 +152,7 @@ export function AutopilotEnginePanel({
           type="checkbox"
           checked={autoDispatch}
           disabled={busy !== null}
-          onChange={(e) => save({ autoDispatch: e.target.checked, autoRescue })}
+          onChange={(e) => setAutoDispatch(e.target.checked)}
         />
         Auto-book ready orders (checkout + daily cron)
       </label>
@@ -127,7 +161,7 @@ export function AutopilotEnginePanel({
           type="checkbox"
           checked={autoRescue}
           disabled={busy !== null}
-          onChange={(e) => save({ autoDispatch, autoRescue: e.target.checked })}
+          onChange={(e) => setAutoRescue(e.target.checked)}
         />
         Auto-refresh PostEx tracking (daily cron) and mark delivered when the
         courier says so

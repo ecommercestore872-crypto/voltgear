@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { adminFetch, adminFetchBlob } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,18 @@ export function DealsManager() {
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const createDraftDirty = useMemo(
+    () =>
+      Boolean(
+        slugA.trim() ||
+          slugB.trim() ||
+          title.trim() ||
+          (percentOff.trim() && percentOff.trim() !== "10"),
+      ),
+    [slugA, slugB, title, percentOff],
+  );
+  useUnsavedChangesGuard(createDraftDirty);
 
   async function load() {
     const data = (await adminFetch("/api/admin/deals")) as {

@@ -203,6 +203,84 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
 }
 
 const ADMIN_PRODUCT_SEARCH_LIMIT = 500;
+export const ADMIN_PRODUCTS_PAGE_SIZE = 48;
+
+const STOCK_ATTENTION_STATUSES = ["low-stock", "out-of-stock"] as const;
+
+export async function countAdminProducts(opts?: {
+  category?: string;
+  stockAttention?: boolean;
+}): Promise<number> {
+  let query = db().from("products").select("*", { count: "exact", head: true });
+  if (opts?.category) query = query.eq("category", opts.category);
+  if (opts?.stockAttention) {
+    query = query.in("stock_status", [...STOCK_ATTENTION_STATUSES]);
+  }
+  const { count, error } = await query;
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function listAdminProductsPage(opts: {
+  page: number;
+  pageSize?: number;
+  category?: string;
+  stockAttention?: boolean;
+}): Promise<AdminProduct[]> {
+  const pageSize = Math.min(
+    100,
+    Math.max(1, opts.pageSize ?? ADMIN_PRODUCTS_PAGE_SIZE),
+  );
+  const page = Math.max(1, opts.page);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let query = db()
+    .from("products")
+    .select(ADMIN_PRODUCT_LIST_EMBED)
+    .order("updated_at", { ascending: false })
+    .range(from, to);
+  if (opts.category) query = query.eq("category", opts.category);
+  if (opts.stockAttention) {
+    query = query.in("stock_status", [...STOCK_ATTENTION_STATUSES]);
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => toAdminProduct(row as Record<string, unknown>))
+    .filter(Boolean) as AdminProduct[];
+}
+
+/** Lightweight rollup for category filter chips (category slug → count). */
+export async function listAdminProductCategoryCounts(): Promise<
+  { slug: string; count: number }[]
+> {
+  const { data, error } = await db().from("products").select("category");
+  if (error) throw error;
+  const map = new Map<string, number>();
+  for (const row of data ?? []) {
+    const slug = String((row as { category?: string }).category ?? "").trim();
+    if (!slug) continue;
+    map.set(slug, (map.get(slug) ?? 0) + 1);
+  }
+  return [...map.entries()]
+    .map(([slug, count]) => ({ slug, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export async function listAdminProductsByIds(
+  ids: string[],
+): Promise<AdminProduct[]> {
+  const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (!unique.length) return [];
+  const { data, error } = await db()
+    .from("products")
+    .select(ADMIN_PRODUCT_LITE_SELECT)
+    .in("id", unique);
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => toAdminProduct(row as Record<string, unknown>))
+    .filter(Boolean) as AdminProduct[];
+}
 
 /** Server-side catalog search (2+ chars) — avoids loading every row for large shops. */
 export async function listAdminProductsSearch(term: string): Promise<AdminProduct[]> {

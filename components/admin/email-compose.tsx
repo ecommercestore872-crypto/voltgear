@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { adminFetch } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,12 @@ export function EmailCompose() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const draftDirty = useMemo(
+    () => Boolean(to.trim() || subject.trim() || text.trim() || templateName.trim()),
+    [to, subject, text, templateName],
+  );
+  useUnsavedChangesGuard(draftDirty);
 
   async function loadTemplates() {
     try {

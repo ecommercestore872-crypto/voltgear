@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { MediaField } from "@/components/admin/media-field";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,21 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
   const [active, setActive] = useState(shopType?.active ?? true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const formSnapshot = useMemo(
+    () => ({
+      name,
+      description,
+      imageUrl,
+      sortOrder,
+      active,
+    }),
+    [name, description, imageUrl, sortOrder, active],
+  );
+  const { dirty, syncSaved } = useAdminFormDirty(
+    formSnapshot,
+    !isNew,
+  );
 
   async function save() {
     setSaving(true);
@@ -49,6 +66,7 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
         method: "PATCH",
         body: JSON.stringify({ doc }),
       });
+      syncSaved();
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) {
@@ -117,6 +135,22 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
           ) : null}
         </div>
       </div>
+
+      {!isNew ? (
+        <AdminStickyPublishBar>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+            <p className="text-sm text-muted-foreground">
+              Status:{" "}
+              <span className="font-medium text-foreground">
+                {dirty ? "Unsaved changes" : "Up to date"}
+              </span>
+            </p>
+            <Button type="button" onClick={save} disabled={saving}>
+              {saving ? "Saving…" : "Save category"}
+            </Button>
+          </div>
+        </AdminStickyPublishBar>
+      ) : null}
 
       <div className="grid gap-8 mt-6">
         {error ? (
