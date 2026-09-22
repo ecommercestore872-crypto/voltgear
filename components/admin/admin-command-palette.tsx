@@ -12,6 +12,29 @@ type Hit = {
   href: string;
 };
 
+const ADMIN_QUICK_LINKS: Hit[] = [
+  { kind: "page", label: "Home", href: "/admin" },
+  { kind: "page", label: "Orders", href: "/admin/orders" },
+  { kind: "page", label: "Products", href: "/admin/products" },
+  { kind: "page", label: "Collections", href: "/admin/collections" },
+  { kind: "page", label: "Blog", href: "/admin/blog" },
+  { kind: "page", label: "Discounts", href: "/admin/discounts" },
+  { kind: "page", label: "Customers", href: "/admin/customers" },
+  { kind: "page", label: "Inbox", href: "/admin/inbox" },
+  { kind: "page", label: "Analytics", href: "/admin/analytics" },
+  { kind: "page", label: "Settings", href: "/admin/settings" },
+];
+
+function filterQuickLinks(query: string): Hit[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return ADMIN_QUICK_LINKS;
+  return ADMIN_QUICK_LINKS.filter(
+    (h) =>
+      h.label.toLowerCase().includes(needle) ||
+      h.href.toLowerCase().includes(needle.replace(/\s+/g, "")),
+  );
+}
+
 export function AdminCommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -35,7 +58,7 @@ export function AdminCommandPalette() {
   useEffect(() => {
     if (!open) return;
     setQ("");
-    setHits([]);
+    setHits(ADMIN_QUICK_LINKS);
     setActive(0);
     const t = window.setTimeout(() => inputRef.current?.focus(), 0);
     return () => window.clearTimeout(t);
@@ -44,8 +67,9 @@ export function AdminCommandPalette() {
   useEffect(() => {
     if (!open) return;
     const qTrim = q.trim();
-    if (!qTrim) {
-      setHits([]);
+    if (qTrim.length < 2) {
+      setHits(filterQuickLinks(qTrim));
+      setActive(0);
       return;
     }
     const handle = window.setTimeout(() => {
@@ -105,9 +129,9 @@ export function AdminCommandPalette() {
         <ul className="max-h-72 overflow-y-auto py-1">
           {hits.length === 0 ? (
             <li className="px-4 py-3 text-sm text-muted-foreground">
-              {q.trim()
+              {q.trim().length >= 2
                 ? "No matches"
-                : "Type an order #, product, or customer"}
+                : "Jump to a page or type 2+ characters to search"}
             </li>
           ) : (
             hits.map((h, i) => (

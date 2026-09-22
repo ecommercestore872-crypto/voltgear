@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { adminFetch } from "@/components/admin/admin-fetch";
-import { adminHeaders } from "@/lib/admin-token";
+import { adminFetch, adminFetchBlob } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
@@ -124,13 +123,11 @@ export function DealsManager() {
 
   async function downloadGraphic(deal: Deal) {
     setError(null);
-    const res = await fetch(`/api/admin/deals/${deal.id}/graphic`, {
-      credentials: "include",
-      headers: adminHeaders(),
-    });
-    if (!res.ok) {
-      const json = await res.json().catch(() => null);
-      setError(json?.error ?? "Could not download graphic.");
+    let res: Response;
+    try {
+      res = await adminFetchBlob(`/api/admin/deals/${deal.id}/graphic`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not download graphic.");
       return;
     }
     const blob = await res.blob();

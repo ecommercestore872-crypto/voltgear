@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { AutopilotCatalogFacts } from "@/components/admin/autopilot-catalog-facts";
 import { catalogFacts } from "@/lib/autopilot/honesty-rules";
-import { listAdminProducts } from "@/lib/db/admin-store";
+import { listAdminProductsLite } from "@/lib/db/admin-store";
 
 export const metadata: Metadata = {
   title: "Catalog facts",
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AutopilotAdsPage() {
   try {
-    const products = await listAdminProducts();
+    const products = await listAdminProductsLite();
     return (
       <AutopilotCatalogFacts
         products={catalogFacts(

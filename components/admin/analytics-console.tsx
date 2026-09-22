@@ -244,7 +244,7 @@ function RetentionBanner({ show }: { show: boolean }) {
 }
 
 export function AnalyticsConsole() {
-  const [preset, setPreset] = useState<AnalyticsPreset>("last30");
+  const [preset, setPreset] = useState<AnalyticsPreset>("last7");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [bundle, setBundle] = useState<Bundle | null>(null);

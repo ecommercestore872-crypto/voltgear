@@ -28,6 +28,33 @@ export async function adminFetch(url: string, options: RequestInit = {}) {
   return json;
 }
 
+/** Same auth as adminFetch, for binary responses (downloads). */
+export async function adminFetchBlob(
+  url: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  const res = await fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...adminHeaders(),
+      ...options.headers,
+    },
+  });
+  if (res.status === 401) {
+    if (typeof window !== "undefined") {
+      clearAdminToken();
+      window.location.assign("/admin/login");
+    }
+    throw new AdminAuthError();
+  }
+  if (!res.ok) {
+    const json = await res.json().catch(() => null);
+    throw new Error(json?.error ?? "Request failed");
+  }
+  return res;
+}
+
 export async function adminUpload(
   file: File,
   folder = "ecommerce-store/admin",

@@ -6,7 +6,7 @@ import {
   getAdminHero,
   getHomePublishBlockers,
   listAdminHeroSlides,
-  listAdminProducts,
+  listAdminProductPickers,
 } from "@/lib/db/admin-store";
 import { fetchActiveCategories } from "@/lib/db/store";
 
@@ -31,9 +31,9 @@ export default async function AdminHeroPage() {
       "Hero slides table is missing — run the T-16 migration (supabase db push) before managing /home2 slides.",
     ];
   }
-  const products = (await listAdminProducts()).map((p) => ({
-    id: p._id,
-    name: p.name || p.slug || p._id,
+  const products = (await listAdminProductPickers()).map((p) => ({
+    id: p.id,
+    name: p.name || p.slug || p.id,
   }));
   const categories = await fetchActiveCategories();
 

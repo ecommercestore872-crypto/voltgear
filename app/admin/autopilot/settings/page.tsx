@@ -7,7 +7,7 @@ import { countPostexTracked } from "@/lib/autopilot/honesty-rules";
 import {
   editorAutopilot,
   getAdminSettings,
-  listAdminProducts,
+  listAdminProductsForDashboard,
 } from "@/lib/db/admin-store";
 import { buildDashboardSnapshot } from "@/lib/db/dashboard-rules";
 import { getLightweightOrders } from "@/lib/order-store";
@@ -24,7 +24,7 @@ export default async function AutopilotSettingsPage() {
   try {
     const [orders, products, row] = await Promise.all([
       getLightweightOrders(),
-      listAdminProducts(),
+      listAdminProductsForDashboard(),
       getAdminSettings(),
     ]);
     const snapshot = buildDashboardSnapshot({ orders, products, reviews: [] });

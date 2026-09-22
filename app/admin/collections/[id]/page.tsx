@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CollectionEditor } from "@/components/admin/collection-editor";
-import { listAdminProducts } from "@/lib/db/admin-store";
+import { listAdminProductsLite } from "@/lib/db/admin-store";
 import { getAdminCollection } from "@/lib/db/collection-store";
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default async function AdminCollectionDetailPage({
 }) {
   const [collection, products] = await Promise.all([
     getAdminCollection(params.id).catch(() => null),
-    listAdminProducts().catch(() => []),
+    listAdminProductsLite().catch(() => []),
   ]);
   if (!collection) notFound();
   return <CollectionEditor initial={collection} products={products} />;

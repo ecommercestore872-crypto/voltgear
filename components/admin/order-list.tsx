@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,10 @@ import type { AdminOrderListItem } from "@/lib/db/order-rules";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RemoveDemoData } from "@/components/admin/remove-demo-data";
+import { readAdminUiState, writeAdminUiState } from "@/lib/admin-ui-persist";
+
+const ORDERS_SEARCH_KEY = "admin.orders.search";
+const ORDERS_TAB_KEY = "admin.orders.tab";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
@@ -41,6 +45,22 @@ export function OrderList({
   const [activeTab, setActiveTab] = useState(statusFilter || "all");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 50;
+
+  useEffect(() => {
+    if (statusFilter) return;
+    const savedQ = readAdminUiState(ORDERS_SEARCH_KEY);
+    const savedTab = readAdminUiState(ORDERS_TAB_KEY);
+    if (savedQ) setQ(savedQ);
+    if (savedTab && TABS.includes(savedTab)) setActiveTab(savedTab);
+  }, [statusFilter]);
+
+  useEffect(() => {
+    writeAdminUiState(ORDERS_SEARCH_KEY, q);
+  }, [q]);
+
+  useEffect(() => {
+    writeAdminUiState(ORDERS_TAB_KEY, activeTab);
+  }, [activeTab]);
 
   const filtered = useMemo(() => {
     let list = orders;

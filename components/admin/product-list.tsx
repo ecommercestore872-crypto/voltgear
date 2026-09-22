@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,14 @@ import type { ShopType } from "@/lib/categories";
 import type { AdminProduct } from "@/lib/db/admin-types";
 import { productMatchesStockAttention } from "@/lib/db/dashboard-rules";
 import { groupProductsByCategory } from "@/lib/db/product-list-group-rules";
+import { readAdminUiState, writeAdminUiState } from "@/lib/admin-ui-persist";
 import { formatPrice } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";
+
+const PRODUCTS_SEARCH_KEY = "admin.products.search";
+const PRODUCTS_CATEGORY_KEY = "admin.products.category";
+const PRODUCTS_INITIAL_VISIBLE = 36;
 
 function ProductStatusBadge({ status, draft }: { status: string; draft: any }) {
   if (status === "published" || status === "active") {
@@ -64,12 +69,22 @@ function StockBadge({ stock }: { stock: string }) {
   );
 }
 
-function ProductRows({ products }: { products: AdminProduct[] }) {
+function ProductRows({
+  products,
+  initialVisible = PRODUCTS_INITIAL_VISIBLE,
+}: {
+  products: AdminProduct[];
+  initialVisible?: number;
+}) {
+  const [visible, setVisible] = useState(initialVisible);
+  const slice = products.slice(0, visible);
+  const hasMore = products.length > visible;
+
   return (
     <div className="space-y-4">
       {/* Mobile view */}
       <div className="grid grid-cols-1 gap-4 sm:hidden">
-        {products.map((p) => (
+        {slice.map((p) => (
           <Link
             key={p._id}
             href={`/admin/products/${p._id}`}
@@ -113,7 +128,7 @@ function ProductRows({ products }: { products: AdminProduct[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {products.map((p) => (
+            {slice.map((p) => (
               <tr key={p._id} className="group hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3">
                   <Link
@@ -155,6 +170,18 @@ function ProductRows({ products }: { products: AdminProduct[] }) {
           </tbody>
         </table>
       </div>
+      {hasMore ? (
+        <div className="flex justify-center pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setVisible((v) => v + initialVisible)}
+          >
+            Show more ({products.length - visible} remaining)
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -170,6 +197,21 @@ export function ProductList({
 }) {
   const [q, setQ] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  useEffect(() => {
+    const savedQ = readAdminUiState(PRODUCTS_SEARCH_KEY);
+    const savedCat = readAdminUiState(PRODUCTS_CATEGORY_KEY);
+    if (savedQ) setQ(savedQ);
+    if (savedCat) setCategoryFilter(savedCat);
+  }, []);
+
+  useEffect(() => {
+    writeAdminUiState(PRODUCTS_SEARCH_KEY, q);
+  }, [q]);
+
+  useEffect(() => {
+    writeAdminUiState(PRODUCTS_CATEGORY_KEY, categoryFilter);
+  }, [categoryFilter]);
 
   const filtered = useMemo(() => {
     const byStock =
@@ -220,7 +262,7 @@ export function ProductList({
         </Button>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="sticky top-0 z-10 -mx-4 flex flex-col gap-4 border-b border-border/60 bg-[var(--g-cream)]/95 px-4 py-3 backdrop-blur-md lg:-mx-8 lg:px-8">
         <div className="relative w-full max-w-md">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -267,7 +309,20 @@ export function ProductList({
 
       {visibleGroups.length === 0 || visibleGroups.every((g) => g.products.length === 0) ? (
         <div className="rounded-xl border border-dashed border-border/50 p-12 text-center text-sm text-muted-foreground bg-muted/10">
-          No products match your search or filter.
+          <p>No products match your search or filter.</p>
+          {(q.trim() || categoryFilter !== "all" || stockFilter) ? (
+            <Button
+              type="button"
+              variant="link"
+              className="mt-2"
+              onClick={() => {
+                setQ("");
+                setCategoryFilter("all");
+              }}
+            >
+              Clear filters
+            </Button>
+          ) : null}
         </div>
       ) : (
         <div className="space-y-10">

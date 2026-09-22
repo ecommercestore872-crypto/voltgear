@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { Dashboard } from "@/components/admin/dashboard";
-import { listAdminProducts, listReviewSubmissions } from "@/lib/db/admin-store";
+import { listAdminProductsForDashboard, listReviewSubmissions } from "@/lib/db/admin-store";
 import { buildDashboardSnapshot } from "@/lib/db/dashboard-rules";
 import { getLightweightOrders } from "@/lib/order-store";
 
@@ -16,7 +16,7 @@ export default async function AdminIndexPage() {
   try {
     const [orders, products, reviews] = await Promise.all([
       getLightweightOrders(),
-      listAdminProducts(),
+      listAdminProductsForDashboard(),
       listReviewSubmissions(),
     ]);
     const snapshot = buildDashboardSnapshot({ orders, products, reviews });

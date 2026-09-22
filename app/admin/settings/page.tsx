@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { SettingsForm } from "@/components/admin/settings-form";
 import { ChangePassword } from "@/components/admin/change-password";
-import { getAdminSettings, listAdminProducts } from "@/lib/db/admin-store";
+import { getAdminSettings, listAdminProductPickers } from "@/lib/db/admin-store";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -13,9 +13,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
   const settings = await getAdminSettings();
-  const productsRows = await listAdminProducts();
-  const products = productsRows.map(p => ({
-    _id: p._id,
+  const products = (await listAdminProductPickers()).map((p) => ({
+    _id: p.id,
     name: p.name,
     slug: p.slug,
     category: p.category,

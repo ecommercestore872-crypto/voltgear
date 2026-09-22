@@ -126,6 +126,71 @@ async function allProductSlugs() {
 
 const ADMIN_PRODUCT_LIST_EMBED = "id, name, slug, category, price, cost_price, compare_at_price, stock_status, quantity, status, is_demo, updated_at, draft, product_images ( url, sort_order )";
 
+/** Dashboard / autopilot snapshots — no images or draft JSON. */
+const ADMIN_PRODUCT_DASHBOARD_SELECT =
+  "id, name, stock_status, status, is_demo, updated_at";
+
+/** Pickers, search, settings — no images, variants, or draft. */
+const ADMIN_PRODUCT_LITE_SELECT =
+  "id, name, slug, category, price, stock_status, quantity, status, is_demo, updated_at";
+
+export type AdminProductDashboardRow = {
+  _id: string;
+  name: string;
+  stockStatus: string;
+  status: AdminProduct["status"];
+  isDemo: boolean;
+};
+
+export type AdminProductPickerRow = {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  price: number;
+};
+
+export async function listAdminProductsForDashboard(): Promise<AdminProductDashboardRow[]> {
+  const { data, error } = await db()
+    .from("products")
+    .select(ADMIN_PRODUCT_DASHBOARD_SELECT)
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    _id: String(row.id),
+    name: String(row.name ?? ""),
+    stockStatus: String(row.stock_status ?? "in-stock"),
+    status: asStatus(row.status),
+    isDemo: Boolean(row.is_demo),
+  }));
+}
+
+export async function listAdminProductPickers(): Promise<AdminProductPickerRow[]> {
+  const { data, error } = await db()
+    .from("products")
+    .select("id, name, slug, category, price, updated_at")
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    name: String(row.name ?? ""),
+    slug: String(row.slug ?? ""),
+    category: String(row.category ?? ""),
+    price: Number.isFinite(Number(row.price)) ? Number(row.price) : 0,
+  }));
+}
+
+export async function listAdminProductsLite(): Promise<AdminProduct[]> {
+  const { data, error } = await db()
+    .from("products")
+    .select(ADMIN_PRODUCT_LITE_SELECT)
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => toAdminProduct(row as Record<string, unknown>))
+    .filter(Boolean) as AdminProduct[];
+}
+
 export async function listAdminProducts(): Promise<AdminProduct[]> {
   const { data, error } = await db()
     .from("products")
