@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ChromeLinkList } from "@/components/admin/chrome-link-list";
 import { PublishBar } from "@/components/admin/publish-bar";
@@ -19,10 +19,10 @@ import {
   DEFAULT_FOOTER_COMPANY_LINKS,
   DEFAULT_HELP_LINKS,
   DEFAULT_NAV_LINKS,
-  parseChromeLinks,
-  type ChromeLink,
 } from "@/lib/chrome-nav-rules";
+import { adminDraftBag, chromeLinksField } from "@/lib/admin-draft";
 import { SHOPPER_BRAND, shouldReplaceBrandName } from "@/lib/brand";
+import { normalizeSettingsSocialLinks } from "@/lib/settings-social";
 
 type SettingsRow = Record<string, unknown> & {
   status?: PublishStatus;
@@ -34,9 +34,8 @@ function str(v: unknown) {
 }
 
 function fromRow(row?: SettingsRow | null) {
-  const d = row?.draft ?? {};
-  const social = (d.socialLinks ?? row?.social_links) as
-    { platform?: string; url?: string }[] | undefined;
+  const d = adminDraftBag(row);
+  const social = normalizeSettingsSocialLinks(d.socialLinks ?? row?.social_links);
   return {
     brandName: shouldReplaceBrandName(str(d.brandName ?? row?.brand_name))
       ? SHOPPER_BRAND.spokenName
@@ -63,9 +62,9 @@ function fromRow(row?: SettingsRow | null) {
     shippingFee: str(d.shippingFee ?? row?.shipping_fee),
     returnPolicy: str(d.returnPolicy ?? row?.return_policy),
     warrantyInfo: str(d.warrantyInfo ?? row?.warranty_info),
-    instagram: social?.find((s) => s.platform === "instagram")?.url ?? "",
-    tiktok: social?.find((s) => s.platform === "tiktok")?.url ?? "",
-    facebook: social?.find((s) => s.platform === "facebook")?.url ?? "",
+    instagram: social.find((s) => s.platform === "instagram")?.url ?? "",
+    tiktok: social.find((s) => s.platform === "tiktok")?.url ?? "",
+    facebook: social.find((s) => s.platform === "facebook")?.url ?? "",
     announcementEnabled: Boolean(
       (d.announcement as { enabled?: boolean } | undefined)?.enabled ??
       (row?.announcement as { enabled?: boolean } | undefined)?.enabled,
@@ -96,18 +95,17 @@ function fromRow(row?: SettingsRow | null) {
       (d.seo as { description?: string } | undefined)?.description ??
         (row?.seo as { description?: string } | undefined)?.description,
     ),
-    navLinks:
-      parseChromeLinks(d.navLinks ?? row?.nav_links) ?? DEFAULT_NAV_LINKS,
-    headerLinks:
-      parseChromeLinks(d.headerLinks ?? row?.header_links) ?? [],
-    helpLinks:
-      parseChromeLinks(d.helpLinks ?? row?.help_links) ?? DEFAULT_HELP_LINKS,
-    footerCompanyLinks:
-      parseChromeLinks(d.footerCompanyLinks ?? row?.footer_company_links) ??
+    navLinks: chromeLinksField(d.navLinks ?? row?.nav_links, DEFAULT_NAV_LINKS),
+    headerLinks: chromeLinksField(d.headerLinks ?? row?.header_links, []),
+    helpLinks: chromeLinksField(d.helpLinks ?? row?.help_links, DEFAULT_HELP_LINKS),
+    footerCompanyLinks: chromeLinksField(
+      d.footerCompanyLinks ?? row?.footer_company_links,
       DEFAULT_FOOTER_COMPANY_LINKS,
-    footerCareLinks:
-      parseChromeLinks(d.footerCareLinks ?? row?.footer_care_links) ??
+    ),
+    footerCareLinks: chromeLinksField(
+      d.footerCareLinks ?? row?.footer_care_links,
       DEFAULT_FOOTER_CARE_LINKS,
+    ),
     homeBestsellersTitle: str(d.homeBestsellersTitle ?? row?.home_bestsellers_title),
     homeOffersTitle: str(d.homeOffersTitle ?? row?.home_offers_title),
     homeCategoriesTitle: str(d.homeCategoriesTitle ?? row?.home_categories_title),
@@ -124,12 +122,21 @@ function fromRow(row?: SettingsRow | null) {
   };
 }
 
-export function SettingsForm({ 
+type FeaturedProductOption = {
+  _id: string;
+  name: string;
+  slug: string;
+  category: string;
+};
+
+export function SettingsForm({
   settings,
-  products = [],
-}: { 
+  shopCategories = [],
+  initialFeaturedProduct = null,
+}: {
   settings?: SettingsRow | null;
-  products?: { _id: string; name: string; slug: string; category: string }[];
+  shopCategories?: { slug: string; name: string }[];
+  initialFeaturedProduct?: FeaturedProductOption | null;
 }) {
   const router = useRouter();
   const [form, setForm] = useState(() => fromRow(settings));
@@ -140,13 +147,63 @@ export function SettingsForm({
   const [error, setError] = useState<string | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
-    if (!form.homeFeaturedProductSlug) return "";
-    const p = products.find(p => p.slug === form.homeFeaturedProductSlug);
-    return p ? p.category : "";
+    return initialFeaturedProduct?.category ?? "";
   });
+  const [categoryProducts, setCategoryProducts] = useState<FeaturedProductOption[]>(
+    () => (initialFeaturedProduct ? [initialFeaturedProduct] : []),
+  );
+  const [productQ, setProductQ] = useState("");
+  const [productSearchHits, setProductSearchHits] = useState<FeaturedProductOption[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
-  const categories = Array.from(new Set(products.map(p => p.category))).sort();
-  const availableProducts = products.filter(p => !selectedCategory || p.category === selectedCategory);
+  useEffect(() => {
+    const needle = productQ.trim();
+    if (needle.length < 2) {
+      setProductSearchHits([]);
+      return;
+    }
+    setLoadingProducts(true);
+    const handle = window.setTimeout(() => {
+      void adminFetch(`/api/admin/products?q=${encodeURIComponent(needle)}`)
+        .then((json: { products?: FeaturedProductOption[] }) => {
+          setProductSearchHits(json.products ?? []);
+        })
+        .catch(() => setProductSearchHits([]))
+        .finally(() => setLoadingProducts(false));
+    }, 350);
+    return () => window.clearTimeout(handle);
+  }, [productQ]);
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      setCategoryProducts(initialFeaturedProduct ? [initialFeaturedProduct] : []);
+      return;
+    }
+    setLoadingProducts(true);
+    void adminFetch(
+      `/api/admin/products?category=${encodeURIComponent(selectedCategory)}&pageSize=100`,
+    )
+      .then((json: { products?: FeaturedProductOption[] }) => {
+        const list = json.products ?? [];
+        const slug = form.homeFeaturedProductSlug;
+        if (
+          slug &&
+          initialFeaturedProduct?.slug === slug &&
+          !list.some((p) => p.slug === slug)
+        ) {
+          setCategoryProducts([initialFeaturedProduct, ...list]);
+        } else {
+          setCategoryProducts(list);
+        }
+      })
+      .catch(() =>
+        setCategoryProducts(initialFeaturedProduct ? [initialFeaturedProduct] : []),
+      )
+      .finally(() => setLoadingProducts(false));
+  }, [selectedCategory, initialFeaturedProduct, form.homeFeaturedProductSlug]);
+
+  const pickerProducts =
+    productQ.trim().length >= 2 ? productSearchHits : categoryProducts;
 
   const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
@@ -503,36 +560,59 @@ export function SettingsForm({
                     value={selectedCategory}
                     onChange={(e) => {
                       setSelectedCategory(e.target.value);
+                      setProductQ("");
                       if (form.homeFeaturedProductSlug) {
-                        const p = products.find(prod => prod.slug === form.homeFeaturedProductSlug);
-                        if (p && p.category !== e.target.value) {
-                           setForm(f => ({ ...f, homeFeaturedProductSlug: "" }));
+                        const p =
+                          initialFeaturedProduct?.slug === form.homeFeaturedProductSlug
+                            ? initialFeaturedProduct
+                            : pickerProducts.find(
+                                (prod) => prod.slug === form.homeFeaturedProductSlug,
+                              );
+                        if (p && e.target.value && p.category !== e.target.value) {
+                          setForm((f) => ({ ...f, homeFeaturedProductSlug: "" }));
                         }
                       }
                     }}
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
-                    <option value="">All Categories</option>
-                    {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                    <option value="">All categories (search below)</option>
+                    {shopCategories.map((cat) => (
+                      <option key={cat.slug} value={cat.slug}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="space-y-1.5">
+                  <Label>Search product (optional)</Label>
+                  <Input
+                    value={productQ}
+                    onChange={(e) => setProductQ(e.target.value)}
+                    placeholder="Type 2+ characters to search catalog…"
+                  />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
                   <Label>Override Target Product</Label>
                   <select
                     value={form.homeFeaturedProductSlug}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, homeFeaturedProductSlug: e.target.value }))
                     }
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    disabled={loadingProducts && pickerProducts.length === 0}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60"
                   >
                     <option value="">-- Dynamic Auto Select --</option>
-                    {availableProducts.map(p => (
-                      <option key={p._id} value={p.slug}>{p.name}</option>
+                    {pickerProducts.map((p) => (
+                      <option key={p._id} value={p.slug}>
+                        {p.name}
+                      </option>
                     ))}
                   </select>
+                  {loadingProducts ? (
+                    <p className="text-xs text-muted-foreground">Loading products…</p>
+                  ) : null}
                 </div>
                 
                 <div className="sm:col-span-2 space-y-1.5 mt-4">

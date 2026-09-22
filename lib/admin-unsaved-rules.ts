@@ -1,4 +1,8 @@
 /** Stable JSON fingerprint for admin form dirty checks. */
 export function adminFormFingerprint(value: unknown): string {
-  return JSON.stringify(value);
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }

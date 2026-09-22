@@ -4,14 +4,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 
+import {
+  AdminProductSearchPicker,
+  type AdminProductPickerOption,
+} from "@/components/admin/admin-product-search-picker";
 import { MediaField } from "@/components/admin/media-field";
 import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-type ProductOption = { id: string; name: string };
 
 type SlideRow = {
   id: string;
@@ -32,12 +34,12 @@ type SlideRow = {
 
 export function HeroSlidesForm({
   slides: initialSlides,
-  products,
+  seedProducts = [],
   categories = [],
   blockers,
 }: {
   slides: SlideRow[];
-  products: ProductOption[];
+  seedProducts?: AdminProductPickerOption[];
   categories: string[];
   blockers: string[];
 }) {
@@ -48,7 +50,7 @@ export function HeroSlidesForm({
   const [draft, setDraft] = useState({
     linkType: "product" as "product" | "category" | "all" | "none",
     categoryId: categories[0] ?? "",
-    productId: products[0]?.id ?? "",
+    productId: seedProducts[0]?.id ?? "",
     imageUrl: "",
     mobileImageUrl: "",
     title: "",
@@ -117,15 +119,24 @@ export function HeroSlidesForm({
           },
         }),
       });
-      const product = products.find((p) => p.id === productId);
       const created = json.slide as SlideRow | undefined;
+      const product =
+        seedProducts.find((p) => p.id === productId) ??
+        (created?.products?.id
+          ? {
+              id: created.products.id,
+              name: created.products.name ?? created.products.id,
+            }
+          : null);
       if (created?.id) {
         setSlides((prev) => [
           ...prev,
           {
             ...created,
             image_url: created.image_url || imageUrl,
-            products: product ? { id: product.id, name: product.name } : null,
+            products: product
+              ? { id: product.id, name: product.name }
+              : created.products ?? null,
           },
         ]);
       }
@@ -287,22 +298,15 @@ export function HeroSlidesForm({
           </div>
           
           {draft.linkType === "product" ? (
-            <div className="space-y-1.5">
-              <Label>Featured product</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={draft.productId}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, productId: e.target.value }))
-                }
-              >
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <AdminProductSearchPicker
+              label="Featured product"
+              value={draft.productId}
+              seedProducts={seedProducts}
+              required
+              onChange={(productId) =>
+                setDraft((d) => ({ ...d, productId }))
+              }
+            />
           ) : draft.linkType === "category" ? (
             <div className="space-y-1.5">
               <Label>Select Category</Label>
@@ -548,18 +552,24 @@ export function HeroSlidesForm({
                   </div>
                   
                   {linkType === "product" && (
-                    <div className="space-y-1.5">
-                      <Label>Product ID</Label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                        value={slide.product_id || ""}
-                        onChange={(e) => updateSlideContent(slide.id, { productId: e.target.value })}
-                      >
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <AdminProductSearchPicker
+                      label="Product"
+                      value={slide.product_id || ""}
+                      seedProducts={[
+                        ...(slide.products?.id
+                          ? [
+                              {
+                                id: slide.products.id,
+                                name: slide.products.name ?? slide.products.id,
+                              },
+                            ]
+                          : []),
+                        ...seedProducts,
+                      ]}
+                      onChange={(productId) =>
+                        updateSlideContent(slide.id, { productId })
+                      }
+                    />
                   )}
 
                   {linkType === "category" && (

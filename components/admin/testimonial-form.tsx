@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { adminDraftBag } from "@/lib/admin-draft";
 import type { PublishStatus } from "@/lib/db/publish";
 
 type Row = {
@@ -26,7 +27,7 @@ type Row = {
 };
 
 function fromRow(row?: Row | null) {
-  const d = row?.draft ?? {};
+  const d = adminDraftBag(row);
   return {
     customerName: String(d.customerName ?? row?.customer_name ?? ""),
     reviewText: String(d.reviewText ?? row?.review_text ?? ""),

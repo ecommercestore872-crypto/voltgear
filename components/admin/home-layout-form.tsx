@@ -24,7 +24,7 @@ export function HomeLayoutForm({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
-  const { dirty, resetSaved } = useAdminFormDirty(sections);
+  const { dirty, resetSaved, syncSaved } = useAdminFormDirty(sections);
 
   useEffect(() => {
     setSections(initialSections);

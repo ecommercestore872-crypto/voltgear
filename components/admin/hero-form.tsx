@@ -11,6 +11,7 @@ import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { adminDraftBag, asStringArray } from "@/lib/admin-draft";
 import type { PublishStatus } from "@/lib/db/publish";
 
 type HeroRow = {
@@ -28,11 +29,13 @@ type HeroRow = {
 };
 
 function fromRow(row?: HeroRow | null) {
-  const d = row?.draft ?? {};
-  const images = Array.isArray(d.backgroundImages)
-    ? (d.backgroundImages as string[])
-    : Array.isArray(row?.background_images)
-      ? (row?.background_images as string[])
+  const d = adminDraftBag(row);
+  const fromDraft = asStringArray(d.backgroundImages);
+  const fromLive = asStringArray(row?.background_images);
+  const images = fromDraft.length
+    ? fromDraft
+    : fromLive.length
+      ? fromLive
       : d.backgroundImage || row?.background_image_url
         ? [String(d.backgroundImage || row?.background_image_url)]
         : [];

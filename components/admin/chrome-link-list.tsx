@@ -18,16 +18,18 @@ export function ChromeLinkList({
   links: ChromeLink[];
   onChange: (next: ChromeLink[]) => void;
 }) {
+  const safeLinks = Array.isArray(links) ? links : [];
+
   function patch(index: number, field: keyof ChromeLink, value: string) {
     onChange(
-      links.map((row, i) => (i === index ? { ...row, [field]: value } : row)),
+      safeLinks.map((row, i) => (i === index ? { ...row, [field]: value } : row)),
     );
   }
 
   function move(index: number, dir: -1 | 1) {
     const target = index + dir;
-    if (target < 0 || target >= links.length) return;
-    const next = [...links];
+    if (target < 0 || target >= safeLinks.length) return;
+    const next = [...safeLinks];
     [next[index], next[target]] = [next[target], next[index]];
     onChange(next);
   }
@@ -37,7 +39,7 @@ export function ChromeLinkList({
       <Label>{title}</Label>
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       <div className="space-y-2">
-        {links.map((row, i) => (
+        {safeLinks.map((row, i) => (
           <div
             key={`${row.href}-${i}`}
             className="flex flex-col gap-2 rounded-md border p-2 sm:flex-row sm:items-center"
@@ -78,7 +80,7 @@ export function ChromeLinkList({
                 variant="ghost"
                 size="icon"
                 aria-label="Remove"
-                onClick={() => onChange(links.filter((_, j) => j !== i))}
+                onClick={() => onChange(safeLinks.filter((_, j) => j !== i))}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -90,7 +92,7 @@ export function ChromeLinkList({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => onChange([...links, { label: "", href: "" }])}
+        onClick={() => onChange([...safeLinks, { label: "", href: "" }])}
       >
         <Plus className="mr-1 h-4 w-4" />
         Add link

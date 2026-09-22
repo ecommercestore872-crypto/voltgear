@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
 import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
@@ -60,10 +60,47 @@ export function HomepageSectionForm({
     section?.manualProductIds ?? [],
   );
 
-  // Search filter for manual product selector
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchHits, setSearchHits] = useState<SimpleProduct[]>([]);
+  const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const needle = searchQuery.trim();
+    if (needle.length < 2) {
+      setSearchHits([]);
+      return;
+    }
+    setSearching(true);
+    const handle = window.setTimeout(() => {
+      void adminFetch(`/api/admin/products?q=${encodeURIComponent(needle)}`)
+        .then(
+          (json: {
+            products?: {
+              _id: string;
+              name: string;
+              slug: string;
+              category: string;
+              price?: number;
+            }[];
+          }) => {
+            setSearchHits(
+              (json.products ?? []).map((p) => ({
+                id: p._id,
+                name: p.name,
+                slug: p.slug,
+                category: p.category,
+                price: Number(p.price) || 0,
+              })),
+            );
+          },
+        )
+        .catch(() => setSearchHits([]))
+        .finally(() => setSearching(false));
+    }, 350);
+    return () => window.clearTimeout(handle);
+  }, [searchQuery]);
 
   const formSnapshot = useMemo(
     () => ({
@@ -98,8 +135,12 @@ export function HomepageSectionForm({
   // Map of id -> product for quick lookup
   const productMap = new Map(availableProducts.map((p) => [p.id, p]));
 
-  const filteredProducts = availableProducts.filter((p) => {
-    if (selectedProductIds.includes(p.id)) return false; // hide already selected
+  const catalogForPicker =
+    searchQuery.trim().length >= 2 ? searchHits : availableProducts;
+
+  const filteredProducts = catalogForPicker.filter((p) => {
+    if (selectedProductIds.includes(p.id)) return false;
+    if (searchQuery.trim().length >= 2) return true;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -464,9 +505,19 @@ export function HomepageSectionForm({
               </div>
 
               <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1 border rounded-lg p-2">
-                {filteredProducts.length === 0 ? (
+                {searchQuery.trim().length > 0 && searchQuery.trim().length < 2 ? (
                   <p className="text-xs text-muted-foreground p-4 text-center">
-                    No matching products available to add.
+                    Type at least 2 characters to search the catalog.
+                  </p>
+                ) : searching ? (
+                  <p className="text-xs text-muted-foreground p-4 text-center">
+                    Searching…
+                  </p>
+                ) : filteredProducts.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-4 text-center">
+                    {searchQuery.trim().length >= 2
+                      ? "No matching products. Try another search."
+                      : "Search above to add products (selected items stay in the list on the left)."}
                   </p>
                 ) : (
                   filteredProducts.map((p) => (

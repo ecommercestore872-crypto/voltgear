@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { blogSeoDefaults, validateBlogDoc } from "@/lib/blog-desk-rules";
 import { sanitizeBlogSections } from "@/lib/blog-safety-rules";
 import { slugify, type PublishStatus } from "@/lib/db/publish";
+import { adminDraftBag, asStringArray } from "@/lib/admin-draft";
 import type { ContentBlock } from "@/lib/types";
 
 type PageRow = {
@@ -41,9 +42,9 @@ type PageRow = {
 };
 
 function fromRow(row?: PageRow | null, desk?: "blog" | "page") {
-  const draft = row?.draft as Record<string, unknown> | undefined;
-  const seo = (draft?.seo as PageRow["seo"]) ?? row?.seo;
-  const rawSections = draft?.sections ?? row?.sections ?? [];
+  const draft = adminDraftBag(row);
+  const seo = (draft.seo as PageRow["seo"]) ?? row?.seo;
+  const rawSections = draft.sections ?? row?.sections ?? [];
   return {
     title: String(draft?.title ?? row?.title ?? ""),
     slug: String(draft?.slug ?? row?.slug ?? ""),
@@ -55,8 +56,12 @@ function fromRow(row?: PageRow | null, desk?: "blog" | "page") {
     coverImage: String(draft?.coverImage ?? row?.cover_image_url ?? ""),
     author: String(draft?.author ?? row?.author ?? "Buy n Try editors"),
     sections: (Array.isArray(rawSections) ? rawSections : []) as ContentBlock[],
-    sectionsText: JSON.stringify(rawSections ?? [], null, 2),
-    keywords: ((draft?.keywords as string[]) ?? row?.keywords ?? []).join(", "),
+    sectionsText: JSON.stringify(
+      Array.isArray(rawSections) ? rawSections : [],
+      null,
+      2,
+    ),
+    keywords: asStringArray(draft.keywords ?? row?.keywords).join(", "),
     seoTitle: String(seo?.title ?? ""),
     seoDescription: String(seo?.description ?? ""),
     featured: Boolean(seo?.featured),
