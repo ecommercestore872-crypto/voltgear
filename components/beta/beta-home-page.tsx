@@ -30,7 +30,7 @@ import {
 } from "@/lib/gadget-preview";
 import {
   fetchExtraCollectionRails,
-  fetchProductsForHomeSlot,
+  fetchProductsForHomeSlots,
 } from "@/lib/db/collection-store";
 import {
   normalizeHomeSections,
@@ -60,19 +60,19 @@ export async function BetaHomePage() {
   let slotOffers: Product[] | null = null;
   let extraRails: Awaited<ReturnType<typeof fetchExtraCollectionRails>> = [];
   try {
-    const [s, p, t, set, types, blogs, colBest, colFeat, colOffers, extra] =
-      await Promise.all([
-        fetchHeroSlides(demo),
-        fetchHomepageProducts(demo),
-        fetchTestimonials(demo),
-        fetchSiteSettings(),
-        fetchShopTypes(),
-        fetchBlogPosts(demo),
-        fetchProductsForHomeSlot("bestsellers", demo).catch(() => null),
-        fetchProductsForHomeSlot("featured", demo).catch(() => null),
-        fetchProductsForHomeSlot("offers", demo).catch(() => null),
-        fetchExtraCollectionRails(demo).catch(() => []),
-      ]);
+    const [s, p, t, set, types, blogs, homeSlots, extra] = await Promise.all([
+      fetchHeroSlides(demo),
+      fetchHomepageProducts(demo),
+      fetchTestimonials(demo),
+      fetchSiteSettings(),
+      fetchShopTypes(),
+      fetchBlogPosts(demo),
+      fetchProductsForHomeSlots(demo).catch(() => null),
+      fetchExtraCollectionRails(demo).catch(() => []),
+    ]);
+    const colBest = homeSlots?.bestsellers ?? null;
+    const colFeat = homeSlots?.featured ?? null;
+    const colOffers = homeSlots?.offers ?? null;
     slides = s;
     products = applyGadgetStudioImagesList(p);
     testimonials = t;

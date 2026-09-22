@@ -19,8 +19,10 @@ import {
   adsenseHeadScriptSrc,
 } from "@/lib/adsense-policy";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
-import { fetchShopTypes } from "@/lib/db/store";
-import { getSettings } from "@/lib/sanity/settings";
+import {
+  loadStorefrontSettings,
+  loadStorefrontShopTypes,
+} from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { themeCssVars, themePreviewScript } from "@/lib/theme";
 import type { SiteSettings } from "@/lib/types";
@@ -170,8 +172,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Avoid headers()/cookies() here — they force every page dynamic and kill CDN/ISR caching.
-  const settings: SiteSettings | null = await getSettings().catch(() => null);
-  const shopTypes = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
+  const settings: SiteSettings | null = await loadStorefrontSettings().catch(
+    () => null,
+  );
+  const shopTypes = await loadStorefrontShopTypes().catch(
+    () => FALLBACK_SHOP_TYPES,
+  );
   const config = normalizeSettings(settings);
 
   if (settings?.seo?.title) {

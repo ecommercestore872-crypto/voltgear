@@ -13,10 +13,12 @@ import {
   fetchHeroSlides,
   fetchHomepageProducts,
   fetchProductBySlug,
-  fetchShopTypes,
-  fetchSiteSettings,
   fetchTestimonials,
 } from "@/lib/db/store";
+import {
+  loadStorefrontSettings,
+  loadStorefrontShopTypes,
+} from "@/lib/db/storefront-shell";
 import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
 import {
   homeLayoutIdsForLifestyle,
@@ -31,7 +33,7 @@ import {
 } from "@/lib/gadget-preview";
 import {
   fetchExtraCollectionRails,
-  fetchProductsForHomeSlot,
+  fetchProductsForHomeSlots,
 } from "@/lib/db/collection-store";
 import {
   normalizeHomeSections,
@@ -61,19 +63,19 @@ export async function GadgetHomePage() {
   let slotOffers: Product[] | null = null;
   let extraRails: Awaited<ReturnType<typeof fetchExtraCollectionRails>> = [];
   try {
-    const [s, p, t, set, types, blogs, colBest, colFeat, colOffers, extra] =
-      await Promise.all([
-        fetchHeroSlides(demo),
-        fetchHomepageProducts(demo),
-        fetchTestimonials(demo),
-        fetchSiteSettings(),
-        fetchShopTypes(),
-        fetchBlogPosts(demo),
-        fetchProductsForHomeSlot("bestsellers", demo).catch(() => null),
-        fetchProductsForHomeSlot("featured", demo).catch(() => null),
-        fetchProductsForHomeSlot("offers", demo).catch(() => null),
-        fetchExtraCollectionRails(demo).catch(() => []),
-      ]);
+    const [s, p, t, set, types, blogs, homeSlots, extra] = await Promise.all([
+      fetchHeroSlides(demo),
+      fetchHomepageProducts(demo),
+      fetchTestimonials(demo),
+      loadStorefrontSettings(),
+      loadStorefrontShopTypes(),
+      fetchBlogPosts(demo),
+      fetchProductsForHomeSlots(demo).catch(() => null),
+      fetchExtraCollectionRails(demo).catch(() => []),
+    ]);
+    const colBest = homeSlots?.bestsellers ?? null;
+    const colFeat = homeSlots?.featured ?? null;
+    const colOffers = homeSlots?.offers ?? null;
     slides = s;
     products = applyGadgetStudioImagesList(p);
     testimonials = t.map((m) => ({ ...m, product: undefined })); // Strip product data if not needed
@@ -89,9 +91,18 @@ export async function GadgetHomePage() {
     }));
 
     if (settings?.draft?.homeFeaturedProductSlug) {
-      const over = await fetchProductBySlug(String(settings.draft.homeFeaturedProductSlug), demo).catch(() => null);
-      if (over && !products.some(p => p.slug === over.slug)) {
-        products.push(...applyGadgetStudioImagesList([over]));
+      const slug = String(settings.draft.homeFeaturedProductSlug);
+      const alreadyLoaded =
+        products.some((p) => p.slug === slug) ||
+        slotBestsellers?.some((p) => p.slug === slug) ||
+        slotFeatured?.some((p) => p.slug === slug) ||
+        slotOffers?.some((p) => p.slug === slug) ||
+        extraRails.some((rail) => rail.products.some((p) => p.slug === slug));
+      if (!alreadyLoaded) {
+        const over = await fetchProductBySlug(slug, demo).catch(() => null);
+        if (over) {
+          products.push(...applyGadgetStudioImagesList([over]));
+        }
       }
     }
     

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { GadgetHomePage } from "@/components/gadget/gadget-home-page";
-import { fetchSiteSettings } from "@/lib/db/store";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { storeAlternatesLanguages } from "@/lib/seo-rules";
 import type { SiteSettings } from "@/lib/types";
 
@@ -10,7 +10,7 @@ export const revalidate = 60;
 export async function generateMetadata(): Promise<Metadata> {
   let settings: SiteSettings | null = null;
   try {
-    settings = await fetchSiteSettings();
+    settings = await loadStorefrontSettings();
   } catch {
     settings = null;
   }

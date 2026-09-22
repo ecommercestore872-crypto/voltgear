@@ -66,7 +66,7 @@ const PRODUCT_EMBED = `
 `;
 
 /** Card/rail fields only — keeps catalog HTML and RSC payloads small for conversion speed. */
-const CATALOG_PRODUCT_EMBED =
+export const CATALOG_PRODUCT_EMBED =
   "id, name, slug, category, price, compare_at_price, cloudinary_images, short_description, sku, brand, stock_status, quantity, rating, review_count, featured, badge, is_demo, status, created_at, product_images ( url, sort_order, source ), product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )";
 
 function db() {
@@ -336,20 +336,7 @@ export const fetchShopTypes = unstable_cache(
       }));
     }
 
-    // Also fetch distinct product categories from the published products table
-    const { data: prodData } = await db()
-      .from("products")
-      .select("category")
-      .eq("status", LIVE);
-
-    const productCategories = Array.from(
-      new Set((prodData ?? []).map((p) => String(p.category || "").trim()))
-    ).filter(Boolean);
-
-    // Merge database categories and product categories dynamically
     const mergedMap = new Map<string, ShopType>();
-
-    // 1. Give DB definitions absolute priority
     for (const dt of dbTypes) {
       mergedMap.set(dt.slug, dt);
     }

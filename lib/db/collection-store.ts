@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 
 import {
   canAssignProductToCollection,
@@ -13,8 +13,13 @@ import {
   type CollectionHomeSlot,
   type CollectionMode,
 } from "@/lib/db/collection-rules";
-import { getServiceClient } from "@/lib/supabase/server";
+import {
+  orderProductsByIds,
+  sliceRailProducts,
+} from "@/lib/db/home-collection-batch";
 import { mapProduct } from "@/lib/db/map";
+import { CATALOG_PRODUCT_EMBED } from "@/lib/db/store";
+import { getServiceClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
 
 function db() {
@@ -386,45 +391,136 @@ const PRODUCT_EMBED = `
   product_reviews ( name, rating, review_date, comment, verified, image, is_demo )
 `;
 
-import { unstable_cache } from "next/cache";
+const HOME_SLOTS: CollectionHomeSlot[] = ["bestsellers", "featured", "offers"];
+
+function mapRowsToProductsById(
+  rows: unknown[],
+  includeDemo: boolean,
+): Map<string, Product> {
+  const byId = new Map<string, Product>();
+  for (const row of rows) {
+    const p = mapProduct(row as Record<string, unknown>, {
+      includeDemoReviews: includeDemo,
+    });
+    if (!p) continue;
+    if (!includeDemo && p.isDemo) continue;
+    byId.set(String((row as { id: string }).id), p);
+  }
+  return byId;
+}
+
+async function storefrontProductsForIds(
+  ids: string[],
+  includeDemo = false,
+): Promise<Product[]> {
+  if (!ids.length) return [];
+  const select = (includeDemo ? PRODUCT_EMBED : CATALOG_PRODUCT_EMBED) as "*";
+  const { data: rows, error: pErr } = await db()
+    .from("products")
+    .select(select)
+    .in("id", ids)
+    .eq("status", "published");
+  if (pErr) throw pErr;
+  const byId = mapRowsToProductsById(rows ?? [], includeDemo);
+  return orderProductsByIds(ids, byId);
+}
+
+async function loadHomeSlotCollections(): Promise<
+  Map<CollectionHomeSlot, AdminCollection>
+> {
+  await ensureGeneratedHomeCollections();
+  const { data, error } = await db()
+    .from("collections")
+    .select("*")
+    .in("home_slot", HOME_SLOTS)
+    .eq("active", true);
+  if (error) throw error;
+
+  const rows = data ?? [];
+  const ids = rows.map((r) => String((r as { id: string }).id));
+  const productMap = new Map<string, string[]>();
+  if (ids.length) {
+    const { data: links, error: lErr } = await db()
+      .from("collection_products")
+      .select("collection_id, product_id, sort_order")
+      .in("collection_id", ids)
+      .order("sort_order", { ascending: true });
+    if (lErr) throw lErr;
+    for (const link of links ?? []) {
+      const cid = String((link as { collection_id: string }).collection_id);
+      const pid = String((link as { product_id: string }).product_id);
+      const list = productMap.get(cid) ?? [];
+      list.push(pid);
+      productMap.set(cid, list);
+    }
+  }
+
+  const bySlot = new Map<CollectionHomeSlot, AdminCollection>();
+  for (const row of rows) {
+    const col = mapCollection(
+      row as Record<string, unknown>,
+      productMap.get(String((row as { id: string }).id)) ?? [],
+    );
+    if (col.homeSlot) bySlot.set(col.homeSlot, col);
+  }
+  return bySlot;
+}
+
+const loadHomeSlotProductsBundle = unstable_cache(
+  async (
+    includeDemo = false,
+  ): Promise<Record<CollectionHomeSlot, Product[] | null>> => {
+    const bySlot = await loadHomeSlotCollections();
+    const idLists = new Map<CollectionHomeSlot, string[]>();
+    await Promise.all(
+      HOME_SLOTS.map(async (slot) => {
+        const col = bySlot.get(slot);
+        if (!col) {
+          idLists.set(slot, []);
+          return;
+        }
+        idLists.set(slot, await resolveCollectionProductIds(col));
+      }),
+    );
+
+    const allIds = [
+      ...new Set(HOME_SLOTS.flatMap((slot) => idLists.get(slot) ?? [])),
+    ];
+    const products = await storefrontProductsForIds(allIds, includeDemo);
+    const byId = new Map(products.map((p) => [p._id, p]));
+
+    const result: Record<CollectionHomeSlot, Product[] | null> = {
+      bestsellers: null,
+      featured: null,
+      offers: null,
+    };
+    for (const slot of HOME_SLOTS) {
+      if (!bySlot.has(slot)) {
+        result[slot] = null;
+        continue;
+      }
+      const ids = idLists.get(slot) ?? [];
+      result[slot] = orderProductsByIds(ids, byId);
+    }
+    return result;
+  },
+  ["fetchProductsForHomeSlots"],
+  { revalidate: 60 },
+);
+
+/** All reserved home-slot rails in one cached bundle (one product IN query). */
+export async function fetchProductsForHomeSlots(includeDemo = false) {
+  return loadHomeSlotProductsBundle(includeDemo);
+}
 
 /** Products for a home rail when an active collection claims that slot. */
-export const fetchProductsForHomeSlot = unstable_cache(
-  async (slot: CollectionHomeSlot, includeDemo = false): Promise<Product[] | null> => {
-    const { data: col, error } = await db()
-      .from("collections")
-      .select("id")
-      .eq("home_slot", slot)
-      .eq("active", true)
-      .maybeSingle();
-    if (error || !col) return null;
-
-    const collection = await getAdminCollection(String((col as { id: string }).id));
-    if (!collection) return null;
-    const ids = await resolveCollectionProductIds(collection);
-    if (!ids.length) return [];
-
-    const { data: rows, error: pErr } = await db()
-      .from("products")
-      .select(PRODUCT_EMBED)
-      .in("id", ids)
-      .eq("status", "published");
-    if (pErr) throw pErr;
-
-    const byId = new Map<string, Product>();
-    for (const row of rows ?? []) {
-      const p = mapProduct(row as Record<string, unknown>, {
-        includeDemoReviews: includeDemo,
-      });
-      if (!p) continue;
-      if (!includeDemo && p.isDemo) continue;
-      byId.set(String((row as { id: string }).id), p);
-    }
-    return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
-  },
-  ["fetchProductsForHomeSlot"],
-  { revalidate: 60 }
-);
+export async function fetchProductsForHomeSlot(
+  slot: CollectionHomeSlot,
+  includeDemo = false,
+): Promise<Product[] | null> {
+  const bundle = await loadHomeSlotProductsBundle(includeDemo);
+  return bundle[slot] ?? null;
+}
 
 async function productsForIds(
   ids: string[],
@@ -438,16 +534,8 @@ async function productsForIds(
     .eq("status", "published");
   if (pErr) throw pErr;
 
-  const byId = new Map<string, Product>();
-  for (const row of rows ?? []) {
-    const p = mapProduct(row as Record<string, unknown>, {
-      includeDemoReviews: includeDemo,
-    });
-    if (!p) continue;
-    if (!includeDemo && p.isDemo) continue;
-    byId.set(String((row as { id: string }).id), p);
-  }
-  return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+  const byId = mapRowsToProductsById(rows ?? [], includeDemo);
+  return orderProductsByIds(ids, byId);
 }
 
 export type StorefrontCollectionRail = {
@@ -462,16 +550,28 @@ export const fetchExtraCollectionRails = unstable_cache(
   async (includeDemo = false): Promise<StorefrontCollectionRail[]> => {
     const collections = await listAdminCollections();
     const extras = extraHomeCollectionRails(collections);
+    if (!extras.length) return [];
+
+    const idLists = await Promise.all(
+      extras.map(async (collection) => ({
+        collection,
+        ids: await resolveCollectionProductIds(collection),
+      })),
+    );
+
+    const allIds = [...new Set(idLists.flatMap((entry) => entry.ids))];
+    const products = await storefrontProductsForIds(allIds, includeDemo);
+    const byId = new Map(products.map((p) => [p._id, p]));
+
     const rails: StorefrontCollectionRail[] = [];
-    for (const collection of extras) {
-      const ids = await resolveCollectionProductIds(collection);
-      const products = await productsForIds(ids, includeDemo);
-      if (!products.length) continue;
+    for (const { collection, ids } of idLists) {
+      const ordered = sliceRailProducts(orderProductsByIds(ids, byId));
+      if (!ordered.length) continue;
       rails.push({
         id: collection.id,
         name: collection.name,
         slug: collection.slug,
-        products: products.slice(0, 8),
+        products: ordered,
       });
     }
     return rails;
