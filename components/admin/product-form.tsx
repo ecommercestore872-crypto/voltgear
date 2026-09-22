@@ -10,8 +10,8 @@ import { ObjectArrayInput } from "@/components/admin/object-array-input";
 import { MediaField } from "@/components/admin/media-field";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
-import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
-import { adminFormFingerprint } from "@/lib/admin-unsaved-rules";
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,20 +154,17 @@ export function ProductForm({
   const payloadRef = useRef(payload);
   payloadRef.current = payload;
 
-  const fingerprint = useMemo(
-    () =>
-      adminFormFingerprint({
-        payload,
-        collectionIds: [...selectedCollectionIds].sort(),
-      }),
+  const dirtyState = useMemo(
+    () => ({
+      payload,
+      collectionIds: [...selectedCollectionIds].sort(),
+    }),
     [payload, selectedCollectionIds],
   );
-  const savedFingerprint = useRef(fingerprint);
-  const dirty = fingerprint !== savedFingerprint.current;
-  useUnsavedChangesGuard(dirty && !isNew);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(dirtyState, !isNew);
 
   function commitSavedBaseline(latest: ProductDocument) {
-    savedFingerprint.current = adminFormFingerprint({
+    resetSaved({
       payload: latest,
       collectionIds: [...selectedCollectionIds].sort(),
     });
@@ -296,15 +293,17 @@ export function ProductForm({
           Save draft {activeUploads > 0 && "(Uploading...)"}
         </Button>
       ) : (
-        <PublishBar
-          status={status}
-          dirty={dirty}
-          saving={saving || activeUploads > 0}
-          onSave={() => run("save")}
-          onPublish={() => run("publish")}
-          onUnpublish={() => run("unpublish")}
-          onDiscard={() => run("discard")}
-        />
+        <AdminStickyPublishBar>
+          <PublishBar
+            status={status}
+            dirty={dirty}
+            saving={saving || activeUploads > 0}
+            onSave={() => run("save")}
+            onPublish={() => run("publish")}
+            onUnpublish={() => run("unpublish")}
+            onDiscard={() => run("discard")}
+          />
+        </AdminStickyPublishBar>
       )}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

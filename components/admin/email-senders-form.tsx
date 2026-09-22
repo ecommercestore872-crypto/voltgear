@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
 import { PublishBar } from "@/components/admin/publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +48,7 @@ export function EmailSendersForm({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
   function setField(kind: EmailSendPurpose, value: string) {
     setForm((f) => ({ ...f, [kind]: value }));
@@ -69,7 +72,14 @@ export function EmailSendersForm({
       });
       if (action === "publish") setStatus("published");
       if (action === "save") setStatus("draft");
-      if (action === "discard") setStatus("published");
+      if (action === "discard") {
+        setStatus("published");
+        const reset = fromConfig(config);
+        setForm(reset);
+        resetSaved(reset);
+      } else {
+        syncSaved();
+      }
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) router.replace("/admin/login");
@@ -107,14 +117,17 @@ export function EmailSendersForm({
           .
         </p>
       </div>
-      <PublishBar
-        status={status}
-        saving={saving}
-        onSave={() => run("save")}
-        onPublish={() => run("publish")}
-        onDiscard={() => run("discard")}
-        hideUnpublish
-      />
+      <AdminStickyPublishBar>
+        <PublishBar
+          status={status}
+          dirty={dirty}
+          saving={saving}
+          onSave={() => run("save")}
+          onPublish={() => run("publish")}
+          onDiscard={() => run("discard")}
+          hideUnpublish
+        />
+      </AdminStickyPublishBar>
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <section className="space-y-1 rounded-lg border">

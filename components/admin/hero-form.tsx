@@ -3,8 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
 import { MediaField } from "@/components/admin/media-field";
 import { PublishBar } from "@/components/admin/publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,6 +77,7 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
   function doc() {
     let stats: unknown[] = [];
@@ -106,6 +109,13 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
       });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
+      if (action === "discard" && hero) {
+        const reset = fromRow({ ...hero, draft: null });
+        setForm(reset);
+        resetSaved(reset);
+      } else {
+        syncSaved();
+      }
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) router.replace("/admin/login");
@@ -118,14 +128,17 @@ export function HeroForm({ hero }: { hero?: HeroRow | null }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-2xl font-semibold">Hero</h1>
-      <PublishBar
-        status={status}
-        saving={saving}
-        onSave={() => run("save")}
-        onPublish={() => run("publish")}
-        onUnpublish={() => run("unpublish")}
-        onDiscard={() => run("discard")}
-      />
+      <AdminStickyPublishBar>
+        <PublishBar
+          status={status}
+          dirty={dirty}
+          saving={saving}
+          onSave={() => run("save")}
+          onPublish={() => run("publish")}
+          onUnpublish={() => run("unpublish")}
+          onDiscard={() => run("discard")}
+        />
+      </AdminStickyPublishBar>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="grid gap-4">
         <div className="space-y-1.5">

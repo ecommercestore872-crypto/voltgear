@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 
 import { ChromeLinkList } from "@/components/admin/chrome-link-list";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
-import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
-import { adminFormFingerprint } from "@/lib/admin-unsaved-rules";
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -148,10 +148,7 @@ export function SettingsForm({
   const categories = Array.from(new Set(products.map(p => p.category))).sort();
   const availableProducts = products.filter(p => !selectedCategory || p.category === selectedCategory);
 
-  const fingerprint = useMemo(() => adminFormFingerprint(form), [form]);
-  const savedFingerprint = useRef(fingerprint);
-  const dirty = fingerprint !== savedFingerprint.current;
-  useUnsavedChangesGuard(dirty);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
   function doc() {
     const socialLinks = [
@@ -221,9 +218,9 @@ export function SettingsForm({
       if (action === "discard") {
         const reset = fromRow({ ...settings, draft: null });
         setForm(reset);
-        savedFingerprint.current = adminFormFingerprint(reset);
+        resetSaved(reset);
       } else {
-        savedFingerprint.current = fingerprint;
+        syncSaved();
       }
       router.refresh();
     } catch (err) {
@@ -261,15 +258,17 @@ export function SettingsForm({
 
       {/* Sticky Publish Bar Overlay */}
       <div className="sticky top-4 z-50 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 backdrop-blur-md bg-white/70 dark:bg-zinc-900/80">
-        <PublishBar
-          status={status}
-          dirty={dirty}
-          saving={saving}
-          onSave={() => run("save")}
-          onPublish={() => run("publish")}
-          onDiscard={() => run("discard")}
-          hideUnpublish
-        />
+        <AdminStickyPublishBar>
+          <PublishBar
+            status={status}
+            dirty={dirty}
+            saving={saving}
+            onSave={() => run("save")}
+            onPublish={() => run("publish")}
+            onDiscard={() => run("discard")}
+            hideUnpublish
+          />
+        </AdminStickyPublishBar>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 mt-8">

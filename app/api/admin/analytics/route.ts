@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const bundle = await loadAnalyticsBundle({
-      preset: url.searchParams.get("preset") ?? "last30",
+      preset: url.searchParams.get("preset") ?? "last7",
       from: url.searchParams.get("from") ?? undefined,
       to: url.searchParams.get("to") ?? undefined,
     });

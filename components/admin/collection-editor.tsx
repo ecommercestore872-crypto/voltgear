@@ -147,7 +147,13 @@ export function CollectionEditor({
         {doc.autoRule ? ` · rule ${doc.autoRule}` : null}
       </p>
 
-      {doc.mode === "manual" ? (
+      {doc.mode !== "manual" ? (
+        <p className="rounded-lg border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          This is an automatic collection — products are chosen by the{" "}
+          <strong>{doc.autoRule ?? "rule"}</strong> rule. Switch to manual mode in
+          Collections settings if you need to pick products by hand.
+        </p>
+      ) : (
         <div className="space-y-3">
           <h2 className="font-medium">Products in this collection</h2>
           <Input
@@ -179,11 +185,6 @@ export function CollectionEditor({
             {selected.size} selected
           </p>
         </div>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Auto collections pick products from the {doc.autoRule} rule. No manual
-          picks needed.
-        </p>
       )}
     </div>
   );

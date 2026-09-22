@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 
 import { BlogSectionEditor } from "@/components/admin/blog-section-editor";
 import { MediaField } from "@/components/admin/media-field";
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
-import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
-import { adminFormFingerprint } from "@/lib/admin-unsaved-rules";
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,10 +85,7 @@ export function PageForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fingerprint = useMemo(() => adminFormFingerprint(form), [form]);
-  const savedFingerprint = useRef(fingerprint);
-  const dirty = !isNew && fingerprint !== savedFingerprint.current;
-  useUnsavedChangesGuard(dirty);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form, !isNew);
 
   function doc() {
     let sections: ContentBlock[] = isBlog ? form.sections : [];
@@ -166,9 +163,9 @@ export function PageForm({
       if (action === "discard" && page) {
         const reset = fromRow({ ...page, draft: null }, desk);
         setForm(reset);
-        savedFingerprint.current = adminFormFingerprint(reset);
+        resetSaved(reset);
       } else {
-        savedFingerprint.current = fingerprint;
+        syncSaved();
       }
       router.refresh();
     } catch (err) {
@@ -200,15 +197,17 @@ export function PageForm({
           Save draft
         </Button>
       ) : (
-        <PublishBar
-          status={status}
-          dirty={dirty}
-          saving={saving}
-          onSave={() => run("save")}
-          onPublish={() => run("publish")}
-          onUnpublish={() => run("unpublish")}
-          onDiscard={() => run("discard")}
-        />
+        <AdminStickyPublishBar>
+          <PublishBar
+            status={status}
+            dirty={dirty}
+            saving={saving}
+            onSave={() => run("save")}
+            onPublish={() => run("publish")}
+            onUnpublish={() => run("unpublish")}
+            onDiscard={() => run("discard")}
+          />
+        </AdminStickyPublishBar>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="grid gap-4 sm:grid-cols-2">

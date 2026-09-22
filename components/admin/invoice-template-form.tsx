@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
 import { PublishBar } from "@/components/admin/publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +48,7 @@ export function InvoiceTemplateForm({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
   function set<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -65,7 +68,14 @@ export function InvoiceTemplateForm({
       });
       if (action === "publish") setStatus("published");
       if (action === "save") setStatus("draft");
-      if (action === "discard") setStatus("published");
+      if (action === "discard") {
+        setStatus("published");
+        const reset = fromConfig(config);
+        setForm(reset);
+        resetSaved(reset);
+      } else {
+        syncSaved();
+      }
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) router.replace("/admin/login");
@@ -85,13 +95,16 @@ export function InvoiceTemplateForm({
           logo, email, phone, address).
         </p>
       </div>
-      <PublishBar
-        status={status}
-        saving={saving}
-        onSave={() => run("save")}
-        onPublish={() => run("publish")}
-        onDiscard={() => run("discard")}
-      />
+      <AdminStickyPublishBar>
+        <PublishBar
+          status={status}
+          dirty={dirty}
+          saving={saving}
+          onSave={() => run("save")}
+          onPublish={() => run("publish")}
+          onDiscard={() => run("discard")}
+        />
+      </AdminStickyPublishBar>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <div className="grid gap-4 sm:grid-cols-2">

@@ -24,15 +24,20 @@ export function PublishBar({
   onDiscard?: () => void;
   hideUnpublish?: boolean;
 }) {
-  const label =
-    dirty || status === "draft"
-      ? "Unsaved draft"
+  const label = dirty
+    ? "Unsaved changes"
+    : status === "draft"
+      ? "Draft — not on storefront"
       : status === "unpublished"
         ? "Unpublished"
-        : "Live";
+        : "Live on storefront";
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+    <div
+      className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3 ${
+        dirty ? "border-amber-400/70 shadow-sm ring-1 ring-amber-400/20" : ""
+      }`}
+    >
       <p className="text-sm text-muted-foreground">
         Status: <span className="font-medium text-foreground">{label}</span>
       </p>

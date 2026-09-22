@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
 import { PublishBar } from "@/components/admin/publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +46,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form, !isNew);
 
   async function run(
     action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
@@ -74,6 +77,13 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
       });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
+      if (action === "discard" && testimonial) {
+        const reset = fromRow({ ...testimonial, draft: null });
+        setForm(reset);
+        resetSaved(reset);
+      } else {
+        syncSaved();
+      }
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) router.replace("/admin/login");
@@ -100,14 +110,17 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
           Save draft
         </Button>
       ) : (
-        <PublishBar
-          status={status}
-          saving={saving}
-          onSave={() => run("save")}
-          onPublish={() => run("publish")}
-          onUnpublish={() => run("unpublish")}
-          onDiscard={() => run("discard")}
-        />
+        <AdminStickyPublishBar>
+          <PublishBar
+            status={status}
+            dirty={dirty}
+            saving={saving}
+            onSave={() => run("save")}
+            onPublish={() => run("publish")}
+            onUnpublish={() => run("unpublish")}
+            onDiscard={() => run("discard")}
+          />
+        </AdminStickyPublishBar>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="grid gap-4">
