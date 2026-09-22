@@ -6,6 +6,7 @@ import { GadgetLifestyleShop } from "@/components/gadget/gadget-lifestyle-shop";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
 import { GadgetReviewsSlider } from "@/components/gadget/gadget-reviews-slider";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
+import { GadgetSocialFollowRail } from "@/components/gadget/gadget-social-follow-rail";
 import { GadgetTrustStrip } from "@/components/gadget/gadget-trust-strip";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import {
@@ -37,6 +38,7 @@ import {
   normalizeHomeSections,
   type HomeSectionId,
 } from "@/lib/db/home-section-rules";
+import { getPublicSocialLinks } from "@/lib/social-links-rules";
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Page, Product, Testimonial } from "@/lib/types";
@@ -102,6 +104,7 @@ export async function GadgetHomePage() {
   }
 
   const config = normalizeSettings(settings);
+  const socialLinks = getPublicSocialLinks(config);
   const threshold = Number(config.freeShippingThreshold ?? 0);
 
   const categoryCards = shopTypes
@@ -247,6 +250,7 @@ export async function GadgetHomePage() {
   return (
     <div className="text-[var(--g-charcoal)]">
       <GadgetHeroSlider slides={slides} fallbackBanners={demoBanners} />
+      <GadgetSocialFollowRail links={socialLinks} />
 
       {layout.map((id) => {
         let section: ReactNode = null;

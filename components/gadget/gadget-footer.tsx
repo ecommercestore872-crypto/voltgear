@@ -10,7 +10,8 @@ import {
 
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
-import { getSocialIcon } from "@/components/icons/social-icons";
+import { GadgetSocialGlyph } from "@/components/gadget/gadget-social-glyphs";
+import { getPublicSocialLinks } from "@/lib/social-links-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import {
@@ -63,11 +64,8 @@ export function GadgetFooter({
   const [companyA, companyB] = splitTwo(companyLinks);
   const phone = settings?.phone;
   const email = settings?.email;
-  const socials = (settings?.socialLinks ?? []).filter(
-    (s) => s.platform && s.url && s.url.startsWith("http"),
-  );
-
   const config = normalizeSettings(settings);
+  const socialLinks = getPublicSocialLinks(config);
   const threshold = config.freeShippingThreshold;
   const warrantyMonths = config.warrantyMonths ?? 12;
   const returnWindowDays = config.returnWindowDays ?? 7;
@@ -199,24 +197,20 @@ export function GadgetFooter({
               <ShopBrandMark logo={settings?.logo} name={brandName} invert />
             </Link>
 
-            {socials.length ? (
-              <div className="mt-5 flex flex-wrap gap-3">
-                {socials.map((social) => {
-                  if (!social.platform || !social.url) return null;
-                  const Icon = getSocialIcon(social.platform);
-                  return (
-                    <a
-                      key={social.platform}
-                      href={social.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={social.platform}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white/80 transition hover:border-white hover:text-[var(--g-white)]"
-                    >
-                      <Icon className="h-4 w-4" />
-                    </a>
-                  );
-                })}
+            {socialLinks.length ? (
+              <div className="mt-5 flex flex-wrap gap-2.5">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.id}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${social.label} (${social.handle})`}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 transition hover:border-white/40 hover:bg-white/15"
+                  >
+                    <GadgetSocialGlyph platform={social.id} className="h-7 w-7" />
+                  </a>
+                ))}
               </div>
             ) : null}
 
