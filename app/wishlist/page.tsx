@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchCatalogProducts } from "@/lib/db/store";
+
 import { WishlistClient } from "./wishlist-client";
 
 export const metadata: Metadata = {
@@ -10,8 +10,6 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-export default async function WishlistPage() {
-  const products = await fetchCatalogProducts();
-
-  return <WishlistClient products={products} />;
+export default function WishlistPage() {
+  return <WishlistClient />;
 }

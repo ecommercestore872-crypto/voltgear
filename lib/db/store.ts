@@ -1048,3 +1048,84 @@ export async function fetchFeaturedByCategory(category: string, limit = 4, inclu
     .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
     .filter(Boolean) as Product[];
 }
+
+function clampStoreLimit(limit: number, max = 8): number {
+  if (!Number.isFinite(limit)) return 4;
+  return Math.min(Math.max(1, Math.floor(limit)), max);
+}
+
+/** Slim storefront cards — category featured (bounded). */
+export async function fetchCatalogFeaturedByCategory(
+  category: string,
+  limit = 4,
+  includeDemo = false,
+): Promise<Product[]> {
+  const cap = clampStoreLimit(limit);
+  const cat = category.trim();
+  if (!cat) return [];
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(CATALOG_PRODUCT_EMBED as "*")
+        .eq("category", cat)
+        .eq("featured", true)
+        .eq("status", LIVE),
+      includeDemo,
+    )
+      .order("created_at", { ascending: false })
+      .limit(cap),
+  );
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+    .filter(Boolean) as Product[];
+}
+
+/** Slim storefront cards — site-wide featured (bounded). */
+export async function fetchCatalogFeaturedProducts(
+  limit = 4,
+  includeDemo = false,
+): Promise<Product[]> {
+  const cap = clampStoreLimit(limit);
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(CATALOG_PRODUCT_EMBED as "*")
+        .eq("featured", true)
+        .eq("status", LIVE),
+      includeDemo,
+    )
+      .order("created_at", { ascending: false })
+      .limit(cap),
+  );
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+    .filter(Boolean) as Product[];
+}
+
+/** Slim storefront cards — newest published (bounded). */
+export async function fetchCatalogNewestProducts(
+  limit = 4,
+  includeDemo = false,
+): Promise<Product[]> {
+  const cap = clampStoreLimit(limit);
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(CATALOG_PRODUCT_EMBED as "*")
+        .eq("status", LIVE),
+      includeDemo,
+    )
+      .order("featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(cap),
+  );
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+    .filter(Boolean) as Product[];
+}

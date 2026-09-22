@@ -38,6 +38,7 @@ function trackWishlistAdd(item: WishlistItem) {
 interface WishlistContextValue {
   items: WishlistItem[];
   count: number;
+  hydrated: boolean;
   hasItem: (slug: string) => boolean;
   addItem: (item: WishlistItem) => void;
   removeItem: (slug: string) => void;
@@ -94,8 +95,16 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const count = items.length;
 
   const value = useMemo(
-    () => ({ items, count, hasItem, addItem, removeItem, toggleItem }),
-    [items, count, hasItem, addItem, removeItem, toggleItem],
+    () => ({
+      items,
+      count,
+      hydrated,
+      hasItem,
+      addItem,
+      removeItem,
+      toggleItem,
+    }),
+    [items, count, hydrated, hasItem, addItem, removeItem, toggleItem],
   );
 
   return (
@@ -108,6 +117,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 const SSR_WISHLIST: WishlistContextValue = {
   items: [],
   count: 0,
+  hydrated: false,
   hasItem: () => false,
   addItem: () => {},
   removeItem: () => {},
