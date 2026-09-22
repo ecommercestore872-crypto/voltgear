@@ -425,34 +425,44 @@ export const FALLBACK_BLOG_POSTS: Page[] = [
         "Shop camera and phone tripods in Pakistan safely. Discover overhead boom-arms, vlogging stands, and sturdy mobile tripods. Cash on delivery.",
     },
     sections: [
-      h2("Not All Metal is Metal"),
-      p("If you search 'tripods in Pakistan' you will find endless identical black stands. Some cost Rs 1,000 and some cost Rs 8,000. For a beginner vlogger or a small studio, the difference isn't always clear until you mount a heavy phone or DSLR and watch it slowly tip over. This guide helps you buy a tripod that actually holds weight."),
-      h2("Mobile Tripods vs. DSLR Tripods"),
+      h2("The wobble you only notice at 11 pm"),
+      p("Search tripods in Pakistan and every listing looks like the same black aluminium family photo. Rs 1,200 and Rs 9,000 share the same stock image. The difference shows up when you mount a phone with a chunky case and the head slowly nods yes while you record a 60-second reel."),
+      p("We see two returns a week that start with the same sentence: I thought the legs were metal. Often they are metal tubes with plastic joints that flex in Lahore heat. This guide is the checklist we wish riders had before signing COD slips."),
+      h2("Three stands, three jobs"),
       bullets(
-        "Mobile Vlogging Stands: Compact, often come with a Bluetooth remote, perfect for TikTok/Reels. Ensure the phone clip grips tightly.",
-        "Ring Light Stands (7ft-9ft): Tall and thin. They are designed for lights, not heavy cameras. Using them for overhead video requires a sandbag on the legs.",
-        "DSLR Tripods: Thicker legs, fluid head for smooth panning, and a quick-release plate. Necessary if you use a heavy lens."
+        "Pocket vlogging tripod: 50 to 64 inch, Bluetooth remote in the handle, phone clip that grips a case. Good for desk unboxings and kitchen counter reviews.",
+        "Ring-light pole (7 to 9 ft): Holds a light ring, not your camera. Fine for static lights; do not hang a DSLR on it unless you like sandbags as interior decor.",
+        "Camera tripod with fluid or ball head: Thicker legs, 1/4-inch metal thread, quick-release plate. Buy this when the lens weighs more than the phone."
       ),
-      h3("The Overhead Shot (Boom Arms)"),
-      p("Product reviews and unboxings require overhead shots. A cheap standard tripod will fall forward if you tilt the camera down 90 degrees. You need a tripod with a horizontal extension arm (boom arm). This prevents your phone from crashing onto the table."),
+      h3("Overhead flat-lay needs a boom arm"),
+      p("Food, stitching, and PCB repair videos need the camera above the table. A normal tripod tilted straight down shifts the centre of gravity forward. You want a centre column that swings horizontal or a dedicated boom arm. If the seller cannot name which model supports overhead, assume it does not."),
+      note(
+        "Wind on rooftops",
+        "Terrace shoots in Karachi need lower leg angle and a heavier foot. A light mobile tripod will walk across tiles when the sea breeze hits."
+      ),
       shop("Shop heavy-duty tripods", "/products/tripod"),
-      h2("What to Check on Cash on Delivery"),
-      p("When your BNT rider arrives, do not just look at the box:"),
+      h2("COD test before the rider rolls away"),
       bullets(
-        "Extend all legs fully and lock the clasps. Press down lightly. If a clasp slips, return it.",
-        "Check the mounting screw (1/4-inch thread). Is it metal or cheap plastic?",
-        "Rotate the pan-head. It should move without grinding."
+        "Extend every leg segment and lock it. Lean lightly with two fingers on top. Clasp slip equals return.",
+        "Spin the pan head. Grinding noise today becomes stuck knob next month.",
+        "Thread test: metal 1/4-inch stud should not wiggle. Plastic threads strip on first heavy phone.",
+        "Remote test: pair Bluetooth shutter and fire three frames. Dead remotes are common in bulk stock."
       ),
       faq(
         {
           question: "What is the best tripod for mobile phones in Pakistan?",
           answer:
-             "For quick content, a 50-inch aluminum tripod with a Bluetooth remote is best. If you do unboxings, get an overhead boom-arm tripod.",
+            "For daily reels, a mid-height aluminium tripod with remote and tight clip. For unboxings, prioritise boom-arm models even if they cost more.",
         },
         {
           question: "Can I use a ring light stand for my DSLR?",
           answer:
-             "No. Ring light stands are lightweight poles built for static lights. A DSLR requires a true three-leg tripod with a fluid or ball head for stability.",
+            "No. Light poles are not balanced for camera weight. Use a true tripod or add serious counterweight if you experiment.",
+        },
+        {
+          question: "Tripod price in Pakistan for beginners?",
+          answer:
+            "Usable mobile kits often start around a few thousand rupees. Overhead-capable rigs cost more because the hinge hardware is real metal, not painted plastic.",
         }
       ),
     ],
@@ -468,18 +478,34 @@ export const FALLBACK_BLOG_POSTS: Page[] = [
     keywords: ["selfie stick price in Pakistan", "bluetooth selfie stick", "vlogging stick", "best selfie stick with remote"],
     seo: { title: "Selfie Sticks in Pakistan: Buying Guide", description: "Learn how to choose the right Bluetooth selfie stick with tripod base. Stop dropping your phone with cheap clamps. Cash on delivery in Pakistan." },
     sections: [
-      h2("Not Just a Stick Anymore"),
-      p("A selfie stick today usually functions as a hybrid mini-tripod. Search 'selfie stick price in Pakistan' and you'll find overwhelming options. The key is ensuring the stick can support your phone's weight without snapping at the hinge."),
-      h2("Key Features to Look For"),
+      h2("Why the hinge is the whole product"),
+      p("Selfie stick price in Pakistan starts low because the stick is three tubes and a clamp. The expensive part is the hinge that does not crack when your phone is in a thick case and you press record with one hand. We have opened returns where the Bluetooth still paired but the phone face-planted on marble because the joint was hollow plastic."),
+      h2("Features that actually matter"),
       bullets(
-        "Bluetooth Remote: Crucial. A detachable remote means you can set the stick down as a tripod and snap photos from a distance.",
-        "Integrated Tripod Base: A stick that opens into a tripod at the bottom is essential for solo travelers and content creators.",
-        "Fill Light: Some premium models feature a small rechargeable LED fill-light on the clamp. Very useful for night vlogging."
+        "Detachable Bluetooth remote: Lets you set the feet down as a mini tripod and step into frame. Test pairing at the door, not after the rider leaves.",
+        "Tripod feet that spread wide: Narrow feet tip on tile. Look for rubber pads, not stickers that peel in humidity.",
+        "Clamp depth: If it only grabs naked phones, your case will pop out on the first spin.",
+        "Optional fill light: Handy for night food stalls and parking-lot unboxings. Check if it runs off the stick battery or a separate charge."
       ),
+      h3("Selfie stick vs full tripod"),
+      p("Sticks win in bags and bazaars. Tripods win when the camera must stay still for ten minutes of talking head. Most solo creators in Islamabad and Lahore carry a stick for daily clips and keep one proper tripod at home for product demos."),
       shop("Shop Bluetooth Selfie Sticks", "/products/selfie-stick"),
       faq(
-        { question: "Are Bluetooth selfie sticks compatible with all phones?", answer: "Yes, almost all modern Bluetooth selfie sticks work seamlessly on both Android and iOS devices." },
-        { question: "Is a selfie stick better than a tripod?", answer: "A selfie stick is portable and perfect for handheld vlogging. A full tripod is for steady, stationary studio work." }
+        {
+          question: "Are Bluetooth selfie sticks compatible with all phones?",
+          answer:
+            "Most pair with standard Bluetooth shutter profiles on Android and iPhone. Still test on your phone at COD because cheap remotes ship with dead cells.",
+        },
+        {
+          question: "Is a selfie stick better than a tripod?",
+          answer:
+            "Better for portability and walking shots. Worse for overhead or long interviews. Many people own both.",
+        },
+        {
+          question: "Selfie stick price in Pakistan worth paying?",
+          answer:
+            "Pay for hinge and clamp quality before paying for extra length. A stable 1 metre stick beats a wobbly 1.5 metre stick.",
+        }
       )
     ]
   }),
@@ -494,16 +520,37 @@ export const FALLBACK_BLOG_POSTS: Page[] = [
     keywords: ["ring light price in Pakistan", "LED ring light", "tiktok ring light", "10 inch ring light"],
     seo: { title: "Ring Lights in Pakistan: Size & Price Guide", description: "Confused about Ring Light sizes? Find out if you need a 10-inch, 14-inch, or 18-inch ring light for your studio or TikTok setup in Pakistan." },
     sections: [
-      h2("Choosing the Right Size"),
-      p("The biggest mistake buyers make is purchasing an 8-inch or 10-inch ring light for full-body TikTok videos. Small ring lights are strictly for desk-work or extreme close-up beauty shots."),
+      h2("Size is distance, not ego"),
+      p("Ring light price in Pakistan jumps with diameter, but the real question is how far the light sits from your face or product. A 10-inch ring pressed close can look beautiful for makeup. That same light three metres away for a full-body outfit check is a dim halo."),
+      h2("Pick by what you film"),
       bullets(
-        "10-inch Ring Lights: Best for desk setups, Zoom calls, and makeup when placed very close to the face. Usually powered entirely by USB.",
-        "14-inch Ring Lights: The standard sweet spot. Good for vlogs and upper-body shots. Plugs into a wall socket.",
-        "18-inch Ring Lights: Professional studio gear. Exceptionally bright, illuminates an entire room. Essential for professional salons."
+        "10-inch USB rings: Desk Zoom, tuition classes, close beauty. Often powered from a laptop or power bank. Fine for hostel desks.",
+        "14-inch mains rings: Upper-body TikTok, barber reels, kitchen recipes. This is the default creators ask for after one bad 10-inch mistake.",
+        "18-inch studio rings: Salons, bridal dressing rooms, product tables wider than your arms. Needs space and a stand that will not tip."
+      ),
+      h3("Colour temperature and eyes"),
+      p("Warm and cool toggles matter when you film near a window in Rawalpindi afternoons. If the dial only says brightness, you will fight yellow walls in post. Slide through modes at COD and look at skin tone, not the seller thumbnail."),
+      note(
+        "Glasses glare trick",
+        "Raise the ring slightly above eye level and tilt down about 45 degrees. Cheap rings at nose height make specs glow like headlights."
       ),
       shop("Explore Studio Ring Lights", "/products/ring-light"),
       faq(
-        { question: "Can a power bank run a ring light?", answer: "Only smaller (8-inch or 10-inch) ring lights can be run from a USB power bank. Larger lights require a direct 220V wall plug." }
+        {
+          question: "Can a power bank run a ring light?",
+          answer:
+            "Usually only small USB rings. 14-inch and 18-inch models expect wall power. Ask before you buy if you rely on generators or UPS.",
+        },
+        {
+          question: "Which ring light size for TikTok in Pakistan?",
+          answer:
+            "Upper-body talking videos: 14-inch. Extreme close face: 10-inch. Full salon chair: 18-inch with a heavy stand.",
+        },
+        {
+          question: "Ring light price in Pakistan vs quality?",
+          answer:
+            "Very cheap rings flicker on camera even when your eyes do not notice. Film a test clip on your phone before you pay COD.",
+        }
       )
     ]
   }),
@@ -518,14 +565,35 @@ export const FALLBACK_BLOG_POSTS: Page[] = [
     keywords: ["wireless microphone Pakistan", "lavalier mic", "lapel mic for vlog", "K9 wireless mic"],
     seo: { title: "Wireless Mics in Pakistan: Vlogging Audio Guide", description: "Improve your video audio today. Learn how to choose a wireless lavalier collar mic for your phone in Pakistan. Cash on delivery available." },
     sections: [
-      h2("Why Phone Audio Fails"),
-      p("No matter how good your iPhone or Android camera is, recording outdoors introduces wind and echo. A wireless lavalier (collar) microphone solves this instantly by pinning a mic inches from your mouth."),
-      h2("Plug and Play Audio"),
-      p("Modern wireless lapel mics, like the popular K9 or similar models, require zero apps. You plug the receiver into your Type-C or Lightning port, press a button on the mic, and they pair instantly. Look for models with noise-reduction chips (ANC) to filter out traffic noise."),
+      h2("Viewers forgive shaky video before bad audio"),
+      p("You can shoot a product on a shaky table and people keep watching. If the voice sounds like a fan in a tin shed, they scroll. Phone mics are tuned for your pocket, not for Liberty Market wind or a generator running three shops down."),
+      h2("Lavalier kits that actually ship here"),
+      p("Most collar mic listings share the same shell names. Ignore the sticker. Check three things: receiver port matches your phone (Type-C, Lightning, or camera jack adapter), wind foam in the box, and whether noise reduction is a hardware switch or a fantasy word in the title."),
+      bullets(
+        "2.4 GHz receiver in the charging port beats Bluetooth for lag-free sync on reels.",
+        "Dual-mic sets help interviews and wedding B-roll with two speakers.",
+        "Clip tension: weak clips fall off shalwar kameez fabric mid-take.",
+        "Cable strain relief where receiver meets phone: loose joints break first."
+      ),
+      h3("Quick outdoor test on COD"),
+      p("Record ten seconds of traffic noise facing the road, then ten seconds with the mic clipped under your collar. If traffic volume barely drops, send it back."),
       shop("View Wireless Microphones", "/products/microphones"),
       faq(
-        { question: "Do wireless mics work on iPhone and Android?", answer: "Yes, you simply buy the right receiver type (Lightning for older iPhones, Type-C for Androids and iPhone 15)." },
-        { question: "Do I need Bluetooth to connect a wireless mic?", answer: "No, professional vlogging lavalier mics use a dedicated 2.4GHz receiver that plugs into the charging port, guaranteeing zero lag unlike Bluetooth." }
+        {
+          question: "Do wireless mics work on iPhone and Android?",
+          answer:
+            "Yes with the correct receiver. iPhone 15 and most Android flagships want Type-C. Older iPhones need Lightning. Adapters add failure points.",
+        },
+        {
+          question: "Do I need Bluetooth to connect a wireless mic?",
+          answer:
+            "No. Collar systems use their own wireless link to the receiver. Bluetooth headsets are for calls, not reliable dual-channel video.",
+        },
+        {
+          question: "Best wireless microphone Pakistan for street interviews?",
+          answer:
+            "Dual lav kit with windscreens and hardware noise reduction. Test outdoors before paying the rider.",
+        }
       )
     ]
   }),
@@ -543,7 +611,19 @@ export const FALLBACK_BLOG_POSTS: Page[] = [
       h2("Palm Rejection vs Universal Pens"),
       p("When buying a stylus in Pakistan, the defining feature is 'Palm Rejection'. Standard universal pens simulate a human finger. They work on any screen, but if you rest your palm on the glass, the tablet gets confused."),
       p("Active stylus pens are internally powered and communicate with iPads or specific drawing tablets, ignoring your hand completely. Keep your expectations grounded: if a pen costs under Rs 3,000, it is likely a universal capacitive pen, great for navigation but not for professional art."),
-      shop("Shop Touchscreen Accessories", "/products/accessories")
+      shop("Shop Touchscreen Accessories", "/products/accessories"),
+      faq(
+        {
+          question: "Stylus pen price in Pakistan for students?",
+          answer:
+            "Universal pens are cheapest and fine for scrolling and light notes. Expect to pay more for active pens tied to specific tablets.",
+        },
+        {
+          question: "Will a cheap stylus work on any Android tablet?",
+          answer:
+            "Capacitive pens work like a finger on most screens. They will not give pressure sensitivity or palm rejection.",
+        }
+      )
     ]
   }),
   guide({
@@ -789,6 +869,106 @@ export const FALLBACK_BLOG_POSTS: Page[] = [
           question: "Neckband or TWS for gym?",
           answer:
             "Neckbands survive being tossed in a bag. TWS wins if you need seal for bass and you never drop a bud off the treadmill.",
+        }
+      ),
+    ],
+  }),
+  guide({
+    title: "Fake chargers in Pakistan: five checks before you plug in a COD brick",
+    slug: "spot-fake-chargers-pakistan-cod",
+    publishedAt: "2026-09-21T08:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-gan-charger.webp",
+    featured: false,
+    homeOrder: 12,
+    excerpt:
+      "A 65W label on a warm plastic cube is not proof. How to read weight, port labels, and cable marks when couriers still wait at the gate.",
+    keywords: [
+      "fake charger Pakistan",
+      "original fast charger",
+      "GaN charger real vs fake",
+      "charger safety COD",
+    ],
+    seo: {
+      title: "Spot fake chargers Pakistan: COD checks",
+      description:
+        "Avoid fake fast chargers in Pakistan: weight, markings, heat, and cable tests at cash on delivery before you plug in at home.",
+    },
+    sections: [
+      h2("Why fakes love fast-charger keywords"),
+      p("Listings chase 65W, GaN, and Super Fast because those words sell. The chip inside might be a 12W relic with extra plastic. We smell returns before we open the box: burnt sugar odour through the shrink wrap is never normal."),
+      h2("Five checks that take ninety seconds"),
+      bullets(
+        "Weight: GaN bricks have some heft. Air-light cubes are suspicious.",
+        "Label table on the back: real units list each port voltage and amp combo. One line that says 65W Max with no table is a guess.",
+        "Plug pins: solid brass pins that do not wiggle. Loose pins arc inside Pakistani boards.",
+        "Heat at five minutes: warm palm okay, cannot hold is a return.",
+        "Cable mark: 60W or 5A printed on USB-C cable jacket. Missing mark means the charger will never hit advertised speed."
+      ),
+      note(
+        "Night charging",
+        "If you charge while sleeping, fakes are not worth the savings. A honest 20W name-brand cube beats a mystery 65W."
+      ),
+      shop("Shop chargers", "/products/charger"),
+      faq(
+        {
+          question: "How to tell original fast charger in Pakistan?",
+          answer:
+            "Match weight, port specs, and cable rating. Test heat and actual charge speed on your phone at COD with a battery app or simple timer.",
+        },
+        {
+          question: "Can fake chargers damage phones?",
+          answer:
+            "Yes. Unstable voltage and poor heat control harm batteries and boards. Refuse hot or unlabeled units.",
+        }
+      ),
+    ],
+  }),
+  guide({
+    title: "Load-shedding phone charging: a simple order that saves your battery",
+    slug: "load-shedding-phone-charging-pakistan",
+    publishedAt: "2026-09-21T09:00:00Z",
+    author: "Buy n Try editors",
+    coverImage: "/blog/cover-power-bank.webp",
+    featured: false,
+    homeOrder: 13,
+    excerpt:
+      "When WAPDA drops and UPS beeps, this order—power bank, phone, then laptop—keeps you from deep-draining everything at once.",
+    keywords: [
+      "load shedding phone charging",
+      "UPS phone charging Pakistan",
+      "power bank during load shedding",
+      "charge phone fast Pakistan",
+    ],
+    seo: {
+      title: "Load shedding charging guide Pakistan",
+      description:
+        "Charge phones during load shedding in Pakistan: UPS, power bank order, and habits that protect batteries when the grid cuts out often.",
+    },
+    sections: [
+      h2("The beep is not a race"),
+      p("UPS switching sounds like a starting gun. Everyone plugs everything. The UPS sags, the fan whines, and the phone pulls a messy wave. Slow down. One device at a time beats three devices at 40 percent."),
+      h2("Order we use at the counter"),
+      bullets(
+        "Charge the power bank while grid is live so it is full when lights go.",
+        "During the first UPS minutes, plug the phone you need for orders and rides.",
+        "Laptop on UPS only if you must ship labels; otherwise wait for stable grid.",
+        "Avoid 0 to 100 sprints twice a day; partial top-ups are fine for lithium.",
+        "Keep one short cable in the drawer that you know is not frayed."
+      ),
+      h3("Power bank during outages"),
+      p("Treat the bank as backup for the phone, not a space heater for every gadget. Pass-through charging (bank plugged into wall while feeding phone) is fine on quality units; cheap banks get hot doing both."),
+      shop("Power banks for outages", "/products/power-bank"),
+      faq(
+        {
+          question: "Can I charge phone from UPS all day?",
+          answer:
+            "Short UPS top-ups are fine. If UPS battery is old, voltage may wobble. Replace tired UPS batteries instead of blaming the phone.",
+        },
+        {
+          question: "Best power bank for load shedding in Pakistan?",
+          answer:
+            "20,000mAh with honest 22.5W USB-C and a cable you trust. Charge the bank when grid is on so it is ready when it is not.",
         }
       ),
     ],
