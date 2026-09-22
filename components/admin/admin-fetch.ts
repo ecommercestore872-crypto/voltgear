@@ -1,4 +1,4 @@
-import { adminHeaders } from "@/lib/admin-token";
+import { adminHeaders, clearAdminToken } from "@/lib/admin-token";
 
 export class AdminAuthError extends Error {}
 
@@ -16,7 +16,13 @@ export async function adminFetch(url: string, options: RequestInit = {}) {
       ...options.headers,
     },
   });
-  if (res.status === 401) throw new AdminAuthError();
+  if (res.status === 401) {
+    if (typeof window !== "undefined") {
+      clearAdminToken();
+      window.location.assign("/admin/login");
+    }
+    throw new AdminAuthError();
+  }
   const json = await res.json().catch(() => null);
   if (!res.ok) throw new Error(json?.error ?? "Request failed");
   return json;

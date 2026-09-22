@@ -9,6 +9,7 @@ import {
   RefreshCw,
   ChevronRight,
 } from "lucide-react";
+import { adminFetch } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import type { Order } from "@/lib/types";
 
@@ -40,15 +41,10 @@ export function ExceptionCenter({ orders }: ExceptionCenterProps) {
     setLoadingOrderId(orderId);
     setActionMessage(null);
     try {
-      const res = await fetch("/api/admin/autopilot/dispatch", {
+      const data = (await adminFetch("/api/admin/autopilot/dispatch", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId, forceDispatch: force }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Dispatch failed.");
-      }
+      })) as { trackingNumber?: string };
       setActionMessage({
         id: orderId,
         msg: `Order #${orderId} booked with PostEx (Tracking: ${data.trackingNumber})`,

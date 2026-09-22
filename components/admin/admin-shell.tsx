@@ -39,6 +39,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/blog", label: "Blog" },
       { href: "/admin/hero", label: "Hero" },
       { href: "/admin/home", label: "Home layout" },
+      { href: "/admin/homepage-sections", label: "Homepage sections" },
       { href: "/admin/testimonials", label: "Testimonials" },
     ],
   },
@@ -98,6 +99,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-[var(--g-cream)]">
+      {open ? (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      ) : null}
       <aside
         className={cn(
           "admin-sidebar fixed inset-y-0 left-0 z-40 w-56 overflow-y-auto border-r p-4 md:static md:block",

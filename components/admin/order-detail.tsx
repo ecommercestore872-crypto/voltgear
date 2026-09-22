@@ -62,16 +62,11 @@ export function OrderDetail({
     setError(null);
     setOk(null);
     try {
-      const res = await fetch("/api/admin/postex/book", {
+      const data = (await adminFetch("/api/admin/postex/book", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: order.orderId }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to book PostEx shipment.");
-      }
-      setOk(`PostEx booked! Tracking #: ${data.trackingNumber}`);
+      })) as { trackingNumber?: string };
+      setOk(`PostEx booked! Tracking #: ${data.trackingNumber ?? "—"}`);
       router.refresh();
     } catch (err: any) {
       setError(err.message || "Could not book PostEx shipment.");

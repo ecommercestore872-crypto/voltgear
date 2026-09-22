@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { adminUpload } from "./admin-fetch";
+import { adminFetch, adminUpload } from "./admin-fetch";
 import { isProductImageTooSmall } from "@/lib/product-image";
 
 export function MediaField({
@@ -82,9 +82,10 @@ export function MediaField({
     // Best effort delete from backend storage if it looks like a managed asset
     if (targetUrl.includes("/storage/v1/object/public/product-images/") || targetUrl.includes("res.cloudinary.com/")) {
       try {
-        await fetch(`/api/admin/upload?url=${encodeURIComponent(targetUrl)}`, {
-          method: "DELETE",
-        });
+        await adminFetch(
+          `/api/admin/upload?url=${encodeURIComponent(targetUrl)}`,
+          { method: "DELETE" },
+        );
       } catch (err) {
         console.error("Failed to delete unused media asset from server:", err);
       }

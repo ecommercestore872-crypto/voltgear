@@ -30,8 +30,11 @@ describe("chromeMode", () => {
 });
 
 describe("isAdminLoginPath", () => {
-  it("is only the admin login route", () => {
+  it("matches auth pages that hide the admin shell", () => {
     assert.equal(isAdminLoginPath("/admin/login"), true);
+    assert.equal(isAdminLoginPath("/admin/forgot-password"), true);
+    assert.equal(isAdminLoginPath("/admin/reset-password"), true);
+    assert.equal(isAdminLoginPath("/admin/reset-password/abc"), true);
     assert.equal(isAdminLoginPath("/admin"), false);
     assert.equal(isAdminLoginPath("/admin/analytics"), false);
   });

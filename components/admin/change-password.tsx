@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { adminFetch } from "@/components/admin/admin-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,13 +17,10 @@ export function ChangePassword() {
     setSubmitting(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/admin/update-password", {
+      await adminFetch("/api/admin/update-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Update failed");
       setMessage({ text: "Password updated successfully.", error: false });
       setPassword("");
     } catch (err) {

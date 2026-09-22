@@ -67,8 +67,8 @@ export function parseCollectionIds(raw: unknown): string[] | null {
     .filter(Boolean);
 }
 
-export function canAssignProductToCollection(_mode: string): boolean {
-  return true;
+export function canAssignProductToCollection(mode: string): boolean {
+  return mode === "manual";
 }
 
 export function membershipIdsForProduct(

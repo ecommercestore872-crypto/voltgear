@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getAdminSecret } from "@/lib/admin";
+import { isAdminPublicPath } from "@/lib/admin-public-paths";
 import { ADMIN_COOKIE } from "@/lib/db/publish";
 import { apexPublicUrl, shouldRedirectWwwHost } from "@/lib/seo-rules";
 
@@ -27,7 +28,7 @@ export function middleware(request: NextRequest) {
 
   let response = NextResponse.next();
 
-  if (!pathname.startsWith("/admin") || pathname.startsWith("/admin/login")) {
+  if (!pathname.startsWith("/admin") || isAdminPublicPath(pathname)) {
     const city = request.headers.get("x-vercel-ip-city");
     if (city) {
       response.cookies.set("visitor-city", encodeURIComponent(city), { path: "/", secure: true, sameSite: "lax" });

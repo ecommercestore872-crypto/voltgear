@@ -2,8 +2,10 @@ import { isGadgetPreviewPath } from "@/lib/gadget-preview";
 
 export type ChromeMode = "admin" | "gadget" | "shop";
 
+import { isAdminPublicPath } from "@/lib/admin-public-paths";
+
 export function isAdminLoginPath(pathname: string): boolean {
-  return pathname === "/admin/login" || pathname.startsWith("/admin/login/");
+  return isAdminPublicPath(pathname);
 }
 
 export function needsStorefrontChrome(pathname: string): boolean {
