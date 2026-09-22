@@ -68,7 +68,9 @@ export function isGadgetContinuityPath(pathname: string): boolean {
     pathname === "/write-review" ||
     pathname.startsWith("/write-review/") ||
     pathname === "/cookies" ||
-    pathname.startsWith("/cookies/")
+    pathname.startsWith("/cookies/") ||
+    pathname === "/cod" ||
+    pathname.startsWith("/cod/")
   );
 }
 

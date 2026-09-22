@@ -5,7 +5,7 @@ export const gadgetSans = Manrope({
   subsets: ["latin"],
   variable: "--font-gadget-sans",
   display: "swap",
-  preload: false,
+  preload: true,
   adjustFontFallback: false,
 });
 

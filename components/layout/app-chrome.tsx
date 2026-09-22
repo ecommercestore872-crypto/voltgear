@@ -85,7 +85,7 @@ export function AppChrome({
   return (
     <CartProvider>
       <WishlistProvider>
-        <TikTokPixel />
+        {!pathname.startsWith("/admin") ? <TikTokPixel /> : null}
         {gadget ? (
           <>
             <div

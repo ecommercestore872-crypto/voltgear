@@ -5,8 +5,8 @@ import { Suspense } from "react";
 
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
-import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
+import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import {
@@ -20,10 +20,9 @@ import {
 } from "@/lib/adsense-policy";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchShopTypes } from "@/lib/db/store";
-import { getSettings, resolveFonts } from "@/lib/sanity/settings";
+import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 import { themeCssVars, themePreviewScript } from "@/lib/theme";
-import { cn } from "@/lib/utils";
 import type { SiteSettings } from "@/lib/types";
 import "./globals.css";
 
@@ -185,7 +184,6 @@ export default async function RootLayout({
     metadata.description = settings.seo.description;
   }
 
-  const { heading, body } = resolveFonts(settings);
   const brandVars = themeCssVars(settings);
   const brandName = settings?.brandName || "Buy n Try";
   let clarityHost = "";
@@ -218,8 +216,10 @@ export default async function RootLayout({
   ];
 
   return (
-    <html lang="en-PK" className={cn(heading.variable, body.variable)}>
+    <html lang="en-PK" className={gadgetFontClass}>
       <head>
+        <link rel="preconnect" href="https://zeuhfqevqjkbzwdaxjuv.supabase.co" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -243,7 +243,7 @@ export default async function RootLayout({
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');`
+            __html: `window.addEventListener('load',function(){if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');},{once:true});`,
           }}
         />
         <link rel="manifest" href="/manifest.json" />
@@ -265,7 +265,6 @@ export default async function RootLayout({
         <Suspense
           fallback={<div className="flex min-h-dvh flex-col bg-background" />}
         >
-          <TikTokPixel />
           <Suspense fallback={null}>
             <MetaPixel />
           </Suspense>

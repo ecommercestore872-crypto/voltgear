@@ -1,5 +1,5 @@
 import { PromoPopupModal } from "@/components/promotions/promo-popup-modal";
-import { listPromoCodes } from "@/lib/db/promo-store";
+import { listPromoCodesForStorefront } from "@/lib/db/promo-store";
 import { formatPrice } from "@/lib/utils";
 import { pickWelcomeCoupon } from "@/lib/welcome-coupon-rules";
 
@@ -10,7 +10,7 @@ export async function StorefrontPromoPopup({
 }) {
   let code: string | null = null;
   try {
-    const promos = await listPromoCodes();
+    const promos = await listPromoCodesForStorefront();
     code = pickWelcomeCoupon(promos)?.code ?? null;
   } catch {
     code = null;

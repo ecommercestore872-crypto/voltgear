@@ -8,6 +8,7 @@ import {
   fetchSitemapPages,
   fetchSitemapProducts,
 } from "@/lib/db/store";
+import { citySeoHubSlugs } from "@/lib/city-seo";
 import { indexSiteUrl } from "@/lib/seo-rules";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry(`${baseUrl}/llms.txt`, new Date(), "weekly", 0.3),
   ];
 
+  const cityCodRoutes = citySeoHubSlugs().map((slug) =>
+    entry(`${baseUrl}/cod/${slug}`, undefined, "monthly", 0.65),
+  );
+
   const categoryRoutes = shopTypes.map((cat) =>
     entry(`${baseUrl}/products/${cat.slug}`, undefined, "daily", 0.85),
   );
@@ -134,6 +139,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...cityCodRoutes,
     ...categoryRoutes,
     ...collectionRoutes,
     ...productRoutes,

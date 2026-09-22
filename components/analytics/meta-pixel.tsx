@@ -21,7 +21,7 @@ export function MetaPixel() {
     <>
       <Script
         id="meta-pixel"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       >
         {`
           if (!window.__META_PIXEL_BOOTSTRAPPED__) {

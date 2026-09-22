@@ -68,7 +68,7 @@ export function TikTokPixel() {
   return (
     <Script
       id="tiktok-pixel-base"
-      strategy="afterInteractive"
+      strategy="lazyOnload"
       dangerouslySetInnerHTML={{
         __html: tiktokPixelBootstrapSource(pixelId.trim()),
       }}

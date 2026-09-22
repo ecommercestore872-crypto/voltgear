@@ -1,5 +1,5 @@
 import { getServiceClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import {
   normalizePromoCode,
   validatePromoAdminInput,
@@ -47,6 +47,13 @@ export async function listPromoCodes(): Promise<PromoCodeRow[]> {
   if (error) throw error;
   return (data ?? []).map((r) => mapRow(r as Record<string, unknown>));
 }
+
+/** Cached for storefront welcome popup — avoids a Supabase round-trip on every page. */
+export const listPromoCodesForStorefront = unstable_cache(
+  async () => listPromoCodes(),
+  ["storefront-promo-codes"],
+  { revalidate: 300 },
+);
 
 export async function getPromoByCode(
   codeRaw: string
