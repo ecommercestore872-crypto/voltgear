@@ -78,6 +78,21 @@ const nextConfig = {
       { source: "/products2", destination: "/products", permanent: true },
       { source: "/products2/:category", destination: "/products/:category", permanent: true },
       { source: "/product2/:slug", destination: "/product/:slug", permanent: true },
+      {
+        source: "/blog/smartwatch-features-worth-paying-for",
+        destination: "/blog/amoled-calling-smartwatch-pakistan",
+        permanent: true,
+      },
+      {
+        source: "/blog/true-wireless-earbuds-buying-guide",
+        destination: "/blog/best-tws-earbuds-pakistan-2026",
+        permanent: true,
+      },
+      {
+        source: "/blog/gan-chargers-explained",
+        destination: "/blog/65w-gan-charger-pakistan-guide",
+        permanent: true,
+      },
     ];
   },
 };
