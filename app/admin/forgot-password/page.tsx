@@ -20,8 +20,9 @@ export default function ForgotPasswordPage() {
     try {
       const res = await fetch("/api/admin/forgot-password", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed to send reset link");
