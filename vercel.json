@@ -1,4 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "comment": "Monorepo: use two Vercel projects — Root Directory apps/storefront (shop) and apps/admin (CMS). This file is not used for builds."
-}
