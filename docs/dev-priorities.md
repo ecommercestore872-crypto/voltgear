@@ -11,7 +11,7 @@ Spec: `docs/superpowers/specs/2026-09-05-t38b-autopilot-engines-design.md`
 
 **T-39 — SEO (Pakistan rankings):** plan ready at `docs/plans/2026-09-21-seo-ranking-master-plan.md` — awaiting approval before implementation.
 
-**T-40 — Storefront / admin Vercel split:** plan ready — `docs/superpowers/plans/2026-09-23-t40-storefront-admin-split-plan.md` (spec: `docs/superpowers/specs/2026-09-23-t40-storefront-admin-split-design.md`).
+**T-40 — Storefront / admin Vercel split:** 🟡 monorepo on branch `feature/t40-storefront-admin-split` — wire two Vercel projects per `docs/modules/deploy/DEPLOY_IMPLEMENTATION.md`.
 
 ## Program
 

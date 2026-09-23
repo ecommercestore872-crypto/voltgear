@@ -1,0 +1,485 @@
+import { NextResponse } from "next/server";
+import crypto from "node:crypto";
+
+import { parseAutopilotConfig } from "@/lib/autopilot/config";
+import { fulfillOrderWithPostEx } from "@/lib/autopilot/dispatch-run";
+import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
+import {
+  appendOrderNote,
+  createOrder,
+  enqueueEmailEvent,
+  nextPublicOrderId,
+} from "@/lib/order-store";
+import {
+  fetchSiteSettings,
+  getAllOrders,
+  getOrderByPublicId,
+} from "@/lib/db/store";
+import {
+  resolveCheckout,
+  resolveShippingAndTotal,
+  CHECKOUT_PRICE_CHANGED_ERROR,
+  GIFT_WRAP_FEE,
+} from "@/lib/checkout-server";
+import { isDemoRequest } from "@/lib/demo";
+import { attachOrderAttribution } from "@/lib/db/analytics-checkout";
+import { orderIsDemo } from "@/lib/db/demo-rules";
+import { applyPromoToTotals, normalizePromoCode } from "@/lib/db/promo-rules";
+import { applyDealsToCart, promoBlockedByDeal } from "@/lib/db/deal-rules";
+import { listProductDeals } from "@/lib/db/deal-store";
+import {
+  countPriorOrdersForEmail,
+  getPromoByCode,
+  incrementPromoUsage,
+} from "@/lib/db/promo-store";
+import {
+  cacheCheckoutOrder,
+  checkoutClientIp,
+  getCachedCheckoutOrder,
+  readIdempotencyKey,
+  takeCheckoutRateLimit,
+} from "@/lib/checkout-guard";
+import { normalizePhone } from "@/lib/messaging";
+import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
+import { trackMetaServerPurchase } from "@/lib/meta-events-api";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+interface CheckoutCustomer {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postal?: string;
+  note?: string;
+}
+
+interface CheckoutBody {
+  items?: { slug?: string; quantity?: number; variantKey?: string }[];
+  customer?: CheckoutCustomer;
+  payment?: { method?: string };
+  giftWrap?: boolean;
+  promoCode?: string;
+  idempotencyKey?: string;
+  consent?: string | null;
+  // Present only for backwards-compatible clients; never trusted.
+  subtotal?: number;
+  shipping?: number;
+  total?: number;
+}
+
+/**
+ * Order endpoint. Cash on Delivery is the only supported payment method;
+ * add a gateway by extending the `payment.method` switch — the checkout UI
+ * and order persistence need no changes.
+ *
+ * The browser is never authoritative: every line is resolved against current
+ * Sanity data (product ownership, selected variant, unit price, stock) and
+ * subtotal / shipping / total are computed server-side. Client-supplied
+ * prices and totals are ignored.
+ *
+ * On success the order is persisted and the customer's email is captured for
+ * retention automations (order confirmation now, post-purchase / win-back
+ * via the flow runner).
+ */
+export async function POST(request: Request) {
+  try {
+    const body: CheckoutBody = await request.json();
+    const { items = [], customer, payment, giftWrap, consent } = body;
+
+    if (!items.length) {
+      return NextResponse.json(
+        { error: "Your cart is empty." },
+        { status: 400 },
+      );
+    }
+    if (
+      !customer?.name ||
+      !customer.email ||
+      !customer.phone ||
+      !customer.address ||
+      !customer.city?.trim()
+    ) {
+      return NextResponse.json(
+        { error: "Name, email, phone, address and city are required." },
+        { status: 400 },
+      );
+    }
+
+    const phone = normalizePhone(customer.phone);
+    if (!phone) {
+      return NextResponse.json(
+        { error: "Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)." },
+        { status: 400 },
+      );
+    }
+
+    const email = customer.email.toLowerCase().trim();
+    const rate = takeCheckoutRateLimit({
+      ip: checkoutClientIp(request),
+      email,
+    });
+    if (!rate.ok) {
+      return NextResponse.json({ error: rate.error }, { status: 429 });
+    }
+
+    const idemKey = readIdempotencyKey(request, body.idempotencyKey);
+    if (idemKey) {
+      const cached = getCachedCheckoutOrder(idemKey);
+      if (cached) {
+        const existing = await getOrderByPublicId(cached);
+        if (existing) {
+          return NextResponse.json({
+            ok: true,
+            orderId: cached,
+            subtotal: existing.subtotal,
+            shipping: existing.shipping,
+            total: existing.total,
+            discount: existing.discount ?? 0,
+            promoCode: existing.promoCode ?? null,
+            lines: existing.items ?? [],
+            replayed: true,
+          });
+        }
+      }
+    }
+
+    if (payment?.method && payment.method !== "cod") {
+      return NextResponse.json(
+        { error: "Only Cash on Delivery is available right now." },
+        { status: 400 },
+      );
+    }
+
+    const demoSession = isDemoRequest(request);
+    const resolution = await resolveCheckout(
+      items,
+      giftWrap === true,
+      demoSession,
+    );
+
+    // Stock / availability errors and invalid quantities are blocking 400s.
+    // A price change is a 409: no order is created and no email is sent.
+    if (resolution.ok === "price_changed") {
+      return NextResponse.json(
+        {
+          code: "PRICE_CHANGED" as const,
+          error: CHECKOUT_PRICE_CHANGED_ERROR,
+          items: resolution.items,
+          lines: resolution.checkout.lines,
+          subtotal: resolution.checkout.subtotal,
+          shipping: resolution.checkout.shipping,
+          total: resolution.checkout.total,
+        },
+        { status: 409 },
+      );
+    }
+    if (!resolution.ok) {
+      return NextResponse.json({ error: resolution.error }, { status: 400 });
+    }
+
+    const { lines, subtotal } = resolution.checkout;
+    const gift = giftWrap === true;
+    let dealDiscount = 0;
+    try {
+      const deals = await listProductDeals();
+      dealDiscount = applyDealsToCart(
+        lines.map((line) => ({
+          slug: line.slug,
+          quantity: line.quantity,
+          price: line.price,
+        })),
+        deals,
+      ).discount;
+    } catch (error) {
+      console.error("[checkout] deals", error);
+      dealDiscount = 0;
+    }
+    const merchandise = Math.max(
+      0,
+      Math.round((subtotal - dealDiscount) * 100) / 100,
+    );
+    const shipped = await resolveShippingAndTotal(merchandise, gift);
+    let finalShipping = shipped.shipping;
+    let finalTotal = shipped.total;
+    let discount = dealDiscount;
+    let appliedPromo: string | null = null;
+
+    const promoRaw = normalizePromoCode(body.promoCode);
+    if (promoRaw) {
+      try {
+        const promo = await getPromoByCode(promoRaw);
+        if (!promo) {
+          return NextResponse.json(
+            { error: "That promo code is not valid." },
+            { status: 400 },
+          );
+        }
+        if (promoBlockedByDeal(dealDiscount, promo.type)) {
+          return NextResponse.json(
+            {
+              error:
+                "A pair deal is already applied. Percent and rupee codes cannot stack on the same order.",
+            },
+            { status: 400 },
+          );
+        }
+        const prior = await countPriorOrdersForEmail(email);
+        const applied = applyPromoToTotals(promo, {
+          subtotal: merchandise,
+          shipping: finalShipping,
+          giftWrapFee: gift ? GIFT_WRAP_FEE : 0,
+          isFirstOrder: prior === 0,
+        });
+        if (!applied.ok) {
+          return NextResponse.json({ error: applied.error }, { status: 400 });
+        }
+        finalShipping = applied.shipping;
+        finalTotal = applied.total;
+        discount =
+          Math.round(
+            (dealDiscount +
+              (promo.type === "free_shipping" ? 0 : applied.discount)) *
+              100,
+          ) / 100;
+        appliedPromo = applied.code;
+      } catch (error) {
+        console.error("[checkout] promo", error);
+        return NextResponse.json(
+          { error: "Could not apply promo code. Try again without it." },
+          { status: 503 },
+        );
+      }
+    }
+
+    const customerNote = [
+      gift ? "Gift wrap requested." : null,
+      typeof customer.note === "string" ? customer.note.trim() : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const baseOrder = {
+      customer: {
+        name: customer.name,
+        email,
+        phone,
+        address: customer.address.trim(),
+        city: customer.city.trim(),
+        postal: customer.postal,
+        note: customerNote || undefined,
+      },
+      items: lines,
+      payment: "cod" as const,
+      subtotal,
+      shipping: finalShipping,
+      total: finalTotal,
+      discount,
+      promoCode: appliedPromo,
+      isDemo: orderIsDemo(demoSession, false),
+    };
+
+    let idempotencyFingerprint: string | undefined;
+    if (idemKey) {
+      const fgData = JSON.stringify({
+        email: baseOrder.customer.email,
+        phone: baseOrder.customer.phone,
+        items: baseOrder.items.map(i => ({ s: i.slug, q: i.quantity, v: i.variantKey })),
+        total: baseOrder.total
+      });
+      idempotencyFingerprint = crypto.createHash("sha256").update(fgData).digest("hex");
+    }
+
+    let orderId = await nextPublicOrderId();
+    let persisted: { orderId: string, replayed: boolean } | null = null;
+    
+    try {
+      persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
+      for (let i = 0; i < 4 && !persisted; i++) {
+        orderId = await nextPublicOrderId();
+        persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
+      }
+    } catch (err: any) {
+      if (err.message && err.message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
+        return NextResponse.json(
+          { error: err.message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
+          { status: 400 }
+        );
+      }
+      console.error("[checkout] root creation thrown:", err);
+      return NextResponse.json(
+        { error: "We couldn't store your order. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    if (!persisted) {
+      return NextResponse.json(
+        { error: "We couldn't store your order. Please try again." },
+        { status: 500 },
+      );
+    }
+    
+    orderId = persisted.orderId;
+
+    if (idemKey) {
+      cacheCheckoutOrder(idemKey, orderId);
+    }
+
+    if (persisted.replayed) {
+      return NextResponse.json({ ok: true, orderId, replayed: true });
+    }
+
+    if (appliedPromo) {
+      try {
+        await incrementPromoUsage(appliedPromo);
+      } catch {
+        console.error("[checkout] promo usage increment failed");
+      }
+    }
+
+    let sessionTtclid: string | null = null;
+    try {
+      const snapshot = await attachOrderAttribution(orderId, request);
+      sessionTtclid = snapshot?.attrib_ttclid || null;
+    } catch {
+      console.error("[analytics-checkout]", "attach failed");
+    }
+
+    // TikTok Server Events API (Purchase)
+    try {
+      if (typeof trackTikTokServerPurchase === "function" && !baseOrder.isDemo) {
+        await trackTikTokServerPurchase({
+          orderId,
+          total: baseOrder.total,
+          email: baseOrder.customer.email,
+          phone: baseOrder.customer.phone,
+          ip: checkoutClientIp(request),
+          userAgent: request.headers.get("user-agent") || undefined,
+          url: request.headers.get("referer") || "https://buyntryy.com/checkout",
+          lines: baseOrder.items,
+          consent,
+          ttclid: sessionTtclid,
+        });
+      }
+    } catch (err) {
+      console.error("[tiktok-server] root error", err);
+    }
+
+    // Meta Conversions API (Purchase)
+    try {
+      if (!baseOrder.isDemo) {
+        const cookies = request.headers.get("cookie") || "";
+        const fbpMatch = cookies.match(/(?:^|;\s*)_fbp=([^;]+)/);
+        const fbcMatch = cookies.match(/(?:^|;\s*)_fbc=([^;]+)/);
+        
+        await trackMetaServerPurchase({
+          orderId,
+          value: baseOrder.total,
+          items: lines.map((line) => ({
+            productId: line.productId, // Sanity canonical product ID
+            name: line.name,
+            price: line.price,
+            quantity: line.quantity,
+          })),
+          email: baseOrder.customer.email,
+          phone: baseOrder.customer.phone,
+          fullName: baseOrder.customer.name,
+          city: baseOrder.customer.city,
+          postalCode: baseOrder.customer.postal,
+          country: "pk",
+          clientIp: checkoutClientIp(request),
+          userAgent: request.headers.get("user-agent") || undefined,
+          eventSourceUrl: request.headers.get("referer") || undefined,
+          fbp: fbpMatch ? fbpMatch[1] : undefined,
+          fbc: fbcMatch ? fbcMatch[1] : undefined,
+        });
+      }
+    } catch (err) {
+      console.error("[meta-server] root error", err);
+    }
+
+    const emailPayload = {
+      orderId,
+      name: baseOrder.customer.name ?? "there",
+      items: lines.map((i) => ({
+        name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+        ...(i.slug ? { slug: i.slug } : {}),
+        ...(i.variantName ? { variantName: i.variantName } : {}),
+      })),
+      subtotal,
+      shipping: finalShipping,
+      discount,
+      promoCode: appliedPromo,
+      giftWrapFee: gift ? GIFT_WRAP_FEE : 0,
+      total: baseOrder.total,
+      phone: baseOrder.customer.phone,
+      address: baseOrder.customer.address,
+      city: baseOrder.customer.city,
+      postal: baseOrder.customer.postal,
+    };
+    const settings = await fetchSiteSettings().catch(() => null);
+    const emailResult = await notifyNewOrderEmails(
+      baseOrder.customer.email,
+      {
+        ...emailPayload,
+        email: baseOrder.customer.email,
+      },
+      { settingsEmail: settings?.email },
+    );
+    const emailNote = orderEmailFailureNote(emailResult);
+    if (emailNote) {
+      try {
+        await appendOrderNote(orderId, emailNote);
+      } catch {
+        console.error("[checkout] email failure note");
+      }
+    }
+    await enqueueEmailEvent(
+      "post-purchase",
+      baseOrder.customer.email,
+      emailPayload,
+      5 * 24 * 60 * 60 * 1000,
+    );
+
+    try {
+      if (parseAutopilotConfig(settings?.autopilot).autoDispatch) {
+        const placed = await getOrderByPublicId(orderId);
+        if (placed) await fulfillOrderWithPostEx(placed, await getAllOrders());
+      }
+    } catch {
+      console.error("[checkout] autopilot dispatch skipped");
+    }
+
+    return NextResponse.json({
+      ok: true,
+      orderId,
+      subtotal,
+      shipping: finalShipping,
+      total: finalTotal,
+      discount,
+      promoCode: appliedPromo,
+      lines,
+    });
+  } catch (error) {
+    console.error("Checkout error:", error);
+    if (
+      error instanceof Error &&
+      error.message.includes("ATOMIC_BUSINESS_ERROR:")
+    ) {
+      const msg =
+        error.message.split("ATOMIC_BUSINESS_ERROR:")[1]?.trim() ||
+        "Inventory no longer available.";
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+    // For ATOMIC_INFRA_ERROR or any other unknown error, we return a generic 500 without leaking DB details
+    return NextResponse.json(
+      { error: "Something went wrong placing your order." },
+      { status: 500 },
+    );
+  }
+}

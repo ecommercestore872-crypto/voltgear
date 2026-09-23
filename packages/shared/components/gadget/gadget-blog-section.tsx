@@ -1,0 +1,196 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { ArrowRight } from "lucide-react";
+
+import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
+import { sortBlogPostsForHome } from "@/lib/blog-desk-rules";
+import type { Page } from "@/lib/types";
+import { imageUrl } from "@/lib/sanity/image";
+
+export type BlogCardPost = {
+  slug: string;
+  title: string;
+  excerpt?: string;
+  coverImage?: string;
+  publishedAt?: string;
+};
+
+function formatDate(iso?: string) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function toCards(posts: Page[]): BlogCardPost[] {
+  return posts.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+    coverImage: p.coverImage ? imageUrl(p.coverImage, { w: 800 }) : undefined,
+    publishedAt: p.publishedAt,
+  }));
+}
+
+function coverGradient(i: number) {
+  const tones = [
+    "from-[#1f3626] to-[#3d5c48]",
+    "from-[#25392a] to-[#8fa888]",
+    "from-[#1a1a1a] to-[#5c6b5a]",
+    "from-[#2a4032] to-[#efeae0]",
+  ];
+  return tones[i % tones.length];
+}
+
+export function GadgetBlogSection({ posts }: { posts: Page[] }) {
+  const [tab, setTab] = useState<"popular" | "latest">("popular");
+
+  const visible = useMemo(() => {
+    const ranked = sortBlogPostsForHome(
+      posts.length ? posts : FALLBACK_BLOG_POSTS,
+      tab,
+    );
+    return toCards(ranked).slice(0, 8);
+  }, [posts, tab]);
+
+  return (
+    <section
+      className="gadget-band-clay px-4 py-10 sm:py-14 lg:px-8"
+      aria-labelledby="gadget-blogs-heading"
+    >
+      <div className="mx-auto max-w-6xl">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2
+              id="gadget-blogs-heading"
+              className="text-2xl font-bold tracking-tight text-[var(--g-charcoal)] sm:text-3xl"
+            >
+              Blogs
+            </h2>
+            <div
+              className="mt-3 flex items-center gap-2"
+              role="group"
+              aria-label="Blog filter"
+            >
+              <button
+                type="button"
+                aria-pressed={tab === "popular"}
+                onClick={() => setTab("popular")}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                  tab === "popular"
+                    ? "bg-[var(--g-forest)] text-[var(--g-white)]"
+                    : "text-[var(--g-charcoal)]/80 hover:text-[var(--g-charcoal)]"
+                }`}
+              >
+                Popular
+              </button>
+              <button
+                type="button"
+                aria-pressed={tab === "latest"}
+                onClick={() => setTab("latest")}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                  tab === "latest"
+                    ? "bg-[var(--g-forest)] text-[var(--g-white)]"
+                    : "text-[var(--g-charcoal)]/80 hover:text-[var(--g-charcoal)]"
+                }`}
+              >
+                Latest
+              </button>
+            </div>
+          </div>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--g-forest)] transition hover:text-[var(--g-forest-mid)]"
+          >
+            View all blog posts
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current">
+              <ArrowRight className="h-3 w-3" aria-hidden />
+            </span>
+          </Link>
+        </div>
+
+        <div className="mt-8 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <ul className="flex w-max gap-4 pb-1 sm:gap-5">
+            {visible.map((post, i) => {
+              const date = formatDate(post.publishedAt);
+              const href = `/blog/${post.slug}`;
+              return (
+                <li
+                  key={`${tab}-${post.slug}`}
+                  className="w-[min(78vw,18.25rem)] shrink-0"
+                >
+                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(31,54,38,0.1)]">
+                    <Link
+                      href={href}
+                      aria-label={post.title}
+                      className="relative block aspect-[16/10] overflow-hidden bg-[var(--g-cream-deep)]"
+                    >
+                      {post.coverImage ? (
+                        <Image
+                          src={post.coverImage}
+                          alt=""
+                          fill
+                          quality={70}
+                          sizes="292px"
+                          className="object-cover transition duration-500 hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <span
+                          className={`absolute inset-0 bg-gradient-to-br ${coverGradient(i)}`}
+                          aria-hidden
+                        />
+                      )}
+                      {!post.coverImage ? (
+                        <span className="absolute inset-0 flex items-end p-4">
+                          <span className="line-clamp-2 text-sm font-semibold text-[var(--g-white)]">
+                            {post.title}
+                          </span>
+                        </span>
+                      ) : null}
+                    </Link>
+
+                    <div className="flex flex-1 flex-col gap-2 p-4 sm:p-5">
+                      {date ? (
+                        <p className="text-[12px] text-[var(--g-charcoal)]/75">
+                          {date}
+                        </p>
+                      ) : null}
+                      <Link href={href}>
+                        <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[var(--g-charcoal)]">
+                          {post.title}
+                        </h3>
+                      </Link>
+                      {post.excerpt ? (
+                        <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--g-charcoal)]/75">
+                          {post.excerpt}
+                        </p>
+                      ) : null}
+                      <div className="flex-1" />
+                      <Link
+                        href={href}
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] text-[13px] font-semibold text-[var(--g-charcoal)] transition hover:border-[var(--g-forest)] hover:text-[var(--g-forest)]"
+                      >
+                        Read article
+                        <span className="sr-only">: {post.title}</span>
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current">
+                          <ArrowRight className="h-3 w-3" aria-hidden />
+                        </span>
+                      </Link>
+                    </div>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}

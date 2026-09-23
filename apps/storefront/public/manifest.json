@@ -1,0 +1,22 @@
+{
+  "name": "Admin Control | Buy n Try",
+  "short_name": "Buy n Try",
+  "description": "Premium admin dashboard for managing orders and the storefront.",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#1F3626",
+  "theme_color": "#1F3626",
+  "icons": [
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

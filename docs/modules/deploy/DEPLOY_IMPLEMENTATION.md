@@ -1,16 +1,26 @@
 # Vercel production implementation
 
-The shop runs on Vercel. Database and images stay on the same Supabase and Cloudinary projects as local.
+The repo is an npm monorepo: **shop** (`apps/storefront`) and **admin** (`apps/admin`) are separate Vercel projects. Database and images stay on the same Supabase and Cloudinary projects as local.
 
-## Live URL
+## Live URLs
 
-https://voltgear-coral.vercel.app
+| App | Host (target) | Vercel root directory |
+|---|---|---|
+| Shop | https://buyntryy.com (custom) / production storefront project | `apps/storefront` |
+| Admin | https://voltgear-admin.vercel.app (interim) | `apps/admin` |
 
-Vercel project: `voltgear` (account that ran `vercel link`). GitHub auto-deploy is **not** connected (no write access to `aly-abbas11/e-commerce-store`). Ship from this folder:
+## Two-project setup (T-40)
 
-```
-npx vercel --prod --yes
-```
+1. **Shop project** — Settings → General → **Root Directory** = `apps/storefront`. Production env must include `ADMIN_PUBLIC_URL` (admin origin, no trailing slash) so `/admin/*` and `/studio` redirect to the admin app.
+2. **Admin project** — New project, same Git repo, **Root Directory** = `apps/admin`. Copy Supabase, Cloudinary, Resend, `ADMIN_TOKEN`, etc. Add **`STOREFRONT_URL`** = shop origin (for publish → `POST /api/revalidate`).
+3. **Ignored Build Step** (each project, repo root as context for the script path):
+   - Shop: `bash scripts/vercel-should-build-storefront.sh`
+   - Admin: `bash scripts/vercel-should-build-admin.sh`
+4. **Local dev:** `npm run dev:storefront` (3000) and `npm run dev:admin` (3001).
+
+Build/install commands live in each app’s `vercel.json` (`cd ../.. && npm ci` + workspace build).
+
+Legacy single-app deploy from repo root is **deprecated** after T-40.
 
 ## What was wired
 

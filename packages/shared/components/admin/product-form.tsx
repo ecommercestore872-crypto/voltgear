@@ -1,0 +1,709 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useRef, useState } from "react";
+
+import { StringArrayInput } from "@/components/admin/string-array-input";
+import { ObjectArrayInput } from "@/components/admin/object-array-input";
+
+import { MediaField } from "@/components/admin/media-field";
+import { PublishBar } from "@/components/admin/publish-bar";
+import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
+import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
+import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import type { ShopType } from "@/lib/categories";
+import { PRODUCT_PHOTO_HINT } from "@/lib/product-image";
+import type { AdminProduct } from "@/lib/db/admin-types";
+import { ProductCollectionsFields } from "@/components/admin/product-collections-fields";
+import { VariantAxesFields } from "@/components/admin/variant-axes-fields";
+import type { CollectionPickerItem } from "@/lib/db/collection-rules";
+import {
+  portableTextToPlain,
+  slugify,
+  textToPortableText,
+  type ProductDocument,
+  type PublishStatus,
+} from "@/lib/db/publish";
+
+function emptyDoc(): ProductDocument {
+  return {
+    name: "",
+    slug: "",
+    category: "",
+    price: 0,
+    stockStatus: "in-stock",
+    quantity: null,
+    images: [],
+    features: [],
+    specifications: [],
+    compatibility: [],
+    inTheBox: [],
+    productFaq: [],
+    variants: [],
+    colorEnabled: false,
+    sizeEnabled: false,
+    colorOptions: [],
+    reviews: [],
+    addons: [],
+    freeShipping: false,
+  };
+}
+
+function fromProduct(
+  product?: AdminProduct | null,
+  knownSlugs: string[] = [],
+): ProductDocument {
+  if (!product) return emptyDoc();
+  const doc = product.draft ?? {
+    name: product.name,
+    slug: product.slug,
+    brand: product.brand,
+    sku: product.sku,
+    category: product.category,
+    price: product.price,
+    compareAtPrice: product.compareAtPrice,
+    images: product.images ?? [],
+    cloudinaryImages: product.cloudinaryImages,
+    shortDescription: product.shortDescription,
+    description: product.description,
+    features: product.features,
+    specifications: product.specifications,
+    compatibility: product.compatibility,
+    inTheBox: product.inTheBox,
+    productVideo: product.productVideo,
+    variants: product.variants,
+    colorEnabled: product.colorEnabled,
+    sizeEnabled: product.sizeEnabled,
+    colorOptions: product.colorOptions,
+    sizeOptions: product.sizeOptions,
+    productFaq: product.productFaq,
+    stockStatus: product.stockStatus,
+    quantity: product.quantity ?? null,
+    rating: product.rating,
+    reviewCount: product.reviewCount,
+    reviews: product.reviews,
+    featured: product.featured,
+    isDemo: product.isDemo,
+    costPrice: product.costPrice,
+    addons: product.addons ?? [],
+    freeShipping: product.freeShipping ?? false,
+  };
+  const merged = {
+    ...emptyDoc(),
+    ...doc,
+    isDemo: Boolean(doc.isDemo ?? product.isDemo),
+    costPrice: doc.costPrice ?? product.costPrice,
+  };
+  if (merged.category && !knownSlugs.includes(merged.category)) {
+    merged.category = "";
+  }
+  return merged;
+}
+
+export function ProductForm({
+  product,
+  shopTypes,
+  collections = [],
+  collectionIds = [],
+}: {
+  product?: AdminProduct | null;
+  shopTypes: ShopType[];
+  collections?: CollectionPickerItem[];
+  collectionIds?: string[];
+}) {
+  const router = useRouter();
+  const isNew = !product;
+  const knownSlugs = shopTypes.map((t) => t.slug);
+  const [doc, setDoc] = useState<ProductDocument>(() =>
+    fromProduct(product, knownSlugs),
+  );
+  const [status, setStatus] = useState<PublishStatus>(
+    product?.status ?? "draft",
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [description, setDescription] = useState(() =>
+    portableTextToPlain(fromProduct(product, knownSlugs).description),
+  );
+  const [collectionList, setCollectionList] = useState(collections);
+  const [selectedCollectionIds, setSelectedCollectionIds] =
+    useState(collectionIds);
+  const [activeUploads, setActiveUploads] = useState(0);
+  const id = product?._id;
+
+  const set = <K extends keyof ProductDocument>(
+    key: K,
+    value: ProductDocument[K],
+  ) => {
+    setDoc((d) => ({ ...d, [key]: value }));
+  };
+
+  const payload = useMemo(() => {
+    const slug = isNew ? slugify(doc.name) : doc.slug;
+    return { ...doc, slug, description: textToPortableText(description) };
+  }, [doc, description, isNew]);
+
+  // Keep a mutable ref of the latest payload to prevent 
+  // stale closures when 'onBlur' auto-commits immediately trigger 'Save'.
+  const payloadRef = useRef(payload);
+  payloadRef.current = payload;
+
+  const dirtyState = useMemo(
+    () => ({
+      payload,
+      collectionIds: [...selectedCollectionIds].sort(),
+    }),
+    [payload, selectedCollectionIds],
+  );
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(dirtyState, !isNew);
+
+  function commitSavedBaseline(latest: ProductDocument) {
+    resetSaved({
+      payload: latest,
+      collectionIds: [...selectedCollectionIds].sort(),
+    });
+  }
+
+  async function run(
+    action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
+  ) {
+    if (activeUploads > 0 && action !== "delete") {
+      setError("Please wait for media uploads to finish before saving.");
+      return;
+    }
+
+    // Yield to the event loop so any pending onBlur auto-commits can flush state
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const latestPayload = payloadRef.current;
+
+    setSaving(true);
+    setError(null);
+    try {
+      if (action === "create" || action === "save" || action === "publish") {
+        if (!shopTypes.some((t) => t.slug === latestPayload.category)) {
+          setError("Pick a category.");
+          return;
+        }
+      }
+      if (action === "create") {
+        const json = await adminFetch("/api/admin/products", {
+          method: "POST",
+          body: JSON.stringify({
+            doc: latestPayload,
+            collectionIds: selectedCollectionIds,
+          }),
+        });
+        router.replace(`/admin/products/${json.id}`);
+        return;
+      }
+      if (!id) return;
+      if (action === "delete") {
+        if (!confirm("Delete this product? This cannot be undone.")) return;
+        await adminFetch(`/api/admin/products/${id}`, { method: "DELETE" });
+        router.replace("/admin/products");
+        return;
+      }
+      await adminFetch(`/api/admin/products/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          action,
+          doc: latestPayload,
+          collectionIds: selectedCollectionIds,
+        }),
+      });
+      if (action === "publish") setStatus("published");
+      if (action === "unpublish") setStatus("unpublished");
+      if (action === "discard" && product) {
+        const live = fromProduct({ ...product, draft: null }, knownSlugs);
+        const liveDescription = portableTextToPlain(live.description);
+        setDoc(live);
+        setDescription(liveDescription);
+        commitSavedBaseline({
+          ...live,
+          description: textToPortableText(liveDescription),
+        });
+      } else {
+        commitSavedBaseline(latestPayload);
+      }
+      router.refresh();
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        router.replace("/admin/login");
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Could not save.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const handleBusyChange = (busy: boolean) => {
+    setActiveUploads((prev) => Math.max(0, prev + (busy ? 1 : -1)));
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-4">
+        <Link
+          href="/admin/products"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+        >
+          &larr; Back to Catalog
+        </Link>
+        
+        <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+          <div className="space-y-1.5 max-w-2xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              {isNew ? "Add New Product" : doc.name || "Edit Product"}
+              {!isNew && (
+                <Badge variant="outline" className="font-normal text-muted-foreground hidden sm:inline-flex bg-muted/30">
+                  {status === "published" ? "Published" : "Draft"}
+                </Badge>
+              )}
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {isNew 
+                ? "Construct a beautiful new listing for your storefront. Optimize images, set accurate pricing, and select the correct shop category."
+                : "Modify this item’s metadata, variant availability, or live pricing. Changes made here will immediately reflect to your customers once published."}
+            </p>
+          </div>
+
+          {!isNew ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => run("delete")}
+              className="shrink-0 shadow-sm"
+              disabled={saving}
+            >
+              Delete Product
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      {isNew ? (
+        <Button type="button" onClick={() => run("create")} disabled={saving || activeUploads > 0}>
+          Save draft {activeUploads > 0 && "(Uploading...)"}
+        </Button>
+      ) : (
+        <AdminStickyPublishBar>
+          <PublishBar
+            status={status}
+            dirty={dirty}
+            saving={saving || activeUploads > 0}
+            onSave={() => run("save")}
+            onPublish={() => run("publish")}
+            onUnpublish={() => run("unpublish")}
+            onDiscard={() => run("discard")}
+          />
+        </AdminStickyPublishBar>
+      )}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="name">Product name</Label>
+            <Input
+              id="name"
+              value={doc.name}
+              onChange={(e) => set("name", e.target.value)}
+            />
+          </div>
+          <MediaField
+            label="Photos"
+            hint={PRODUCT_PHOTO_HINT}
+            urls={doc.images ?? []}
+            onChange={(images) => set("images", images)}
+            onBusyChange={handleBusyChange}
+          />
+          <div className="space-y-1.5">
+            <Label htmlFor="tiktok-url">TikTok Video Link</Label>
+            <Input
+              id="tiktok-url"
+              value={doc.tiktokUrl ?? ""}
+              onChange={(e) => set("tiktokUrl", e.target.value)}
+              placeholder="https://www.tiktok.com/..."
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="instagram-url">Instagram Reel Link</Label>
+            <Input
+              id="instagram-url"
+              value={doc.instagramUrl ?? ""}
+              onChange={(e) => set("instagramUrl", e.target.value)}
+              placeholder="https://www.instagram.com/reel/..."
+            />
+          </div>
+          <MediaField
+            label="Video Thumbnail (optional)"
+            hint="Format: JPG, WEBP, or PNG. Video thumbnail poster. Recommended size: match your video's dimension (e.g. 1920x1080 or 1080x1920)."
+            urls={doc.productVideo?.poster ? [doc.productVideo.poster] : []}
+            onChange={(urls) =>
+              set("productVideo", { ...doc.productVideo, poster: urls[urls.length - 1] })
+            }
+            onBusyChange={handleBusyChange}
+          />
+          <div className="space-y-1.5">
+            <Label htmlFor="short">Short summary</Label>
+            <Textarea
+              id="short"
+              value={doc.shortDescription ?? ""}
+              onChange={(e) => set("shortDescription", e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="long">Full details</Label>
+            <Textarea
+              id="long"
+              rows={8}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Separate paragraphs with a blank line. Use <code># Heading</code>,{" "}
+              <code>- list item</code>, <code>**bold**</code>, or{" "}
+              <code>&gt; highlight</code> — the product page will style them.
+            </p>
+          </div>
+
+          <div className="pt-4 space-y-8 border-t">
+            <h2 className="text-lg font-semibold">Additional Details</h2>
+            <StringArrayInput
+              label="Why you'll like it (Features)"
+              values={doc.features ?? []}
+              onChange={(val) => set("features", val)}
+              placeholder="e.g. Always-On Retina Display"
+            />
+            <ObjectArrayInput
+              label="Specifications"
+              values={doc.specifications ?? []}
+              onChange={(val) => set("specifications", val)}
+            />
+            <StringArrayInput
+              label="What's in the Box"
+              values={doc.inTheBox ?? []}
+              onChange={(val) => set("inTheBox", val)}
+              placeholder="e.g. USB-C Charging Cable"
+            />
+            <StringArrayInput
+              label="Compatibility (Works With)"
+              values={doc.compatibility ?? []}
+              onChange={(val) => set("compatibility", val)}
+              placeholder="e.g. iPhone 15 Series"
+            />
+
+            {/* ── Optional Add-ons ─────────────────────────────────── */}
+            <div className="pt-4 border-t space-y-3">
+              <div>
+                <h3 className="text-base font-semibold">Optional Add-ons</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Let customers add extras at checkout (e.g. a case, screen
+                  protector). Each add-on appears as a toggle on the product
+                  page.
+                </p>
+              </div>
+              {(doc.addons ?? []).map((addon, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-lg border p-4 space-y-3 bg-muted/30"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Add-on {idx + 1}</p>
+                    <button
+                      type="button"
+                      className="text-xs text-destructive hover:underline"
+                      onClick={() =>
+                        set(
+                          "addons",
+                          (doc.addons ?? []).filter((_, i) => i !== idx),
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-name-${idx}`}>Name</Label>
+                      <Input
+                        id={`addon-name-${idx}`}
+                        value={addon.name}
+                        placeholder="e.g. Silicone Cover"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], name: e.target.value };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-price-${idx}`}>
+                        Extra Price (PKR)
+                      </Label>
+                      <Input
+                        id={`addon-price-${idx}`}
+                        type="number"
+                        min={0}
+                        value={addon.price ?? ""}
+                        placeholder="e.g. 299"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = {
+                            ...next[idx],
+                            price: Number(e.target.value),
+                          };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-badge-${idx}`}>
+                        Badge (optional)
+                      </Label>
+                      <Input
+                        id={`addon-badge-${idx}`}
+                        value={addon.badge ?? ""}
+                        placeholder="e.g. Popular"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], badge: e.target.value };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`addon-desc-${idx}`}>
+                        Short description
+                      </Label>
+                      <Input
+                        id={`addon-desc-${idx}`}
+                        value={addon.description ?? ""}
+                        placeholder="e.g. Shockproof silicone"
+                        onChange={(e) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = {
+                            ...next[idx],
+                            description: e.target.value,
+                          };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <MediaField
+                        label="Image (optional)"
+                        hint="Format: JPG, WEBP, or PNG. Recommended size: 400x400px (Square) to prevent distortion."
+                        urls={addon.image ? [addon.image] : []}
+                        onChange={(urls) => {
+                          const next = [...(doc.addons ?? [])];
+                          next[idx] = { ...next[idx], image: urls[urls.length - 1] ?? "" };
+                          set("addons", next);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-4 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                onClick={() =>
+                  set("addons", [
+                    ...(doc.addons ?? []),
+                    {
+                      name: "",
+                      price: 0,
+                      badge: "",
+                      description: "",
+                      image: "",
+                    },
+                  ])
+                }
+              >
+                + Add an add-on
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="price">Price</Label>
+            <Input
+              id="price"
+              type="number"
+              min={0}
+              value={doc.price}
+              onChange={(e) => set("price", Number(e.target.value))}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="compare">Old price (optional)</Label>
+            <Input
+              id="compare"
+              type="number"
+              min={0}
+              value={doc.compareAtPrice ?? ""}
+              onChange={(e) =>
+                set(
+                  "compareAtPrice",
+                  e.target.value === "" ? undefined : Number(e.target.value),
+                )
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="cost">Your cost (hidden from shop)</Label>
+            <Input
+              id="cost"
+              type="number"
+              min={0}
+              value={doc.costPrice ?? ""}
+              onChange={(e) =>
+                set(
+                  "costPrice",
+                  e.target.value === "" ? undefined : Number(e.target.value),
+                )
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Used only for delivered profit in Analytics.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="category">Category</Label>
+            {shopTypes.length ? (
+              <select
+                id="category"
+                required
+                className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={doc.category}
+                onChange={(e) => set("category", e.target.value)}
+              >
+                <option value="">Pick a category</option>
+                {shopTypes.map((t) => (
+                  <option key={t.slug} value={t.slug}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                <Link href="/admin/categories/new" className="underline">
+                  Add a shop type first
+                </Link>
+              </p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="stock">Availability</Label>
+            <select
+              id="stock"
+              className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={doc.stockStatus}
+              onChange={(e) => set("stockStatus", e.target.value)}
+            >
+              <option value="in-stock">In stock</option>
+              <option value="low-stock">Low stock</option>
+              <option value="out-of-stock">Out of stock</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="quantity">Units on hand</Label>
+            <Input
+              id="quantity"
+              type="number"
+              min={0}
+              step={1}
+              value={doc.quantity ?? ""}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === "") {
+                  set("quantity", null);
+                  return;
+                }
+                const n = Number(raw);
+                set(
+                  "quantity",
+                  Number.isInteger(n) && n >= 0 ? n : (doc.quantity ?? null),
+                );
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty for unlimited. Set a number to stop overselling. Zero
+              marks the product sold out.
+            </p>
+          </div>
+          <VariantAxesFields
+            colorEnabled={Boolean(doc.colorEnabled)}
+            sizeEnabled={Boolean(doc.sizeEnabled)}
+            colorOptions={doc.colorOptions ?? []}
+            sizeOptions={doc.sizeOptions ?? []}
+            onChange={(next) =>
+              setDoc((d) => ({
+                ...d,
+                colorEnabled: next.colorEnabled,
+                sizeEnabled: next.sizeEnabled,
+                colorOptions: next.colorOptions,
+                sizeOptions: next.sizeOptions,
+              }))
+            }
+          />
+          <div className="space-y-1.5">
+            <Label htmlFor="badge">Card tag</Label>
+            <Input
+              id="badge"
+              value={doc.badge ?? ""}
+              onChange={(e) => set("badge", e.target.value)}
+              placeholder="e.g. Budget Choice"
+            />
+            <p className="text-xs text-muted-foreground">
+              Small label on the product card. Leave empty to hide it.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={Boolean(doc.featured)}
+              onChange={(e) => set("featured", e.target.checked)}
+            />
+            Featured — homepage spotlight
+          </label>
+          <label className="flex items-center gap-2 text-sm mt-1">
+            <input
+              type="checkbox"
+              checked={Boolean(doc.freeShipping)}
+              onChange={(e) => set("freeShipping", e.target.checked)}
+            />
+            Free Shipping — waive shipping fee if this is in cart
+          </label>
+          <ProductCollectionsFields
+            collections={collectionList}
+            selectedIds={selectedCollectionIds}
+            productId={id}
+            onChange={(ids, nextCollections) => {
+              setSelectedCollectionIds(ids);
+              if (nextCollections) setCollectionList(nextCollections);
+            }}
+          />
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={Boolean(doc.isDemo)}
+              onChange={(e) => set("isDemo", e.target.checked)}
+            />
+            Practice product — guests cannot see this
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+}

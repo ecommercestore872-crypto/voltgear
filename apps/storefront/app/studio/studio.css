@@ -1,0 +1,8 @@
+/* Studio-only theme vars (kept separate from app/globals.css — importing
+   globals.css from two root layouts (app + studio) breaks Tailwind's build
+   for the app entry). Sanity Studio ships its own styles; we only need the
+   background token for the body here. */
+:root {
+  --background: 224 42% 5%;
+  --foreground: 0 0% 96%;
+}

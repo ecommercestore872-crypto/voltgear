@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && npm ci",
+  "buildCommand": "cd ../.. && npm run build -w @voltgear/storefront",
+  "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/flows",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}

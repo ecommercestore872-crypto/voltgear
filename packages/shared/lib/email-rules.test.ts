@@ -1,0 +1,306 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import {
+  bccList,
+  buildAdminNewOrderEmail,
+  buildOrderConfirmationEmail,
+  buildOrderStatusEmail,
+  defaultFromAddress,
+  envFromAddress,
+  orderEmailFailureNote,
+  resendSendInput,
+  resolveFromAddress,
+  resolveNotifyAddress,
+  resolveEmailBrandName,
+} from "./email-rules";
+
+const confirm = {
+  orderId: "VG-TEST1",
+  name: "Ali Khan",
+  email: "ali@example.com",
+  items: [{ name: "Charger", price: 1999, quantity: 1, variantName: "White" }],
+  total: 1999,
+  phone: "03001234567",
+  address: "House 1, Street 2",
+  city: "Lahore",
+  postal: "54000",
+};
+
+describe("buildOrderConfirmationEmail", () => {
+  it("uses a light shell, COD, items, address, and a track link", () => {
+    const msg = buildOrderConfirmationEmail(confirm);
+    assert.equal(msg.html.includes("#0b0f19"), false);
+    assert.equal(msg.html.includes("VG-TEST1"), true);
+    assert.equal(msg.html.includes("Charger"), true);
+    assert.match(msg.html, /cash on delivery/i);
+    assert.equal(msg.html.includes("House 1, Street 2"), true);
+    assert.match(msg.html, /Order bill|Total due on delivery/);
+    assert.equal(
+      msg.html.includes("/track?orderId=VG-TEST1&amp;email=ali%40example.com"),
+      true
+    );
+  });
+
+  it("shows shipping and discount in the bill box", () => {
+    const msg = buildOrderConfirmationEmail({
+      ...confirm,
+      subtotal: 1999,
+      shipping: 199,
+      discount: 100,
+      promoCode: "BNT10",
+      total: 2098,
+    });
+    assert.match(msg.html, /Shipping/);
+    assert.match(msg.html, /Discount \(BNT10\)/);
+    assert.match(msg.html, /Total due on delivery/);
+  });
+
+  it("uses custom subject and body and still injects items and track", () => {
+    const msg = buildOrderConfirmationEmail(confirm, {
+      letters: { confirmed: { subject: "Got it {{orderId}}", body: "Hi {{name}}" } },
+      theme: { button: "#cc0000" },
+    });
+    assert.equal(msg.subject, "Got it VG-TEST1");
+    assert.match(msg.html, /Hi Ali Khan/);
+    assert.equal(msg.html.includes("Charger"), true);
+    assert.equal(msg.html.includes("House 1, Street 2"), true);
+    assert.match(msg.html, /#cc0000/);
+    assert.equal(msg.html.includes("PAY CASH ON DELIVERY"), false);
+  });
+});
+
+describe("buildOrderStatusEmail", () => {
+  it("shows the note and never includes phone or address", () => {
+    const msg = buildOrderStatusEmail({
+      orderId: "VG-TEST1",
+      name: "Ali Khan",
+      status: "shipped",
+      note: "Tracking: PKG-1",
+      email: "ali@example.com",
+      phone: "03001234567",
+      address: "House 1, Street 2",
+    });
+    assert.equal(msg.html.includes("#0b0f19"), false);
+    assert.equal(msg.html.includes("Tracking: PKG-1"), true);
+    assert.equal(msg.html.includes("03001234567"), false);
+    assert.equal(msg.html.includes("House 1"), false);
+    assert.equal(
+      msg.html.includes("/track?orderId=VG-TEST1&amp;email=ali%40example.com"),
+      true
+    );
+  });
+
+  it("uses custom shipped copy and still appends the note and track link", () => {
+    const msg = buildOrderStatusEmail(
+      {
+        orderId: "VG-TEST1",
+        name: "Ali Khan",
+        status: "shipped",
+        note: "Tracking: PKG-1",
+        email: "ali@example.com",
+      },
+      { letters: { shipped: { subject: "Out {{orderId}}", body: "Packed for {{name}}" } } }
+    );
+    assert.equal(msg.subject, "Out VG-TEST1");
+    assert.match(msg.html, /Packed for Ali Khan/);
+    assert.equal(msg.html.includes("Tracking: PKG-1"), true);
+    assert.equal(
+      msg.html.includes("/track?orderId=VG-TEST1&amp;email=ali%40example.com"),
+      true
+    );
+  });
+});
+
+describe("buildAdminNewOrderEmail", () => {
+  it("tells the owner a customer placed an order and includes contact details", () => {
+    const msg = buildAdminNewOrderEmail(confirm);
+    assert.match(msg.subject, /new order/i);
+    assert.match(msg.html, /New customer order/);
+    assert.equal(msg.html.includes("Ali Khan"), true);
+    assert.equal(msg.html.includes("ali@example.com"), true);
+    assert.equal(msg.html.includes("03001234567"), true);
+    assert.equal(msg.html.includes("VG-TEST1"), true);
+    assert.match(msg.html, /because a customer placed an order/);
+    assert.match(msg.html, /bnt-seal\.png/);
+    assert.match(msg.html, /Staff alert/);
+    assert.match(msg.html, /Open Dashboard/);
+    assert.equal(msg.html.includes("ECOMMERCE STORE"), false);
+  });
+
+  it("does not treat the shop placeholder name as the customer", () => {
+    const msg = buildAdminNewOrderEmail({
+      ...confirm,
+      name: "ECOMMERCE STORE",
+    });
+    assert.equal(msg.html.includes("ECOMMERCE STORE"), false);
+    assert.match(msg.html, />Customer</);
+  });
+
+  it("uses custom owner copy and still injects contact and items", () => {
+    const msg = buildAdminNewOrderEmail(confirm, {
+      letters: { owner: { subject: "Sale {{orderId}}", body: "New from {{name}}" } },
+    });
+    assert.equal(msg.subject, "Sale VG-TEST1");
+    assert.match(msg.html, /New from Ali Khan/);
+    assert.equal(msg.html.includes("ali@example.com"), true);
+    assert.equal(msg.html.includes("Charger"), true);
+  });
+});
+
+describe("resolveNotifyAddress", () => {
+  it("prefers env, then settings, and skips the customer address", () => {
+    assert.equal(
+      resolveNotifyAddress({
+        envNotify: "owner@shop.pk",
+        settingsEmail: "settings@shop.pk",
+        customerEmail: "ali@example.com",
+      }),
+      "owner@shop.pk"
+    );
+    assert.equal(
+      resolveNotifyAddress({
+        envNotify: "  ",
+        settingsEmail: "settings@shop.pk",
+        customerEmail: "ali@example.com",
+      }),
+      "settings@shop.pk"
+    );
+    assert.equal(
+      resolveNotifyAddress({
+        envNotify: "Ali@example.com",
+        settingsEmail: "settings@shop.pk",
+        customerEmail: "ali@example.com",
+      }),
+      ""
+    );
+  });
+});
+
+describe("defaultFromAddress", () => {
+  it("uses the spoken brand and Resend's test mailbox until FROM_EMAIL is set", () => {
+    assert.equal(
+      defaultFromAddress("Buy n Try"),
+      "Buy n Try <onboarding@resend.dev>"
+    );
+  });
+});
+
+describe("resolveEmailBrandName", () => {
+  it("drops leftover VoltGear so letters say Buy n Try", () => {
+    assert.equal(resolveEmailBrandName("VoltGear"), "Buy n Try");
+    assert.equal(resolveEmailBrandName("  "), "Buy n Try");
+    assert.equal(resolveEmailBrandName("Buy n Try"), "Buy n Try");
+  });
+});
+
+describe("envFromAddress", () => {
+  it("prefers FROM_EMAIL over the Resend-named alias", () => {
+    assert.equal(
+      envFromAddress({
+        fromEmail: "Buy n Try <noreply@mail.buyntryy.com>",
+        resendFromEmail: "Buy n Try <onboarding@resend.dev>",
+      }),
+      "Buy n Try <noreply@mail.buyntryy.com>"
+    );
+  });
+
+  it("uses RESEND_FROM_EMAIL when FROM_EMAIL is empty", () => {
+    assert.equal(
+      envFromAddress({
+        fromEmail: "  ",
+        resendFromEmail: "Buy n Try <noreply@mail.buyntryy.com>",
+      }),
+      "Buy n Try <noreply@mail.buyntryy.com>"
+    );
+  });
+});
+
+describe("resolveFromAddress", () => {
+  it("uses FROM_EMAIL when you set it later", () => {
+    assert.equal(
+      resolveFromAddress({
+        envFrom: "Buy n Try <noreply@buyntryy.com>",
+        brand: "Buy n Try",
+      }),
+      "Buy n Try <noreply@buyntryy.com>"
+    );
+  });
+
+  it("falls back to the Resend test sender when FROM_EMAIL is empty", () => {
+    assert.equal(
+      resolveFromAddress({ envFrom: "  ", brand: "Buy n Try" }),
+      "Buy n Try <onboarding@resend.dev>"
+    );
+  });
+});
+
+describe("resendSendInput", () => {
+  it("maps to Resend SDK camelCase fields", () => {
+    assert.deepEqual(
+      resendSendInput({
+        from: "Buy n Try <onboarding@resend.dev>",
+        to: "ali@example.com",
+        subject: "Order confirmed",
+        text: "Thanks",
+        html: "<p>Thanks</p>",
+        bcc: ["owner@shop.pk"],
+        replyTo: "owner@shop.pk",
+      }),
+      {
+        from: "Buy n Try <onboarding@resend.dev>",
+        to: ["ali@example.com"],
+        subject: "Order confirmed",
+        text: "Thanks",
+        html: "<p>Thanks</p>",
+        bcc: ["owner@shop.pk"],
+        replyTo: "owner@shop.pk",
+      }
+    );
+  });
+
+  it("omits empty bcc and replyTo", () => {
+    const payload = resendSendInput({
+      from: "Buy n Try <onboarding@resend.dev>",
+      to: "ali@example.com",
+      subject: "Hi",
+      text: "Hi",
+      html: "<p>Hi</p>",
+    });
+    assert.equal("bcc" in payload, false);
+    assert.equal("replyTo" in payload, false);
+  });
+});
+
+describe("orderEmailFailureNote", () => {
+  it("is silent when both sends succeeded", () => {
+    assert.equal(
+      orderEmailFailureNote({ customerSent: true, adminSent: true, adminTo: "a@b.com" }),
+      null
+    );
+  });
+
+  it("names the failed letters", () => {
+    const note = orderEmailFailureNote({
+      customerSent: false,
+      adminSent: false,
+      adminTo: "a@b.com",
+    });
+    assert.match(note ?? "", /customer confirmation failed/);
+    assert.match(note ?? "", /owner alert failed/);
+  });
+});
+
+describe("bccList", () => {
+  it("returns the notify address on confirmation when it differs from the customer", () => {
+    assert.deepEqual(bccList("ali@example.com", "shop@voltgear.store"), [
+      "shop@voltgear.store",
+    ]);
+  });
+
+  it("returns empty when notify is missing or the same as the customer", () => {
+    assert.deepEqual(bccList("ali@example.com", undefined), []);
+    assert.deepEqual(bccList("ali@example.com", "  "), []);
+    assert.deepEqual(bccList("ali@example.com", "Ali@example.com"), []);
+  });
+});

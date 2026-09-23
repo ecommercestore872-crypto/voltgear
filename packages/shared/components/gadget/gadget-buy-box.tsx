@@ -1,0 +1,538 @@
+"use client";
+
+import { useRef, useState } from "react";
+import {
+  Banknote,
+  Check,
+  Minus,
+  Package,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+  ShoppingBag,
+  Star,
+  Truck,
+} from "lucide-react";
+
+import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
+import { useCart } from "@/components/cart/cart-provider";
+import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { salePercent } from "@/components/gadget/gadget-sale";
+import { trackAddToCart } from "@/lib/analytics";
+import { PRODUCT_IMAGE } from "@/lib/product-image";
+import { GadgetProductWatchLinks } from "@/components/gadget/gadget-product-watch-links";
+import { ProductGallery } from "@/components/product/product-gallery";
+import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
+import { getVariantStockState } from "@/lib/stock";
+import type { PublicSiteConfig } from "@/lib/site-config";
+import { warrantyLabel } from "@/lib/site-config";
+import type { Product, ProductVariant } from "@/lib/types";
+import { cn, formatPrice } from "@/lib/utils";
+import { imageUrl } from "@/lib/sanity/image";
+import {
+  axesEnabled,
+  canSubmitVariantSelection,
+  colorImageForKey,
+  comboVariantKey,
+  initialAxisSelection,
+} from "@/lib/variant-options-rules";
+
+function defaultVariant(product: Product): ProductVariant | null {
+  const variants = product.variants ?? [];
+  if (!variants.length) return null;
+  return variants.find((v) => v.isDefault) ?? variants[0];
+}
+
+export function GadgetBuyBox({
+  product,
+  config,
+}: {
+  product: Product;
+  config: PublicSiteConfig;
+}) {
+  const { addItem, openCart } = useCart();
+  const axesOn = axesEnabled(product);
+  const [colorKey, setColorKey] = useState<string | null>(() =>
+    initialAxisSelection(product.colorOptions),
+  );
+  const [sizeKey, setSizeKey] = useState<string | null>(() =>
+    initialAxisSelection(product.sizeOptions),
+  );
+  const [legacyVariant, setLegacyVariant] = useState<ProductVariant | null>(
+    () => (axesOn ? null : defaultVariant(product)),
+  );
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const [selectedAddonKeys, setSelectedAddonKeys] = useState<Set<number>>(
+    new Set(),
+  );
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const selectedKey = axesOn
+    ? comboVariantKey(colorKey, sizeKey)
+    : legacyVariant?._key;
+  const variant = axesOn
+    ? ((product.variants ?? []).find((v) => v._key === selectedKey) ?? null)
+    : legacyVariant;
+  const hasVariants = (product.variants?.length ?? 0) > 0;
+  const selectionReady = axesOn
+    ? canSubmitVariantSelection(product, colorKey, sizeKey)
+    : !hasVariants || Boolean(variant);
+  const stock = getVariantStockState(product, variant);
+  const outOfStock = stock.soldOut;
+  const price = axesOn ? product.price : (variant?.price ?? product.price);
+  const compareAtPrice = axesOn
+    ? product.compareAtPrice
+    : (variant?.compareAtPrice ?? product.compareAtPrice);
+  const colorPhoto = axesOn
+    ? colorImageForKey(product.colorOptions, colorKey)
+    : variant?.image;
+  const off = salePercent(price, compareAtPrice);
+  const activeAddons = (product.addons ?? []).filter((_, i) =>
+    selectedAddonKeys.has(i),
+  );
+  const addonTotal = activeAddons.reduce((sum, a) => sum + (a.price ?? 0), 0);
+  const displayPrice = price + addonTotal;
+  const rating =
+    product.rating != null && product.rating > 0 ? product.rating : 4.8;
+  const reviewCount = product.reviewCount ?? 0;
+  const threshold = Number(config.freeShippingThreshold ?? 0);
+  const itemImage = colorPhoto
+    ? imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb })
+    : gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
+  const variantImage = colorPhoto
+    ? {
+        src: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.gallery }),
+        thumb: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb }),
+        alt: `${product.name}${variant?.name ? ` — ${variant.name}` : ""}`,
+      }
+    : null;
+
+  function scrollToOptions() {
+    document.getElementById("gadget-buy-options")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+
+  function handleAdd(open = true, event?: React.MouseEvent<HTMLButtonElement>) {
+    if (outOfStock || !selectionReady) return;
+    addItem(
+      {
+        slug: product.slug,
+        name: product.name,
+        price: displayPrice,
+        image: itemImage,
+        productId: product._id,
+        freeShipping: Boolean(product.freeShipping),
+        ...(product.sku ? { sku: product.sku } : {}),
+        ...(variant && hasVariants
+          ? {
+              variantKey: variant._key,
+              variantName: variant.name,
+              ...(variant.sku ? { variantSku: variant.sku } : {}),
+            }
+          : {}),
+        ...(activeAddons.length > 0
+          ? {
+              variantName: [
+                variant && hasVariants ? variant.name : null,
+                `Add-ons: ${activeAddons.map((a) => `${a.name} (+${formatPrice(a.price)})`).join(", ")}`,
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            }
+          : {}),
+      },
+      quantity,
+    );
+    trackAddToCart({
+      item_id: product.slug,
+      item_name: product.name,
+      price,
+      quantity,
+    });
+    const btn = event?.currentTarget || btnRef.current;
+    if (btn) {
+      const r = btn.getBoundingClientRect();
+      dispatchAddToCartEffect(null, r.left + r.width / 2, r.top);
+    }
+    setAdded(true);
+    if (open) openCart();
+    window.setTimeout(() => setAdded(false), 1600);
+  }
+
+  return (
+    <>
+      <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-8 lg:gap-12">
+        <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:max-w-lg md:max-w-none md:p-3 lg:p-4">
+          <ProductGallery product={product} variantImage={variantImage} />
+        </div>
+
+        <div className="flex min-w-0 flex-col">
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+              {product.category.replace(/-/g, " ")}
+              {product.badge ? ` · ${product.badge}` : ""}
+            </p>
+            {outOfStock ? (
+              <span className="rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm">
+                OUT OF STOCK
+              </span>
+            ) : null}
+          </div>
+          <h1 className="mt-2 text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] text-[var(--g-charcoal)] sm:text-4xl">
+            {product.name}
+          </h1>
+
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <div
+              className="flex items-center gap-1"
+              aria-label={`Rated ${rating.toFixed(1)} of 5`}
+            >
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-4 w-4 ${
+                    i < Math.round(rating)
+                      ? "fill-amber-400 text-amber-400"
+                      : "fill-transparent text-amber-400/30"
+                  }`}
+                />
+              ))}
+              <span className="ml-1 text-sm font-semibold tabular-nums text-[var(--g-charcoal)]">
+                {rating.toFixed(1)}
+              </span>
+            </div>
+            {reviewCount > 0 ? (
+              <span className="text-sm text-[var(--g-taupe)]">
+                {reviewCount} reviews
+              </span>
+            ) : (
+              <span className="text-sm text-[var(--g-taupe)]">
+                Trusted by buyers
+              </span>
+            )}
+          </div>
+
+          {product.shortDescription ? (
+            <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)]">
+              {product.shortDescription}
+            </p>
+          ) : null}
+
+          <GadgetProductWatchLinks product={product} />
+
+          <div className="mt-5 flex flex-wrap items-end gap-3">
+            <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">
+              {formatPrice(displayPrice)}
+            </span>
+            {compareAtPrice && compareAtPrice > price ? (
+              <span className="pb-1 text-lg text-[var(--g-taupe)] dark:text-muted-foreground line-through">
+                {formatPrice(compareAtPrice)}
+              </span>
+            ) : null}
+            {off ? (
+              <span className="mb-1 rounded-full bg-[var(--g-forest)] dark:bg-primary px-2.5 py-1 text-xs font-bold text-[var(--g-white)] dark:text-primary-foreground">
+                {off}% OFF
+              </span>
+            ) : null}
+          </div>
+
+          <p
+            className={cn(
+              "mt-2 text-sm font-semibold",
+              outOfStock
+                ? "text-red-600"
+                : stock.status === "low-stock"
+                  ? "text-amber-700"
+                  : "text-[var(--g-forest)]",
+            )}
+          >
+            {stock.label}
+            {stock.status === "low-stock" && !outOfStock
+              ? " — order soon"
+              : null}
+          </p>
+
+          <div id="gadget-buy-options">
+            {axesOn ? (
+              <VariantAxisPickers
+                colorEnabled={product.colorEnabled}
+                sizeEnabled={product.sizeEnabled}
+                colorOptions={product.colorOptions}
+                sizeOptions={product.sizeOptions}
+                colorKey={colorKey}
+                sizeKey={sizeKey}
+                onColorKey={setColorKey}
+                onSizeKey={setSizeKey}
+              />
+            ) : hasVariants ? (
+              <fieldset className="mt-6">
+                <legend className="mb-2 text-sm font-semibold text-[var(--g-charcoal)]">
+                  Choose option
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants!.map((v) => {
+                    const selected = variant?._key === v._key;
+                    const sold = getVariantStockState(product, v).soldOut;
+                    return (
+                      <button
+                        key={v._key ?? v.name}
+                        type="button"
+                        disabled={sold}
+                        aria-pressed={selected}
+                        onClick={() => setLegacyVariant(v)}
+                        className={cn(
+                          "min-h-11 rounded-full border px-4 text-sm font-semibold transition",
+                          selected
+                            ? "border-[var(--g-forest)] bg-[var(--g-forest)] text-[var(--g-white)]"
+                            : "border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] hover:border-[var(--g-forest)]",
+                          sold && "cursor-not-allowed line-through opacity-40",
+                        )}
+                      >
+                        {v.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ) : null}
+          </div>
+
+          {/* ── Optional Add-ons upsell ─────────────────────────────── */}
+          {(product.addons ?? []).length > 0 ? (
+            <div className="mt-5 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-4">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+                🎁 Upgrade your order
+              </p>
+              <div className="flex flex-col gap-3">
+                {(product.addons ?? []).map((addon, idx) => {
+                  const selected = selectedAddonKeys.has(idx);
+                  return (
+                    <div key={idx} className="flex items-center gap-3">
+                      {addon.image ? (
+                        <img
+                          src={addon.image}
+                          alt={addon.name}
+                          className="h-12 w-12 shrink-0 rounded-lg border border-[var(--g-line)] object-contain bg-white p-1"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[var(--g-line)] bg-white text-xl">
+                          🎁
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-sm font-semibold text-[var(--g-charcoal)]">
+                            {addon.name}
+                          </span>
+                          {addon.badge ? (
+                            <span className="rounded-full bg-[var(--g-forest)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--g-cream)]">
+                              {addon.badge}
+                            </span>
+                          ) : null}
+                        </div>
+                        {addon.description ? (
+                          <p className="mt-0.5 text-xs text-[var(--g-taupe)]">
+                            {addon.description}
+                          </p>
+                        ) : null}
+                      </div>
+                      {/* Toggle pills */}
+                      <div className="flex shrink-0 overflow-hidden rounded-full border border-[var(--g-line)] text-xs font-semibold">
+                        <button
+                          type="button"
+                          aria-pressed={!selected}
+                          onClick={() =>
+                            setSelectedAddonKeys((prev) => {
+                              const next = new Set(prev);
+                              next.delete(idx);
+                              return next;
+                            })
+                          }
+                          className={cn(
+                            "px-3 py-1.5 transition-colors",
+                            !selected
+                              ? "bg-[var(--g-charcoal)] text-[var(--g-cream)]"
+                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]",
+                          )}
+                        >
+                          No thanks
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() =>
+                            setSelectedAddonKeys(
+                              (prev) => new Set(Array.from(prev).concat(idx)),
+                            )
+                          }
+                          className={cn(
+                            "px-3 py-1.5 transition-colors",
+                            selected
+                              ? "bg-[var(--g-forest)] text-[var(--g-cream)]"
+                              : "bg-transparent text-[var(--g-taupe)] hover:bg-[var(--g-line)]",
+                          )}
+                        >
+                          Add +{formatPrice(addon.price)}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            {!outOfStock ? (
+              <div className="flex h-12 w-full justify-between sm:w-fit sm:justify-center items-center gap-3 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] px-5 sm:px-4">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  aria-label="Decrease quantity"
+                  className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--g-cream-deep)]"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-8 text-center font-bold tabular-nums">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.min(99, q + 1))}
+                  aria-label="Increase quantity"
+                  className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--g-cream-deep)]"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
+            <button
+              ref={btnRef}
+              type="button"
+              disabled={outOfStock || !selectionReady}
+              onClick={(e) => handleAdd(true, e)}
+              className="gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white shadow-lg shadow-green-600/30 transition-transform active:scale-95 px-6 text-base font-bold tracking-wide disabled:cursor-not-allowed disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
+            >
+              {added ? (
+                <>
+                  <Check className="h-4 w-4" strokeWidth={1.75} /> Added
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
+                  {outOfStock
+                    ? "Sold out"
+                    : !selectionReady
+                      ? "Choose options"
+                      : "Buy now"}
+                </>
+              )}
+            </button>
+          </div>
+
+          {!outOfStock ? (
+            <p className="mt-2 text-center text-xs text-[var(--g-taupe)] sm:text-left">
+              {[
+                config.codEnabled ? "Cash on delivery" : null,
+                config.warrantyMonths
+                  ? warrantyLabel(config.warrantyMonths)
+                  : null,
+                threshold > 0
+                  ? `Free shipping over ${formatPrice(threshold)}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "Secure checkout · Confirmation by SMS"}
+            </p>
+          ) : null}
+
+          <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+            {config.codEnabled ? (
+              <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
+                <Banknote
+                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                Cash on delivery
+              </li>
+            ) : null}
+            <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
+              <Truck
+                className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+              {threshold > 0
+                ? `Free shipping over ${formatPrice(threshold)}`
+                : "Nationwide delivery"}
+            </li>
+            {config.warrantyMonths ? (
+              <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
+                <ShieldCheck
+                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                {warrantyLabel(config.warrantyMonths)}
+              </li>
+            ) : null}
+            {config.returnWindowDays ? (
+              <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
+                <RefreshCw
+                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                {config.returnWindowDays}-day returns
+              </li>
+            ) : null}
+          </ul>
+
+          <p className="mt-4 flex items-start gap-2 text-sm text-[var(--g-taupe)]">
+            <Package
+              className="mt-0.5 h-4 w-4 shrink-0 text-[var(--g-sage)]"
+              strokeWidth={1.75}
+              aria-hidden
+            />
+            Secure checkout · Order confirmation by SMS
+          </p>
+        </div>
+      </div>
+
+      {/* Mobile sticky CTA — safe-area for iPhone home indicator */}
+      {!outOfStock ? (
+        <div className="gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] dark:border-border bg-[var(--g-cream)]/95 dark:bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
+          <div className="mx-auto flex max-w-lg items-center gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-[var(--g-charcoal)] dark:text-foreground">
+                {formatPrice(price)}
+              </p>
+              {off ? (
+                <p className="text-[11px] font-semibold text-[var(--g-forest)] dark:text-primary">
+                  {off}% off
+                </p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                if (!selectionReady) {
+                  scrollToOptions();
+                  return;
+                }
+                handleAdd(true, e);
+              }}
+              className="gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 active:bg-green-700 text-white shadow-xl shadow-green-600/40 transition-transform active:scale-95 text-base font-bold animate-pulse-slow"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              {selectionReady ? "Buy now" : "Choose options"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}

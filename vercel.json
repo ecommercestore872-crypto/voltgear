@@ -1,12 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "installCommand": "npm ci",
-  "regions": ["iad1"],
-  "crons": [
-    {
-      "path": "/api/flows",
-      "schedule": "0 9 * * *"
-    }
-  ]
+  "comment": "Monorepo: use two Vercel projects — Root Directory apps/storefront (shop) and apps/admin (CMS). This file is not used for builds."
 }
