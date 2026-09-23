@@ -72,9 +72,10 @@ const nextConfig = {
     ];
   },
   async redirects() {
-    const adminBase = process.env.ADMIN_PUBLIC_URL?.replace(/\/$/, "");
-    const adminRedirects =
-      adminBase && process.env.NODE_ENV === "production"
+    const adminBase =
+      process.env.ADMIN_PUBLIC_URL?.replace(/\/$/, "") ||
+      (process.env.NODE_ENV !== "production" ? "http://localhost:3001" : "");
+    const adminRedirects = adminBase
         ? [
             { source: "/admin", destination: `${adminBase}/admin`, permanent: false },
             {

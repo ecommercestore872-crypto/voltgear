@@ -4,7 +4,9 @@ const config: Config = {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./packages/shared/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "../../packages/shared/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "!../../packages/shared/components/admin/**",
+    "!../../packages/shared/components/messaging/**",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
