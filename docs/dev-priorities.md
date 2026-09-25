@@ -2,7 +2,7 @@
 
 Single tracker for this store. Status lives here only.
 
-**How we work:** `docs/OPERATING-MODEL.md`
+**How we work:** `docs/OPERATING-MODEL.md` · **Health metrics:** `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md`
 
 **Status key:** ⚪ Planned · 🟡 In Progress · ✅ Done · ⏸️ Blocked
 

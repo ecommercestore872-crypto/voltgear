@@ -49,7 +49,9 @@ After a custom domain, set `NEXT_PUBLIC_SITE_URL` to that origin (no trailing sl
 
 ## Vercel usage alerts (T-41)
 
-On the **voltgear** project (Hassaan Pro / buyntryy.com): enable **Usage** notifications for **Active CPU**, **Edge Requests**, **Image Transformations**, and **Fast Data Transfer**. Review Observability route sort weekly after deploy.
+On the **voltgear** project (Hassaan Pro / buyntryy.com): enable **Usage** and **Spend Management** notifications (e.g. 50% / 75% / 100%). Review Observability route sort weekly after deploy.
+
+Full thresholds and daily “10 numbers”: **`docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md`**.
 
 ## Out of this module
 

@@ -23,7 +23,7 @@ How we build, deploy, and ship. **Shop production:** Vercel project **`voltgear`
 ## Deployment (shop only)
 
 - **Pre:** `main` matches intent; env on **voltgear** includes `NEXT_PUBLIC_SITE_URL=https://buyntryy.com`.
-- **Post:** Check Vercel Usage (CPU, Edge, Image, transfer); enable usage alerts in dashboard.
+- **Post:** Run the daily metrics from `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md`; enable Vercel usage/spend alerts.
 - **Do not** deploy or edit other Vercel projects unless explicitly requested.
 
 ## Definition of done
@@ -41,3 +41,5 @@ How we build, deploy, and ship. **Shop production:** Vercel project **`voltgear`
 3. **T-38** and other ops features  
 
 See `docs/modules/deploy/DEPLOY_IMPLEMENTATION.md` for two-project Vercel details.
+
+**Monitoring:** `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md` (Vercel, Supabase, checkout, ads, cache, security).
