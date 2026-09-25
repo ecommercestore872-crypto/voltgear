@@ -39,6 +39,10 @@ The optional note from the admin status form is where a tracking number goes. Th
 | `app/api/orders/[orderId]/status/route.ts` | Sends status email (not `new`) |
 | `app/api/flows/route.ts` | Abandoned / win-back / review (unchanged HTML) |
 
+## Bounces & complaints
+
+Webhook + suppressions: **`docs/modules/email/RESEND_WEBHOOKS.md`**. Suppressed addresses are skipped on send; checkout success is independent of email delivery.
+
 ## Out of this module
 
 Admin email CMS, courier APIs, T-07 storefront look, T-05 analytics, switching off Resend.

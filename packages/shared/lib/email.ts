@@ -31,6 +31,7 @@ import {
 import { resolveCustomerDisplayName } from "@/lib/brand";
 import { applyPremiumEmailChrome, EMAIL_PALETTE, emailButtonHtml } from "@/lib/email-layout";
 import { escapeEmailHtml, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
+import { isEmailSuppressed } from "@/lib/db/email-suppression-store";
 
 export type { OrderEmailPayload, OrderStatusEmailPayload };
 export { buildOrderConfirmationEmail, buildOrderStatusEmail, buildAdminNewOrderEmail };
@@ -86,6 +87,14 @@ async function loadEmailSenders(): Promise<EmailSenderConfig | undefined> {
 }
 
 async function deliver(message: EmailMessage, purpose: EmailSendPurpose): Promise<boolean> {
+  if (await isEmailSuppressed(message.to)) {
+    console.info(
+      "[email]",
+      JSON.stringify({ outcome: "skipped_suppressed", purpose, ts: new Date().toISOString() }),
+    );
+    return false;
+  }
+
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const replyTo = notifyEmail() || message.replyTo;
   const senders = await loadEmailSenders();
@@ -119,7 +128,15 @@ async function deliver(message: EmailMessage, purpose: EmailSendPurpose): Promis
   try {
     const { error } = await resend.emails.send(payload);
     if (error) {
-      console.error("[email] send failed:", error);
+      console.error(
+        "[email]",
+        JSON.stringify({
+          outcome: "send_failed",
+          purpose,
+          message: typeof error.message === "string" ? error.message : "unknown",
+          ts: new Date().toISOString(),
+        }),
+      );
       const detail = typeof error.message === "string" ? error.message : "";
       if (/domain is not verified/i.test(detail)) {
         console.error(

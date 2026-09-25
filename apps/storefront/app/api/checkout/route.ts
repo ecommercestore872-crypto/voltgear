@@ -43,6 +43,10 @@ import {
   checkoutSloLog,
   type CheckoutOutcome,
 } from "@/lib/checkout-observability";
+import {
+  checkoutHttpStatusAfterOrderPersisted,
+  summarizeNewOrderEmailOutcome,
+} from "@/lib/email-checkout-rules";
 import { normalizePhone } from "@/lib/messaging";
 import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
 import { trackMetaServerPurchase } from "@/lib/meta-events-api";
@@ -467,15 +471,29 @@ export async function POST(request: Request) {
       postal: baseOrder.customer.postal,
     };
     const settings = await fetchSiteSettings().catch(() => null);
-    const emailResult = await notifyNewOrderEmails(
-      baseOrder.customer.email,
-      {
-        ...emailPayload,
-        email: baseOrder.customer.email,
-      },
-      { settingsEmail: settings?.email },
-    );
-    const emailNote = orderEmailFailureNote(emailResult);
+    let emailThrew = false;
+    let emailResult = {
+      customerSent: false,
+      adminSent: false,
+      adminTo: "",
+    };
+    try {
+      emailResult = await notifyNewOrderEmails(
+        baseOrder.customer.email,
+        {
+          ...emailPayload,
+          email: baseOrder.customer.email,
+        },
+        { settingsEmail: settings?.email },
+      );
+    } catch (err) {
+      emailThrew = true;
+      console.error("[checkout] email send threw:", err);
+    }
+    const emailOutcome = summarizeNewOrderEmailOutcome(emailResult, emailThrew);
+    const emailNote = emailThrew
+      ? "Email send issue: exception during send."
+      : orderEmailFailureNote(emailResult);
     if (emailNote) {
       try {
         await appendOrderNote(orderId, emailNote);
@@ -483,12 +501,16 @@ export async function POST(request: Request) {
         console.error("[checkout] email failure note");
       }
     }
-    await enqueueEmailEvent(
-      "post-purchase",
-      baseOrder.customer.email,
-      emailPayload,
-      5 * 24 * 60 * 60 * 1000,
-    );
+    try {
+      await enqueueEmailEvent(
+        "post-purchase",
+        baseOrder.customer.email,
+        emailPayload,
+        5 * 24 * 60 * 60 * 1000,
+      );
+    } catch (err) {
+      console.error("[checkout] enqueue post-purchase email failed:", err);
+    }
 
     try {
       if (parseAutopilotConfig(settings?.autopilot).autoDispatch) {
@@ -499,7 +521,8 @@ export async function POST(request: Request) {
       console.error("[checkout] autopilot dispatch skipped");
     }
 
-    slo("success", 200, { itemCount: lines.length });
+    const status = checkoutHttpStatusAfterOrderPersisted(true);
+    slo("success", status, { itemCount: lines.length, emailOutcome });
     return NextResponse.json({
       ok: true,
       orderId,

@@ -17,6 +17,7 @@ export function checkoutSloLog(fields: {
   itemCount?: number;
   replayed?: boolean;
   code?: string;
+  emailOutcome?: string;
 }): void {
   console.info(
     "[checkout-slo]",

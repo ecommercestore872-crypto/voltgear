@@ -1,5 +1,11 @@
 # Email — release notes
 
+## 2026-09-25 — Bounce/complaint webhook + checkout-safe sends (step 6)
+
+- Admin `POST /api/webhooks/resend` records bounces/complaints in `email_suppressions`; sends skip suppressed addresses.
+- Checkout wraps email + post-purchase enqueue in try/catch; `[checkout-slo]` logs `emailOutcome`.
+- Setup: `docs/modules/email/RESEND_WEBHOOKS.md`.
+
 ## 2026-09-05 — Distinct admin new-order mail (T-34)
 
 - Customer confirmation is no longer BCC’d to the owner.
