@@ -13,6 +13,8 @@ Spec: `docs/superpowers/specs/2026-09-05-t38b-autopilot-engines-design.md`
 
 **T-40 — Storefront / admin Vercel split:** 🟡 monorepo on branch `feature/t40-storefront-admin-split` — wire two Vercel projects per `docs/modules/deploy/DEPLOY_IMPLEMENTATION.md`.
 
+**T-41 — Vercel usage & shop hardening:** 🟡 In Progress — spec `docs/superpowers/specs/2026-09-25-t41-vercel-shop-hardening-design.md` · **`voltgear` / buyntryy.com only**.
+
 ## Program
 
 Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel logs, staging, black-and-white storefront with product videos, Vercel deploy. Admin platform program adds Shopify-parity gaps (inbox, collections, marketing email, category-grouped products, nav IA).
@@ -61,6 +63,7 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-38 | Autopilot honesty + engines | 🟡 In Progress | T-34 | A: honest board. B: real PostEx book/track + CSV settle. Ads/reorder not engines. |
 | T-39 | SEO — Pakistan rankings (categories, products, guides) | 🟡 In Progress | T-08 | Phase 1 canonicals live. Phase 2 wave 1: `/cod/{city}` hubs (Lahore, Karachi, Islamabad, Rawalpindi). Perf pass on layout/fonts/pixels. Plan: `tasks/plan.md`. |
 | T-40 | Storefront / admin Vercel split (monorepo, dual project) | 🟡 In Progress | T-08 | Spec: `docs/superpowers/specs/2026-09-23-t40-storefront-admin-split-design.md`. Shop redirects `/admin` to admin Vercel URL; lean buyntryy deploy. |
+| T-41 | Vercel usage & storefront hardening | 🟡 In Progress | T-40 | Spec: `docs/superpowers/specs/2026-09-25-t41-vercel-shop-hardening-design.md`. Usage guardrails; admin APIs off shop; ISR/cron cleanup. |
 
 ## Suggested build order
 

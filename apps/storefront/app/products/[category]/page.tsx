@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -26,7 +27,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
 export async function generateMetadata({
   params,

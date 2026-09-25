@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { runAnalyticsCleanup } from "@/lib/db/analytics-cleanup";
 import {
   bindProductRelations,
   buildFirstTouch,
@@ -287,14 +286,6 @@ export async function POST(request: Request) {
       resolved.sessionId,
       analyticsCookieOptions(SESSION_MAX_AGE),
     );
-
-    if (Math.random() < 1 / 50) {
-      try {
-        await runAnalyticsCleanup(now);
-      } catch {
-        // fail-open: cleanup must not drop Set-Cookie
-      }
-    }
 
     return res;
   } catch {

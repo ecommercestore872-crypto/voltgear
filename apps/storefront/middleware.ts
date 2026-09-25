@@ -2,6 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { apexPublicUrl, shouldRedirectWwwHost } from "@/lib/seo-rules";
 
+const SKIP_CITY_COOKIE_PREFIXES = ["/api/", "/_next/"] as const;
+
+function needsVisitorCityCookie(pathname: string): boolean {
+  if (pathname === "/favicon.ico") return false;
+  return !SKIP_CITY_COOKIE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host");
   if (shouldRedirectWwwHost(host)) {
@@ -21,6 +28,10 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  if (!needsVisitorCityCookie(pathname)) {
+    return NextResponse.next();
+  }
+
   const response = NextResponse.next();
   const city = request.headers.get("x-vercel-ip-city");
   if (city) {
@@ -35,5 +46,9 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/checkout/:path*",
+    "/api/checkout/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
+  ],
 };

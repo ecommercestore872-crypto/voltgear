@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import {
   Headphones,
@@ -16,7 +17,7 @@ import { telHref, whatsappHref } from "@/lib/contact-links";
 import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
 
 export const metadata: Metadata = {
   title: "Contact Us",

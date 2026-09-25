@@ -7,8 +7,40 @@ import {
   createFirstPartyClient,
   pageTypeFromPath,
   shouldCollectPath,
+  shouldSendPageView,
   validationCategoryFromFieldName,
 } from "./first-party-analytics";
+
+describe("shouldSendPageView", () => {
+  it("allows the first view and blocks duplicates within 60s", () => {
+    const store = new Map<string, string>();
+    const mockWindow = {
+      sessionStorage: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => {
+          store.set(k, v);
+        },
+      },
+    } as Window & typeof globalThis;
+    const original = globalThis.window;
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      writable: true,
+      value: mockWindow,
+    });
+    try {
+      assert.equal(shouldSendPageView("/product/pad", 1_000), true);
+      assert.equal(shouldSendPageView("/product/pad", 30_000), false);
+      assert.equal(shouldSendPageView("/product/pad", 61_500), true);
+    } finally {
+      Object.defineProperty(globalThis, "window", {
+        configurable: true,
+        writable: true,
+        value: original,
+      });
+    }
+  });
+});
 
 describe("shouldCollectPath", () => {
   it("skips admin and legacy /home2 preview, allows live Biometic shop", () => {

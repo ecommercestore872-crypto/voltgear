@@ -11,17 +11,6 @@ import { getOrderById, updateOrderStatus } from "@/lib/order-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Admin: update an order's status and notify the customer by email.
- *
- *   curl -X POST http://localhost:3001/api/orders/VG-XXXXXXXX/status \
- *     -H "Authorization: Bearer <ADMIN_TOKEN>" \
- *     -H "Content-Type: application/json" \
- *     -d '{"status":"shipped","note":"Tracking: PKG-123456"}'
- *
- * Sends the matching status email (shipped / delivered / cancelled / …).
- * The `new` status never emails — the confirmation is sent at checkout.
- */
 export async function POST(
   request: Request,
   { params }: { params: { orderId: string } },

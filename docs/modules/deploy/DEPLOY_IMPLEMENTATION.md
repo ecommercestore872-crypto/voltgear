@@ -7,12 +7,12 @@ The repo is an npm monorepo: **shop** (`apps/storefront`) and **admin** (`apps/a
 | App | Host (target) | Vercel root directory |
 |---|---|---|
 | Shop | https://buyntryy.com (custom) / production storefront project | `apps/storefront` |
-| Admin | https://voltgear-admin.vercel.app (interim) | `apps/admin` |
+| Admin | https://voltgear-admin-dashboard.vercel.app | `apps/admin` |
 
 ## Two-project setup (T-40)
 
-1. **Shop project** — Settings → General → **Root Directory** = `apps/storefront`. Production env must include `ADMIN_PUBLIC_URL` (admin origin, no trailing slash) so `/admin/*` and `/studio` redirect to the admin app.
-2. **Admin project** — New project, same Git repo, **Root Directory** = `apps/admin`. Copy Supabase, Cloudinary, Resend, `ADMIN_TOKEN`, etc. Add **`STOREFRONT_URL`** = shop origin (for publish → `POST /api/revalidate`).
+1. **Shop project** — Settings → General → **Root Directory** = `apps/storefront`. Set **`ADMIN_PUBLIC_URL=https://voltgear-admin-dashboard.vercel.app`** (no trailing slash) so `/admin/*` and `/studio` redirect to admin.
+2. **Admin project** — On your personal Vercel account: project **`voltgear-admin-dashboard`** → **https://voltgear-admin-dashboard.vercel.app**, root **`apps/admin`**. Copy Supabase, Cloudinary, Resend, `ADMIN_TOKEN`, etc. Add **`STOREFRONT_URL=https://buyntryy.com`**.
 3. **Ignored Build Step** (each project, repo root as context for the script path):
    - Shop: `bash scripts/vercel-should-build-storefront.sh`
    - Admin: `bash scripts/vercel-should-build-admin.sh`
@@ -21,6 +21,17 @@ The repo is an npm monorepo: **shop** (`apps/storefront`) and **admin** (`apps/a
 Build/install commands live in each app’s `vercel.json` (`cd ../.. && npm ci` + workspace build).
 
 Legacy single-app deploy from repo root is **deprecated** after T-40.
+
+### Admin deploy (separate Vercel account OK)
+
+Shop (**voltgear** / buyntryy.com) redirects `/admin` to **`ADMIN_PUBLIC_URL`**. Admin can live on **another Vercel account** (e.g. your personal login); it does not have to be **ecommercestore872-crypto**.
+
+1. Log in to Vercel as the account that will host admin (`vercel login`).
+2. From repo root: `.\scripts\deploy-admin-vercel.ps1`
+3. On the **admin** project: env **`STOREFRONT_URL=https://buyntryy.com`**, same **`ADMIN_TOKEN`** and DB keys as shop.
+4. On the **shop** project (other account’s dashboard): set **`ADMIN_PUBLIC_URL=https://voltgear-admin-dashboard.vercel.app`**, redeploy shop.
+
+Create the admin Vercel project as **`voltgear-admin-dashboard`** on your account so the default alias matches.
 
 ## What was wired
 
@@ -35,6 +46,10 @@ Legacy single-app deploy from repo root is **deprecated** after T-40.
 Placeholders live in `.env.example`. Real values stay in `.env.local` and the Vercel dashboard. To copy keys again without printing values: `node scripts/push-vercel-env.mjs`.
 
 After a custom domain, set `NEXT_PUBLIC_SITE_URL` to that origin (no trailing slash) and redeploy.
+
+## Vercel usage alerts (T-41)
+
+On the **voltgear** project (Hassaan Pro / buyntryy.com): enable **Usage** notifications for **Active CPU**, **Edge Requests**, **Image Transformations**, and **Fast Data Transfer**. Review Observability route sort weekly after deploy.
 
 ## Out of this module
 

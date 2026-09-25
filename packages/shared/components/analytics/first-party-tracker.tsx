@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   pageTypeFromPath,
   shouldCollectPath,
+  shouldSendPageView,
   trackFirstParty,
 } from "@/lib/first-party-analytics";
 
@@ -14,6 +15,7 @@ export function FirstPartyTracker() {
 
   useEffect(() => {
     if (!pathname || !shouldCollectPath(pathname)) return;
+    if (!shouldSendPageView(pathname)) return;
     trackFirstParty({
       name: "page_view",
       path: pathname,

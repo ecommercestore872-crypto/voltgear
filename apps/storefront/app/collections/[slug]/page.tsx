@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import { notFound } from "next/navigation";
 
 import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
@@ -13,7 +14,7 @@ import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
 export async function generateMetadata({
   params,

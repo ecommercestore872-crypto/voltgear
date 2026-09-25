@@ -7,6 +7,7 @@ import {
   sendPostPurchaseEmail,
   sendWinbackEmail,
 } from "@/lib/email";
+import { runAnalyticsCleanup } from "@/lib/db/analytics-cleanup";
 import {
   enqueueEmailEvent,
   getAllOrders,
@@ -145,6 +146,12 @@ export async function GET(request: Request) {
     }
   } catch (err) {
     errors.push(`autopilot: ${String(err)}`);
+  }
+
+  try {
+    await runAnalyticsCleanup();
+  } catch (err) {
+    errors.push(`analytics-cleanup: ${String(err)}`);
   }
 
   return NextResponse.json({

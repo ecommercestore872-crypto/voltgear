@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 
 import { AdsensePrivacyDisclosures } from "@/components/legal/adsense-privacy-disclosures";
 import {
@@ -10,7 +11,7 @@ import {
 import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await loadCmsPage("privacy-policy");

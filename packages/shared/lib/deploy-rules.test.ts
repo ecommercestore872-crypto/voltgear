@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isCronAuthorized, publicSiteUrl, resolveAdminSecret } from "./deploy-rules";
+import {
+  isCronAuthorized,
+  publicSiteUrl,
+  resolveAdminSecret,
+  resolveAdminSecretForMiddleware,
+} from "./deploy-rules";
 
 describe("publicSiteUrl", () => {
   it("prefers an explicit public origin, then Vercel, then localhost", () => {
@@ -28,6 +33,16 @@ describe("resolveAdminSecret", () => {
     assert.equal(resolveAdminSecret({ NODE_ENV: "development" }), "voltgear-demo-revalidate");
     assert.throws(() => resolveAdminSecret({ NODE_ENV: "production" }), /ADMIN_TOKEN/);
     assert.throws(() => resolveAdminSecret({ VERCEL_ENV: "production" }), /ADMIN_TOKEN/);
+  });
+});
+
+describe("resolveAdminSecretForMiddleware", () => {
+  it("never throws when tokens are missing", () => {
+    assert.equal(resolveAdminSecretForMiddleware({ NODE_ENV: "production" }), "");
+    assert.equal(
+      resolveAdminSecretForMiddleware({ ADMIN_TOKEN: " x ", VERCEL_ENV: "production" }),
+      "x",
+    );
   });
 });
 

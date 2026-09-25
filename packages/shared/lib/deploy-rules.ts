@@ -19,6 +19,13 @@ export function resolveAdminSecret(env: Env = process.env): string {
   return "voltgear-demo-revalidate";
 }
 
+/** Edge middleware must not throw when env is missing — redirect to login instead. */
+export function resolveAdminSecretForMiddleware(
+  env: Env = process.env,
+): string {
+  return (env.ADMIN_TOKEN || env.REVALIDATION_TOKEN || "").trim();
+}
+
 export function isCronAuthorized(
   authorization: string | null | undefined,
   env: Env = process.env

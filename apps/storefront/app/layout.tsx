@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import dynamic from "next/dynamic";
 import Script from "next/script";
 import { Suspense } from "react";
@@ -158,7 +159,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;

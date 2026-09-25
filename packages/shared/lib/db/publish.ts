@@ -345,4 +345,4 @@ export {
   textToPortableText,
 } from "@/lib/product-detail-copy";
 
-export const ADMIN_COOKIE = "vg_admin";
+export { ADMIN_COOKIE } from "@/lib/admin-cookie";

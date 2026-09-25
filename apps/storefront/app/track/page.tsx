@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 
 import { GadgetSupportLayout } from "@/components/gadget/gadget-support-layout";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/track" },
 };
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
 
 export default function TrackPage() {
   return (

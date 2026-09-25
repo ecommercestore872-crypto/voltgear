@@ -73,6 +73,7 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      { source: "/", destination: "/admin/login", permanent: false },
       { source: "/home2", destination: "/", permanent: true },
       { source: "/home2/:path*", destination: "/", permanent: true },
       { source: "/products2", destination: "/products", permanent: true },

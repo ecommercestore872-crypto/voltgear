@@ -1,4 +1,5 @@
 import { SearchX } from "lucide-react";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 
 import { CatalogBreadcrumbs } from "@/components/catalog/catalog-breadcrumbs";
@@ -10,7 +11,7 @@ import type { BreadcrumbItem } from "@/components/catalog/catalog-breadcrumbs";
 import { isDemoSession } from "@/lib/demo";
 import { products2Href } from "@/lib/gadget-preview";
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
 export const metadata = {
   title: "Search",

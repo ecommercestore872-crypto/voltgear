@@ -1,20 +1,12 @@
 import { isAdminRequest } from "@/lib/admin";
-import { priorityIndexNowPaths, submitIndexNow } from "@/lib/indexnow-rules";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchBlogPosts, fetchShopTypes } from "@/lib/db/store";
+import { priorityIndexNowPaths, submitIndexNow } from "@/lib/indexnow-rules";
 import { indexSiteUrl } from "@/lib/seo-rules";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Notify IndexNow (Bing + partners) about updated storefront URLs.
- * Auth: same admin/revalidation bearer as /api/revalidate.
- *
- * POST /api/indexnow
- * Body optional: { "urls": ["https://buyntryy.com/products"] } or { "paths": ["/","/products"] }
- * Empty body submits the priority hub set (home, categories, guides).
- */
 export async function POST(request: Request) {
   if (!isAdminRequest(request)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });

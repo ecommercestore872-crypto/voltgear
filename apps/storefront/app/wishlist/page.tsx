@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 
 import { WishlistClient } from "./wishlist-client";
 
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
 
 export default function WishlistPage() {
   return <WishlistClient />;

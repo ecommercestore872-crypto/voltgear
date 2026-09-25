@@ -1,4 +1,4 @@
-import { ADMIN_COOKIE } from "@/lib/db/publish";
+import { ADMIN_COOKIE } from "@/lib/admin-cookie";
 import { resolveAdminSecret } from "@/lib/deploy-rules";
 
 /**

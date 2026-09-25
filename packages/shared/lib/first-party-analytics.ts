@@ -47,6 +47,26 @@ const FIELD_VALIDATION_CATEGORIES = new Set([
 
 type FetchFn = typeof fetch;
 
+/** Skip duplicate page_view bursts (refresh / layout re-run) to save /api/analytics/event CPU. */
+export function shouldSendPageView(pathname: string, nowMs = Date.now()): boolean {
+  const storage =
+    typeof globalThis.window !== "undefined"
+      ? globalThis.window.sessionStorage
+      : null;
+  if (!storage) return true;
+  try {
+    const key = `vg_pv:${pathname}`;
+    const prev = storage.getItem(key);
+    if (prev && nowMs - Number(prev) < 60_000) {
+      return false;
+    }
+    storage.setItem(key, String(nowMs));
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 export function shouldCollectPath(pathname: string): boolean {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     return false;

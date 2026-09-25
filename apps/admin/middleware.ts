@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { getAdminSecret } from "@/lib/admin";
 import { isAdminPublicPath } from "@/lib/admin-public-paths";
-import { ADMIN_COOKIE } from "@/lib/db/publish";
+import { ADMIN_COOKIE } from "@/lib/admin-cookie";
+import { resolveAdminSecretForMiddleware } from "@/lib/deploy-rules";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,7 +12,8 @@ export function middleware(request: NextRequest) {
   }
 
   const cookie = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (cookie !== getAdminSecret()) {
+  const secret = resolveAdminSecretForMiddleware();
+  if (!secret || cookie !== secret) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     url.search = "";
@@ -23,5 +24,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/admin/:path*"],
 };

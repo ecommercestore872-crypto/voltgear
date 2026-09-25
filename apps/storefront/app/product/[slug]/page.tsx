@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -28,7 +29,7 @@ import type { Product, ProductReview } from "@/lib/types";
 import { indexSiteUrl, productStructuredData } from "@/lib/seo-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 
-export const revalidate = 60;
+export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
 const RELATED_LIMIT = 4;
 

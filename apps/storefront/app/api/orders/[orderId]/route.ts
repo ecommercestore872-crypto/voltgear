@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isAdminRequest } from "@/lib/admin";
-import { getOrderById, deleteOrder } from "@/lib/order-store";
+import { getOrderById } from "@/lib/order-store";
 import {
   SHOPPER_NOT_FOUND_MESSAGE,
   shopperLookupNotFound,
@@ -48,39 +47,4 @@ export async function GET(
   }
 
   return NextResponse.json(toShopperTrackPayload(order!));
-}
-
-/**
- * Admin: delete an order permanently.
- *
- *   curl -X DELETE http://localhost:3001/api/orders/VG-XXXXXXXX \
- *     -H "Authorization: Bearer <ADMIN_TOKEN>"
- */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { orderId: string } },
-) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const orderId = params.orderId;
-  if (!orderId) {
-    return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
-  }
-
-  const order = await getOrderById(orderId);
-  if (!order) {
-    return NextResponse.json({ error: "Order not found." }, { status: 404 });
-  }
-
-  const success = await deleteOrder(orderId);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Could not delete the order. Please try again." },
-      { status: 500 },
-    );
-  }
-
-  return NextResponse.json({ ok: true });
 }

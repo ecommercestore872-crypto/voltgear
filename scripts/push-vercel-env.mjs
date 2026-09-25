@@ -2,7 +2,8 @@
  * Copies .env.local into the linked Vercel project.
  * Logs key names only. Never prints values.
  *
- * Usage: node scripts/push-vercel-env.mjs
+ * Usage: node scripts/push-vercel-env.mjs [--cwd <monorepo-root>]
+ * Uses the Vercel project linked in <cwd>/.vercel (default: repo root).
  */
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
@@ -10,10 +11,20 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
+const args = process.argv.slice(2);
+let vercelCwd = ROOT;
+const cwdIdx = args.indexOf("--cwd");
+if (cwdIdx >= 0 && args[cwdIdx + 1]) {
+  vercelCwd = resolve(args[cwdIdx + 1]);
+}
 const ENV_FILE = resolve(ROOT, ".env.local");
 
 const SKIP_PREFIX = ["SANITY_", "NEXT_PUBLIC_SANITY_"];
-const SKIP_EXACT = new Set(["NEXT_DIST_DIR"]);
+const SKIP_EXACT = new Set([
+  "NEXT_DIST_DIR",
+  "VERCEL_OIDC_TOKEN",
+  "ADMIN_PUBLIC_URL",
+]);
 const SENSITIVE = new Set([
   "ADMIN_TOKEN",
   "REVALIDATION_TOKEN",
@@ -68,7 +79,7 @@ function addEnv(name, value, sensitive) {
     if (sensitive) args.push("--sensitive");
     else args.push("--no-sensitive");
     const child = spawn("npx", args, {
-      cwd: ROOT,
+      cwd: vercelCwd,
       stdio: ["pipe", "pipe", "pipe"],
       shell: true,
     });
@@ -109,7 +120,9 @@ const keys = Object.keys(env)
   .filter((k) => !shouldSkip(k, env[k]))
   .sort();
 
-console.log(`pushing ${keys.length} keys (names only): ${keys.join(", ")}`);
+console.log(
+  `pushing ${keys.length} keys to ${vercelCwd} (names only): ${keys.join(", ")}`,
+);
 
 for (const key of keys) {
   process.stdout.write(`set ${key} ... `);

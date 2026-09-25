@@ -1,0 +1,19 @@
+---
+description: Vercel CLI and deploy work scoped to shop only (voltgear / buyntryy.com)
+alwaysApply: true
+---
+
+# Vercel scope (mandatory)
+
+When using Vercel CLI, dashboard changes, env vars, deploys, or domain settings:
+
+- **Only** the Vercel project named **`voltgear`**.
+- **Only** the production shop domain **`buyntryy.com`** (and its Vercel aliases for that project).
+- App path in repo: **`apps/storefront`** (shop).
+
+**Never** without explicit user request:
+
+- Deploy, link, update, or delete **any other** Vercel project (including admin, previews on other teams, or unrelated Hassaan/ecommerce projects).
+- Run bulk commands that affect all projects (`vercel deploy` without confirming project, mass env push to wrong project).
+
+Before any `vercel` command: confirm target is **`voltgear`** (e.g. `vercel link --project voltgear`, root `apps/storefront` per monorepo setup).
