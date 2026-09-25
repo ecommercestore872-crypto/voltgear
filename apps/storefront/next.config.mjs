@@ -18,9 +18,11 @@ const nextConfig = {
     ],
   },
   images: {
-    formats: ["image/avif", "image/webp"],
-    deviceSizes: [384, 640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [32, 48, 64, 96, 128, 256, 384],
+    loader: "custom",
+    loaderFile: "./cloudinary-loader.ts",
+    formats: ["image/webp"],
+    deviceSizes: [640, 828, 1080, 1200],
+    imageSizes: [48, 96, 128, 256],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },

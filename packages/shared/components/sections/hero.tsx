@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { imageUrl } from "@/lib/sanity/image";
+import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { getHeroSlides, type HeroSlide } from "@/lib/demo-hero-slides";
 import { getFallbackProductImage } from "@/lib/fallback-images";
 import type { PublicSiteConfig } from "@/lib/site-config";
@@ -92,7 +93,7 @@ export function Hero({
   const image =
     currentSlide.image ||
     (featured?.images?.[0] ?? featured?.cloudinaryImages?.[0]);
-  let resolvedImageSrc = imageUrl(image, { w: 2400 });
+  let resolvedImageSrc = imageUrl(image, { w: PRODUCT_IMAGE.hero });
   if (!resolvedImageSrc && featured) {
     resolvedImageSrc = getFallbackProductImage(featured);
   } else if (
@@ -143,7 +144,8 @@ export function Hero({
                   alt={currentSlide.alt}
                   fill
                   priority={activeIndex === 0}
-                  sizes="100vw"
+                  sizes="(max-width: 1200px) 100vw, 1200px"
+                  quality={75}
                   className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.01]"
                 />
                 {/* Overlay shadow for text contrast */}
@@ -231,7 +233,7 @@ export function Hero({
                     >
                       {image ? (
                         <Image
-                          src={imageUrl(image, { w: 1000 })}
+                          src={imageUrl(image, { w: PRODUCT_IMAGE.hero })}
                           alt={
                             featured?.name ||
                             currentSlide.headline ||

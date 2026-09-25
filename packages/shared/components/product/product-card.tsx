@@ -61,9 +61,10 @@ export function ProductCard({
               src={imageUrl(image, { w: PRODUCT_IMAGE.card })}
               alt={product.name}
               fill
-              quality={75}
+              quality={70}
+              loading="lazy"
               className="object-contain transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 50vw, 25vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">

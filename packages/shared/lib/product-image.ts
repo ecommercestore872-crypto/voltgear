@@ -3,9 +3,13 @@ export const PRODUCT_IMAGE = {
   uploadWidth: 2048,
   uploadHeight: 2048,
   minEdge: 800,
-  gallery: 2000,
-  card: 900,
-  thumb: 320,
+  /** PDP main — matches Next deviceSizes max for 50vw layout */
+  gallery: 1200,
+  /** PLP / grids — ~25–50vw on typical viewports */
+  card: 640,
+  /** Hero / full-bleed banners */
+  hero: 1200,
+  thumb: 256,
 } as const;
 
 export const PRODUCT_PHOTO_HINT =

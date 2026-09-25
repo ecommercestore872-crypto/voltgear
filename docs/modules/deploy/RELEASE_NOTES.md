@@ -1,5 +1,9 @@
 # Vercel production — release notes
 
+## 2026-09-25 — Remediation step 3 (images)
+
+- Custom Cloudinary loader on storefront; reduced Next `deviceSizes`; tighter product/hero widths.
+
 ## 2026-09-25 — Remediation step 1 (cached routes)
 
 - ISR/cache for `llms.txt`, `ads.txt`, TikTok catalog CSV, and `/api/settings` to cut function work and Supabase reads on crawlers and cart config fetches.

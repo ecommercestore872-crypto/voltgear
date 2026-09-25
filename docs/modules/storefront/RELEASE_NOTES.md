@@ -1,5 +1,10 @@
 # Gadget storefront preview — release notes
 
+## 2026-09-25 — Remediation step 3 (images / bandwidth)
+
+- Shop **voltgear**: Cloudinary custom Next.js image loader (fewer Vercel Image Transformations).
+- Smaller PLP/PDP/hero width caps and lazy product grid images.
+
 ## 2026-09-01 — Craft system: motion, type, icons (T-19)
 
 - Preview gets shared craft tokens (motion durations/easing, type scale, hover-lift), home section reveals, sharper Buy now trust microcopy from real settings, upgraded category glyphs, and consistent icon stroke. Live `/` unchanged.

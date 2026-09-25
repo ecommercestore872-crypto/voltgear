@@ -12,8 +12,31 @@ export const CLOUDINARY_TRANSFORM = {
   fetch_format: "auto" as const,
 };
 
+/** Strip version + transform segments so we never stack w_/f_ twice. */
+export function cloudinaryAssetPathAfterUpload(uploadTail: string): string {
+  let rest = uploadTail.replace(/^\/+/, "");
+  if (/^v\d+\//.test(rest)) {
+    rest = rest.slice(rest.indexOf("/") + 1);
+  }
+  while (rest.length > 0) {
+    const slash = rest.indexOf("/");
+    const segment = slash === -1 ? rest : rest.slice(0, slash);
+    const looksLikeTransform =
+      segment.includes("_") &&
+      /^(f_|q_|c_|w_|h_|g_|e_|fl_|b_|dpr_|ar_)/.test(segment);
+    if (!looksLikeTransform) break;
+    rest = slash === -1 ? "" : rest.slice(slash + 1);
+  }
+  return rest
+    .replace(/\.heic$/i, ".webp")
+    .replace(/\.heif$/i, ".webp")
+    .replace(/\.jpg$/i, ".webp")
+    .replace(/\.jpeg$/i, ".webp")
+    .replace(/\.png$/i, ".webp");
+}
+
 /**
- * Returns an auto-optimized Cloudinary image URL (f_auto, q_auto,
+ * Returns an auto-optimized Cloudinary image URL (f_webp, q_auto,
  * responsive width). Accepts either a full URL or a bare public ID.
  */
 export function cloudinaryImageUrl(
@@ -37,7 +60,7 @@ export function cloudinaryImageUrl(
   if (idx === -1) return base;
 
   const insert = `f_webp,q_${q},c_limit,w_${w}/`;
-  const endPath = base.slice(idx + marker.length).replace(/\.heic$/i, ".webp").replace(/\.heif$/i, ".webp").replace(/\.jpg$/i, ".webp").replace(/\.png$/i, ".webp");
+  const endPath = cloudinaryAssetPathAfterUpload(base.slice(idx + marker.length));
   return `${base.slice(0, idx + marker.length)}${insert}${endPath}`;
 }
 
@@ -47,21 +70,13 @@ import type { ImageLoaderProps } from "next/image";
  * Custom Next.js Image loader that forces Cloudinary to do the resizing,
  * completely bypassing Vercel Serverless Function latency!
  */
+/** Next.js `loader` — resize on Cloudinary, not Vercel Image Optimization. */
 export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
   if (!src.includes("res.cloudinary.com")) return src;
-  
-  // If the src ALREADY contains transformations (e.g. from cloudinaryImageUrl),
-  // we just return it as is, or strip them out to apply the active Next.js width.
-  // Actually, to keep it simple, if it has /upload/ with f_auto already:
-  if (src.includes("/upload/f_auto")) {
-    return src; 
-  }
-
-  const marker = "/image/upload/";
-  const idx = src.indexOf(marker);
-  if (idx === -1) return src;
-
-  const q = quality || "auto";
-  const endPath = src.slice(idx + marker.length).replace(/\.heic$/i, ".jpg").replace(/\.heif$/i, ".jpg");
-  return `${src.slice(0, idx + marker.length)}f_auto,q_${q},c_limit,w_${width}/${endPath}`;
+  return cloudinaryImageUrl(src, {
+    w: width,
+    q: quality ? String(quality) : "auto",
+  });
 }
+
+export default cloudinaryLoader;

@@ -151,7 +151,7 @@ export function ProductGallery({
             fill
             priority
             quality={75}
-            sizes="(max-width: 1024px) 100vw, 50vw"
+            sizes="(max-width: 1024px) 100vw, min(600px, 50vw)"
             className="object-contain pointer-events-none"
           />
         ) : (
