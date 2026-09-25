@@ -117,7 +117,7 @@ Complaint rate: stay **well below 0.08%** (provider guidance).
 | First-party `/api/analytics/event` | No error spikes in logs |
 | UTM → order | Preserved where designed |
 
-**Sanity:** Admin order count ≈ Purchase events (allow ad blockers, non-TikTok traffic). Large mismatch = investigate.
+**Sanity:** Admin order count ≈ Purchase events (allow ad blockers, non-TikTok traffic). Large mismatch = investigate. Weekly runbook: `docs/modules/analytics/PURCHASE_SANITY_WEEKLY.md`.
 
 ---
 

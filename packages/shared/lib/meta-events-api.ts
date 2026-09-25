@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+import { purchaseTrackLog } from "@/lib/purchase-track-observability";
+
 export const META_CURRENCY = "PKR";
 
 function sha256Hex(value: string): string {
@@ -46,7 +48,10 @@ export async function trackMetaServerPurchase(input: {
   const version = process.env.META_GRAPH_API_VERSION || "v19.0";
   const testEventCode = process.env.META_TEST_EVENT_CODE;
 
-  if (!pixelId || !token || !version) return;
+  if (!pixelId || !token || !version) {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_config" });
+    return;
+  }
 
   const userData: Record<string, any> = {};
 
@@ -166,8 +171,12 @@ export async function trackMetaServerPurchase(input: {
       let message = await res.text();
       try { message = JSON.parse(message).error?.message || message; } catch {}
       console.warn("[meta-capi] Purchase send failed", { orderId: input.orderId, status: res.status, message });
+      purchaseTrackLog({ channel: "meta", outcome: "failed" });
+      return;
     }
+    purchaseTrackLog({ channel: "meta", outcome: "sent" });
   } catch (error) {
+    purchaseTrackLog({ channel: "meta", outcome: "failed" });
     if (error instanceof Error && error.name === "TimeoutError") {
       console.warn("[meta-capi] Purchase send timeout", { orderId: input.orderId });
     } else {

@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+import { purchaseTrackLog } from "@/lib/purchase-track-observability";
+
 export const TIKTOK_CURRENCY = "PKR";
 
 function sha256Hex(value: string): string {
@@ -30,8 +32,14 @@ export async function trackTikTokServerPurchase(input: {
   const token = process.env.TIKTOK_EVENTS_API_ACCESS_TOKEN || process.env.TIKTOK_ACCESS_TOKEN;
   const enabled = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED;
 
-  if (input.consent !== "all") return;
-  if (!pixelId || !token || enabled !== "true") return;
+  if (input.consent !== "all") {
+    purchaseTrackLog({ channel: "tiktok", outcome: "skipped_consent" });
+    return;
+  }
+  if (!pixelId || !token || enabled !== "true") {
+    purchaseTrackLog({ channel: "tiktok", outcome: "skipped_config" });
+    return;
+  }
 
   // The event_id matches the browser implementation exactly for 100% accurate deduplication
   const event_id = `purchase_${input.orderId}`;
@@ -98,8 +106,12 @@ export async function trackTikTokServerPurchase(input: {
       let message = await res.text();
       try { message = JSON.parse(message).message || message; } catch {}
       console.error("[tiktok-events-api] API response error:", message);
+      purchaseTrackLog({ channel: "tiktok", outcome: "failed" });
+      return;
     }
+    purchaseTrackLog({ channel: "tiktok", outcome: "sent" });
   } catch (error) {
+    purchaseTrackLog({ channel: "tiktok", outcome: "failed" });
     if (error instanceof Error && error.name === "TimeoutError") {
       console.error("[tiktok-events-api] Request timed out");
     } else {

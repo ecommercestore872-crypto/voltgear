@@ -44,6 +44,7 @@ Practice / `is_demo` orders are excluded.
 | GET | `/api/admin/analytics?preset=&from=&to=` | Executive + products + cities + customers + funnel |
 | POST | `/api/admin/analytics/query` | Whitelist metric / dimension / range. No SQL. |
 | GET | `/api/admin/analytics/orders?ids=` | Drilldown: order number, date, status, city, total. No email or phone. Max 100 ids. |
+| GET | `/api/admin/analytics/purchase-sanity?preset=&tiktok=&meta=` | Weekly: placed orders vs TikTok/Meta Purchase counts + attribution proxies |
 | GET/POST | `/api/admin/analytics/reports` | List / save named queries |
 | DELETE | `/api/admin/analytics/reports/[id]` | Delete a saved report |
 
