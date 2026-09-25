@@ -1,5 +1,11 @@
 # Orders — release notes
 
+## 2026-09-25 — Checkout SLO (remediation step 4)
+
+- `POST /api/checkout` emits `[checkout-slo]` JSON logs (duration, outcome, status; no PII). Targets: p95 ≤ 3s, alert ≥ 4s.
+- Idempotent replay returns full order totals from DB. Unit tests for idempotency key, cache, rate limit, and SLO helpers in CI.
+- See `docs/modules/orders/CHECKOUT_SLO.md`.
+
 ## 2026-09-01 — T-20 Shopper self-cancel
 
 - Customers can cancel from `/track` within 24 hours while status is new or processing.

@@ -39,6 +39,10 @@ import {
   readIdempotencyKey,
   takeCheckoutRateLimit,
 } from "@/lib/checkout-guard";
+import {
+  checkoutSloLog,
+  type CheckoutOutcome,
+} from "@/lib/checkout-observability";
 import { normalizePhone } from "@/lib/messaging";
 import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
 import { trackMetaServerPurchase } from "@/lib/meta-events-api";
@@ -85,11 +89,26 @@ interface CheckoutBody {
  * via the flow runner).
  */
 export async function POST(request: Request) {
+  const checkoutStarted = performance.now();
+  const slo = (
+    outcome: CheckoutOutcome,
+    status: number,
+    extra?: { itemCount?: number; replayed?: boolean; code?: string },
+  ) => {
+    checkoutSloLog({
+      outcome,
+      status,
+      durationMs: performance.now() - checkoutStarted,
+      ...extra,
+    });
+  };
+
   try {
     const body: CheckoutBody = await request.json();
     const { items = [], customer, payment, giftWrap, consent } = body;
 
     if (!items.length) {
+      slo("validation", 400, { itemCount: 0 });
       return NextResponse.json(
         { error: "Your cart is empty." },
         { status: 400 },
@@ -102,6 +121,7 @@ export async function POST(request: Request) {
       !customer.address ||
       !customer.city?.trim()
     ) {
+      slo("validation", 400, { itemCount: items.length });
       return NextResponse.json(
         { error: "Name, email, phone, address and city are required." },
         { status: 400 },
@@ -110,6 +130,7 @@ export async function POST(request: Request) {
 
     const phone = normalizePhone(customer.phone);
     if (!phone) {
+      slo("validation", 400, { itemCount: items.length });
       return NextResponse.json(
         { error: "Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)." },
         { status: 400 },
@@ -122,6 +143,7 @@ export async function POST(request: Request) {
       email,
     });
     if (!rate.ok) {
+      slo("rate_limit", 429, { itemCount: items.length });
       return NextResponse.json({ error: rate.error }, { status: 429 });
     }
 
@@ -131,6 +153,7 @@ export async function POST(request: Request) {
       if (cached) {
         const existing = await getOrderByPublicId(cached);
         if (existing) {
+          slo("replayed", 200, { itemCount: items.length, replayed: true });
           return NextResponse.json({
             ok: true,
             orderId: cached,
@@ -163,6 +186,7 @@ export async function POST(request: Request) {
     // Stock / availability errors and invalid quantities are blocking 400s.
     // A price change is a 409: no order is created and no email is sent.
     if (resolution.ok === "price_changed") {
+      slo("price_changed", 409, { itemCount: items.length, code: "PRICE_CHANGED" });
       return NextResponse.json(
         {
           code: "PRICE_CHANGED" as const,
@@ -177,6 +201,7 @@ export async function POST(request: Request) {
       );
     }
     if (!resolution.ok) {
+      slo("validation", 400, { itemCount: items.length });
       return NextResponse.json({ error: resolution.error }, { status: 400 });
     }
 
@@ -247,6 +272,7 @@ export async function POST(request: Request) {
         appliedPromo = applied.code;
       } catch (error) {
         console.error("[checkout] promo", error);
+        slo("promo_error", 503, { itemCount: items.length });
         return NextResponse.json(
           { error: "Could not apply promo code. Try again without it." },
           { status: 503 },
@@ -309,6 +335,7 @@ export async function POST(request: Request) {
         );
       }
       console.error("[checkout] root creation thrown:", err);
+      slo("create_failed", 500, { itemCount: items.length });
       return NextResponse.json(
         { error: "We couldn't store your order. Please try again." },
         { status: 500 }
@@ -316,6 +343,7 @@ export async function POST(request: Request) {
     }
 
     if (!persisted) {
+      slo("create_failed", 500, { itemCount: items.length });
       return NextResponse.json(
         { error: "We couldn't store your order. Please try again." },
         { status: 500 },
@@ -329,7 +357,23 @@ export async function POST(request: Request) {
     }
 
     if (persisted.replayed) {
-      return NextResponse.json({ ok: true, orderId, replayed: true });
+      const existing = await getOrderByPublicId(orderId);
+      slo("replayed", 200, { itemCount: items.length, replayed: true });
+      return NextResponse.json({
+        ok: true,
+        orderId,
+        replayed: true,
+        ...(existing
+          ? {
+              subtotal: existing.subtotal,
+              shipping: existing.shipping,
+              total: existing.total,
+              discount: existing.discount ?? 0,
+              promoCode: existing.promoCode ?? null,
+              lines: existing.items ?? [],
+            }
+          : {}),
+      });
     }
 
     if (appliedPromo) {
@@ -455,6 +499,7 @@ export async function POST(request: Request) {
       console.error("[checkout] autopilot dispatch skipped");
     }
 
+    slo("success", 200, { itemCount: lines.length });
     return NextResponse.json({
       ok: true,
       orderId,
@@ -467,6 +512,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Checkout error:", error);
+    slo("server_error", 500);
     if (
       error instanceof Error &&
       error.message.includes("ATOMIC_BUSINESS_ERROR:")
@@ -474,6 +520,7 @@ export async function POST(request: Request) {
       const msg =
         error.message.split("ATOMIC_BUSINESS_ERROR:")[1]?.trim() ||
         "Inventory no longer available.";
+      slo("validation", 400);
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     // For ATOMIC_INFRA_ERROR or any other unknown error, we return a generic 500 without leaking DB details
