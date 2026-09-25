@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/order-rules";
 import { sendOrderStatusUpdateEmail } from "@/lib/email";
 import { cancelOrder, getOrderById } from "@/lib/order-store";
+import { takeOrderCancelLimit } from "@/lib/public-api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,11 @@ export async function POST(
   const orderId = params.orderId;
   if (!orderId) {
     return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
+  }
+
+  const rate = takeOrderCancelLimit(request);
+  if (!rate.ok) {
+    return NextResponse.json({ error: rate.error }, { status: rate.status });
   }
 
   const body = await request.json().catch(() => null);

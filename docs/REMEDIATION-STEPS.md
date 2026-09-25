@@ -12,7 +12,7 @@ Shop only: **voltgear** / **buyntryy.com**. Check off in order; do not skip **St
 | **5** | T-40: admin redirect + publish → shop revalidate E2E | ✅ Run `npm run smoke:t40` after deploy |
 | **6** | Email: Resend bounce/complaint; order never fails on email error | ✅ Wire webhook on admin + `supabase db push` |
 | **7** | Ads/analytics: Purchase vs admin orders weekly sanity | ✅ `npm run sanity:purchases` — see analytics doc |
-| **8** | Security audit: RLS, public env, rate limits | ⬜ |
+| **8** | Security audit: RLS, public env, rate limits | ✅ `npm run audit:security` + db push RLS migration |
 | **9** | DR: backup restore drill + monthly export | ⬜ |
 
 Metrics guide: `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md`.

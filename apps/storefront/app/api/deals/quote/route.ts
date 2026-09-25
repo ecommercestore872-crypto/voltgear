@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 
 import { applyDealsToCart, normalizeDealSlug } from "@/lib/db/deal-rules";
 import { fetchDealCatalog, listProductDeals } from "@/lib/db/deal-store";
+import { takeDealQuoteLimit } from "@/lib/public-api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const rate = takeDealQuoteLimit(request);
+  if (!rate.ok) {
+    return NextResponse.json({ error: rate.error }, { status: rate.status });
+  }
+
   const body = await request.json().catch(() => null);
   const items = Array.isArray((body as { items?: unknown } | null)?.items)
     ? (body as { items: { slug?: unknown; quantity?: unknown }[] }).items

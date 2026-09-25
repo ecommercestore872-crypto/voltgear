@@ -25,6 +25,18 @@ const promoLimiter = createMemoryRateLimiter({
   maxKeys: 8_000,
 });
 
+const orderCancelLimiter = createMemoryRateLimiter({
+  limit: 12,
+  windowMs: 60_000,
+  maxKeys: 8_000,
+});
+
+const dealQuoteLimiter = createMemoryRateLimiter({
+  limit: 40,
+  windowMs: 60_000,
+  maxKeys: 8_000,
+});
+
 export function takePublicPostLimit(
   request: Request,
   kind: "contact" | "abandoned" | "review" | "promo"
@@ -46,4 +58,31 @@ export function takePublicPostLimit(
     };
   }
   return { ok: true };
+}
+
+function takeIpLimit(
+  request: Request,
+  limiter: ReturnType<typeof createMemoryRateLimiter>,
+): { ok: true } | { ok: false; error: string; status: 429 } {
+  const ip = checkoutClientIp(request);
+  if (!limiter.take({ ip })) {
+    return {
+      ok: false,
+      status: 429,
+      error: "Too many requests. Please wait a minute and try again.",
+    };
+  }
+  return { ok: true };
+}
+
+export function takeOrderCancelLimit(
+  request: Request,
+): { ok: true } | { ok: false; error: string; status: 429 } {
+  return takeIpLimit(request, orderCancelLimiter);
+}
+
+export function takeDealQuoteLimit(
+  request: Request,
+): { ok: true } | { ok: false; error: string; status: 429 } {
+  return takeIpLimit(request, dealQuoteLimiter);
 }
