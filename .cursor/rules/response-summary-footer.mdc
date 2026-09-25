@@ -1,0 +1,19 @@
+---
+description: End every user-facing reply with a short plain-language status block
+alwaysApply: true
+---
+
+# Response summary (required every message)
+
+After the main answer, always add a final section titled **In short** with **one short paragraph** (3–6 sentences). Use simple, everyday words — no jargon dumps.
+
+That paragraph must cover, in order when relevant:
+
+1. **What we just did or decided** — recap the message above in plain language.
+2. **What’s next** — what you will do on the next step (or what the user should do if blocked on them).
+3. **Issues / blockers** — anything broken, waiting, or risky (deploy, access, quotas, missing info).
+4. **Best suggestion** — one clear recommended next move for Buy N Try (**voltgear** / buyntryy.com shop scope unless user asked otherwise).
+
+Skip bullets in **In short**; keep it one readable paragraph. If there is nothing to do next, say the project is in a good waiting state and what to send you to continue (e.g. Usage screenshot, “phase 3”, a feature idea).
+
+Do not repeat long tables or checklists in **In short** — only the essence.
