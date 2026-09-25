@@ -13,6 +13,6 @@ Shop only: **voltgear** / **buyntryy.com**. Check off in order; do not skip **St
 | **6** | Email: Resend bounce/complaint; order never fails on email error | ✅ Wire webhook on admin + `supabase db push` |
 | **7** | Ads/analytics: Purchase vs admin orders weekly sanity | ✅ `npm run sanity:purchases` — see analytics doc |
 | **8** | Security audit: RLS, public env, rate limits | ✅ `npm run audit:security` + db push RLS migration |
-| **9** | DR: backup restore drill + monthly export | ⬜ |
+| **9** | DR: backup restore drill + monthly export | ✅ `npm run export:dr` monthly — drill in DR doc |
 
 Metrics guide: `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md`.

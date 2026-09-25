@@ -44,7 +44,12 @@ Step 2 migration: `20260925100000_analytics_retention_indexes.sql` — indexes f
 - Checkout and admin writes use **service role** on the server only — never in the browser.
 - Prefer ISR + short GET revalidate on read-heavy storefront queries to reduce repeated DB hits.
 
+## Backups & DR (step 9)
+
+Monthly: `npm run export:dr` then `npm run verify:dr`. Quarterly restore drill: `docs/modules/database/DR_RESTORE.md`.
+
 ## Related
 
 - `docs/modules/analytics/ANALYTICS_IMPLEMENTATION.md`
 - `docs/REMEDIATION-STEPS.md` step 2
+- `docs/modules/database/DR_RESTORE.md`
