@@ -66,6 +66,8 @@ Shop can look fine on Vercel while the database is the bottleneck.
 
 Live project (see `.env.example`): **Final-store** Supabase — not legacy paused projects.
 
+**Runbook + SQL checks:** `docs/modules/database/SUPABASE_HEALTH.md`
+
 ---
 
 ## 3. Product images / media

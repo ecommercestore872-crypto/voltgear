@@ -73,6 +73,19 @@ Migration `supabase/migrations/20260827230000_commerce_intelligence.sql`: `produ
 | `app/admin/analytics/page.tsx` | Page |
 | `app/api/admin/analytics/**` | Admin APIs |
 
+## First-party ingest retention (shop)
+
+Tables: `analytics_visitors`, `analytics_sessions`, `analytics_events` (RLS on; service role only).
+
+| Data | Retention |
+|------|-----------|
+| Sessions + events | 90 days (`last_activity_at` / `occurred_at`) |
+| Visitors | 365 days (`last_seen_at`), orphans removed after session probe |
+
+Purge runs on shop cron **`GET /api/flows`** (daily, `CRON_SECRET`) — not on each `/api/analytics/event` hit. Batch limits per run: up to 5k old events, 2k stale sessions (see `lib/db/analytics-cleanup.ts`). Indexes: migration `20260925100000_analytics_retention_indexes.sql`.
+
+Monitor row counts: `docs/modules/database/SUPABASE_HEALTH.md`.
+
 ## Out of this module
 
 Rebuilding orders, checkout, products, customer management, or courier tracking. Microsoft Clarity / visitor funnel (T-05). Ad spend import and delivered ROAS (no spend source yet).

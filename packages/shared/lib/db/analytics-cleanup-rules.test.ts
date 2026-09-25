@@ -16,6 +16,10 @@ describe("planAnalyticsCleanup", () => {
       plan.visitorLastSeenBefore.toISOString(),
       new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString()
     );
+    assert.equal(
+      plan.eventsOccurredBefore.toISOString(),
+      plan.sessionLastActivityBefore.toISOString()
+    );
     assert.ok(plan.visitorLastSeenBefore < plan.sessionLastActivityBefore);
     assert.ok(plan.sessionLastActivityBefore < now);
   });

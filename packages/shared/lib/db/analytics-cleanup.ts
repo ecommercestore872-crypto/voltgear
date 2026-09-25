@@ -2,7 +2,10 @@ import { getServiceClient } from "@/lib/supabase/server";
 
 import { orphanVisitorIds, planAnalyticsCleanup } from "./analytics-cleanup-rules";
 
-const CLEANUP_LIMIT = 100;
+/** Per daily cron run — keeps DB size bounded without long transactions. */
+const EVENT_DELETE_LIMIT = 5_000;
+const SESSION_DELETE_LIMIT = 2_000;
+const VISITOR_PROBE_LIMIT = 2_000;
 
 export async function runAnalyticsCleanup(now = new Date()): Promise<void> {
   try {
@@ -10,16 +13,22 @@ export async function runAnalyticsCleanup(now = new Date()): Promise<void> {
     const plan = planAnalyticsCleanup(now);
 
     await db
+      .from("analytics_events")
+      .delete()
+      .lt("occurred_at", plan.eventsOccurredBefore.toISOString())
+      .limit(EVENT_DELETE_LIMIT);
+
+    await db
       .from("analytics_sessions")
       .delete()
       .lt("last_activity_at", plan.sessionLastActivityBefore.toISOString())
-      .limit(CLEANUP_LIMIT);
+      .limit(SESSION_DELETE_LIMIT);
 
     const { data: oldVisitors, error: visitorError } = await db
       .from("analytics_visitors")
       .select("id")
       .lt("last_seen_at", plan.visitorLastSeenBefore.toISOString())
-      .limit(CLEANUP_LIMIT);
+      .limit(VISITOR_PROBE_LIMIT);
 
     if (visitorError || !oldVisitors?.length) {
       return;

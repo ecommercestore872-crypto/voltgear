@@ -1,11 +1,17 @@
+const SESSION_RETENTION_DAYS = 90;
+const VISITOR_RETENTION_DAYS = 365;
+
 export function planAnalyticsCleanup(now: Date): {
   sessionLastActivityBefore: Date;
   visitorLastSeenBefore: Date;
+  eventsOccurredBefore: Date;
 } {
   const dayMs = 24 * 60 * 60 * 1000;
+  const sessionCutoff = new Date(now.getTime() - SESSION_RETENTION_DAYS * dayMs);
   return {
-    sessionLastActivityBefore: new Date(now.getTime() - 90 * dayMs),
-    visitorLastSeenBefore: new Date(now.getTime() - 365 * dayMs),
+    sessionLastActivityBefore: sessionCutoff,
+    visitorLastSeenBefore: new Date(now.getTime() - VISITOR_RETENTION_DAYS * dayMs),
+    eventsOccurredBefore: sessionCutoff,
   };
 }
 
