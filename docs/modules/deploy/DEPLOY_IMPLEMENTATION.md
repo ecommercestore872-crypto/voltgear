@@ -22,6 +22,8 @@ Build/install commands live in each app’s `vercel.json` (`cd ../.. && npm ci` 
 
 Legacy single-app deploy from repo root is **deprecated** after T-40.
 
+**Verify:** `npm run smoke:t40` and `docs/modules/deploy/T40_VERIFICATION.md`.
+
 ### Admin deploy (separate Vercel account OK)
 
 Shop (**voltgear** / buyntryy.com) redirects `/admin` to **`ADMIN_PUBLIC_URL`**. Admin can live on **another Vercel account** (e.g. your personal login); it does not have to be **ecommercestore872-crypto**.

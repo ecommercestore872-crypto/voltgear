@@ -1,6 +1,8 @@
 import { revalidatePath } from "next/cache";
 
 import { getAdminSecret } from "@/lib/admin";
+import { isAdminCachePath } from "@/lib/revalidate-path-rules";
+import { postStorefrontRevalidate } from "@/lib/revalidate-storefront-http";
 
 export type RevalidatePathInput =
   | string
@@ -13,9 +15,7 @@ function normalize(input: RevalidatePathInput): {
   return typeof input === "string" ? { path: input } : input;
 }
 
-export function isAdminCachePath(path: string): boolean {
-  return path.startsWith("/admin");
-}
+export { isAdminCachePath } from "@/lib/revalidate-path-rules";
 
 /** POST shop `/api/revalidate` when `STOREFRONT_URL` is set; else local `revalidatePath`. */
 export async function revalidateStorefront(
@@ -30,34 +30,7 @@ export async function revalidateStorefront(
     return { ok: true };
   }
 
-  const token = getAdminSecret();
-  let res: Response;
-  try {
-    res = await fetch(`${storefrontUrl}/api/revalidate`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ paths }),
-    });
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : "Revalidate request failed",
-    };
-  }
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    return {
-      ok: false,
-      status: res.status,
-      error: body || res.statusText || "Revalidate failed",
-    };
-  }
-
-  return { ok: true };
+  return postStorefrontRevalidate(storefrontUrl, getAdminSecret(), paths);
 }
 
 export async function revalidateAfterPublish(

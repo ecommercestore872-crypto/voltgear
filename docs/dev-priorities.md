@@ -13,7 +13,7 @@ Spec: `docs/superpowers/specs/2026-09-05-t38b-autopilot-engines-design.md`
 
 **T-39 — SEO (Pakistan rankings):** plan ready at `docs/plans/2026-09-21-seo-ranking-master-plan.md` — awaiting approval before implementation.
 
-**T-40 — Storefront / admin Vercel split:** 🟡 on `main` — verify redirects + admin host + cross-app revalidate per `docs/modules/deploy/DEPLOY_IMPLEMENTATION.md`.
+**T-40 — Storefront / admin Vercel split:** ✅ smoke on `main` — `npm run smoke:t40`; publish checklist in `docs/modules/deploy/T40_VERIFICATION.md`.
 
 **T-41 — Vercel usage & shop hardening:** 🟡 Phase 1 shipped (`7e6c73d`); next: Usage alerts + image/bandwidth pass — spec `docs/superpowers/specs/2026-09-25-t41-vercel-shop-hardening-design.md`.
 

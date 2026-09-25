@@ -74,26 +74,11 @@ const nextConfig = {
     ];
   },
   async redirects() {
-    const adminBase =
-      process.env.ADMIN_PUBLIC_URL?.replace(/\/$/, "") ||
-      (process.env.NODE_ENV !== "production" ? "http://localhost:3001" : "");
-    const adminRedirects = adminBase
-        ? [
-            { source: "/admin", destination: `${adminBase}/admin`, permanent: false },
-            {
-              source: "/admin/:path*",
-              destination: `${adminBase}/admin/:path*`,
-              permanent: false,
-            },
-            {
-              source: "/studio",
-              destination: `${adminBase}/admin/login`,
-              permanent: false,
-            },
-          ]
-        : [];
+    const { storefrontAdminRedirects } = await import(
+      "../../packages/shared/lib/storefront-admin-redirects.mjs"
+    );
     return [
-      ...adminRedirects,
+      ...storefrontAdminRedirects(process.env),
       { source: "/home2", destination: "/", permanent: true },
       { source: "/home2/:path*", destination: "/", permanent: true },
       { source: "/products2", destination: "/products", permanent: true },

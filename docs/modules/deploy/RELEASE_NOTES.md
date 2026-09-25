@@ -1,5 +1,11 @@
 # Vercel production — release notes
 
+## 2026-09-25 — Remediation step 5 (T-40 E2E)
+
+- Shared `storefront-admin-redirects.mjs` (single source for shop `/admin` redirects).
+- Production smoke: `npm run smoke:t40` — redirects, revalidate 401 gate, no `/api/admin` on shop.
+- See `docs/modules/deploy/T40_VERIFICATION.md`.
+
 ## 2026-09-25 — Remediation step 3 (images)
 
 - Custom Cloudinary loader on storefront; reduced Next `deviceSizes`; tighter product/hero widths.
