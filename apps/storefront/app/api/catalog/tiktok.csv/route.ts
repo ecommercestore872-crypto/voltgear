@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { fetchAllProducts } from "@/lib/db/store";
 import { resolveTikTokContentId } from "@/lib/tiktok-browser-events";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export function escapeCSV(val: string | number | undefined | null): string {

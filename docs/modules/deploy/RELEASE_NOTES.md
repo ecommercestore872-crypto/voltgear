@@ -1,5 +1,9 @@
 # Vercel production — release notes
 
+## 2026-09-25 — Remediation step 1 (cached routes)
+
+- ISR/cache for `llms.txt`, `ads.txt`, TikTok catalog CSV, and `/api/settings` to cut function work and Supabase reads on crawlers and cart config fetches.
+
 ## 2026-09-25 — Shop Vercel hardening (T-41)
 
 - Lean **voltgear** deploy: admin order/IndexNow APIs moved off buyntryy; sitemap cached; analytics DB cleanup runs on daily `/api/flows` cron instead of every page hit.

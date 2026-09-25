@@ -1,7 +1,8 @@
 import { fetchSiteSettings } from "@/lib/db/store";
 import { normalizeSettings } from "@/lib/site-config";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
 /**
  * Public site configuration for client components (cart drawer, checkout).
@@ -13,8 +14,16 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const settings = await fetchSiteSettings();
-    return Response.json(normalizeSettings(settings));
+    return Response.json(normalizeSettings(settings), {
+      headers: {
+        "Cache-Control": `public, s-maxage=${STOREFRONT_CATALOG_REVALIDATE}, stale-while-revalidate=86400`,
+      },
+    });
   } catch {
-    return Response.json(normalizeSettings(null));
+    return Response.json(normalizeSettings(null), {
+      headers: {
+        "Cache-Control": `public, s-maxage=${STOREFRONT_CATALOG_REVALIDATE}, stale-while-revalidate=86400`,
+      },
+    });
   }
 }
