@@ -18,7 +18,7 @@ export function buildCustomerRowsFromOrders(
     createdAt?: string;
     customer?: { name?: string; email?: string; phone?: string };
     isDemo?: boolean;
-  }[]
+  }[],
 ): CustomerRow[] {
   const map = new Map<string, CustomerRow>();
 
@@ -51,12 +51,33 @@ export function buildCustomerRowsFromOrders(
   }
 
   return Array.from(map.values()).sort((a, b) =>
-    b.lastOrderAt.localeCompare(a.lastOrderAt)
+    b.lastOrderAt.localeCompare(a.lastOrderAt),
   );
 }
 
-/** Recent live orders only — avoids scanning entire order history for the customers index. */
-export async function listAdminCustomers(
+function mapCustomerRollupRow(row: Record<string, unknown>): CustomerRow {
+  return {
+    key: String(row.customer_key ?? ""),
+    name: String(row.name ?? "—"),
+    email: String(row.email ?? ""),
+    phone: String(row.phone ?? ""),
+    orderCount: Number(row.order_count) || 0,
+    lastOrderId: String(row.last_order_id ?? ""),
+    lastOrderAt: String(row.last_order_at ?? ""),
+  };
+}
+
+function isMissingRollupView(error: { code?: string; message?: string } | null): boolean {
+  const msg = error?.message ?? "";
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    /admin_customer_rollups|could not find the table|schema cache/i.test(msg)
+  );
+}
+
+/** Fallback when migration not applied yet. */
+async function listAdminCustomersFromRecentOrders(
   recentOrderLimit = 4000,
 ): Promise<CustomerRow[]> {
   const { data, error } = await getServiceClient({ admin: true })
@@ -74,4 +95,27 @@ export async function listAdminCustomers(
     mapLightweightOrderRow(row as Record<string, unknown>),
   );
   return buildCustomerRowsFromOrders(orders);
+}
+
+/** SQL rollup view (preferred) with bounded fallback. */
+export async function listAdminCustomers(limit = 500): Promise<CustomerRow[]> {
+  const safeLimit = Math.min(2000, Math.max(1, limit));
+  const { data, error } = await getServiceClient({ admin: true })
+    .from("admin_customer_rollups")
+    .select(
+      "customer_key, name, email, phone, order_count, last_order_id, last_order_at",
+    )
+    .order("last_order_at", { ascending: false })
+    .limit(safeLimit);
+
+  if (error) {
+    if (isMissingRollupView(error)) {
+      return listAdminCustomersFromRecentOrders();
+    }
+    throw error;
+  }
+
+  return (data ?? []).map((row) =>
+    mapCustomerRollupRow(row as Record<string, unknown>),
+  );
 }

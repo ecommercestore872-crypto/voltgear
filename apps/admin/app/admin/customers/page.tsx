@@ -27,7 +27,7 @@ export default async function AdminCustomersPage() {
             </span>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Consolidated record of all storefront visitors who have made a purchase. Tap into a customer profile for deep order history and contact details.
+            Consolidated record of purchasers (aggregated in the database). Showing the most recent {500} profiles by last order date.
           </p>
         </div>
       </div>
