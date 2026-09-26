@@ -1,5 +1,19 @@
-import { TARGET_PROFIT_BUFFER } from "./analytics-coach-rules";
-import { liveOrders, type AnalyticsItem, type AnalyticsOrder } from "./analytics-rules";
+export const TARGET_PROFIT_BUFFER = 0.2;
+
+export type DealSuggestItem = {
+  slug?: string | null;
+  quantity?: number | null;
+};
+
+export type DealSuggestOrder = {
+  status?: string | null;
+  isDemo?: boolean;
+  items?: DealSuggestItem[] | null;
+};
+
+export function liveDealOrders(orders: DealSuggestOrder[]): DealSuggestOrder[] {
+  return orders.filter((o) => !o.isDemo);
+}
 
 export const DEAL_BALANCE_RATIO = 0.4;
 export const DEAL_MIN_PERCENT = 1;
@@ -264,11 +278,11 @@ export type DealSuggestion = {
   canCreate: boolean;
 };
 
-function itemQty(item: AnalyticsItem): number {
+function itemQty(item: DealSuggestItem): number {
   return Number(item.quantity ?? 1) || 1;
 }
 
-function uniqueSlugs(items: AnalyticsItem[] | null | undefined): string[] {
+function uniqueSlugs(items: DealSuggestItem[] | null | undefined): string[] {
   const set = new Set<string>();
   for (const item of items ?? []) {
     const slug = normalizeDealSlug(item.slug);
@@ -278,7 +292,7 @@ function uniqueSlugs(items: AnalyticsItem[] | null | undefined): string[] {
 }
 
 export function suggestDealPairs(
-  orders: AnalyticsOrder[],
+  orders: DealSuggestOrder[],
   catalog: DealCatalogProduct[],
   floorExtras: Omit<DealFloorInput, "priceA" | "priceB" | "costA" | "costB">,
   existing: DealRecord[] = []
@@ -287,7 +301,7 @@ export function suggestDealPairs(
   const taken = new Set(existing.map((d) => pairKey(d.slugA, d.slugB)));
   const counts = new Map<string, number>();
 
-  for (const order of liveOrders(orders)) {
+  for (const order of liveDealOrders(orders)) {
     if ((order.status ?? "") !== "delivered") continue;
     const slugs = uniqueSlugs(order.items).filter((slug) => bySlug.has(slug));
     for (let i = 0; i < slugs.length; i++) {

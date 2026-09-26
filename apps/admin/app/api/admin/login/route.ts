@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { adminCookieOptions, getAdminSecret } from "@/lib/admin";
-import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { ADMIN_COOKIE } from "@/lib/db/publish";
 
 export const runtime = "nodejs";

@@ -14,7 +14,7 @@ import { pickBestsellers } from "@/lib/db/bestsellers-rules";
 import { MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import { formatOrderId, nextSequentialNumber } from "@/lib/db/order-id";
 import { getServiceClient } from "@/lib/supabase/server";
-import type { OrderAttributionSnapshot } from "@/lib/db/analytics-checkout-rules";
+import type { OrderAttributionSnapshot } from "@/lib/db/order-attribution-rules";
 import type {
   EmailEventKind,
   HeroSection,
@@ -470,28 +470,10 @@ async function fetchOrderCountsByProductId(products: Product[]): Promise<Record<
   return counts;
 }
 
-async function fetchViewCountsByProductId(): Promise<Record<string, number>> {
-  const { data, error } = await db()
-    .from("analytics_events")
-    .select("product_id")
-    .eq("name", "product_view")
-    .not("product_id", "is", null);
-  if (error) return {};
-  const counts: Record<string, number> = {};
-  for (const row of data ?? []) {
-    const id = String(row.product_id ?? "");
-    if (!id) continue;
-    counts[id] = (counts[id] ?? 0) + 1;
-  }
-  return counts;
-}
-
 export async function fetchHomeBestsellers(includeDemo = false): Promise<Product[]> {
   const products = await fetchAllProducts(includeDemo);
-  const [orderCounts, viewCounts] = await Promise.all([
-    fetchOrderCountsByProductId(products),
-    fetchViewCountsByProductId(),
-  ]);
+  const orderCounts = await fetchOrderCountsByProductId(products);
+  const viewCounts: Record<string, number> = {};
   const ids = pickBestsellers({
     products: products.map((p) => ({
       id: p._id,
@@ -774,8 +756,6 @@ export async function updateOrderAttributionRow(
     const { error } = await db()
       .from("orders")
       .update({
-        analytics_session_id: attrib.analytics_session_id,
-        analytics_visitor_id: attrib.analytics_visitor_id,
         attrib_source: attrib.attrib_source,
         attrib_medium: attrib.attrib_medium,
         attrib_campaign: attrib.attrib_campaign,
@@ -786,10 +766,10 @@ export async function updateOrderAttributionRow(
       })
       .eq("order_id", orderId);
     if (error) {
-      console.error("[analytics-checkout]", "update failed");
+      console.error("[order-attribution]", "update failed");
     }
   } catch {
-    console.error("[analytics-checkout]", "update failed");
+    console.error("[order-attribution]", "update failed");
   }
 }
 

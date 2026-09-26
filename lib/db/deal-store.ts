@@ -1,6 +1,6 @@
 import { getServiceClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import { getAdminSettings, getAnalyticsAdSpend, fetchProductCoachCatalog } from "@/lib/db/admin-store";
+import { revalidateAfterPublish } from "@/lib/revalidate-storefront";
+import { getAdminSettings } from "@/lib/db/admin-store";
 import {
   parseDealList,
   validateDealAdminInput,
@@ -68,8 +68,31 @@ export async function listProductDeals(): Promise<DealRecord[]> {
   throw error;
 }
 
+async function fetchDealCatalogProducts(): Promise<
+  { id: string; slug: string; name: string; price: number; costPrice: number | null }[]
+> {
+  const { data, error } = await db()
+    .from("products")
+    .select("id, slug, name, price, cost_price, is_demo")
+    .order("name");
+  if (error) throw error;
+  return (data ?? [])
+    .filter((row) => row.is_demo !== true)
+    .map((row) => ({
+      id: String(row.id),
+      slug: String(row.slug ?? ""),
+      name: String(row.name ?? ""),
+      price: Number(row.price) || 0,
+      costPrice:
+        row.cost_price != null && Number.isFinite(Number(row.cost_price))
+          ? Number(row.cost_price)
+          : null,
+    }))
+    .filter((row) => row.slug);
+}
+
 export async function fetchDealCatalog(): Promise<DealCatalogProduct[]> {
-  const products = await fetchProductCoachCatalog();
+  const products = await fetchDealCatalogProducts();
   const ids = products.map((p) => p.slug);
   const images = new Map<string, string>();
   if (ids.length) {
@@ -92,18 +115,15 @@ export async function fetchDealCatalog(): Promise<DealCatalogProduct[]> {
 }
 
 export async function loadDealFloorExtras(): Promise<Omit<DealFloorInput, "priceA" | "priceB" | "costA" | "costB">> {
-  const [settings, spend] = await Promise.all([
-    getAdminSettings().catch(() => null),
-    getAnalyticsAdSpend().catch(() => ({ ranges: {}, packingFee: 0, codFee: 0 })),
-  ]);
+  const settings = await getAdminSettings().catch(() => null);
   const shippingFee =
     settings && typeof settings === "object" && "shipping_fee" in settings
       ? Number((settings as { shipping_fee?: unknown }).shipping_fee) || 0
       : 0;
   return {
     shippingFee,
-    packingFee: spend.packingFee ?? 0,
-    codFee: spend.codFee ?? 0,
+    packingFee: 0,
+    codFee: 0,
     deliveryRate: 1,
     rtoRate: 0,
   };
@@ -144,8 +164,7 @@ export async function createProductDeal(raw: unknown): Promise<
   };
   const saved = await saveDealsToDraft([deal, ...existing]);
   if (!saved.ok) return saved;
-  revalidatePath("/admin/deals");
-  revalidatePath("/");
+  void revalidateAfterPublish("/admin/deals", "/");
   return { ok: true, deal };
 }
 
@@ -187,8 +206,7 @@ export async function updateProductDeal(
   };
   const saved = await saveDealsToDraft(existing.map((row) => (row.id === id ? deal : row)));
   if (!saved.ok) return saved;
-  revalidatePath("/admin/deals");
-  revalidatePath("/");
+  void revalidateAfterPublish("/admin/deals", "/");
   return { ok: true, deal };
 }
 
@@ -197,15 +215,13 @@ export async function deleteProductDeal(
 ): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
   const { error } = await adminDb().from("product_deals").delete().eq("id", id);
   if (!error) {
-    revalidatePath("/admin/deals");
-    revalidatePath("/");
+    void revalidateAfterPublish("/admin/deals", "/");
     return { ok: true };
   }
   if (!isMissingTable(error)) return { ok: false, error: "Could not delete the deal.", status: 500 };
   const existing = await dealsFromDraft();
   const saved = await saveDealsToDraft(existing.filter((row) => row.id !== id));
   if (!saved.ok) return saved;
-  revalidatePath("/admin/deals");
-  revalidatePath("/");
+  void revalidateAfterPublish("/admin/deals", "/");
   return { ok: true };
 }

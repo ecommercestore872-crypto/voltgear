@@ -23,7 +23,6 @@ import { BuyNow } from "@/components/product/buy-now";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { StarRating } from "@/components/product/star-rating";
 import { useCart } from "@/components/cart/cart-provider";
-import { trackAddToCart } from "@/lib/analytics";
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import { imageUrl } from "@/lib/sanity/image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
@@ -128,12 +127,6 @@ export function PurchaseSection({ product }: { product: Product }) {
       },
       quantity,
     );
-    trackAddToCart({
-      item_id: product.slug,
-      item_name: product.name,
-      price,
-      quantity,
-    });
     const btn = btnRef.current;
     if (btn) {
       const r = btn.getBoundingClientRect();

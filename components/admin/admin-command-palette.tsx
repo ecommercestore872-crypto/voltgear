@@ -21,7 +21,6 @@ const ADMIN_QUICK_LINKS: Hit[] = [
   { kind: "page", label: "Discounts", href: "/admin/discounts" },
   { kind: "page", label: "Customers", href: "/admin/customers" },
   { kind: "page", label: "Inbox", href: "/admin/inbox" },
-  { kind: "page", label: "Analytics", href: "/admin/analytics" },
   { kind: "page", label: "Settings", href: "/admin/settings" },
 ];
 
@@ -161,3 +160,4 @@ export function AdminCommandPalette() {
     </div>
   );
 }
+

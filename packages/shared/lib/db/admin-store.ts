@@ -24,7 +24,6 @@ import {
 import { missingSchemaColumn, omitColumn } from "@/lib/db/product-column-fallback";
 import { sanitizeChromeLinks, validateChromeLists } from "@/lib/chrome-nav-rules";
 import { sanitizeBlogSections } from "@/lib/blog-safety-rules";
-import { parseAutopilotConfig, type AutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
 import {
   parseEmailSenderConfig,
@@ -35,7 +34,6 @@ import {
   invoiceTemplateOverrides,
   type InvoiceTemplate,
 } from "@/lib/invoice-template-rules";
-import { parseAdSpendStore, type AdSpendStore } from "@/lib/db/analytics-profit-rules";
 import { canDeleteShopType, canSaveShopType, extraCategoryPathsToRevalidate, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { canPublishHome, canPublishSlide, MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import {
@@ -131,7 +129,7 @@ async function allProductSlugs() {
 
 const ADMIN_PRODUCT_LIST_EMBED = "id, name, slug, category, price, cost_price, compare_at_price, stock_status, quantity, status, is_demo, updated_at, draft, product_images ( url, sort_order )";
 
-/** Dashboard / autopilot snapshots — no images or draft JSON. */
+/** Dashboard snapshots — no images or draft JSON. */
 const ADMIN_PRODUCT_DASHBOARD_SELECT =
   "id, name, stock_status, status, is_demo, updated_at";
 
@@ -1086,38 +1084,6 @@ export async function publishAdminOrderEmails(config: OrderEmailConfig) {
   return { ok: false as const, error: "Order email columns are missing on the database.", status: 500 };
 }
 
-export function editorAutopilot(row: Record<string, unknown> | null): AutopilotConfig {
-  return parseAutopilotConfig(row?.autopilot);
-}
-
-export async function publishAdminAutopilot(config: AutopilotConfig) {
-  const parsed = parseAutopilotConfig(config);
-  let payload: Record<string, unknown> = {
-    autopilot: parsed,
-    updated_at: new Date().toISOString(),
-  };
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    const { error } = await db().from("site_settings").update(payload).eq("id", 1);
-    if (!error) {
-      if (!("autopilot" in payload)) {
-        return {
-          ok: false as const,
-          error: "Run supabase/migrations/20260905060000_autopilot.sql on Supabase.",
-          status: 500,
-        };
-      }
-      void revalidateAfterPublish("/admin/autopilot/settings");
-      return { ok: true as const };
-    }
-    const missing = missingSchemaColumn(error);
-    if (!missing || !(missing in payload)) {
-      return { ok: false as const, error: error.message, status: 500 };
-    }
-    payload = omitColumn(payload, missing);
-  }
-  return { ok: false as const, error: "Autopilot column is missing on the database.", status: 500 };
-}
-
 export async function discardAdminOrderEmails() {
   const current = await getAdminSettings();
   const draft =
@@ -1287,51 +1253,6 @@ export async function discardAdminEmailSenders() {
     .update({ draft: Object.keys(draft).length ? draft : null })
     .eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  return { ok: true as const };
-}
-
-export async function getAnalyticsAdSpend(): Promise<AdSpendStore> {
-  const { data, error } = await db()
-    .from("site_settings")
-    .select("analytics_ad_spend, draft")
-    .eq("id", 1)
-    .maybeSingle();
-  if (error) {
-    const missing = missingSchemaColumn(error);
-    if (missing === "analytics_ad_spend") {
-      const fallback = await db().from("site_settings").select("draft").eq("id", 1).maybeSingle();
-      const draft =
-        fallback.data?.draft && typeof fallback.data.draft === "object"
-          ? (fallback.data.draft as Record<string, unknown>)
-          : null;
-      return parseAdSpendStore(draft?.analyticsAdSpend);
-    }
-    return parseAdSpendStore({});
-  }
-  const draft =
-    data?.draft && typeof data.draft === "object" ? (data.draft as Record<string, unknown>) : null;
-  if (data?.analytics_ad_spend) return parseAdSpendStore(data.analytics_ad_spend);
-  return parseAdSpendStore(draft?.analyticsAdSpend);
-}
-
-export async function saveAnalyticsAdSpend(store: AdSpendStore) {
-  const parsed = parseAdSpendStore(store);
-  const { error } = await db()
-    .from("site_settings")
-    .update({ analytics_ad_spend: parsed, updated_at: new Date().toISOString() })
-    .eq("id", 1);
-  if (!error) return { ok: true as const };
-  const missing = missingSchemaColumn(error);
-  if (missing !== "analytics_ad_spend") {
-    return { ok: false as const, error: error.message, status: 500 };
-  }
-  const current = await getAdminSettings();
-  const draft =
-    current?.draft && typeof current.draft === "object"
-      ? { ...(current.draft as Record<string, unknown>), analyticsAdSpend: parsed }
-      : { analyticsAdSpend: parsed };
-  const { error: draftError } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
-  if (draftError) return { ok: false as const, error: draftError.message, status: 500 };
   return { ok: true as const };
 }
 
@@ -1795,129 +1716,3 @@ export async function deleteAdminShopType(id: string) {
   revalidateShopTypePaths(current.slug);
   return { ok: true as const };
 }
-
-export async function fetchProductCostRows(): Promise<
-  { slug: string; name: string; category: string; costPrice: number | null }[]
-> {
-  const { data, error } = await db().from("products").select("slug, name, category, cost_price");
-  if (error) {
-    if (error.code === "42703") {
-      const fallback = await db().from("products").select("slug, name, category");
-      return (fallback.data ?? []).map((r) => ({
-        slug: String(r.slug ?? ""),
-        name: String(r.name ?? ""),
-        category: String(r.category ?? ""),
-        costPrice: null,
-      }));
-    }
-    throw error;
-  }
-  return (data ?? []).map((r) => ({
-    slug: String(r.slug ?? ""),
-    name: String(r.name ?? ""),
-    category: String(r.category ?? ""),
-    costPrice: r.cost_price != null && Number.isFinite(Number(r.cost_price)) ? Number(r.cost_price) : null,
-  }));
-}
-
-export async function fetchProductCoachCatalog(): Promise<
-  { id: string; slug: string; name: string; price: number; costPrice: number | null }[]
-> {
-  const { data, error } = await db()
-    .from("products")
-    .select("id, slug, name, price, cost_price, is_demo")
-    .order("name");
-  if (error) throw error;
-  return (data ?? [])
-    .filter((row) => row.is_demo !== true)
-    .map((row) => ({
-      id: String(row.id),
-      slug: String(row.slug ?? ""),
-      name: String(row.name ?? ""),
-      price: Number(row.price) || 0,
-      costPrice:
-        row.cost_price != null && Number.isFinite(Number(row.cost_price)) ? Number(row.cost_price) : null,
-    }))
-    .filter((row) => row.slug);
-}
-
-export async function saveProductCosts(items: { slug: string; costPrice: number }[]) {
-  if (!items.length) return { ok: true as const, saved: 0 };
-  const slugs = [...new Set(items.map((item) => item.slug))];
-  const { data, error } = await db()
-    .from("products")
-    .select("id, slug, draft, is_demo")
-    .in("slug", slugs);
-  if (error) return { ok: false as const, error: error.message, status: 500 };
-  const costBySlug = new Map(items.map((item) => [item.slug, item.costPrice]));
-  let saved = 0;
-  for (const row of data ?? []) {
-    if (row.is_demo === true) continue;
-    const slug = String(row.slug ?? "");
-    const costPrice = costBySlug.get(slug);
-    if (costPrice == null) continue;
-    const draft =
-      row.draft && typeof row.draft === "object" && !Array.isArray(row.draft)
-        ? { ...(row.draft as Record<string, unknown>), costPrice }
-        : row.draft;
-    const { error: updateError } = await db()
-      .from("products")
-      .update({
-        cost_price: costPrice,
-        ...(draft !== row.draft ? { draft } : {}),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", row.id);
-    if (updateError) return { ok: false as const, error: updateError.message, status: 500 };
-    saved += 1;
-  }
-  return { ok: true as const, saved };
-}
-
-export type SavedAnalyticsReport = {
-  id: string;
-  name: string;
-  query: Record<string, unknown>;
-  createdAt: string;
-};
-
-export async function listSavedAnalyticsReports(): Promise<SavedAnalyticsReport[]> {
-  const { data, error } = await db()
-    .from("analytics_saved_reports")
-    .select("id, name, query, created_at")
-    .order("created_at", { ascending: false });
-  if (error) {
-    if (error.code === "42P01") return [];
-    throw error;
-  }
-  return (data ?? []).map((r) => ({
-    id: String(r.id),
-    name: String(r.name ?? ""),
-    query: (r.query && typeof r.query === "object" ? r.query : {}) as Record<string, unknown>,
-    createdAt: String(r.created_at ?? ""),
-  }));
-}
-
-export async function createSavedAnalyticsReport(name: string, query: Record<string, unknown>) {
-  const trimmed = name.trim();
-  if (!trimmed) return { ok: false as const, error: "Name the report.", status: 400 };
-  const { data, error } = await db()
-    .from("analytics_saved_reports")
-    .insert({ name: trimmed, query })
-    .select("id")
-    .single();
-  if (error) {
-    if (error.code === "42P01") {
-      return { ok: false as const, error: "Saved reports are not in the database yet.", status: 500 };
-    }
-    return { ok: false as const, error: error.message, status: 500 };
-  }
-  return { ok: true as const, id: String(data.id) };
-}
-
-export async function deleteSavedAnalyticsReport(id: string) {
-  const { error } = await db().from("analytics_saved_reports").delete().eq("id", id);
-  if (error) return { ok: false as const, error: error.message, status: 500 };
-  return { ok: true as const };
-}
-

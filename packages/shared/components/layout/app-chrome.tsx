@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { Children, useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { FirstPartyTracker } from "@/components/analytics/first-party-tracker";
 import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
+import { captureClickAttribution, persistClickAttribution } from "@/lib/click-attribution";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
 import { CookieConsentBar } from "@/components/legal/cookie-consent-bar";
@@ -57,6 +57,13 @@ export function AppChrome({
     setSessionActive(
       readGadgetPreviewSession() || searchParams?.get("from") === "gadget",
     );
+    if (typeof window !== "undefined") {
+      persistClickAttribution(
+        captureClickAttribution(
+          `${window.location.pathname}${window.location.search}`,
+        ),
+      );
+    }
   }, [pathname, searchParams]);
 
   if (!pathname) {
@@ -91,7 +98,6 @@ export function AppChrome({
             <div
               className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}
             >
-              <FirstPartyTracker />
               {demoBanner}
               <GadgetNavbar settings={settings} shopTypes={shopTypes} />
               <main className="min-w-0 flex-1 bg-[var(--g-cream)]">
@@ -106,7 +112,6 @@ export function AppChrome({
           </>
         ) : (
           <>
-            <FirstPartyTracker />
             {urgencyTicker}
             {demoBanner}
             <Navbar settings={settings} shopTypes={shopTypes} />

@@ -1,6 +1,6 @@
 # Admin CMS implementation
 
-Staff editor for this Next.js store. Replaces Sanity Studio. Orders live at `/admin/orders` (T-03; see `docs/modules/orders/`). **Home** (`/admin`) is the daily snapshot (T-13). **Analytics** (`/admin/analytics`) is delivered-revenue reporting (T-14; see `docs/modules/analytics/`).
+Staff editor for this Next.js store. Replaces Sanity Studio. Orders live at `/admin/orders` (T-03; see `docs/modules/orders/`). **Home** (`/admin`) is the daily snapshot (T-13). Internal commerce analytics (admin UI, `/api/analytics/event`, Supabase analytics tables) were removed in 2026-09; product **cost price** remains on products for deal margin checks only.
 
 ## Who uses it
 
@@ -59,6 +59,10 @@ New products start as drafts. First save needs a name (the web address is filled
 | `lib/db/admin-store.ts` | Admin reads/writes |
 | `lib/admin.ts` | Password + cookie guard |
 
+## Storefront-only scope (2026-09)
+
+Admin nav is grouped for daily shop control: **Home / Orders**, **Catalog**, **Storefront** (hero, home layout, sections, testimonials), **Merchandising** (discounts, deals), **Content** (reviews, blog, pages), **Comms** (inbox, customers, newsletter, messaging), **Settings** (brand, order emails, email sending, invoice). **Analytics** and **Autopilot** UIs were removed; PostEx booking stays on the order detail page (`POST /api/admin/postex/book`).
+
 ## Out of this module
 
-Orders/tracking (see `docs/modules/orders/`), emails (T-04), analytics (T-05), staging (T-06), storefront redesign and video players (T-07), Vercel (T-08), staff accounts, card payments.
+Orders/tracking (see `docs/modules/orders/`), emails (T-04), staging (T-06), storefront redesign and video players (T-07), Vercel (T-08), staff accounts, card payments.

@@ -12,7 +12,6 @@ import { product2Href } from "@/lib/gadget-preview";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
-import { trackAddToCart } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { getStockState } from "@/lib/stock";
 
@@ -71,12 +70,6 @@ export function GadgetArrivalCard({
       productId: product._id,
       freeShipping: Boolean(product.freeShipping),
       ...(product.sku ? { sku: product.sku } : {}),
-    });
-    trackAddToCart({
-      item_id: product.slug,
-      item_name: product.name,
-      price,
-      quantity: 1,
     });
     setAdded(true);
     openCart();

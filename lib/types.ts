@@ -155,7 +155,6 @@ export interface SiteSettings {
   orderEmails?: import("./order-email-cms-rules").OrderEmailConfig;
   emailSenders?: import("./email-sender-rules").EmailSenderConfig;
   invoiceTemplate?: import("./invoice-template-rules").InvoiceTemplate;
-  autopilot?: import("./autopilot/config").AutopilotConfig;
   announcement?: {
     enabled?: boolean;
     message?: string;

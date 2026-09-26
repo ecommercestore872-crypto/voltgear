@@ -98,7 +98,6 @@ export const SHOP_API_SECURITY_MARKERS: Record<string, string[]> = {
   "contact/route.ts": ["takePublicPostLimit"],
   "revalidate/route.ts": ["isAdminRequest"],
   "flows/route.ts": ["isCronAuthorized"],
-  "analytics/event/route.ts": ["createMemoryRateLimiter"],
   "newsletter/route.ts": ["createMemoryRateLimiter"],
   "upload/route.ts": ["createMemoryRateLimiter"],
   "orders/[orderId]/cancel/route.ts": ["takeOrderCancelLimit"],

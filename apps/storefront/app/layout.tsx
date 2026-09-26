@@ -8,7 +8,6 @@ import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
-import { shouldLoadClarity } from "@/lib/clarity-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import {
   indexSiteUrl,
@@ -161,8 +160,6 @@ export const metadata: Metadata = {
 
 export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
 const ADSENSE_SCRIPT_SRC = adsenseHeadScriptSrc(
   process.env.NEXT_PUBLIC_ADSENSE_PUB_ID,
 );
@@ -193,17 +190,6 @@ export default async function RootLayout({
 
   const brandVars = themeCssVars(settings);
   const brandName = settings?.brandName || "Buy n Try";
-  let clarityHost = "";
-  try {
-    clarityHost = new URL(SITE_URL).host;
-  } catch {
-    clarityHost = "";
-  }
-  const loadClarity = shouldLoadClarity({
-    id: CLARITY_ID,
-    isAdmin: false,
-    host: clarityHost,
-  });
 
   const jsonLd = [
     websiteStructuredData({
@@ -237,15 +223,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themePreviewScript() }} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var done=false;function load(){if(done)return;done=true;var ad=document.createElement('script');ad.async=1;ad.crossOrigin='anonymous';ad.src='${ADSENSE_SCRIPT_SRC}';document.head.appendChild(ad);${
-              GA_ID
-                ? `var g=document.createElement('script');g.async=1;g.src='https://www.googletagmanager.com/gtag/js?id=${GA_ID}';document.head.appendChild(g);window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:true});`
-                : ""
-            }${
-              loadClarity
-                ? `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,'clarity','script','${CLARITY_ID}');`
-                : ""
-            }}['scroll','click','touchstart','keydown','mousemove'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});setTimeout(load, 5500);})();`,
+            __html: `(function(){var done=false;function load(){if(done)return;done=true;var ad=document.createElement('script');ad.async=1;ad.crossOrigin='anonymous';ad.src='${ADSENSE_SCRIPT_SRC}';document.head.appendChild(ad);}['scroll','click','touchstart','keydown','mousemove'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});setTimeout(load, 5500);})();`,
           }}
         />
         <script

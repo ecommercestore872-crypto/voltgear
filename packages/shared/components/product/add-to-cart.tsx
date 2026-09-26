@@ -5,7 +5,6 @@ import { Minus, Plus, ShoppingBag, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-provider";
-import { trackAddToCart } from "@/lib/analytics";
 import { imageUrl } from "@/lib/sanity/image";
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import type { Product } from "@/lib/types";
@@ -36,12 +35,6 @@ export function AddToCart({ product }: { product: Product }) {
       },
       quantity,
     );
-    trackAddToCart({
-      item_id: product.slug,
-      item_name: product.name,
-      price: product.price,
-      quantity,
-    });
     const btn = btnRef.current;
     if (btn) {
       const r = btn.getBoundingClientRect();

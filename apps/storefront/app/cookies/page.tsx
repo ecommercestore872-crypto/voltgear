@@ -12,7 +12,7 @@ import { SHOPPER_BRAND } from "@/lib/brand";
 export const metadata: Metadata = {
   title: "Cookie Policy",
   description:
-    "Cookies used on the Buy n Try shop, including essential, analytics, and advertising cookies.",
+    "Cookies used on the Buy n Try shop, including essential and advertising cookies.",
   alternates: { canonical: "/cookies" },
 };
 
@@ -30,14 +30,6 @@ export default function CookiesPage() {
         These keep your cart, checkout details, and cookie preference. The store
         cannot complete an order without them. They are not used to personalize
         ads.
-      </p>
-
-      <h2>Analytics cookies</h2>
-      <p>
-        If you choose Accept on the cookie bar, we may use first-party analytics
-        and tools such as Google Analytics or Microsoft Clarity to understand
-        which pages load and where checkout fails. These help us fix the shop.
-        They are not required to browse or buy.
       </p>
 
       <h2>Advertising cookies</h2>

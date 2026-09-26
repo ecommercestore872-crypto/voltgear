@@ -72,7 +72,7 @@ async function main() {
     status: revalidate.status,
   });
 
-  const adminApi = await fetch(`${shop}/api/admin/analytics`, {
+  const adminApi = await fetch(`${shop}/api/admin/settings`, {
     redirect: "manual",
   });
   checks.push({

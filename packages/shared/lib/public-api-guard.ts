@@ -1,4 +1,4 @@
-import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { checkoutClientIp } from "@/lib/checkout-guard";
 
 const contactLimiter = createMemoryRateLimiter({

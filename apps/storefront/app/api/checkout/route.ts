@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 
-import { parseAutopilotConfig } from "@/lib/autopilot/config";
-import { fulfillOrderWithPostEx } from "@/lib/autopilot/dispatch-run";
 import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
 import {
   appendOrderNote,
@@ -10,11 +8,7 @@ import {
   enqueueEmailEvent,
   nextPublicOrderId,
 } from "@/lib/order-store";
-import {
-  fetchSiteSettings,
-  getAllOrders,
-  getOrderByPublicId,
-} from "@/lib/db/store";
+import { fetchSiteSettings, getOrderByPublicId } from "@/lib/db/store";
 import {
   resolveCheckout,
   resolveShippingAndTotal,
@@ -22,7 +16,7 @@ import {
   GIFT_WRAP_FEE,
 } from "@/lib/checkout-server";
 import { isDemoRequest } from "@/lib/demo";
-import { attachOrderAttribution } from "@/lib/db/analytics-checkout";
+import { attachOrderAttribution } from "@/lib/db/order-attribution";
 import { orderIsDemo } from "@/lib/db/demo-rules";
 import { applyPromoToTotals, normalizePromoCode } from "@/lib/db/promo-rules";
 import { applyDealsToCart, promoBlockedByDeal } from "@/lib/db/deal-rules";
@@ -390,10 +384,10 @@ export async function POST(request: Request) {
 
     let sessionTtclid: string | null = null;
     try {
-      const snapshot = await attachOrderAttribution(orderId, request);
+      const snapshot = await attachOrderAttribution(orderId, request, body);
       sessionTtclid = snapshot?.attrib_ttclid || null;
     } catch {
-      console.error("[analytics-checkout]", "attach failed");
+      console.error("[order-attribution]", "attach failed");
     }
 
     // TikTok Server Events API (Purchase)
@@ -510,15 +504,6 @@ export async function POST(request: Request) {
       );
     } catch (err) {
       console.error("[checkout] enqueue post-purchase email failed:", err);
-    }
-
-    try {
-      if (parseAutopilotConfig(settings?.autopilot).autoDispatch) {
-        const placed = await getOrderByPublicId(orderId);
-        if (placed) await fulfillOrderWithPostEx(placed, await getAllOrders());
-      }
-    } catch {
-      console.error("[checkout] autopilot dispatch skipped");
     }
 
     const status = checkoutHttpStatusAfterOrderPersisted(true);

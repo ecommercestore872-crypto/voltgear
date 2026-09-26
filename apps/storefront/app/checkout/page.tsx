@@ -38,18 +38,13 @@ import { useCart, cartLineKey } from "@/components/cart/cart-provider";
 import { useDealQuote } from "@/components/deals/use-deal-quote";
 import { saveLastOrder } from "@/lib/review-reminder";
 import { cn, formatPrice } from "@/lib/utils";
-import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
+import { readStoredClickAttribution } from "@/lib/click-attribution";
 import {
   identifyTikTokCustomer,
   isCheckoutPricingReadyForInitiateCheckout,
   trackTikTokInitiateCheckout,
   trackTikTokPurchase,
 } from "@/lib/tiktok-browser-events";
-import {
-  checkoutValidationCategoryFromHttp,
-  trackFirstParty,
-  validationCategoryFromFieldName,
-} from "@/lib/first-party-analytics";
 import {
   GADGET_SESSION_KEY,
   product2Href,
@@ -388,17 +383,12 @@ export default function CheckoutPage() {
           ...(activePromo?.code && !activePromo.error
             ? { promoCode: activePromo.code }
             : {}),
+          attribution: readStoredClickAttribution() ?? undefined,
         }),
       });
       const data = await res.json();
 
       if (res.status === 409 && data.code === "PRICE_CHANGED") {
-        trackFirstParty({
-          name: "checkout_validation_error",
-          path: "/checkout",
-          page_type: "checkout",
-          properties: { category: "price_changed" },
-        });
         for (const line of data.lines ?? []) {
           updateItemPrice(
             line.variantKey ? `${line.slug}::${line.variantKey}` : line.slug,
@@ -415,18 +405,6 @@ export default function CheckoutPage() {
       }
 
       if (!res.ok) {
-        const category = checkoutValidationCategoryFromHttp(
-          res.status,
-          typeof data.error === "string" ? data.error : undefined,
-        );
-        if (category) {
-          trackFirstParty({
-            name: "checkout_validation_error",
-            path: "/checkout",
-            page_type: "checkout",
-            properties: { category },
-          });
-        }
         throw new Error(data.error ?? "Failed");
       }
       setPlacedOrder(data.orderId);
@@ -479,7 +457,6 @@ export default function CheckoutPage() {
       // Scroll to top BEFORE navigation so Next.js doesn't restore checkout's scroll position
       window.scrollTo({ top: 0, behavior: "instant" });
       router.push(`/order/${data.orderId}${orderQs}`);
-      trackPurchase(data.orderId, analyticsItems(), total);
       clearCart();
       const first = items[0];
       if (first) {
@@ -500,15 +477,6 @@ export default function CheckoutPage() {
     } finally {
       setPlacing(false);
     }
-  }
-
-  function analyticsItems() {
-    return items.map((i) => ({
-      item_id: i.slug,
-      item_name: i.name,
-      price: i.price,
-      quantity: i.quantity,
-    }));
   }
 
   function notifyAbandonedCart() {
@@ -533,9 +501,6 @@ export default function CheckoutPage() {
   const onLeave = () => notifyAbandonedCart();
 
   function nextStep(next: number) {
-    if (next === 2 && step === 1) {
-      trackBeginCheckout(analyticsItems(), total);
-    }
     setStep(next);
   }
 
@@ -543,14 +508,6 @@ export default function CheckoutPage() {
     if (priceChanged) setPriceChanged(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length, step, giftWrap]);
-
-  useEffect(() => {
-    trackFirstParty({
-      name: "checkout_started",
-      path: "/checkout",
-      page_type: "checkout",
-    });
-  }, []);
 
   useEffect(() => {
     if (
@@ -606,24 +563,6 @@ export default function CheckoutPage() {
       }
     };
   }, [items, total, dealQuote.ready, activePromo?.loading, merchandise, subDiscount]);
-
-  useEffect(() => {
-    if (step === 1) {
-      trackFirstParty({
-        name: "checkout_step",
-        path: "/checkout",
-        page_type: "checkout",
-        properties: { step: "details" },
-      });
-    } else if (step === 2) {
-      trackFirstParty({
-        name: "checkout_step",
-        path: "/checkout",
-        page_type: "checkout",
-        properties: { step: "confirm" },
-      });
-    }
-  }, [step]);
 
   useEffect(() => {
     const onVisibility = () => {
@@ -846,25 +785,6 @@ export default function CheckoutPage() {
                   <form
                     id="details-form"
                     className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6"
-                    onInvalidCapture={(e) => {
-                      const target = e.target;
-                      if (
-                        !(target instanceof HTMLInputElement) &&
-                        !(target instanceof HTMLSelectElement) &&
-                        !(target instanceof HTMLTextAreaElement)
-                      )
-                        return;
-                      trackFirstParty({
-                        name: "checkout_validation_error",
-                        path: "/checkout",
-                        page_type: "checkout",
-                        properties: {
-                          category: validationCategoryFromFieldName(
-                            target.name,
-                          ),
-                        },
-                      });
-                    }}
                     onSubmit={(e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);

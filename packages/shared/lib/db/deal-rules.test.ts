@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import type { AnalyticsOrder } from "./analytics-rules";
+import type { DealSuggestOrder } from "./deal-rules";
 import {
   DEAL_BALANCE_RATIO,
   applyDealsToCart,
@@ -165,7 +165,7 @@ describe("promoBlockedByDeal", () => {
 
 describe("suggestDealPairs", () => {
   it("ranks delivered-together pairs and rejects the cheap add-on", () => {
-    const orders: AnalyticsOrder[] = [
+    const orders: DealSuggestOrder[] = [
       {
         orderId: "1",
         createdAt: "2026-08-01T07:00:00.000Z",

@@ -7,7 +7,7 @@ import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_FOLDER,
 } from "@/lib/cloudinary";
-import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 
 function isConfigured(value: string | undefined): boolean {
   return !!value && !value.startsWith("your-");

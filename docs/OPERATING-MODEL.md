@@ -42,4 +42,8 @@ How we build, deploy, and ship. **Shop production:** Vercel project **`voltgear`
 
 See `docs/modules/deploy/DEPLOY_IMPLEMENTATION.md` for two-project Vercel details.
 
+## Expert agents
+
+Parallel Cursor subagent roles and dispatch rules: [`docs/EXPERT-AGENT-ROSTER.md`](EXPERT-AGENT-ROSTER.md).
+
 **Monitoring:** `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md` (Vercel, Supabase, checkout, ads, cache, security).

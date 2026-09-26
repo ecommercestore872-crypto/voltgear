@@ -33,10 +33,8 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Content",
+    label: "Storefront",
     items: [
-      { href: "/admin/pages", label: "Pages" },
-      { href: "/admin/blog", label: "Blog" },
       { href: "/admin/hero", label: "Hero" },
       { href: "/admin/home", label: "Home layout" },
       { href: "/admin/homepage-sections", label: "Homepage sections" },
@@ -44,30 +42,35 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Customers",
+    label: "Merchandising",
     items: [
-      { href: "/admin/inbox", label: "Inbox" },
-      { href: "/admin/customers", label: "Customers" },
-      { href: "/admin/newsletter", label: "Newsletter" },
-      { href: "/admin/reviews", label: "Reviews" },
-    ],
-  },
-  {
-    label: "Marketing",
-    items: [
-      { href: "/admin/broadcast", label: "Messaging" },
       { href: "/admin/discounts", label: "Discounts" },
       { href: "/admin/deals", label: "Deals" },
     ],
   },
   {
+    label: "Content",
     items: [
-      { href: "/admin/analytics", label: "Analytics" },
+      { href: "/admin/reviews", label: "Reviews" },
+      { href: "/admin/blog", label: "Blog" },
+      { href: "/admin/pages", label: "Pages" },
+    ],
+  },
+  {
+    label: "Comms",
+    items: [
+      { href: "/admin/inbox", label: "Inbox" },
+      { href: "/admin/customers", label: "Customers" },
+      { href: "/admin/newsletter", label: "Newsletter" },
+      { href: "/admin/broadcast", label: "Messaging" },
+    ],
+  },
+  {
+    items: [
       { href: "/admin/settings", label: "Settings" },
       { href: "/admin/order-emails", label: "Order emails" },
       { href: "/admin/email-sending", label: "Email sending" },
       { href: "/admin/invoice", label: "Invoice" },
-      { href: "/admin/autopilot/settings", label: "Autopilot" },
     ],
   },
 ];

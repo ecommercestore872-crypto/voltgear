@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { subscribeNewsletter } from "@/lib/db/newsletter-store";
 
 const rateLimiter = createMemoryRateLimiter({

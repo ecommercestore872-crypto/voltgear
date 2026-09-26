@@ -12,7 +12,6 @@ import type {
 import { normalizeHomeSections } from "@/lib/db/home-section-rules";
 import { normalizeLifestyleShop } from "@/lib/db/lifestyle-shop-rules";
 import { parseChromeLinks } from "@/lib/chrome-nav-rules";
-import { parseAutopilotConfig } from "@/lib/autopilot/config";
 import { parseOrderEmailConfig } from "@/lib/order-email-cms-rules";
 import { parseEmailSenderConfig } from "@/lib/email-sender-rules";
 import { mergeInvoiceTemplate } from "@/lib/invoice-template-rules";
@@ -171,7 +170,6 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     orderEmails: parseOrderEmailConfig(row.order_emails),
     emailSenders: parseEmailSenderConfig(row.email_senders),
     invoiceTemplate: mergeInvoiceTemplate(row.invoice_template),
-    autopilot: parseAutopilotConfig(row.autopilot),
     announcement: row.announcement as SiteSettings["announcement"],
     seo: row.seo as SiteSettings["seo"],
     homeBestsellersTitle: row.home_bestsellers_title ? String(row.home_bestsellers_title) : undefined,

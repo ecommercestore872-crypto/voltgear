@@ -575,7 +575,7 @@ export function ProductForm({
               }
             />
             <p className="text-xs text-muted-foreground">
-              Used only for delivered profit in Analytics.
+              Internal cost (not shown on the shop).
             </p>
           </div>
           <div className="space-y-1.5">

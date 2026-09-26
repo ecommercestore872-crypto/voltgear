@@ -7,7 +7,7 @@ import {
   normalizeAdminEmail,
 } from "@/lib/admin-auth-email";
 import { ensureAuthUserForEmail } from "@/lib/admin-auth-supabase";
-import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { getServiceClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";

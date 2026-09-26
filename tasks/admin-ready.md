@@ -4,7 +4,7 @@
 
 - Auth: login, forgot/reset password, middleware, public admin paths, adminFetch 401 to login
 - Performance: lite product lists, paginated catalog, server search, analytics lazy tabs + session cache
-- UX: unsaved guards + sticky bars on CMS forms, collections search-first picker, autopilot explicit save
+- UX: unsaved guards + sticky bars on CMS forms, collections search-first picker
 - Messaging: broadcast uses shared adminFetch + session redirect
 
 ## Production checklist (manual)

@@ -1,5 +1,3 @@
-import { AutopilotShipment } from "@/lib/autopilot/types";
-
 export interface CreateShipmentParams {
   orderId: string;
   fulfillmentKey: string;

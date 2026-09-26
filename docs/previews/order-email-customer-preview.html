@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buy n Try — Customer email preview</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #2a2a2a;
+      padding: 24px 12px 48px;
+    }
+    .toolbar {
+      max-width: 680px;
+      margin: 0 auto 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .toolbar button {
+      border: 1px solid #555;
+      background: #1a1a1a;
+      color: #eee;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .toolbar button.active {
+      background: #1b3624;
+      border-color: #c9a227;
+      color: #f7efe2;
+    }
+    .frame-label {
+      max-width: 680px;
+      margin: 0 auto 8px;
+      color: #aaa;
+      font-size: 12px;
+    }
+    .preview-wrap { display: none; max-width: 680px; margin: 0 auto; }
+    .preview-wrap.show { display: block; }
+  </style>
+</head>
+<body>
+  <p class="frame-label">Preview — same colors & layout as production Resend HTML (sample data)</p>
+  <div class="toolbar">
+    <button type="button" class="active" data-show="confirmed">Order confirmed</button>
+    <button type="button" data-show="shipped">Shipped</button>
+    <button type="button" data-show="delivered">Delivered</button>
+    <button type="button" data-show="cancelled">Cancelled</button>
+  </div>
+
+  <div id="confirmed" class="preview-wrap show"></div>
+  <div id="shipped" class="preview-wrap"></div>
+  <div id="delivered" class="preview-wrap"></div>
+  <div id="cancelled" class="preview-wrap"></div>
+
+  <script>
+    const P = {
+      forest: "#1b3624",
+      forestMid: "#234a32",
+      gold: "#c9a227",
+      cream: "#f6efe3",
+      sand: "#fffaf3",
+      card: "#ffffff",
+      ink: "#1a1a1a",
+      muted: "#5c564c",
+      line: "#e6d9c4",
+      white: "#f7efe2",
+    };
+    const brand = "Buy n Try";
+    const tagline = "Try before you commit";
+    const origin = "https://buyntryy.com";
+    const logo = origin + "/brand/seal.png";
+
+    function shell(title, body, footer) {
+      return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${title}</title></head>
+<body style="margin:0;padding:0;background:${P.cream};color:${P.ink};font-family:Georgia,'Times New Roman',serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${P.cream}"><tr><td align="center" style="padding:28px 12px">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;border-collapse:separate">
+<tr><td style="background:${P.forest};padding:28px 32px 24px;border-radius:18px 18px 0 0">
+<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+<td style="vertical-align:middle;padding:0 14px 0 0">
+<div style="width:56px;height:56px;border-radius:50%;border:2px solid ${P.gold};background:${P.forestMid};display:flex;align-items:center;justify-content:center;font-size:10px;color:${P.gold};font-family:system-ui;font-weight:700;text-align:center;line-height:1.1">BNT<br>SEAL</div>
+</td>
+<td style="vertical-align:middle">
+<p style="margin:0;font-family:Georgia,serif;font-size:22px;line-height:1.2;color:${P.white}">${brand}</p>
+<p style="margin:4px 0 0;font-family:system-ui,sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:${P.gold}">${tagline} · Cash on delivery</p>
+</td></tr></table>
+</td></tr>
+<tr><td style="height:3px;line-height:3px;font-size:0;background:${P.gold}">&nbsp;</td></tr>
+<tr><td style="background:${P.card};padding:32px 32px 8px;font-family:system-ui,sans-serif">
+<p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${P.gold}">${brand}</p>
+<h1 style="margin:0 0 20px;font-family:Georgia,serif;font-size:26px;line-height:1.25;font-weight:700;color:${P.forest}">${title}</h1>
+<div style="font-size:15px;line-height:1.65;color:${P.ink}">${body}</div>
+</td></tr>
+<tr><td style="background:${P.sand};padding:16px 32px;border-top:1px solid ${P.line};font-family:system-ui,sans-serif;font-size:12px;letter-spacing:0.04em;color:${P.muted};text-align:center">Cash on delivery · Try it at home · Easy returns</td></tr>
+<tr><td style="background:${P.forest};padding:22px 32px 26px;border-radius:0 0 18px 18px;font-family:system-ui,sans-serif">
+<p style="margin:0 0 10px;font-size:12px;line-height:1.6;color:${P.white}">${footer}</p>
+<p style="margin:0;font-size:12px;line-height:1.8">
+<a href="${origin}" style="color:${P.gold};text-decoration:none">Shop ${brand}</a>
+&nbsp;·&nbsp;
+<a href="${origin}/track" style="color:${P.gold};text-decoration:none">Track an order</a>
+&nbsp;·&nbsp;
+<a href="${origin}/contact" style="color:${P.gold};text-decoration:none">WhatsApp &amp; email support</a>
+&nbsp;·&nbsp;
+<a href="${origin}/warranty" style="color:${P.gold};text-decoration:none">Warranty</a>
+</p>
+<p style="margin:14px 0 0;font-size:11px;color:#b7c4b6">buyntryy.com · Pakistan · Pay when it arrives</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+    }
+
+    function pillBtn(label) {
+      return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0"><tr><td style="border-radius:999px;background:${P.forest}"><a href="#" style="display:inline-block;padding:14px 26px;font-size:14px;font-weight:700;color:${P.white};text-decoration:none;border-radius:999px">${label}</a></td></tr></table>`;
+    }
+
+    function sectionLabel(t) {
+      return `<p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${P.gold}">${t}</p>`;
+    }
+
+    function billBox() {
+      return `${sectionLabel("Order bill")}
+<p style="margin:0 0 14px;font-family:Georgia,serif;font-size:20px;font-weight:700;color:${P.forest}">VG-20260926-A1B2</p>
+<table width="100%" style="width:100%;border-collapse:collapse;margin:0 0 8px">
+<tr><td style="padding:12px 0;border-bottom:1px solid ${P.line};font-size:14px">GT5 Buds Smart Watch — Black<br><span style="font-size:12px;color:${P.muted}">Qty 1</span></td>
+<td style="padding:12px 0;border-bottom:1px solid ${P.line};text-align:right;font-weight:600;color:${P.forest}">Rs 4,999</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid ${P.line};font-size:14px">65W GaN Charger<br><span style="font-size:12px;color:${P.muted}">Qty 1</span></td>
+<td style="padding:12px 0;border-bottom:1px solid ${P.line};text-align:right;font-weight:600;color:${P.forest}">Rs 2,499</td></tr>
+</table>
+<table width="100%" style="background:${P.sand};border:1px solid ${P.line};border-radius:12px"><tr><td style="padding:14px 16px">
+<table width="100%" style="border-collapse:collapse">
+<tr><td style="padding:8px 0;font-size:13px">Subtotal</td><td style="text-align:right">Rs 7,498</td></tr>
+<tr><td style="padding:8px 0;font-size:13px">Shipping</td><td style="text-align:right">Rs 199</td></tr>
+<tr><td style="padding:14px 0 0;border-top:1px solid ${P.line};font-size:16px;font-weight:700;color:${P.forest}">Total due on delivery</td>
+<td style="padding:14px 0 0;border-top:1px solid ${P.line};text-align:right;font-size:16px;font-weight:700;color:${P.forest}">Rs 7,697</td></tr>
+</table></td></tr></table>`;
+    }
+
+    function addressBox() {
+      return `<table width="100%" style="margin:24px 0 0;background:${P.sand};border:1px solid ${P.line};border-radius:14px"><tr><td style="padding:18px 20px">
+${sectionLabel("Deliver to")}
+<p style="margin:0;font-size:15px;line-height:1.55">Ali Khan<br>House 12, Block C, DHA Phase 5<br>Lahore 54000<br>0300 1234567</p>
+</td></tr></table>`;
+    }
+
+    function noteBox(text) {
+      return `<table width="100%" style="margin:20px 0 0;background:${P.sand};border-left:4px solid ${P.gold};border-radius:0 12px 12px 0"><tr><td style="padding:14px 16px;font-size:14px">${text}</td></tr></table>`;
+    }
+
+    const foot = "You received this email from Buy n Try because you placed an order.";
+
+    document.getElementById("confirmed").innerHTML = shell(
+      "Order confirmed",
+      `<p style="margin:0 0 14px">Hi Ali,</p>
+<p style="margin:0 0 14px">Thank you for choosing Buy n Try. Your order is confirmed and our team is preparing it for dispatch.</p>
+<p style="margin:0 0 14px">You pay cash on delivery — no online payment. When the courier arrives, please check the items and packaging before you accept the parcel.</p>
+<p style="margin:0 0 20px">If anything looks wrong, reply to this email or WhatsApp us before we ship.</p>
+${billBox()}${addressBox()}${pillBtn("Track your order")}`,
+      foot
+    );
+
+    document.getElementById("shipped").innerHTML = shell(
+      "Your order is on the way",
+      `<p style="margin:0 0 14px">Hi Ali,</p>
+<p style="margin:0 0 14px">Your Buy n Try order <strong>VG-20260926-A1B2</strong> has left our facility and is on its way to you.</p>
+<p style="margin:0 0 14px">Please keep your phone reachable — the courier may call before delivery. Have the cash-on-delivery amount ready (Rs 7,697).</p>
+${noteBox("Tracking: PostEx PKG-88421 · Rider may call from 0300-xxxxxxx")}
+${pillBtn("Track your order")}`,
+      foot
+    );
+
+    document.getElementById("delivered").innerHTML = shell(
+      "Your order has arrived",
+      `<p style="margin:0 0 14px">Hi Ali,</p>
+<p style="margin:0 0 14px">Your order <strong>VG-20260926-A1B2</strong> has been delivered. We hope everything arrived as expected.</p>
+<p style="margin:0 0 14px">If something is missing or damaged, reply to this email within a few days and we will make it right under our warranty policy.</p>
+<p style="margin:0 0 0">Thank you for shopping with Buy n Try.</p>
+${pillBtn("Track your order")}`,
+      foot
+    );
+
+    document.getElementById("cancelled").innerHTML = shell(
+      "Your order was cancelled",
+      `<p style="margin:0 0 14px">Hi Ali,</p>
+<p style="margin:0 0 14px">This email confirms that order <strong>VG-20260926-A1B2</strong> has been cancelled.</p>
+<p style="margin:0 0 14px">Because you chose cash on delivery, no online charge was made. If a courier was already assigned, ignore any outdated delivery messages.</p>
+${noteBox("Cancelled by customer")}
+<p style="margin:16px 0 0">If this was a mistake or you would like to order again, reply to this email and we will help you.</p>
+${pillBtn("Track your order")}`,
+      foot
+    );
+
+    document.querySelectorAll(".toolbar button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".toolbar button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const id = btn.getAttribute("data-show");
+        document.querySelectorAll(".preview-wrap").forEach((w) => w.classList.remove("show"));
+        document.getElementById(id).classList.add("show");
+      });
+    });
+  </script>
+</body>
+</html>

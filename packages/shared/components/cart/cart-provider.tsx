@@ -10,7 +10,6 @@ import {
   type ReactNode,
 } from "react";
 
-import { pageTypeFromPath, trackFirstParty } from "@/lib/first-party-analytics";
 import { mergeRetainedSku } from "@/lib/cart-sku-rules";
 import { trackTikTokAddToCart } from "@/lib/tiktok-browser-events";
 import { trackMetaAddToCart } from "@/lib/meta-pixel-events";
@@ -42,23 +41,6 @@ export function cartLineKey(item: {
   variantKey?: string;
 }): string {
   return item.variantKey ? `${item.slug}::${item.variantKey}` : item.slug;
-}
-
-function trackCartLine(
-  name: "add_to_cart" | "remove_from_cart",
-  item: { slug: string; productId?: string; variantId?: string },
-  quantity: number,
-) {
-  const path = typeof window !== "undefined" ? window.location.pathname : "/";
-  trackFirstParty({
-    name,
-    path,
-    page_type: pageTypeFromPath(path),
-    ...(item.productId ? { product_id: item.productId } : {}),
-    ...(item.variantId ? { variant_id: item.variantId } : {}),
-    product_slug: item.slug,
-    properties: { quantity },
-  });
 }
 
 interface CartContextValue {
@@ -126,8 +108,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         return [...prev, { ...item, quantity: qty }];
       });
-      trackCartLine("add_to_cart", item, qty);
-      
       try {
         trackMetaAddToCart({
           productId: item.productId,
@@ -160,9 +140,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (key: string) => {
       const existing = items.find((i) => cartLineKey(i) === key);
       setItems((prev) => prev.filter((i) => cartLineKey(i) !== key));
-      if (existing) {
-        trackCartLine("remove_from_cart", existing, existing.quantity);
-      }
     },
     [items],
   );
@@ -175,9 +152,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           ? prev.filter((i) => cartLineKey(i) !== key)
           : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i)),
       );
-      if (quantity <= 0 && existing) {
-        trackCartLine("remove_from_cart", existing, existing.quantity);
-      }
     },
     [items],
   );

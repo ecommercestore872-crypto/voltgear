@@ -9,7 +9,6 @@ import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import { useCart } from "@/components/cart/cart-provider";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
-import { trackAddToCart } from "@/lib/analytics";
 import { product2Href } from "@/lib/gadget-preview";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { getStockState } from "@/lib/stock";
@@ -65,12 +64,6 @@ export function GadgetFeaturedProduct({
             ...(defaultVariant.sku ? { variantSku: defaultVariant.sku } : {}),
           }
         : {}),
-    });
-    trackAddToCart({
-      item_id: product.slug,
-      item_name: product.name,
-      price,
-      quantity: 1,
     });
     const btn = btnRef.current;
     if (btn) {

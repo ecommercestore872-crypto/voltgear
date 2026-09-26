@@ -1,6 +1,6 @@
 # T-40 verification — shop/admin split
 
-Scope: **voltgear** (buyntryy.com) + admin app (production: **https://voltgear-admin.vercel.app**; alias `voltgear-admin-dashboard` may differ — set `ADMIN_PUBLIC_URL` to match shop env).
+Scope: **voltgear** (buyntryy.com) + admin app. **Staff URL:** **https://buyntryy.com/admin** (same-origin proxy). Upstream admin project: `voltgear-admin-pi.vercel.app` via `ADMIN_PROXY_UPSTREAM`.
 
 ## Required env (dashboard)
 

@@ -1,4 +1,4 @@
-import { createMemoryRateLimiter } from "@/lib/db/analytics-ingest-rules";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 
 const checkoutIpLimiter = createMemoryRateLimiter({
   limit: 12,
@@ -80,3 +80,4 @@ export function cacheCheckoutOrder(key: string, orderId: string) {
   pruneIdempotency(Date.now());
   idempotencyCache.set(key, { orderId, at: Date.now() });
 }
+
