@@ -1,21 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { apexPublicUrl, shouldRedirectWwwHost } from "@/lib/seo-rules";
-
-const SKIP_CITY_COOKIE_PREFIXES = ["/api/", "/_next/"] as const;
-
-function needsVisitorCityCookie(pathname: string): boolean {
-  if (pathname === "/favicon.ico") return false;
-  return !SKIP_CITY_COOKIE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-}
-
 export function middleware(request: NextRequest) {
-  const host = request.headers.get("host");
-  if (shouldRedirectWwwHost(host)) {
-    const { pathname, search } = request.nextUrl;
-    return NextResponse.redirect(apexPublicUrl(pathname, search), 308);
-  }
-
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/checkout") || pathname.startsWith("/api/checkout")) {
@@ -28,15 +13,20 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (!needsVisitorCityCookie(pathname)) {
+  if (pathname !== "/") {
     return NextResponse.next();
   }
 
   const response = NextResponse.next();
+  if (request.cookies.get("visitor-city")) {
+    return response;
+  }
+
   const city = request.headers.get("x-vercel-ip-city");
   if (city) {
     response.cookies.set("visitor-city", encodeURIComponent(city), {
       path: "/",
+      maxAge: 60 * 60 * 24 * 30,
       secure: true,
       sameSite: "lax",
     });
@@ -45,10 +35,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
+/** Edge only on checkout (geo) and home (one-time city cookie) — not every page view. */
 export const config = {
-  matcher: [
-    "/checkout/:path*",
-    "/api/checkout/:path*",
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
-  ],
+  matcher: ["/checkout/:path*", "/api/checkout/:path*", "/"],
 };

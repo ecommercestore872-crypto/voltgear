@@ -10,7 +10,7 @@ import {
 } from "@/lib/email";
 import {
   enqueueEmailEvent,
-  getAllOrders,
+  getLightweightOrders,
   getPendingEmailEvents,
   markEmailSent,
   recentWinbackExists,
@@ -99,7 +99,7 @@ async function GETHandler(request: Request) {
 
   // 2. Win-back sweep: customers with no order in the last 90 days. Deduped
   //    by checking whether a win-back event was already created recently.
-  const orders = await getAllOrders();
+  const orders = await getLightweightOrders();
   const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
   const sinceIso = new Date(cutoff).toISOString();
   const latestByEmail = new Map<

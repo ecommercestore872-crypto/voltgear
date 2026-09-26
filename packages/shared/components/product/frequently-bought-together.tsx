@@ -6,7 +6,10 @@ import { ShoppingCart, Check, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { fetchStoreProducts } from "@/lib/store-client";
+import {
+  fetchFeaturedStoreProducts,
+  fetchStoreFeaturedProducts,
+} from "@/lib/store-client";
 import { imageUrl } from "@/lib/sanity/image";
 import { getDefaultVariant, getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
@@ -28,8 +31,14 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
   const { addItem } = useCart();
 
   useEffect(() => {
-    fetchStoreProducts()
-      .then((products) => {
+    const category = current.category ?? "";
+    Promise.all([
+      category
+        ? fetchFeaturedStoreProducts(category, 8)
+        : fetchStoreFeaturedProducts(8),
+      fetchStoreFeaturedProducts(8),
+    ])
+      .then(([sameCatPool, featuredPool]) => {
         const addable = (p: Product) => {
           if (p.stockStatus === "out-of-stock") return false;
           const v = getDefaultVariant(p);
@@ -37,7 +46,7 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
             ? getStockState(v.stockStatus).purchasable
             : !p.variants?.length;
         };
-        const sameCategory = products
+        const sameCategory = sameCatPool
           .filter(
             (p) =>
               p._id !== current._id &&
@@ -45,7 +54,7 @@ export function FrequentlyBoughtTogether({ current }: { current: Product }) {
               addable(p),
           )
           .slice(0, 2);
-        const crossCategory = products
+        const crossCategory = featuredPool
           .filter(
             (p) =>
               p._id !== current._id &&

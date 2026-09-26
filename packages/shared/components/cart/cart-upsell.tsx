@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { fetchStoreProducts } from "@/lib/store-client";
+import { fetchStoreFeaturedProducts } from "@/lib/store-client";
 import { imageUrl } from "@/lib/sanity/image";
 import { getDefaultVariant, getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
@@ -17,7 +17,7 @@ export function CartUpsell({ excludeSlugs }: { excludeSlugs: string[] }) {
   const { addItem } = useCart();
 
   useEffect(() => {
-    fetchStoreProducts()
+    fetchStoreFeaturedProducts(20)
       .then((all) => {
         const addable = (p: Product) => {
           if (p.stockStatus === "out-of-stock") return false;
@@ -78,8 +78,7 @@ export function CartUpsell({ excludeSlugs }: { excludeSlugs: string[] }) {
                     price: v?.price ?? p.price,
                     image: img ? imageUrl(img, { w: 128 }) : undefined,
                     productId: p._id,
-        freeShipping: Boolean(p.freeShipping),
-        freeShipping: Boolean(p.freeShipping),
+                    freeShipping: Boolean(p.freeShipping),
                     ...(p.sku ? { sku: p.sku } : {}),
                     ...(v
                       ? {

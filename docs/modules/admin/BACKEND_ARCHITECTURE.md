@@ -71,6 +71,18 @@ Optional: `ADMIN_API_LOG_ALL=1` logs every wrapped admin route.
 
 Apply: `npx supabase db push --include-all` on Final-store.
 
+## Vercel usage discipline (avoid plan limits)
+
+| Risk | Mitigation in repo |
+|------|---------------------|
+| Full catalog API on every cart/search open | `/api/store/products` is **ISR + CDN** (`s-maxage=300`); clients use **featured/slugs/recommend** only |
+| Edge middleware on every page | Storefront middleware runs on **`/`, checkout, `/api/checkout` only**; www → apex via **next.config redirect** |
+| Publish → many `/api/revalidate` POSTs | `revalidateAfterPublish("/", …)` passes **all paths in one HTTP call** |
+| Daily cron loading full order bundles | `/api/flows` win-back uses **`getLightweightOrders()`** |
+| Staff on same-origin proxy | Optional: unset `ADMIN_PROXY_UPSTREAM`, use admin host + `ADMIN_PUBLIC_URL` to avoid double serverless |
+
+Do **not** set `ADMIN_API_LOG_ALL=1` in production unless debugging (extra log volume).
+
 ## Deploy checklist
 
 1. Push `main` → Git builds **voltgear** + **voltgear-admin** (or CLI prod deploy both).

@@ -86,6 +86,12 @@ const nextConfig = {
     );
     return [
       ...storefrontAdminRedirects(process.env),
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.buyntryy.com" }],
+        destination: "https://buyntryy.com/:path*",
+        permanent: true,
+      },
       { source: "/home2", destination: "/", permanent: true },
       { source: "/home2/:path*", destination: "/", permanent: true },
       { source: "/products2", destination: "/products", permanent: true },

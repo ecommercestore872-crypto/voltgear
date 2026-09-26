@@ -11,7 +11,7 @@ import { StarRating } from "@/components/product/star-rating";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { useGadgetPreview } from "@/components/gadget/use-gadget-preview";
 import { product2Href, products2Href } from "@/lib/gadget-preview";
-import { fetchStoreProducts } from "@/lib/store-client";
+import { fetchStoreProductsBySlugs } from "@/lib/store-client";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
@@ -73,9 +73,9 @@ export function CompareBar({
       setProducts([]);
       return;
     }
-    fetchStoreProducts()
-      .then((all) => setProducts(all.filter((p) => slugs.includes(p.slug))))
-      .catch(() => {});
+    fetchStoreProductsBySlugs(slugs)
+      .then(setProducts)
+      .catch(() => setProducts([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slugs.join(",")]);
 
@@ -185,15 +185,20 @@ export function ComparePage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const productsParam = params.get("products");
-    if (productsParam) {
-      setCompareSlugs(productsParam.split(",").filter(Boolean));
+    const slugs = productsParam
+      ? productsParam.split(",").filter(Boolean)
+      : [];
+    setCompareSlugs(slugs);
+    if (slugs.length === 0) {
+      setAllProducts([]);
+      return;
     }
-    fetchStoreProducts()
+    fetchStoreProductsBySlugs(slugs)
       .then(setAllProducts)
-      .catch(() => {});
+      .catch(() => setAllProducts([]));
   }, []);
 
-  const products = allProducts.filter((p) => compareSlugs.includes(p.slug));
+  const products = allProducts;
 
   if (products.length < 2) {
     return (

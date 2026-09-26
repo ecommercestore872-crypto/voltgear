@@ -1,9 +1,11 @@
 import type { Product } from "@/lib/types";
 
+/** Browser fetch — relies on CDN `s-maxage` from `/api/store/products` (not no-store). */
+const storeReadInit: RequestInit = { cache: "default" };
+
+/** @deprecated Prefer featured/newest/slugs helpers — full catalog is not served. */
 export async function fetchStoreProducts(): Promise<Product[]> {
-  const res = await fetch("/api/store/products", { cache: "no-store" });
-  if (!res.ok) return [];
-  return res.json();
+  return fetchStoreFeaturedProducts(24);
 }
 
 export async function fetchFeaturedStoreProducts(
@@ -12,7 +14,7 @@ export async function fetchFeaturedStoreProducts(
 ): Promise<Product[]> {
   const res = await fetch(
     `/api/store/products?category=${encodeURIComponent(category)}&featured=1&limit=${limit}`,
-    { cache: "no-store" },
+    storeReadInit,
   );
   if (!res.ok) return [];
   const data = await res.json();
@@ -22,7 +24,7 @@ export async function fetchFeaturedStoreProducts(
 export async function fetchStoreFeaturedProducts(limit = 4): Promise<Product[]> {
   const res = await fetch(
     `/api/store/products?featured=1&limit=${limit}`,
-    { cache: "no-store" },
+    storeReadInit,
   );
   if (!res.ok) return [];
   const data = await res.json();
@@ -32,7 +34,7 @@ export async function fetchStoreFeaturedProducts(limit = 4): Promise<Product[]> 
 export async function fetchNewestStoreProducts(limit = 4): Promise<Product[]> {
   const res = await fetch(
     `/api/store/products?newest=1&limit=${limit}`,
-    { cache: "no-store" },
+    storeReadInit,
   );
   if (!res.ok) return [];
   const data = await res.json();
@@ -44,9 +46,7 @@ export async function fetchStoreProductsBySlugs(
 ): Promise<Product[]> {
   if (!slugs.length) return [];
   const q = slugs.map((s) => encodeURIComponent(s)).join(",");
-  const res = await fetch(`/api/store/products?slugs=${q}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(`/api/store/products?slugs=${q}`, storeReadInit);
   if (!res.ok) {
     throw new Error(`wishlist products: ${res.status}`);
   }
@@ -56,7 +56,7 @@ export async function fetchStoreProductsBySlugs(
 
 export async function fetchStoreProductBySlug(slug: string): Promise<Product | null> {
   const res = await fetch(`/api/store/products?slug=${encodeURIComponent(slug)}`, {
-    cache: "no-store",
+    storeReadInit,
   });
   if (!res.ok) return null;
   const data = await res.json();

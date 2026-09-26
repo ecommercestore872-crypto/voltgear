@@ -455,17 +455,17 @@ export async function publishAdminProduct(id: string, doc: ProductDocument) {
       status: 500,
     };
   }
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/products");
-  for (const path of extraCategoryPathsToRevalidate(current.category, merged.category)) {
-    void revalidateAfterPublish(path);
-  }
-  void revalidateAfterPublish(`/product/${merged.slug}`);
-  void revalidateAfterPublish("/search");
-  void revalidateAfterPublish("/api/store/products");
-  void revalidateAfterPublish(`/admin/products/${id}`);
-  void revalidateAfterPublish("/admin/products");
-  if (current.slug !== merged.slug) void revalidateAfterPublish(`/product/${current.slug}`);
+  void revalidateAfterPublish(
+    "/",
+    "/products",
+    ...extraCategoryPathsToRevalidate(current.category, merged.category),
+    `/product/${merged.slug}`,
+    "/search",
+    "/api/store/products",
+    `/admin/products/${id}`,
+    "/admin/products",
+    ...(current.slug !== merged.slug ? [`/product/${current.slug}`] : []),
+  );
   return { ok: true as const };
 }
 
@@ -477,12 +477,14 @@ export async function unpublishAdminProduct(id: string) {
     .update({ status: "unpublished", updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/products");
-  void revalidateAfterPublish(`/product/${current.slug}`);
-  void revalidateAfterPublish("/api/store/products");
-  void revalidateAfterPublish(`/admin/products/${id}`);
-  void revalidateAfterPublish("/admin/products");
+  void revalidateAfterPublish(
+    "/",
+    "/products",
+    `/product/${current.slug}`,
+    "/api/store/products",
+    `/admin/products/${id}`,
+    "/admin/products",
+  );
   return { ok: true as const };
 }
 
@@ -492,8 +494,7 @@ export async function discardAdminProductDraft(id: string) {
     .update({ draft: null, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish(`/admin/products/${id}`);
-  void revalidateAfterPublish("/admin/products");
+  void revalidateAfterPublish(`/admin/products/${id}`, "/admin/products");
   return { ok: true as const };
 }
 
@@ -522,11 +523,13 @@ export async function deleteAdminProduct(id: string) {
     await client.storage.from("product-images").remove(Array.from(storageImages));
   }
 
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/products");
-  void revalidateAfterPublish(`/product/${current.slug}`);
-  void revalidateAfterPublish("/api/store/products");
-  void revalidateAfterPublish("/admin/products");
+  void revalidateAfterPublish(
+    "/",
+    "/products",
+    `/product/${current.slug}`,
+    "/api/store/products",
+    "/admin/products",
+  );
   return { ok: true as const };
 }
 
@@ -1549,16 +1552,18 @@ export async function purgeDemoData(): Promise<DemoPurgeResult> {
     pages: await deleteDemoRows("pages"),
     products: await deleteDemoRows("products"),
   };
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/products");
-  void revalidateAfterPublish("/search");
-  void revalidateAfterPublish("/blog");
-  void revalidateAfterPublish("/admin");
-  void revalidateAfterPublish("/admin/orders");
-  void revalidateAfterPublish("/admin/products");
-  void revalidateAfterPublish("/admin/pages");
-  void revalidateAfterPublish("/admin/testimonials");
-  void revalidateAfterPublish("/admin/reviews");
+  void revalidateAfterPublish(
+    "/",
+    "/products",
+    "/search",
+    "/blog",
+    "/admin",
+    "/admin/orders",
+    "/admin/products",
+    "/admin/pages",
+    "/admin/testimonials",
+    "/admin/reviews",
+  );
   return {
     ok: true,
     empty: Object.values(deleted).every((n) => n === 0),
@@ -1567,12 +1572,13 @@ export async function purgeDemoData(): Promise<DemoPurgeResult> {
 }
 
 function revalidateShopTypePaths(slug?: string) {
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/products");
-  void revalidateAfterPublish("/search");
-  void revalidateAfterPublish("/sitemap.xml");
-  if (slug) void revalidateAfterPublish(`/products/${slug}`);
+  void revalidateAfterPublish(
+    "/",
+    "/products",
+    "/search",
+    "/sitemap.xml",
+    ...(slug ? [`/products/${slug}`] : []),
+  );
 }
 
 function mapCategoryRow(
