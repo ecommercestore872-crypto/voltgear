@@ -78,7 +78,8 @@ Apply: `npx supabase db push --include-all` on Final-store.
 | Full catalog API on every cart/search open | `/api/store/products` is **ISR + CDN** (`s-maxage=300`); clients use **featured/slugs/recommend** only |
 | Edge middleware on every page | Storefront middleware runs on **`/`, checkout, `/api/checkout` only**; www → apex via **next.config redirect** |
 | Publish → many `/api/revalidate` POSTs | `revalidateAfterPublish("/", …)` passes **all paths in one HTTP call** |
-| Daily cron loading full order bundles | `/api/flows` win-back uses **`getLightweightOrders()`** |
+| Daily cron win-back | `/api/flows` uses **`listWinbackCandidates`** + `admin_customer_rollups` (bounded batch) |
+| Broadcast SMS contacts | **`listOrderPhoneContacts`** from rollups (fallback: last 4000 orders) |
 | Staff on same-origin proxy | Optional: unset `ADMIN_PROXY_UPSTREAM`, use admin host + `ADMIN_PUBLIC_URL` to avoid double serverless |
 
 Do **not** set `ADMIN_API_LOG_ALL=1` in production unless debugging (extra log volume).

@@ -4,7 +4,7 @@ import {
   planManualAdd,
   suppressedPhoneSet,
 } from "@/lib/broadcast-contact-rules";
-import { getLightweightOrders } from "@/lib/order-store";
+import { listOrderPhoneContacts } from "@/lib/db/broadcast-order-contacts";
 import { getServiceClient } from "@/lib/supabase/server";
 import { normalizePhone } from "@/lib/messaging";
 import type {
@@ -30,21 +30,16 @@ export async function getContacts(): Promise<{
     (suppressedRows ?? []).map((r) => String(r.phone))
   );
   const suppressed = Array.from(suppressedSet);
-  const orders = await getLightweightOrders();
-
+  const phoneContacts = await listOrderPhoneContacts();
   const fromOrders = new Map<string, { name: string; city: string; lastAt: number }>();
-  for (const order of orders) {
-    const phone = normalizePhone(order.customer?.phone ?? "");
+  for (const contact of phoneContacts) {
+    const phone = normalizePhone(contact.phone);
     if (!phone) continue;
-    const existing = fromOrders.get(phone);
-    const at = new Date(order.createdAt).getTime();
-    if (!existing || at > existing.lastAt) {
-      fromOrders.set(phone, {
-        name: order.customer?.name ?? "",
-        city: order.customer?.city ?? "",
-        lastAt: at,
-      });
-    }
+    fromOrders.set(phone, {
+      name: contact.name,
+      city: "",
+      lastAt: contact.lastAt,
+    });
   }
 
   const contacts: BroadcastContact[] = [];

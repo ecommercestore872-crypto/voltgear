@@ -2,7 +2,7 @@
 
 Single tracker for this store. Status lives here only.
 
-**How we work:** `docs/OPERATING-MODEL.md` · **Health metrics:** `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md` · **Fix order:** `docs/REMEDIATION-STEPS.md`
+**How we work:** `docs/OPERATING-MODEL.md` · **Health metrics:** `docs/INFRASTRUCTURE-HEALTH-CHECKLIST.md` · **Fix order:** `docs/REMEDIATION-STEPS.md` · **Long-run roadmap:** `docs/superpowers/plans/2026-09-26-t42-scale-perfection-roadmap.md` (T-42)
 
 **Status key:** ⚪ Planned · 🟡 In Progress · ✅ Done · ⏸️ Blocked
 
@@ -16,6 +16,8 @@ Spec: `docs/superpowers/specs/2026-09-05-t38b-autopilot-engines-design.md`
 **T-40 — Storefront / admin Vercel split:** ✅ smoke on `main` — `npm run smoke:t40`; publish checklist in `docs/modules/deploy/T40_VERIFICATION.md`.
 
 **T-41 — Vercel usage & shop hardening:** 🟡 Phase 1 shipped (`7e6c73d`); next: Usage alerts + image/bandwidth pass — spec `docs/superpowers/specs/2026-09-25-t41-vercel-shop-hardening-design.md`.
+
+**T-42 — Scale & perfection (traffic + orders):** 🟡 In Progress — follow phases **0 → 8** in order; plan `docs/superpowers/plans/2026-09-26-t42-scale-perfection-roadmap.md`, spec `docs/superpowers/specs/2026-09-26-t42-scale-perfection-design.md`. **Next slice:** Phase 0 alerts, then Phase 2 bounded order queries.
 
 ## Program
 
@@ -66,6 +68,7 @@ Custom self-hosted commerce: Supabase + custom admin, tracking, emails, funnel l
 | T-39 | SEO — Pakistan rankings (categories, products, guides) | 🟡 In Progress | T-08 | Phase 1 canonicals live. Phase 2 wave 1: `/cod/{city}` hubs (Lahore, Karachi, Islamabad, Rawalpindi). Perf pass on layout/fonts/pixels. Plan: `tasks/plan.md`. |
 | T-40 | Storefront / admin Vercel split (monorepo, dual project) | 🟡 In Progress | T-08 | Spec: `docs/superpowers/specs/2026-09-23-t40-storefront-admin-split-design.md`. Shop redirects `/admin` to admin Vercel URL; lean buyntryy deploy. |
 | T-41 | Vercel usage & storefront hardening | 🟡 In Progress | T-40 | Phase 1 live on buyntryy (`7e6c73d`). Next: alerts + image/bandwidth. Spec: `docs/superpowers/specs/2026-09-25-t41-vercel-shop-hardening-design.md`. |
+| T-42 | Scale & perfection roadmap | 🟡 In Progress | T-41, remediation | Phased hardening for large traffic/orders. Plan: `docs/superpowers/plans/2026-09-26-t42-scale-perfection-roadmap.md`. |
 
 ## Suggested build order
 

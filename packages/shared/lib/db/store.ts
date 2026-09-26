@@ -864,11 +864,13 @@ export async function getAllOrders(): Promise<Order[]> {
   return Promise.all((data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)));
 }
 
+/** @deprecated Unbounded — use listAdminOrdersPage, listWinbackCandidates, or SQL rollups. */
 export async function getLightweightOrders(): Promise<Order[]> {
   const { data, error } = await db()
     .from("orders")
     .select("order_id, created_at, status, status_updated_at, total, is_demo, customer")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(5000);
   if (error) return [];
   return (data ?? []).map((row) => ({
     orderId: row.order_id,

@@ -8,9 +8,10 @@ import {
   sendPostPurchaseEmail,
   sendWinbackEmail,
 } from "@/lib/email";
+import { listWinbackCandidates } from "@/lib/db/winback-candidates";
+import { winbackInactiveCutoffIso } from "@/lib/db/flows-winback-rules";
 import {
   enqueueEmailEvent,
-  getLightweightOrders,
   getPendingEmailEvents,
   markEmailSent,
   recentWinbackExists,
@@ -97,31 +98,13 @@ async function GETHandler(request: Request) {
     }
   }
 
-  // 2. Win-back sweep: customers with no order in the last 90 days. Deduped
-  //    by checking whether a win-back event was already created recently.
-  const orders = await getLightweightOrders();
-  const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
-  const sinceIso = new Date(cutoff).toISOString();
-  const latestByEmail = new Map<
-    string,
-    { name?: string; lastOrderAt: number }
-  >();
-  for (const o of orders) {
-    if (!o.customer?.email) continue;
-    const at = new Date(o.createdAt).getTime();
-    const current = latestByEmail.get(o.customer.email);
-    if (!current || at > current.lastOrderAt) {
-      latestByEmail.set(o.customer.email, {
-        name: o.customer.name,
-        lastOrderAt: at,
-      });
-    }
-  }
+  // 2. Win-back sweep: inactive customers via SQL rollups (bounded batch per run).
+  const sinceIso = winbackInactiveCutoffIso();
+  const candidates = await listWinbackCandidates(sinceIso);
   let winbacksQueued = 0;
-  for (const [email, info] of Array.from(latestByEmail.entries())) {
-    if (info.lastOrderAt > cutoff) continue;
+  for (const { email, name } of candidates) {
     if (await recentWinbackExists(email, sinceIso)) continue;
-    await enqueueEmailEvent("win-back", email, { name: info.name ?? "" }, 0);
+    await enqueueEmailEvent("win-back", email, { name }, 0);
     winbacksQueued++;
   }
 
