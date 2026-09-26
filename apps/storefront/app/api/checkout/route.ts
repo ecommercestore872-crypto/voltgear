@@ -41,7 +41,7 @@ import {
   checkoutHttpStatusAfterOrderPersisted,
   summarizeNewOrderEmailOutcome,
 } from "@/lib/email-checkout-rules";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
 import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
 import { trackMetaServerPurchase } from "@/lib/meta-events-api";
 
@@ -112,30 +112,20 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    if (
-      !customer?.name ||
-      !customer.email ||
-      !customer.phone ||
-      !customer.address ||
-      !customer.city?.trim()
-    ) {
+    const normalizedCustomer = normalizeCheckoutCustomer({
+      ...customer,
+      note: typeof customer?.note === "string" ? customer.note : undefined,
+    });
+    if (!normalizedCustomer.ok) {
       slo("validation", 400, { itemCount: items.length });
       return NextResponse.json(
-        { error: "Name, email, phone, address and city are required." },
+        { error: normalizedCustomer.error },
         { status: 400 },
       );
     }
-
-    const phone = normalizePhone(customer.phone);
-    if (!phone) {
-      slo("validation", 400, { itemCount: items.length });
-      return NextResponse.json(
-        { error: "Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)." },
-        { status: 400 },
-      );
-    }
-
-    const email = customer.email.toLowerCase().trim();
+    const checkoutCustomer = normalizedCustomer.customer;
+    const email = checkoutCustomer.email;
+    const phone = checkoutCustomer.phone;
     const rate = takeCheckoutRateLimit({
       ip: checkoutClientIp(request),
       email,
@@ -280,19 +270,19 @@ export async function POST(request: Request) {
 
     const customerNote = [
       gift ? "Gift wrap requested." : null,
-      typeof customer.note === "string" ? customer.note.trim() : "",
+      checkoutCustomer.note ?? "",
     ]
       .filter(Boolean)
       .join(" ");
 
     const baseOrder = {
       customer: {
-        name: customer.name,
+        name: checkoutCustomer.name,
         email,
         phone,
-        address: customer.address.trim(),
-        city: customer.city.trim(),
-        postal: customer.postal,
+        address: checkoutCustomer.address,
+        city: checkoutCustomer.city,
+        postal: checkoutCustomer.postal,
         note: customerNote || undefined,
       },
       items: lines,

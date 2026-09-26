@@ -1,34 +1,6 @@
-import Image from "next/image";
+import { BntSeal } from "@/components/brand/bnt-seal";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
-
-function BntSealMark({
-  compact = false,
-  priority = false,
-}: {
-  compact?: boolean;
-  priority?: boolean;
-}) {
-  return (
-    <span
-      className={cn(
-        "shop-brand-shine shrink-0 rounded-full overflow-hidden relative",
-        compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-11 sm:w-11",
-      )}
-      aria-hidden
-    >
-      <Image
-        src={SHOPPER_BRAND.sealSrc}
-        alt=""
-        fill
-        sizes="44px"
-        quality={75}
-        priority={priority}
-        className="h-full w-full rounded-full object-cover"
-      />
-    </span>
-  );
-}
 
 export function BntWordmark({
   invert = false,
@@ -44,7 +16,13 @@ export function BntWordmark({
   return (
     <span className={cn("inline-flex items-center gap-3", className)}>
       <span className="inline-flex items-center gap-3" aria-hidden>
-        <BntSealMark compact={compact} priority={priority} />
+        <BntSeal
+          invert={invert}
+          className={cn(
+            "shop-brand-shine shrink-0",
+            compact ? "h-9 min-w-9 sm:h-10 sm:min-w-10" : "h-10 min-w-10 sm:h-11 sm:min-w-11",
+          )}
+        />
         <span
           className={cn(
             "h-8 w-px self-center sm:h-9",

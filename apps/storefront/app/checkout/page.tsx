@@ -592,7 +592,7 @@ export default function CheckoutPage() {
   }
 
   /* ── Empty cart ─────────────────────────────────────────────────── */
-  if (items.length === 0 && step === 0) {
+  if (items.length === 0) {
     return (
       <div className="container mx-auto max-w-xl px-4 py-16 lg:px-8">
         <div className="rounded-2xl border border-dashed p-6 text-center sm:p-12">
@@ -810,15 +810,15 @@ export default function CheckoutPage() {
                     </div>
                     <div className="min-w-0 space-y-2">
                       <Label htmlFor="email" className="text-sm font-bold">
-                        Email Address *
+                        Email <span className="font-normal text-muted-foreground">(optional)</span>
                       </Label>
                       <Input
                         id="email"
                         name="email"
-                        type="email"
-                        required
+                        type="text"
+                        inputMode="email"
                         autoComplete="email"
-                        placeholder="you@example.com"
+                        placeholder="For order updates (optional)"
                         defaultValue={customer.email}
                       />
                     </div>
@@ -832,9 +832,8 @@ export default function CheckoutPage() {
                         type="tel"
                         inputMode="tel"
                         required
-                        title="Enter a valid Pakistani mobile number, e.g. 0300 1234567."
                         autoComplete="tel"
-                        placeholder="03XX XXXXXXX"
+                        placeholder="03XX XXXXXXX (WhatsApp ok)"
                         defaultValue={customer.phone}
                       />
                     </div>
@@ -853,12 +852,11 @@ export default function CheckoutPage() {
                     </div>
                     <div className="min-w-0 space-y-2">
                       <Label htmlFor="city" className="text-sm font-bold">
-                        City *
+                        City <span className="font-normal text-muted-foreground">(optional)</span>
                       </Label>
                       <Input
                         id="city"
                         name="city"
-                        required
                         list="pakistan-cities"
                         autoComplete="address-level2"
                         defaultValue={customer.city}

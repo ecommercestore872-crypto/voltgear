@@ -3,24 +3,17 @@ import assert from "node:assert";
 
 describe("Checkout API Flow Regression", () => {
 
-  test("Missing customer fields are unconditionally rejected", () => {
-    // If the React component submits empty closures, the API must reject.
-    const validationFn = (customer: any) => {
-      if (
-        !customer?.name ||
-        !customer.email ||
-        !customer.phone ||
-        !customer.address ||
-        !customer.city?.trim()
-      ) {
-        return false;
-      }
-      return true;
-    };
-    
-    assert.strictEqual(validationFn({}), false, "Empty closure payload must be rejected");
-    assert.strictEqual(validationFn({ name: "A", phone: "123", address: "A", city: "A" }), false, "Missing email must be rejected");
-    assert.strictEqual(validationFn({ name: "A", email: "A", phone: "123", address: "A", city: "A" }), true, "Full payload must pass");
+  test("Checkout customer rules reject empty payload", async () => {
+    const { normalizeCheckoutCustomer } = await import("./checkout-customer-rules");
+    assert.strictEqual(normalizeCheckoutCustomer({}).ok, false);
+    assert.strictEqual(
+      normalizeCheckoutCustomer({
+        name: "Ali Khan",
+        phone: "03001234567",
+        address: "House 12, Street 4, Gulberg",
+      }).ok,
+      true,
+    );
   });
 
   test("Purchase tracking occurs only strictly after success", () => {
