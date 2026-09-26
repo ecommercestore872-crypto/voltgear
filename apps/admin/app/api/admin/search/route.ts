@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
 import { scoreAdminSearchHits } from "@/lib/db/admin-search-rules";
+import { searchAdminOrdersByTerm } from "@/lib/db/admin-orders-store";
 import { listAdminProductsSearch } from "@/lib/db/admin-store";
 import { buildCustomerRowsFromOrders } from "@/lib/db/customer-list";
-import { getLightweightOrders } from "@/lib/order-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,16 +20,12 @@ export async function GET(request: Request) {
   }
   try {
     const [orders, products] = await Promise.all([
-      getLightweightOrders(),
+      searchAdminOrdersByTerm(trimmed, 24),
       listAdminProductsSearch(trimmed),
     ]);
-    const customers = buildCustomerRowsFromOrders(
-      orders.filter((o) => !o.isDemo),
-    );
+    const customers = buildCustomerRowsFromOrders(orders).slice(0, 12);
     const hits = scoreAdminSearchHits(trimmed, {
-      orders: orders
-        .filter((o) => !o.isDemo)
-        .map((o) => ({ orderId: o.orderId })),
+      orders: orders.map((o) => ({ orderId: o.orderId })),
       products: products.map((p) => ({
         id: p._id,
         name: p.name,

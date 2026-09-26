@@ -1,4 +1,6 @@
-import { getLightweightOrders } from "@/lib/order-store";
+import { getServiceClient } from "@/lib/supabase/server";
+
+import { mapLightweightOrderRow } from "./admin-orders-store";
 
 export type CustomerRow = {
   key: string;
@@ -53,7 +55,23 @@ export function buildCustomerRowsFromOrders(
   );
 }
 
-export async function listAdminCustomers(): Promise<CustomerRow[]> {
-  const orders = await getLightweightOrders();
+/** Recent live orders only — avoids scanning entire order history for the customers index. */
+export async function listAdminCustomers(
+  recentOrderLimit = 4000,
+): Promise<CustomerRow[]> {
+  const { data, error } = await getServiceClient({ admin: true })
+    .from("orders")
+    .select(
+      "order_id, created_at, status, status_updated_at, total, is_demo, customer",
+    )
+    .eq("is_demo", false)
+    .order("created_at", { ascending: false })
+    .limit(recentOrderLimit);
+
+  if (error) throw error;
+
+  const orders = (data ?? []).map((row) =>
+    mapLightweightOrderRow(row as Record<string, unknown>),
+  );
   return buildCustomerRowsFromOrders(orders);
 }

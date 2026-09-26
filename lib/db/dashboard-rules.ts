@@ -132,11 +132,15 @@ export function buildDashboardSnapshot(
     orders: SnapshotOrder[];
     products: SnapshotProduct[];
     reviews: SnapshotReview[];
+    practiceOrderCount?: number;
   },
   now = new Date()
 ): DashboardSnapshot {
   const live = input.orders.filter((o) => !o.isDemo);
-  const practiceOrderCount = input.orders.filter((o) => o.isDemo).length;
+  const practiceOrderCount =
+    typeof input.practiceOrderCount === "number"
+      ? input.practiceOrderCount
+      : input.orders.filter((o) => o.isDemo).length;
   const todayLive = live.filter((o) => isOnKarachiDay(o.createdAt, now));
   const todayRevenue = todayLive
     .filter((o) => (o.status ?? "new") !== "cancelled")
