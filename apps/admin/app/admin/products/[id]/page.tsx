@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 
-import { ProductForm } from "@/components/admin/product-form";
+const ProductForm = nextDynamic(
+  () =>
+    import("@/components/admin/product-form").then((m) => ({
+      default: m.ProductForm,
+    })),
+  { loading: () => <p className="text-sm text-muted-foreground p-6">Loading editor…</p> },
+);
 import { getAdminProduct, listAdminShopTypes } from "@/lib/db/admin-store";
 import { membershipIdsForProduct } from "@/lib/db/collection-rules";
 import { listAdminCollections } from "@/lib/db/collection-store";

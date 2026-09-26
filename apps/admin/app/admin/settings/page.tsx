@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 
-import { SettingsForm } from "@/components/admin/settings-form";
+const SettingsForm = nextDynamic(
+  () =>
+    import("@/components/admin/settings-form").then((m) => ({
+      default: m.SettingsForm,
+    })),
+  { loading: () => <p className="text-sm text-muted-foreground p-6">Loading settings…</p> },
+);
 import { ChangePassword } from "@/components/admin/change-password";
 import {
   getAdminSettings,

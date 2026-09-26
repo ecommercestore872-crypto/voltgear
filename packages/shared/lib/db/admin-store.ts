@@ -388,8 +388,7 @@ export async function saveAdminProduct(id: string, doc: ProductDocument) {
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
   
-  void revalidateAfterPublish(`/admin/products/${id}`);
-  void revalidateAfterPublish("/admin/products");
+  void revalidateAfterPublish(`/admin/products/${id}`, "/admin/products");
   return { ok: true as const };
 }
 
@@ -621,10 +620,7 @@ export async function publishAdminPage(id: string, doc: PageDoc) {
     if (error.code === "23505") return { ok: false as const, error: "That slug is already used.", status: 409 };
     return { ok: false as const, error: error.message, status: 500 };
   }
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/blog");
-  void revalidateAfterPublish(`/${doc.slug}`);
-  void revalidateAfterPublish(`/blog/${doc.slug}`);
+  void revalidateAfterPublish("/", "/blog", `/${doc.slug}`, `/blog/${doc.slug}`);
   return { ok: true as const };
 }
 
@@ -636,8 +632,7 @@ export async function unpublishAdminPage(id: string) {
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
   if (page?.slug) {
-    void revalidateAfterPublish(`/${page.slug}`);
-    void revalidateAfterPublish(`/blog/${page.slug}`);
+    void revalidateAfterPublish(`/${page.slug}`, `/blog/${page.slug}`);
   }
   return { ok: true as const };
 }
@@ -805,8 +800,7 @@ export async function createAdminHeroSlide(doc: HeroSlideDoc) {
     .single();
   if (error) return { ok: false as const, error: error.message, status: 500 };
   void count;
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/admin/hero");
+  void revalidateAfterPublish("/", "/admin/hero");
   return { ok: true as const, id: data.id as string, slide: data };
 }
 
@@ -826,8 +820,7 @@ export async function updateAdminHeroSlide(id: string, doc: HeroSlideDoc) {
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/admin/hero");
+  void revalidateAfterPublish("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -863,8 +856,7 @@ export async function publishAdminHeroSlide(id: string, doc?: HeroSlideDoc) {
     .update({ status: "published", updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/admin/hero");
+  void revalidateAfterPublish("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -874,16 +866,14 @@ export async function unpublishAdminHeroSlide(id: string) {
     .update({ status: "draft", updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/admin/hero");
+  void revalidateAfterPublish("/", "/admin/hero");
   return { ok: true as const };
 }
 
 export async function deleteAdminHeroSlide(id: string) {
   const { error } = await db().from("hero_slides").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/admin/hero");
+  void revalidateAfterPublish("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -895,8 +885,7 @@ export async function reorderAdminHeroSlides(orderedIds: string[]) {
       .eq("id", orderedIds[i]);
     if (error) return { ok: false as const, error: error.message, status: 500 };
   }
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/admin/hero");
+  void revalidateAfterPublish("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -1306,8 +1295,7 @@ export async function saveAdminHomeSections(sections: HomeSectionEntry[]) {
     .eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
   bumpAdminSettingsCache();
-  void revalidateAfterPublish("/");
-  void revalidateAfterPublish("/admin/home");
+  void revalidateAfterPublish("/", "/admin/home");
   return { ok: true as const, sections: normalized };
 }
 
@@ -1449,11 +1437,24 @@ export async function deleteAdminTestimonial(id: string) {
   return { ok: true as const };
 }
 
-export async function listReviewSubmissions() {
+export async function listReviewSubmissions(limit = 500) {
   const { data, error } = await db()
     .from("review_submissions")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(Math.max(1, Math.min(limit, 2000)));
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Dashboard + queue — pending only, bounded. */
+export async function listPendingReviewSubmissions(limit = 150) {
+  const { data, error } = await db()
+    .from("review_submissions")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(Math.max(1, Math.min(limit, 500)));
   if (error) throw error;
   return data ?? [];
 }

@@ -5,7 +5,6 @@ import { notFound, redirect } from "next/navigation";
 
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { fetchPageBySlug, fetchSitemapPages } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Page } from "@/lib/types";
 
@@ -29,7 +28,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   let page: Page | null = null;
   try {
-    page = await fetchPageBySlug(params.slug, isDemoSession());
+    page = await fetchPageBySlug(params.slug, false);
   } catch {
     page = null;
   }
@@ -60,7 +59,7 @@ export default async function StaticPage({
 }) {
   let page: Page | null = null;
   try {
-    page = await fetchPageBySlug(params.slug, isDemoSession());
+    page = await fetchPageBySlug(params.slug, false);
   } catch {
     page = null;
   }

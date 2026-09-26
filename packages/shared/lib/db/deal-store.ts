@@ -94,6 +94,42 @@ async function fetchDealCatalogProducts(): Promise<
     .filter((row) => row.slug);
 }
 
+/** Minimal deal floor data for specific slugs (PDP) — avoids loading every product. */
+export async function fetchDealCatalogForSlugs(
+  slugs: string[],
+): Promise<DealCatalogProduct[]> {
+  const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))];
+  if (!unique.length) return [];
+  const { data, error } = await db()
+    .from("products")
+    .select("id, slug, name, price, cost_price, is_demo, product_images(url, sort_order)")
+    .in("slug", unique);
+  if (error) throw error;
+  return (data ?? [])
+    .filter((row) => row.is_demo !== true)
+    .map((row) => {
+      const slug = String(row.slug ?? "");
+      const imgs = Array.isArray(row.product_images)
+        ? [...row.product_images].sort(
+            (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+          )
+        : [];
+      const url = imgs.find((img) => img.url)?.url;
+      return {
+        id: String(row.id),
+        slug,
+        name: String(row.name ?? ""),
+        price: Number(row.price) || 0,
+        costPrice:
+          row.cost_price != null && Number.isFinite(Number(row.cost_price))
+            ? Number(row.cost_price)
+            : null,
+        imageUrl: url ? String(url) : null,
+      };
+    })
+    .filter((p) => p.slug);
+}
+
 export async function fetchDealCatalog(): Promise<DealCatalogProduct[]> {
   const products = await fetchDealCatalogProducts();
   const ids = products.map((p) => p.slug);

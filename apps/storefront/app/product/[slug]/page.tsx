@@ -21,8 +21,8 @@ import {
   fetchRelatedProducts,
   fetchSiteSettings,
 } from "@/lib/db/store";
-import { publicDealsForSlug } from "@/lib/db/deal-rules";
-import { fetchDealCatalog, listProductDeals } from "@/lib/db/deal-store";
+import { normalizeDealSlug, publicDealsForSlug } from "@/lib/db/deal-rules";
+import { fetchDealCatalogForSlugs, listProductDeals } from "@/lib/db/deal-store";
 import { normalizeSettings } from "@/lib/site-config";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product, ProductReview } from "@/lib/types";
@@ -108,23 +108,34 @@ export default async function Product2Page({
   let settings = null;
   let approvedReviews: ProductReview[] = [];
   let deals: Awaited<ReturnType<typeof listProductDeals>> = [];
-  let dealCatalog: Awaited<ReturnType<typeof fetchDealCatalog>> = [];
+  let dealCatalog: Awaited<ReturnType<typeof fetchDealCatalogForSlugs>> = [];
   let dealPartnerBySlug = new Map<string, Product>();
   let dealRows: ReturnType<typeof publicDealsForSlug> = [];
   try {
     product = await loadPdpProductBySlug(params.slug);
     if (product) {
-      const [settingsResult, approvedReviewsResult, dealsResult, dealCatalogResult] =
+      const [settingsResult, approvedReviewsResult, dealsResult] =
         await Promise.all([
           fetchSiteSettings().catch(() => null),
           fetchApprovedReviews(product._id, false),
           listProductDeals().catch(() => []),
-          fetchDealCatalog().catch(() => []),
         ]);
       settings = settingsResult;
       approvedReviews = approvedReviewsResult;
       deals = dealsResult;
-      dealCatalog = dealCatalogResult;
+
+      const slugKey = normalizeDealSlug(product.slug);
+      const slugsForDeals = new Set<string>([product.slug]);
+      for (const deal of deals) {
+        if (!deal.active) continue;
+        const a = normalizeDealSlug(deal.slugA);
+        const b = normalizeDealSlug(deal.slugB);
+        if (a !== slugKey && b !== slugKey) continue;
+        slugsForDeals.add(a === slugKey ? b : a);
+      }
+      dealCatalog = await fetchDealCatalogForSlugs([...slugsForDeals]).catch(
+        () => [],
+      );
 
       dealRows = publicDealsForSlug(product.slug, deals, dealCatalog);
       const dealSlugs = dealRows.map((row) => row.otherSlug);

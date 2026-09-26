@@ -8,7 +8,6 @@ import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { BlogGuideAd } from "@/components/ads/blog-guide-ad";
 import { fetchBlogPosts, fetchPageBySlug } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
 import { publicSiteUrl } from "@/lib/deploy-rules";
 import { imageUrl } from "@/lib/sanity/image";
 import type { ContentBlock, Page } from "@/lib/types";
@@ -63,7 +62,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   let post: Page | null = null;
   try {
-    post = await fetchPageBySlug(params.slug, isDemoSession());
+    post = await fetchPageBySlug(params.slug, false);
   } catch {
     post = null;
   }
@@ -95,7 +94,7 @@ export default async function BlogPostPage({
 }) {
   let post: Page | null = null;
   try {
-    post = await fetchPageBySlug(params.slug, isDemoSession());
+    post = await fetchPageBySlug(params.slug, false);
   } catch {
     post = null;
   }

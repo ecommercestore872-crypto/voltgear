@@ -4,7 +4,7 @@ import {
   planManualAdd,
   suppressedPhoneSet,
 } from "@/lib/broadcast-contact-rules";
-import { getAllOrders } from "@/lib/order-store";
+import { getLightweightOrders } from "@/lib/order-store";
 import { getServiceClient } from "@/lib/supabase/server";
 import { normalizePhone } from "@/lib/messaging";
 import type {
@@ -30,7 +30,7 @@ export async function getContacts(): Promise<{
     (suppressedRows ?? []).map((r) => String(r.phone))
   );
   const suppressed = Array.from(suppressedSet);
-  const orders = await getAllOrders();
+  const orders = await getLightweightOrders();
 
   const fromOrders = new Map<string, { name: string; city: string; lastAt: number }>();
   for (const order of orders) {

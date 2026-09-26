@@ -6,7 +6,6 @@ import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { getStorefrontCollectionBySlug } from "@/lib/db/collection-store";
 import { fetchShopTypes } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { collectionHref } from "@/lib/gadget-preview";
 import { getSettings } from "@/lib/sanity/settings";
@@ -57,7 +56,7 @@ export default async function CollectionPage({
   params: { slug: string };
   searchParams: { q?: string; sort?: string };
 }) {
-  const demo = isDemoSession();
+  const demo = false;
   const settings = await getSettings().catch(() => null);
   const config = normalizeSettings(settings);
   const [found, shopTypes] = await Promise.all([

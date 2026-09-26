@@ -6,7 +6,6 @@ import { CalendarDays, User } from "lucide-react";
 
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { fetchBlogPosts } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Page } from "@/lib/types";
 
@@ -42,7 +41,7 @@ export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 export default async function BlogPage() {
   let posts: Page[] = [];
   try {
-    posts = await fetchBlogPosts(isDemoSession());
+    posts = await fetchBlogPosts(false);
   } catch {
     posts = [];
   }

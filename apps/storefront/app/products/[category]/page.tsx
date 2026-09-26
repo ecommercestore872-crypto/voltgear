@@ -7,7 +7,7 @@ import { GadgetShopCatalogClient } from "@/components/gadget/gadget-shop-catalog
 import { FALLBACK_SHOP_TYPES, findShopType } from "@/lib/categories";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
-import { fetchCatalogProducts, fetchShopTypes } from "@/lib/db/store";
+import { fetchCatalogProductsByCategory, fetchShopTypes } from "@/lib/db/store";
 import { getSettings } from "@/lib/sanity/settings";
 import { normalizeSettings } from "@/lib/site-config";
 import type { Product } from "@/lib/types";
@@ -74,7 +74,7 @@ export default async function Products2CategoryPage({
 
   try {
     const [p, types] = await Promise.all([
-      fetchCatalogProducts(),
+      fetchCatalogProductsByCategory(params.category),
       fetchShopTypes(),
     ]);
     products = applyGadgetStudioImagesList(p);

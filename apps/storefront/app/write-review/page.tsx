@@ -3,7 +3,6 @@ import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 
 import { WriteReviewForm } from "@/components/reviews/write-review-form";
 import { fetchReviewProducts } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
 import type { Product } from "@/lib/types";
 
 export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
@@ -26,7 +25,7 @@ interface ReviewProduct {
 export default async function WriteReviewPage() {
   let products: ReviewProduct[] = [];
   try {
-    products = await fetchReviewProducts(isDemoSession());
+    products = await fetchReviewProducts(false);
   } catch {
     products = [];
   }

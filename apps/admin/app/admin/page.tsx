@@ -3,7 +3,10 @@ import type { Metadata } from "next";
 import { Dashboard } from "@/components/admin/dashboard";
 import { fetchOrdersForAdminDashboard } from "@/lib/db/admin-dashboard-data";
 import { fetchAdminOrderDashboardMetrics } from "@/lib/db/admin-order-dashboard-sql";
-import { listAdminProductsForDashboard, listReviewSubmissions } from "@/lib/db/admin-store";
+import {
+  listAdminProductsForDashboard,
+  listPendingReviewSubmissions,
+} from "@/lib/db/admin-store";
 import {
   buildDashboardSnapshot,
   buildDashboardSnapshotWithOrderMetrics,
@@ -21,7 +24,7 @@ export default async function AdminIndexPage() {
     const [orderMetrics, products, reviews] = await Promise.all([
       fetchAdminOrderDashboardMetrics(),
       listAdminProductsForDashboard(),
-      listReviewSubmissions(),
+      listPendingReviewSubmissions(),
     ]);
 
     if (orderMetrics) {

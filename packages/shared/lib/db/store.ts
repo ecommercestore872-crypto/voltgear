@@ -180,6 +180,37 @@ async function loadRelatedCatalogProducts(
     .filter(Boolean) as Product[];
 }
 
+async function loadCatalogProductsByCategory(category: string): Promise<Product[]> {
+  const cat = category.trim();
+  if (!cat) return [];
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(CATALOG_PRODUCT_EMBED as "*")
+        .eq("status", LIVE)
+        .eq("category", cat)
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false }),
+      false,
+    ),
+  );
+  if (error) throw error;
+  return (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>))
+    .filter(Boolean) as Product[];
+}
+
+/** Category PLP — one indexed query instead of full cached catalog + filter. */
+export function fetchCatalogProductsByCategory(category: string): Promise<Product[]> {
+  const cat = category.trim();
+  return unstable_cache(
+    async () => loadCatalogProductsByCategory(cat),
+    ["fetchCatalogProductsByCategory", cat],
+    { revalidate: 60 },
+  )();
+}
+
 /** Same-category related cards for PDP — bounded query, catalog embed only. */
 export const fetchRelatedProducts = unstable_cache(
   async (excludeProductId: string, category: string, limit: number) =>

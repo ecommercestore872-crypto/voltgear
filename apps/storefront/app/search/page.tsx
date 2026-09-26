@@ -8,7 +8,6 @@ import { SearchExecutedTracker } from "@/components/analytics/search-executed-tr
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { fetchCatalog, parseCatalogFilters } from "@/lib/catalog";
 import type { BreadcrumbItem } from "@/components/catalog/catalog-breadcrumbs";
-import { isDemoSession } from "@/lib/demo";
 import { products2Href } from "@/lib/gadget-preview";
 
 export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
@@ -85,7 +84,7 @@ export default async function SearchPage({
     );
   }
 
-  const result = await fetchCatalog(filters, { includeDemo: isDemoSession() });
+  const result = await fetchCatalog(filters, { includeDemo: false });
 
   const rawParams: Record<string, string> = {};
   if (filters.query) rawParams.q = filters.query;
