@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import { preload } from "react-dom";
 import { GadgetBlogSection } from "@/components/gadget/gadget-blog-section";
 import { GadgetFeaturedProduct } from "@/components/gadget/gadget-featured-product";
 import { GadgetHeroSlider } from "@/components/gadget/gadget-hero-slider";
@@ -20,6 +21,7 @@ import {
   loadStorefrontShopTypes,
 } from "@/lib/db/storefront-shell";
 import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
+import { heroLcpImageUrl } from "@/lib/gadget-hero-lcp";
 import {
   homeLayoutIdsForLifestyle,
   lifestyleShopHasContent,
@@ -63,25 +65,46 @@ export async function GadgetHomePage() {
   let slotOffers: Product[] | null = null;
   let extraRails: Awaited<ReturnType<typeof fetchExtraCollectionRails>> = [];
   try {
-    const [s, p, t, set, types, blogs, homeSlots, extra] = await Promise.all([
+    const [s, set, types] = await Promise.all([
       fetchHeroSlides(demo),
-      fetchHomepageProducts(demo),
-      fetchTestimonials(demo),
       loadStorefrontSettings(),
       loadStorefrontShopTypes(),
-      fetchBlogPosts(demo),
+    ]);
+    slides = s;
+    settings = set;
+    shopTypes = gadgetShopTypeLinks(types);
+
+    const lcpUrl =
+      slides[0] != null
+        ? heroLcpImageUrl(slides[0], { mobile: true })
+        : "";
+    if (lcpUrl) {
+      preload(lcpUrl, { as: "image", fetchPriority: "high" });
+    }
+
+    const lifestyleShopDraft = normalizeLifestyleShop(settings?.lifestyleShop);
+    const layoutIds = homeLayoutIdsForLifestyle(
+      normalizeHomeSections(settings?.homeSections ?? null),
+      lifestyleShopDraft,
+    );
+    const needsReviews = layoutIds.includes("reviews");
+    const needsBlog = layoutIds.includes("blog");
+
+    const [p, t, blogs, homeSlots, extra] = await Promise.all([
+      fetchHomepageProducts(demo),
+      needsReviews
+        ? fetchTestimonials(demo)
+        : Promise.resolve([] as Testimonial[]),
+      needsBlog ? fetchBlogPosts(demo) : Promise.resolve([] as Page[]),
       fetchProductsForHomeSlots(demo).catch(() => null),
       fetchExtraCollectionRails(demo).catch(() => []),
     ]);
     const colBest = homeSlots?.bestsellers ?? null;
     const colFeat = homeSlots?.featured ?? null;
     const colOffers = homeSlots?.offers ?? null;
-    slides = s;
     products = applyGadgetStudioImagesList(p);
-    testimonials = t.map((m) => ({ ...m, product: undefined })); // Strip product data if not needed
-    settings = set;
-    shopTypes = gadgetShopTypeLinks(types);
-    blogPosts = blogs.map((b) => ({ ...b, sections: [] })); // Strip full HTML bodies
+    testimonials = t.map((m) => ({ ...m, product: undefined }));
+    blogPosts = blogs.map((b) => ({ ...b, sections: [] }));
     slotBestsellers = colBest ? applyGadgetStudioImagesList(colBest).map(prod => ({...prod, reviews: [], variants: []})) : null;
     slotFeatured = colFeat ? applyGadgetStudioImagesList(colFeat).map(prod => ({...prod, reviews: [], variants: []})) : null;
     slotOffers = colOffers ? applyGadgetStudioImagesList(colOffers).map(prod => ({...prod, reviews: [], variants: []})) : null;

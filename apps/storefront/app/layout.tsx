@@ -6,7 +6,11 @@ import { Suspense } from "react";
 
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
-import { MetaPixel } from "@/components/analytics/meta-pixel";
+const MetaPixel = dynamic(
+  () =>
+    import("@/components/analytics/meta-pixel").then((m) => m.MetaPixel),
+  { ssr: false, loading: () => null },
+);
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import {
@@ -228,7 +232,7 @@ export default async function RootLayout({
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.addEventListener('load',function(){if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');},{once:true});`,
+            __html: `window.addEventListener('load',function(){setTimeout(function(){if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');},8000);},{once:true});`,
           }}
         />
         <link rel="manifest" href="/manifest.json" />
@@ -250,9 +254,7 @@ export default async function RootLayout({
         <Suspense
           fallback={<div className="flex min-h-dvh flex-col bg-background" />}
         >
-          <Suspense fallback={null}>
-            <MetaPixel />
-          </Suspense>
+          <MetaPixel />
           <AppChrome
             settings={settings}
             shopTypes={shopTypes}

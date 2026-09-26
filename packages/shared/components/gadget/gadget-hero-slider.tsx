@@ -187,20 +187,6 @@ export function GadgetHeroSlider({
               >
                 {shouldPaint ? (
                   <>
-                    {/* Cinematic Blurred Backdrop for Mobile */}
-                    <div className="absolute inset-0 overflow-hidden sm:hidden select-none pointer-events-none backdrop-blur-0">
-                      <Image
-                        loader={cloudinaryLoader}
-                        src={banner.mobileImageUrl || banner.imageUrl}
-                        alt=""
-                        fill
-                        quality={10}
-                        className="object-cover object-center scale-125 blur-2xl opacity-60 saturate-150 transform-gpu will-change-transform"
-                        sizes="100vw"
-                        aria-hidden
-                      />
-                    </div>
-                    {/* Foreground Uncropped Image (Selectively render mobile version if provided) */}
                     {banner.mobileImageUrl ? (
                       <Image
                         loader={cloudinaryLoader}
@@ -209,7 +195,7 @@ export function GadgetHeroSlider({
                         fill
                         priority={i === 0}
                         fetchPriority={i === 0 ? "high" : "auto"}
-                        quality={80}
+                        quality={i === 0 ? 70 : 75}
                         className="object-cover sm:hidden object-center z-[1]"
                         sizes="100vw"
                       />
@@ -221,9 +207,13 @@ export function GadgetHeroSlider({
                       fill
                       priority={i === 0}
                       fetchPriority={i === 0 ? "high" : "auto"}
-                      quality={80}
-                      className={banner.mobileImageUrl ? "hidden sm:block object-cover object-center z-[1]" : "object-contain sm:object-cover object-center z-[1]"}
-                      sizes="(max-width: 1024px) 100vw, 1600px"
+                      quality={i === 0 ? 72 : 78}
+                      className={
+                        banner.mobileImageUrl
+                          ? "hidden sm:block object-cover object-center z-[1]"
+                          : "object-cover object-center z-[1]"
+                      }
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
                     />
                   </>
                 ) : null}

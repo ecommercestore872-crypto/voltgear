@@ -4,7 +4,13 @@ import type { ReactNode } from "react";
 import { Children, useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
+import dynamic from "next/dynamic";
+
+const TikTokPixel = dynamic(
+  () =>
+    import("@/components/analytics/tiktok-pixel").then((m) => m.TikTokPixel),
+  { ssr: false, loading: () => null },
+);
 import { captureClickAttribution, persistClickAttribution } from "@/lib/click-attribution";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
