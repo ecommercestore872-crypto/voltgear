@@ -22,6 +22,7 @@ import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { GadgetNavbar } from "@/components/gadget/gadget-navbar";
 import { ShopWhatsAppButton } from "@/components/shop/shop-whatsapp-button";
 import { TrustBar } from "@/components/sections/trust-bar";
+import { cleanedPathnameAndSearch } from "@/lib/clean-marketing-url";
 import {
   readGadgetPreviewSession,
   shouldUseGadgetChrome,
@@ -64,11 +65,20 @@ export function AppChrome({
       readGadgetPreviewSession() || searchParams?.get("from") === "gadget",
     );
     if (typeof window !== "undefined") {
+      const currentSearch = window.location.search;
       persistClickAttribution(
         captureClickAttribution(
-          `${window.location.pathname}${window.location.search}`,
+          `${window.location.pathname}${currentSearch}`,
         ),
       );
+      const cleaned = cleanedPathnameAndSearch(
+        window.location.pathname,
+        currentSearch,
+      );
+      const current = `${window.location.pathname}${currentSearch}`;
+      if (cleaned !== current) {
+        window.history.replaceState(window.history.state, "", cleaned);
+      }
     }
   }, [pathname, searchParams]);
 
