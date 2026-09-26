@@ -33,6 +33,8 @@ Redeploy **both** after changing these. Smoke: `ADMIN_SAME_ORIGIN=1 npm run smok
 
 Build/install commands live in each app’s `vercel.json` (`cd ../.. && npm ci` + workspace build).
 
+**Admin function region:** `apps/admin/vercel.json` uses **`syd1`** so serverless/API sits near Supabase **Final-store** (Oceania). Shop (`voltgear`) may stay on another region for storefront edge; admin DB round-trips benefit from co-location.
+
 Legacy single-app deploy from repo root is **deprecated** after T-40.
 
 **Verify:** `npm run smoke:t40` and `docs/modules/deploy/T40_VERIFICATION.md`.

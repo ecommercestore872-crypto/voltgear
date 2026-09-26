@@ -3,5 +3,5 @@
   "framework": "nextjs",
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w @voltgear/admin",
-  "regions": ["iad1"]
+  "regions": ["syd1"]
 }
