@@ -1,6 +1,7 @@
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import { gadgetStudioImagesFor } from "@/lib/gadget-product-images";
 import { imageUrl } from "@/lib/sanity/image";
+import { PRODUCT_IMAGE, productCardImageUrl } from "@/lib/product-image";
 import { siteStaticImageUrl } from "@/lib/site-static-image";
 import type { Product } from "@/lib/types";
 
@@ -16,11 +17,17 @@ export function gadgetImageSrc(
   }
 
   if (product.images?.[0]) {
-    const src = imageUrl(product.images[0], { w });
+    const src =
+      w === PRODUCT_IMAGE.card
+        ? productCardImageUrl(product.images[0])
+        : imageUrl(product.images[0], { w });
     return src || null;
   }
   if (product.cloudinaryImages?.[0]) {
-    const src = cloudinaryImageUrl(product.cloudinaryImages[0], { w });
+    const src =
+      w === PRODUCT_IMAGE.card
+        ? productCardImageUrl(product.cloudinaryImages[0])
+        : cloudinaryImageUrl(product.cloudinaryImages[0], { w });
     return src || null;
   }
   return null;

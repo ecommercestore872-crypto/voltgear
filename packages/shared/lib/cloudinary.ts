@@ -39,9 +39,16 @@ export function cloudinaryAssetPathAfterUpload(uploadTail: string): string {
  * Returns an auto-optimized Cloudinary image URL (f_webp, q_auto,
  * responsive width). Accepts either a full URL or a bare public ID.
  */
+/** Cream pad for square product cards (matches storefront `--g-cream` / studio stage). */
+export const CLOUDINARY_CARD_PAD_RGB = "fffdf8";
+
 export function cloudinaryImageUrl(
   src: string | undefined | null,
-  { w = 800, q = "auto" }: { w?: number; q?: string } = {}
+  {
+    w = 800,
+    q = "auto",
+    fit = "limit",
+  }: { w?: number; q?: string; fit?: "limit" | "pad" } = {},
 ): string {
   if (!src) return "";
   let base = src.trim();
@@ -59,7 +66,10 @@ export function cloudinaryImageUrl(
   const idx = base.indexOf(marker);
   if (idx === -1) return base;
 
-  const insert = `f_webp,q_${q},c_limit,w_${w}/`;
+  const insert =
+    fit === "pad"
+      ? `f_webp,q_${q},c_pad,w_${w},h_${w},b_rgb:${CLOUDINARY_CARD_PAD_RGB},g_center/`
+      : `f_webp,q_${q},c_limit,w_${w}/`;
   const endPath = cloudinaryAssetPathAfterUpload(base.slice(idx + marker.length));
   return `${base.slice(0, idx + marker.length)}${insert}${endPath}`;
 }

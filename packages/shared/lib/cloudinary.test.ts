@@ -16,6 +16,15 @@ describe("cloudinaryImageUrl", () => {
     assert.match(url, /f_webp,q_auto/);
   });
 
+  it("pads to a square for product cards without cropping", () => {
+    const src =
+      "https://res.cloudinary.com/demo/image/upload/v1/folder/phone-photo.jpg";
+    const url = cloudinaryImageUrl(src, { w: 640, fit: "pad" });
+    assert.match(url, /c_pad,w_640,h_640/);
+    assert.match(url, /b_rgb:fffdf8/);
+    assert.match(url, /g_center/);
+  });
+
   it("replaces an existing transform segment instead of stacking", () => {
     const src =
       "https://res.cloudinary.com/demo/image/upload/f_webp,q_auto,c_limit,w_900/v1/folder/watch.jpg";

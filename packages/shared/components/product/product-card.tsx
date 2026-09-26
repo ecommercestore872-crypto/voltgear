@@ -11,7 +11,7 @@ import { StarRating } from "@/components/product/star-rating";
 import { QuickViewButton } from "@/components/product/quick-view";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { CompareButton } from "@/components/product/product-comparison";
-import { PRODUCT_IMAGE } from "@/lib/product-image";
+import { PRODUCT_IMAGE, productCardImageUrl } from "@/lib/product-image";
 import { imageUrl } from "@/lib/sanity/image";
 import { getStockState, getDefaultVariant } from "@/lib/stock";
 import type { Product } from "@/lib/types";
@@ -58,12 +58,12 @@ export function ProductCard({
           {image ? (
             <Image
               ref={imgRef}
-              src={imageUrl(image, { w: PRODUCT_IMAGE.card })}
+              src={productCardImageUrl(image)}
               alt={product.name}
               fill
               quality={70}
               loading="lazy"
-              className="object-contain transition-transform duration-300 group-hover:scale-105"
+              className="object-cover object-center transition-transform duration-300 group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
             />
           ) : (

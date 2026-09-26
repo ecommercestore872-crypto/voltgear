@@ -104,7 +104,7 @@ export function MediaField({
               <img
                 src={url}
                 alt=""
-                className="h-12 w-12 rounded object-cover"
+                className="h-14 w-14 shrink-0 rounded-lg border border-border bg-[#fffdf8] object-contain object-center p-1"
               />
             ) : null}
             <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">

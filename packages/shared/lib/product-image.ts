@@ -1,3 +1,5 @@
+import { cloudinaryImageUrl } from "@/lib/cloudinary";
+
 /** Square size Shopify uses. Looks sharp on phones and computers. */
 export const PRODUCT_IMAGE = {
   uploadWidth: 2048,
@@ -18,4 +20,19 @@ export const PRODUCT_PHOTO_HINT =
 export function isProductImageTooSmall(width?: number, height?: number): boolean {
   if (!width || !height) return false;
   return Math.min(width, height) < PRODUCT_IMAGE.minEdge;
+}
+
+/** Grid / product card: square canvas, no crop — Cloudinary pads non-square uploads. */
+export function productCardImageUrl(src: string | null | undefined): string {
+  const s = src?.trim();
+  if (!s) return "";
+  if (s.startsWith("/") && !s.startsWith("//")) return s;
+  if (
+    s.includes("res.cloudinary.com") ||
+    s.includes("/image/upload/") ||
+    (!s.startsWith("http") && s.length > 0)
+  ) {
+    return cloudinaryImageUrl(s, { w: PRODUCT_IMAGE.card, fit: "pad" });
+  }
+  return s;
 }
