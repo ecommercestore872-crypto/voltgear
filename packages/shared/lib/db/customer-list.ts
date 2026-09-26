@@ -97,25 +97,64 @@ async function listAdminCustomersFromRecentOrders(
   return buildCustomerRowsFromOrders(orders);
 }
 
-/** SQL rollup view (preferred) with bounded fallback. */
-export async function listAdminCustomers(limit = 500): Promise<CustomerRow[]> {
-  const safeLimit = Math.min(2000, Math.max(1, limit));
-  const { data, error } = await getServiceClient({ admin: true })
+export const ADMIN_CUSTOMERS_PAGE_SIZE = 50;
+
+export type AdminCustomersPageResult = {
+  customers: CustomerRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export async function listAdminCustomersPage(opts?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<AdminCustomersPageResult> {
+  const pageSize = Math.min(
+    100,
+    Math.max(1, opts?.pageSize ?? ADMIN_CUSTOMERS_PAGE_SIZE),
+  );
+  const page = Math.max(1, opts?.page ?? 1);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await getServiceClient({ admin: true })
     .from("admin_customer_rollups")
     .select(
       "customer_key, name, email, phone, order_count, last_order_id, last_order_at",
+      { count: "exact" },
     )
     .order("last_order_at", { ascending: false })
-    .limit(safeLimit);
+    .range(from, to);
 
   if (error) {
     if (isMissingRollupView(error)) {
-      return listAdminCustomersFromRecentOrders();
+      const customers = await listAdminCustomersFromRecentOrders();
+      return {
+        customers: customers.slice(from, to + 1),
+        total: customers.length,
+        page,
+        pageSize,
+      };
     }
     throw error;
   }
 
-  return (data ?? []).map((row) =>
-    mapCustomerRollupRow(row as Record<string, unknown>),
-  );
+  return {
+    customers: (data ?? []).map((row) =>
+      mapCustomerRollupRow(row as Record<string, unknown>),
+    ),
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
+}
+
+/** @deprecated Prefer listAdminCustomersPage for the admin CRM directory. */
+export async function listAdminCustomers(limit = 500): Promise<CustomerRow[]> {
+  const result = await listAdminCustomersPage({
+    page: 1,
+    pageSize: Math.min(2000, limit),
+  });
+  return result.customers;
 }

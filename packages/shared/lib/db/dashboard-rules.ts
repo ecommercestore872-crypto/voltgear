@@ -1,3 +1,5 @@
+import type { AdminOrderDashboardMetrics } from "./admin-order-dashboard-sql";
+
 export const DASHBOARD_TIMEZONE = "Asia/Karachi";
 export const SHIPPED_STALE_DAYS = 3;
 
@@ -125,6 +127,47 @@ export function orderMatchesStatusFilter(
 
 export function productMatchesStockAttention(stockStatus: string): boolean {
   return stockStatus === "low-stock" || stockStatus === "out-of-stock";
+}
+
+export function buildDashboardSnapshotWithOrderMetrics(
+  orderMetrics: AdminOrderDashboardMetrics,
+  input: {
+    products: SnapshotProduct[];
+    reviews: SnapshotReview[];
+  },
+): DashboardSnapshot {
+  const livePublished = input.products.filter(
+    (p) => !p.isDemo && p.status === "published",
+  );
+  const attention = livePublished.filter((p) =>
+    productMatchesStockAttention(p.stockStatus ?? "in-stock"),
+  );
+  const drafts = input.products.filter((p) => p.status !== "published");
+
+  return {
+    todayOrderCount: orderMetrics.todayOrderCount,
+    todayRevenue: orderMetrics.todayRevenue,
+    pendingCount: orderMetrics.pendingCount,
+    deliveredTodayCount: orderMetrics.deliveredTodayCount,
+    cancelledTodayCount: orderMetrics.cancelledTodayCount,
+    lowStockCount: attention.length,
+    pendingOrders: orderMetrics.pendingOrders,
+    shippedWaitingCount: orderMetrics.shippedWaitingCount,
+    shippedStaleOrders: orderMetrics.shippedStaleOrders,
+    lowStockProducts: attention.slice(0, 8).map((p) => ({
+      id: p._id,
+      name: p.name,
+      stockStatus: p.stockStatus ?? "in-stock",
+    })),
+    pendingReviewCount: input.reviews.filter((r) => r.status === "pending").length,
+    draftProductCount: drafts.length,
+    firstDraftProductId: drafts[0]?._id ?? null,
+    practiceOrderCount: orderMetrics.practiceOrderCount,
+    monthRevenue: orderMetrics.monthRevenue,
+    monthDeliveredRevenue: orderMetrics.monthDeliveredRevenue,
+    monthCancelledRevenue: orderMetrics.monthCancelledRevenue,
+    monthOrderCount: orderMetrics.monthOrderCount,
+  };
 }
 
 export function buildDashboardSnapshot(

@@ -21,6 +21,7 @@ const nextConfig = {
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-select",
       "@radix-ui/react-tabs",
+      "@supabase/supabase-js",
     ],
   },
   images: {

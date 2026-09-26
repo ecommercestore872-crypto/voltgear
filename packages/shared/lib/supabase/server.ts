@@ -23,7 +23,25 @@ export function getServiceClient(options?: { admin?: boolean }): SupabaseClient 
       auth: { persistSession: false, autoRefreshToken: false },
       global: {
         fetch: (input: RequestInfo | URL, init?: RequestInit) => {
-          return fetch(input, { ...init, cache: "no-store" });
+          const t0 = performance.now();
+          return fetch(input, { ...init, cache: "no-store" }).then((res) => {
+            const ms = Math.round(performance.now() - t0);
+            const slow = Number(process.env.ADMIN_SUPABASE_SLOW_MS ?? 600);
+            if (ms >= slow) {
+              const url = typeof input === "string" ? input : String(input);
+              if (/supabase\.co/i.test(url)) {
+                console.warn(
+                  JSON.stringify({
+                    v: 1,
+                    kind: "admin_supabase_slow",
+                    ms,
+                    method: (init?.method ?? "GET").toUpperCase(),
+                  }),
+                );
+              }
+            }
+            return res;
+          });
         },
       },
     });

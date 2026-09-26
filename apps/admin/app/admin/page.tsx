@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 
 import { Dashboard } from "@/components/admin/dashboard";
 import { fetchOrdersForAdminDashboard } from "@/lib/db/admin-dashboard-data";
+import { fetchAdminOrderDashboardMetrics } from "@/lib/db/admin-order-dashboard-sql";
 import { listAdminProductsForDashboard, listReviewSubmissions } from "@/lib/db/admin-store";
-import { buildDashboardSnapshot } from "@/lib/db/dashboard-rules";
+import {
+  buildDashboardSnapshot,
+  buildDashboardSnapshotWithOrderMetrics,
+} from "@/lib/db/dashboard-rules";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -14,11 +18,21 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminIndexPage() {
   try {
-    const [{ orders, practiceOrderCount }, products, reviews] = await Promise.all([
-      fetchOrdersForAdminDashboard(),
+    const [orderMetrics, products, reviews] = await Promise.all([
+      fetchAdminOrderDashboardMetrics(),
       listAdminProductsForDashboard(),
       listReviewSubmissions(),
     ]);
+
+    if (orderMetrics) {
+      const snapshot = buildDashboardSnapshotWithOrderMetrics(orderMetrics, {
+        products,
+        reviews,
+      });
+      return <Dashboard snapshot={snapshot} />;
+    }
+
+    const { orders, practiceOrderCount } = await fetchOrdersForAdminDashboard();
     const snapshot = buildDashboardSnapshot({
       orders,
       products,

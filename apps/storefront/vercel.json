@@ -3,7 +3,7 @@
   "framework": "nextjs",
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w @voltgear/storefront",
-  "regions": ["iad1"],
+  "regions": ["syd1"],
   "crons": [
     {
       "path": "/api/flows",
