@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -25,7 +26,7 @@ function docFromBody(body: { doc?: Record<string, unknown> } | null) {
   };
 }
 
-export async function PATCH(request: Request, ctx: Ctx) {
+async function PATCHHandler(request: Request, ctx: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -45,7 +46,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
   return NextResponse.json(result);
 }
 
-export async function DELETE(request: Request, ctx: Ctx) {
+async function DELETEHandler(request: Request, ctx: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -58,3 +59,6 @@ export async function DELETE(request: Request, ctx: Ctx) {
     );
   return NextResponse.json(result);
 }
+
+export const PATCH = withAdminApiObservability("PATCH /api/admin/hero/slides/:id", PATCHHandler);
+export const DELETE = withAdminApiObservability("DELETE /api/admin/hero/slides/:id", DELETEHandler);

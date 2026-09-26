@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -10,7 +11,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(
+async function GETHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -23,7 +24,7 @@ export async function GET(
   return NextResponse.json({ collection });
 }
 
-export async function PATCH(
+async function PATCHHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -41,7 +42,7 @@ export async function PATCH(
   return NextResponse.json({ collection: result.collection });
 }
 
-export async function DELETE(
+async function DELETEHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -57,3 +58,7 @@ export async function DELETE(
   }
   return NextResponse.json({ ok: true });
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/collections/:id", GETHandler);
+export const PATCH = withAdminApiObservability("PATCH /api/admin/collections/:id", PATCHHandler);
+export const DELETE = withAdminApiObservability("DELETE /api/admin/collections/:id", DELETEHandler);

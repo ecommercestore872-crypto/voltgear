@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -9,7 +10,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(
+async function GETHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -21,7 +22,7 @@ export async function GET(
   return NextResponse.json({ item });
 }
 
-export async function PATCH(
+async function PATCHHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -41,3 +42,6 @@ export async function PATCH(
   }
   return NextResponse.json({ item: result.item });
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/inbox/:id", GETHandler);
+export const PATCH = withAdminApiObservability("PATCH /api/admin/inbox/:id", PATCHHandler);

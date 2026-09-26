@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { upsertEmailSuppression } from "@/lib/db/email-suppression-store";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
  * Resend → Webhooks → endpoint (admin app, low shop CPU).
  * Subscribe to email.bounced + email.complained in Resend dashboard.
  */
-export async function GET() {
+async function GETHandler() {
   const configured = Boolean(process.env.RESEND_WEBHOOK_SECRET?.trim());
   return NextResponse.json({
     ok: true,
@@ -24,7 +25,7 @@ export async function GET() {
   });
 }
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   const rawBody = await request.text();
   const secret = process.env.RESEND_WEBHOOK_SECRET?.trim() ?? "";
   const production =
@@ -77,3 +78,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true, suppressed: parsed.emails.length });
 }
+
+export const GET = withAdminApiObservability("GET /api/webhooks/resend", GETHandler);
+export const POST = withAdminApiObservability("POST /api/webhooks/resend", POSTHandler);

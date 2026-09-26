@@ -46,10 +46,14 @@ Structured JSON logs (Vercel Logs / drains):
 |--------|------|-----|
 | `admin_api` | Route handler ≥ `ADMIN_API_SLOW_MS` (default 800) | Wrap with `withAdminApiObservability` |
 | `admin_supabase_slow` | Admin service client fetch ≥ `ADMIN_SUPABASE_SLOW_MS` (default 600) | Automatic on admin Supabase client |
+| `shop_supabase_slow` | Storefront service client fetch ≥ `SHOP_SUPABASE_SLOW_MS` (default 700) | Automatic on shop Supabase client |
+| `shop_api` | Shop route ≥ `SHOP_API_SLOW_MS` (default 1200) | `withShopApiObservability` (e.g. `/api/flows`) |
 
-Optional: `ADMIN_API_LOG_ALL=1` logs every wrapped route.
+Optional: `ADMIN_API_LOG_ALL=1` logs every wrapped admin route.
 
-**Wrapped routes (extend over time):** `GET /api/admin/search`, `GET /api/admin/orders`, `GET|PATCH /api/admin/settings`.
+**Admin API coverage:** all `apps/admin/app/api/**/route.ts` handlers wrapped via `withAdminApiObservability` (maintain with `node scripts/wrap-admin-api-observability.mjs` after adding new routes).
+
+**Checkout:** existing `checkoutSloLog` — keep as primary SLO; shop wrapper optional on POST if extended later.
 
 ## Security
 
@@ -72,8 +76,22 @@ Apply: `npx supabase db push --include-all` on Final-store.
 3. Smoke: `ADMIN_SAME_ORIGIN=1 npm run smoke:t40`
 4. Watch Vercel for `admin_api` / `admin_supabase_slow` after traffic.
 
-## Future improvements
+## Supabase connection discipline
 
-- Wrap remaining `/api/admin/*` handlers with `withAdminApiObservability`.
-- Split heavy admin routes (broadcast, email) via `next/dynamic`.
-- Optional read replica / connection pooler tuning on Supabase dashboard.
+- **One** cached `getServiceClient()` per serverless instance; admin uses `{ admin: true }` with `cache: no-store`.
+- In Supabase dashboard: enable **Supavisor pooler** (transaction mode) for serverless if connection count climbs; point server env at pooler URL when documented for your plan.
+- Weekly: check **Query performance** for repeated >500ms statements.
+
+## UI bundle discipline
+
+- Heavy admin surfaces (e.g. **Messaging / broadcast**) load via `next/dynamic` so initial `/admin` shell stays lean.
+- `optimizePackageImports` for `lucide-react`, Radix, `@supabase/supabase-js` in `apps/admin/next.config.mjs`.
+
+## Maintaining observability
+
+After adding a new admin API route:
+
+```bash
+node scripts/wrap-admin-api-observability.mjs
+npm run build:admin
+```

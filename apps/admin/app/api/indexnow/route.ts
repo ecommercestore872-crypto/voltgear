@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { isAdminRequest } from "@/lib/admin";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
@@ -7,7 +8,7 @@ import { indexSiteUrl } from "@/lib/seo-rules";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -41,3 +42,5 @@ export async function POST(request: Request) {
 
   return Response.json(result, { status: result.ok ? 200 : 502 });
 }
+
+export const POST = withAdminApiObservability("POST /api/indexnow", POSTHandler);

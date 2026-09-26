@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
@@ -26,7 +27,7 @@ function clientIp(request: Request): string {
 }
 
 /** Always respond ok when processed or silently ignored (no email enumeration). */
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   const ip = clientIp(request);
   if (!forgotLimiter.take({ ip })) {
     return NextResponse.json(
@@ -82,3 +83,5 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
+export const POST = withAdminApiObservability("POST /api/admin/forgot-password", POSTHandler);

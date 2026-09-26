@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
  *
  * All endpoints require: Authorization: Bearer <ADMIN_TOKEN>
  */
-export async function GET(request: Request) {
+async function GETHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
   return NextResponse.json(data);
 }
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true, updated: Boolean(result.updated) });
 }
 
-export async function DELETE(request: Request) {
+async function DELETEHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -72,3 +73,7 @@ export async function DELETE(request: Request) {
   }
   return NextResponse.json({ ok: true });
 }
+
+export const GET = withAdminApiObservability("GET /api/messaging/contacts", GETHandler);
+export const POST = withAdminApiObservability("POST /api/messaging/contacts", POSTHandler);
+export const DELETE = withAdminApiObservability("DELETE /api/messaging/contacts", DELETEHandler);

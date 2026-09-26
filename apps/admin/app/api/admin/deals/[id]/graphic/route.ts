@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -7,7 +8,7 @@ import { fetchDealCatalog, listProductDeals } from "@/lib/db/deal-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(
+async function GETHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -38,3 +39,5 @@ export async function GET(
     },
   });
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/deals/:id/graphic", GETHandler);

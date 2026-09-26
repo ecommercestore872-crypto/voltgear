@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -11,7 +12,7 @@ import { getOrderById, updateOrderStatus } from "@/lib/order-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(
+async function POSTHandler(
   request: Request,
   { params }: { params: { orderId: string } },
 ) {
@@ -97,3 +98,5 @@ export async function POST(
           : "not sent (no email on order)",
   });
 }
+
+export const POST = withAdminApiObservability("POST /api/orders/:orderId/status", POSTHandler);

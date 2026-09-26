@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -7,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Admin: full delivery report for a single campaign. */
-export async function GET(
+async function GETHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -20,3 +21,5 @@ export async function GET(
   }
   return NextResponse.json({ campaign });
 }
+
+export const GET = withAdminApiObservability("GET /api/messaging/campaigns/:id", GETHandler);

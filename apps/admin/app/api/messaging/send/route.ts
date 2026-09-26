@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -17,7 +18,7 @@ export const dynamic = "force-dynamic";
  * Persists a campaign with a per-recipient delivery report and returns the
  * full result so the UI can show send status immediately.
  */
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -86,3 +87,5 @@ export async function POST(request: Request) {
     results: stored,
   });
 }
+
+export const POST = withAdminApiObservability("POST /api/messaging/send", POSTHandler);

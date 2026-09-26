@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 
-import { EmailSendersForm } from "@/components/admin/email-senders-form";
+const EmailSendersForm = dynamic(
+  () =>
+    import("@/components/admin/email-senders-form").then((m) => ({
+      default: m.EmailSendersForm,
+    })),
+  { loading: () => <p className="text-sm text-muted-foreground p-6">Loading email settings…</p> },
+);
 import { editorEmailSenders, getAdminSettings } from "@/lib/db/admin-store";
 import {
   envFromAddress,

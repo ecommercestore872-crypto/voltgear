@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
  * Retry only the failed recipients of a previous campaign.
  *   POST /api/messaging/retry   { "campaignId": "…" }
  */
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -67,3 +68,5 @@ export async function POST(request: Request) {
     results,
   });
 }
+
+export const POST = withAdminApiObservability("POST /api/messaging/retry", POSTHandler);

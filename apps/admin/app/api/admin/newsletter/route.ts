@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -6,7 +7,7 @@ import { newsletterCsv } from "@/lib/newsletter-rules";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+async function GETHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -34,3 +35,5 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/newsletter", GETHandler);

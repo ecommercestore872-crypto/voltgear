@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -6,7 +7,7 @@ import { deleteOrder, getOrderById } from "@/lib/order-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function DELETE(
+async function DELETEHandler(
   request: Request,
   { params }: { params: { orderId: string } },
 ) {
@@ -34,3 +35,5 @@ export async function DELETE(
 
   return NextResponse.json({ ok: true });
 }
+
+export const DELETE = withAdminApiObservability("DELETE /api/orders/:orderId", DELETEHandler);

@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 type Ctx = { params: { id: string } };
 
-export async function GET(request: Request, { params }: Ctx) {
+async function GETHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -25,7 +26,7 @@ export async function GET(request: Request, { params }: Ctx) {
   return NextResponse.json({ testimonial });
 }
 
-export async function PATCH(request: Request, { params }: Ctx) {
+async function PATCHHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -48,7 +49,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
   return NextResponse.json(result);
 }
 
-export async function DELETE(request: Request, { params }: Ctx) {
+async function DELETEHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -60,3 +61,7 @@ export async function DELETE(request: Request, { params }: Ctx) {
     );
   return NextResponse.json(result);
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/testimonials/:id", GETHandler);
+export const PATCH = withAdminApiObservability("PATCH /api/admin/testimonials/:id", PATCHHandler);
+export const DELETE = withAdminApiObservability("DELETE /api/admin/testimonials/:id", DELETEHandler);

@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -6,7 +7,7 @@ import { purgeDemoData } from "@/lib/db/admin-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function DELETE(request: Request) {
+async function DELETEHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -20,3 +21,5 @@ export async function DELETE(request: Request) {
     );
   }
 }
+
+export const DELETE = withAdminApiObservability("DELETE /api/admin/demo", DELETEHandler);

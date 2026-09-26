@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isCronAuthorized } from "@/lib/deploy-rules";
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 
 import {
   sendAbandonedCartEmail,
@@ -27,7 +28,7 @@ export const dynamic = "force-dynamic";
  * Sends every due queued event and enqueues win-back emails for customers who
  * haven't ordered in 90+ days (once per week, guarded by a dedupe key).
  */
-export async function GET(request: Request) {
+async function GETHandler(request: Request) {
   if (!isCronAuthorized(request.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -132,3 +133,5 @@ export async function GET(request: Request) {
     queued: events.length,
   });
 }
+
+export const GET = withShopApiObservability("GET /api/flows", GETHandler);

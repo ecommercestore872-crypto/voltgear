@@ -60,10 +60,24 @@ export function getServiceClient(options?: { admin?: boolean }): SupabaseClient 
       // Cache GETs briefly for ISR/storefront speed; keep mutations fresh.
       fetch: (input: RequestInfo | URL, init?: RequestInit) => {
         const method = (init?.method || "GET").toUpperCase();
-        if (method !== "GET" && method !== "HEAD") {
-          return fetch(input, { ...init, cache: "no-store" });
-        }
-        return fetch(input, { ...init, next: { revalidate: 60 } });
+        const t0 = performance.now();
+        const run =
+          method !== "GET" && method !== "HEAD"
+            ? fetch(input, { ...init, cache: "no-store" })
+            : fetch(input, { ...init, next: { revalidate: 60 } });
+        return run.then((res) => {
+          const ms = Math.round(performance.now() - t0);
+          const slow = Number(process.env.SHOP_SUPABASE_SLOW_MS ?? 700);
+          if (ms >= slow) {
+            const url = typeof input === "string" ? input : String(input);
+            if (/supabase\.co/i.test(url)) {
+              console.warn(
+                JSON.stringify({ v: 1, kind: "shop_supabase_slow", ms, method }),
+              );
+            }
+          }
+          return res;
+        });
       },
     },
   });

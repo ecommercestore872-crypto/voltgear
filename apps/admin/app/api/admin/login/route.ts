@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { adminCookieOptions, getAdminSecret } from "@/lib/admin";
@@ -19,7 +20,7 @@ function clientIp(request: Request): string {
   return request.headers.get("x-real-ip") || "unknown";
 }
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   const ip = clientIp(request);
   if (!loginLimiter.take({ ip })) {
     return NextResponse.json(
@@ -61,3 +62,5 @@ export async function POST(request: Request) {
   res.cookies.set(ADMIN_COOKIE, secret, adminCookieOptions());
   return res;
 }
+
+export const POST = withAdminApiObservability("POST /api/admin/login", POSTHandler);

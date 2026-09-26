@@ -1,10 +1,11 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/admin";
 import { getOrderByPublicId } from "@/lib/db/store";
 import { getServiceClient } from "@/lib/supabase/server";
 import { createPostExOrder } from "@/lib/postex";
 
-export async function POST(req: NextRequest) {
+async function POSTHandler(req: NextRequest) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -107,3 +108,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export const POST = withAdminApiObservability("POST /api/admin/postex/book", POSTHandler);

@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -6,7 +7,7 @@ import { deleteProductDeal, updateProductDeal } from "@/lib/db/deal-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function PATCH(
+async function PATCHHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -24,7 +25,7 @@ export async function PATCH(
   return NextResponse.json({ deal: result.deal });
 }
 
-export async function DELETE(
+async function DELETEHandler(
   request: Request,
   { params }: { params: { id: string } },
 ) {
@@ -40,3 +41,6 @@ export async function DELETE(
   }
   return NextResponse.json({ ok: true });
 }
+
+export const PATCH = withAdminApiObservability("PATCH /api/admin/deals/:id", PATCHHandler);
+export const DELETE = withAdminApiObservability("DELETE /api/admin/deals/:id", DELETEHandler);

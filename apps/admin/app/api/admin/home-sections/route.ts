@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -7,7 +8,7 @@ import { normalizeHomeSections } from "@/lib/db/home-section-rules";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function PUT(request: Request) {
+async function PUTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -22,3 +23,5 @@ export async function PUT(request: Request) {
   }
   return NextResponse.json({ ok: true, sections: result.sections });
 }
+
+export const PUT = withAdminApiObservability("PUT /api/admin/home-sections", PUTHandler);

@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -6,7 +7,7 @@ import { createPromoCode, listPromoCodes } from "@/lib/db/promo-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+async function GETHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -36,3 +37,6 @@ export async function POST(request: Request) {
   }
   return NextResponse.json({ promo: result.promo });
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/promos", GETHandler);
+export const POST = withAdminApiObservability("POST /api/admin/promos", POSTHandler);

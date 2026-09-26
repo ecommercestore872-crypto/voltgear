@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -7,7 +8,7 @@ import { listContactSubmissions } from "@/lib/db/inbox-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+async function GETHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -33,3 +34,5 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/inbox", GETHandler);

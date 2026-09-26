@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyAction } from "@/lib/crypto-actions";
 import { updateOrderStatus, getOrderById } from "@/lib/order-store";
@@ -6,7 +7,7 @@ import { publicSiteUrl } from "@/lib/deploy-rules";
 
 export const dynamic = "force-dynamic"; // Prevents static caching of GET query parameters
 
-export async function GET(req: NextRequest) {
+async function GETHandler(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const orderId = searchParams.get("orderId");
   const action = searchParams.get("action");
@@ -87,3 +88,5 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Server mutation error", { status: 500 });
   }
 }
+
+export const GET = withAdminApiObservability("GET /api/admin/quick-action", GETHandler);

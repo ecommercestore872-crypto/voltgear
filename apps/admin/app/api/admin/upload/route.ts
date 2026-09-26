@@ -1,3 +1,4 @@
+import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
 
@@ -42,7 +43,7 @@ async function uploadToStorage(file: File, folder: string) {
   return { secureUrl: data.publicUrl, publicId: path };
 }
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+async function DELETEHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -164,3 +165,5 @@ export async function DELETE(request: Request) {
   }
 }
 
+export const POST = withAdminApiObservability("POST /api/admin/upload", POSTHandler);
+export const DELETE = withAdminApiObservability("DELETE /api/admin/upload", DELETEHandler);
