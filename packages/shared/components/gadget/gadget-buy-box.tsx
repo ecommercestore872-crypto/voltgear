@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Banknote,
   Check,
@@ -66,6 +66,7 @@ export function GadgetBuyBox({
     new Set(),
   );
   const btnRef = useRef<HTMLButtonElement>(null);
+  const [showStickyCta, setShowStickyCta] = useState(false);
   const selectedKey = axesOn
     ? comboVariantKey(colorKey, sizeKey)
     : legacyVariant?._key;
@@ -91,6 +92,23 @@ export function GadgetBuyBox({
   );
   const addonTotal = activeAddons.reduce((sum, a) => sum + (a.price ?? 0), 0);
   const displayPrice = price + addonTotal;
+
+  useEffect(() => {
+    const el = btnRef.current;
+    if (!el || outOfStock) {
+      setShowStickyCta(false);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowStickyCta(!entry.isIntersecting);
+      },
+      { root: null, threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [outOfStock, selectionReady]);
+
   const rating =
     product.rating != null && product.rating > 0 ? product.rating : 4.8;
   const reviewCount = product.reviewCount ?? 0;
@@ -496,12 +514,12 @@ export function GadgetBuyBox({
       </div>
 
       {/* Mobile sticky CTA — safe-area for iPhone home indicator */}
-      {!outOfStock ? (
+      {!outOfStock && showStickyCta ? (
         <div className="gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] dark:border-border bg-[var(--g-cream)]/95 dark:bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-[var(--g-charcoal)] dark:text-foreground">
-                {formatPrice(price)}
+                {formatPrice(displayPrice)}
               </p>
               {off ? (
                 <p className="text-[11px] font-semibold text-[var(--g-forest)] dark:text-primary">
@@ -518,7 +536,7 @@ export function GadgetBuyBox({
                 }
                 handleAdd(true, e);
               }}
-              className="gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 active:bg-green-700 text-white shadow-xl shadow-green-600/40 transition-transform active:scale-95 text-base font-bold animate-pulse-slow"
+              className="gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 active:bg-green-700 text-white shadow-xl shadow-green-600/40 transition-transform active:scale-95 text-base font-bold"
             >
               <ShoppingBag className="h-4 w-4" />
               {selectionReady ? "Buy now" : "Choose options"}

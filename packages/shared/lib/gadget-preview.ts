@@ -1,3 +1,5 @@
+import { categoryImageUrl } from "@/lib/site-static-image";
+
 export function isGadgetPreviewPath(pathname: string): boolean {
   return (
     pathname === "/" ||
@@ -135,7 +137,11 @@ export function collectionHref(slug: string): string {
 export function gadgetShopTypeLinks(
   types: { name: string; slug: string; imageUrl?: string }[]
 ): { label: string; href: string; imageUrl?: string }[] {
-  return types.map((t) => ({ label: t.name, href: products2Href(t.slug), imageUrl: t.imageUrl }));
+  return types.map((t) => ({
+    label: t.name,
+    href: products2Href(t.slug),
+    imageUrl: categoryImageUrl(t.imageUrl, 256),
+  }));
 }
 
 export type GadgetVideoKind = "none" | "file" | "instagram" | "tiktok";

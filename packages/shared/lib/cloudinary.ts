@@ -66,17 +66,28 @@ export function cloudinaryImageUrl(
 
 import type { ImageLoaderProps } from "next/image";
 
+import { indexSiteUrl } from "@/lib/seo-rules";
+
 /**
  * Custom Next.js Image loader that forces Cloudinary to do the resizing,
  * completely bypassing Vercel Serverless Function latency!
  */
 /** Next.js `loader` — resize on Cloudinary, not Vercel Image Optimization. */
 export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
-  if (!src.includes("res.cloudinary.com")) return src;
-  return cloudinaryImageUrl(src, {
-    w: width,
-    q: quality ? String(quality) : "auto",
-  });
+  const q = quality ? String(quality) : "auto";
+  if (src.includes("res.cloudinary.com")) {
+    return cloudinaryImageUrl(src, { w: width, q });
+  }
+  if (src.startsWith("/") && !src.startsWith("//")) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    if (cloudName) {
+      const origin = indexSiteUrl().replace(/\/$/, "");
+      const remote = `${origin}${src}`;
+      const insert = `f_webp,q_${q},c_limit,w_${width}/`;
+      return `https://res.cloudinary.com/${cloudName}/image/upload/${insert}${remote}`;
+    }
+  }
+  return src;
 }
 
 export default cloudinaryLoader;

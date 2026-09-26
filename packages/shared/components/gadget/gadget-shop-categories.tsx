@@ -8,6 +8,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { CategoryGlyph } from "@/components/gadget/gadget-category-glyphs";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
+import { categoryImageUrl } from "@/lib/site-static-image";
 import type { Product } from "@/lib/types";
 
 export type CategoryIconTile = {
@@ -31,7 +32,9 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
     label: t.label,
     href: t.href,
     image:
-      t.imageUrl || gadgetImageSrc(t.product, PRODUCT_IMAGE.card) || undefined,
+      categoryImageUrl(t.imageUrl, 256) ||
+      gadgetImageSrc(t.product, PRODUCT_IMAGE.card) ||
+      undefined,
   }));
 
   return fromProducts;

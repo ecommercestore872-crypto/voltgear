@@ -31,6 +31,24 @@ describe("cloudinaryImageUrl", () => {
     assert.match(out, /w_640/);
   });
 
+  it("cloudinaryLoader fetches first-party static assets through Cloudinary", () => {
+    const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";
+    try {
+      const out = cloudinaryLoader({
+        src: "/categories/charger.png",
+        width: 256,
+        quality: 70,
+      });
+      assert.match(out, /res\.cloudinary\.com\/demo/);
+      assert.match(out, /w_256/);
+      assert.match(out, /charger\.png/);
+    } finally {
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      else process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prev;
+    }
+  });
+
   it("strips transform segments from upload tail", () => {
     assert.equal(
       cloudinaryAssetPathAfterUpload("f_auto,q_60,w_800/folder/x.webp"),

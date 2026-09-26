@@ -54,6 +54,10 @@ import {
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
+import {
+  tagCheckoutClarityEvent,
+  tagCheckoutClarityStep,
+} from "@/lib/checkout-clarity";
 import { normalizePhone } from "@/lib/messaging";
 import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel-events";
 
@@ -343,6 +347,7 @@ export default function CheckoutPage() {
     }
 
     if (placing || placedOrder) return;
+    tagCheckoutClarityEvent("place_order_click");
     setPlacing(true);
     setPriceChanged(null);
     setApiError(null);
@@ -409,6 +414,7 @@ export default function CheckoutPage() {
         throw new Error(data.error ?? "Failed");
       }
       setPlacedOrder(data.orderId);
+      tagCheckoutClarityEvent("order_success");
       
       // CLEAR IDEMPOTENCY KEY ON SUCCESS ONLY
       if (typeof window !== "undefined") {
@@ -504,6 +510,10 @@ export default function CheckoutPage() {
   function nextStep(next: number) {
     setStep(next);
   }
+
+  useEffect(() => {
+    tagCheckoutClarityStep(step);
+  }, [step]);
 
   useEffect(() => {
     if (priceChanged) setPriceChanged(null);

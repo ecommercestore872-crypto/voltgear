@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import dynamic from "next/dynamic";
-import Script from "next/script";
 import { Suspense } from "react";
 
 import { AppChrome } from "@/components/layout/app-chrome";
@@ -9,6 +8,14 @@ import { DemoBanner } from "@/components/demo/demo-banner";
 const MetaPixel = dynamic(
   () =>
     import("@/components/analytics/meta-pixel").then((m) => m.MetaPixel),
+  { ssr: false, loading: () => null },
+);
+
+const ClarityDeferred = dynamic(
+  () =>
+    import("@/components/analytics/clarity-deferred").then(
+      (m) => m.ClarityDeferred,
+    ),
   { ssr: false, loading: () => null },
 );
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
@@ -76,6 +83,7 @@ const StorefrontPromoPopup = dynamic(
 );
 
 const SITE_URL = indexSiteUrl();
+const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -201,6 +209,12 @@ export default async function RootLayout({
 
   const brandVars = themeCssVars(settings);
   const brandName = settings?.brandName || "Buy n Try";
+  let clarityHost = "";
+  try {
+    clarityHost = new URL(SITE_URL).host;
+  } catch {
+    clarityHost = "";
+  }
 
   const jsonLd = [
     websiteStructuredData({
@@ -262,6 +276,7 @@ export default async function RootLayout({
           fallback={<div className="flex min-h-dvh flex-col bg-background" />}
         >
           <MetaPixel />
+          <ClarityDeferred projectId={CLARITY_ID} host={clarityHost} />
           <AppChrome
             settings={settings}
             shopTypes={shopTypes}
