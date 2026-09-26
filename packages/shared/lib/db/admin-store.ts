@@ -1,9 +1,13 @@
 import { unstable_cache } from "next/cache";
 
 import {
+  revalidateAdminCacheTag,
   revalidateAfterPublish,
   revalidateAfterPublishLayout,
 } from "@/lib/revalidate-storefront";
+
+const ADMIN_SETTINGS_CACHE_TAG = "admin-settings";
+const ADMIN_SHOP_TYPES_CACHE_TAG = "admin-shop-types";
 
 import type { AdminProduct } from "@/lib/db/admin-types";
 import { mapProduct } from "@/lib/db/map";
@@ -893,11 +897,28 @@ export async function reorderAdminHeroSlides(orderedIds: string[]) {
   return { ok: true as const };
 }
 
-export async function getAdminSettings() {
+async function loadAdminSettingsRow() {
   await ensureShopperBrandSettings();
   const { data, error } = await db().from("site_settings").select("*").eq("id", 1).maybeSingle();
   if (error) throw error;
   return data;
+}
+
+/** Fresh row for writes — bypasses read cache. */
+export async function getAdminSettingsForUpdate() {
+  return loadAdminSettingsRow();
+}
+
+export async function getAdminSettings() {
+  return unstable_cache(
+    loadAdminSettingsRow,
+    ["admin-site-settings-v1"],
+    { revalidate: 120, tags: [ADMIN_SETTINGS_CACHE_TAG] },
+  )();
+}
+
+function bumpAdminSettingsCache() {
+  revalidateAdminCacheTag(ADMIN_SETTINGS_CACHE_TAG);
 }
 
 export async function ensureShopperBrandSettings() {
@@ -997,13 +1018,14 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
 export async function saveAdminSettings(draft: Record<string, unknown>) {
   const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
 export async function publishAdminSettings(doc: Record<string, unknown>) {
   const gate = validateChromeLists(doc);
   if (!gate.ok) return { ok: false as const, error: gate.error, status: 400 };
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const currentDraft =
     current?.draft && typeof current.draft === "object"
       ? (current.draft as Record<string, unknown>)
@@ -1019,6 +1041,7 @@ export async function publishAdminSettings(doc: Record<string, unknown>) {
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const { error } = await db().from("site_settings").upsert(payload, { onConflict: "id" });
     if (!error) {
+      bumpAdminSettingsCache();
       void revalidateAfterPublishLayout("/");
       return { ok: true as const };
     }
@@ -1038,18 +1061,19 @@ export function editorOrderEmails(row: Record<string, unknown> | null): OrderEma
 }
 
 export async function saveAdminOrderEmails(config: OrderEmailConfig) {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>), orderEmails: parseOrderEmailConfig(config) }
       : { orderEmails: parseOrderEmailConfig(config) };
   const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
 async function stripOrderEmailsDraft() {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>) }
@@ -1072,6 +1096,7 @@ export async function publishAdminOrderEmails(config: OrderEmailConfig) {
     const { error } = await db().from("site_settings").update(payload).eq("id", 1);
     if (!error) {
       if ("order_emails" in payload) await stripOrderEmailsDraft();
+      bumpAdminSettingsCache();
       void revalidateAfterPublishLayout("/");
       return { ok: true as const };
     }
@@ -1085,7 +1110,7 @@ export async function publishAdminOrderEmails(config: OrderEmailConfig) {
 }
 
 export async function discardAdminOrderEmails() {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>) }
@@ -1097,6 +1122,7 @@ export async function discardAdminOrderEmails() {
     .update({ draft: Object.keys(draft).length ? draft : null })
     .eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
@@ -1107,7 +1133,7 @@ export function editorInvoiceTemplate(row: Record<string, unknown> | null): Invo
 }
 
 export async function saveAdminInvoiceTemplate(config: InvoiceTemplate | Partial<InvoiceTemplate>) {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const parsed = invoiceTemplateOverrides(config);
   const draft =
     current?.draft && typeof current.draft === "object"
@@ -1115,11 +1141,12 @@ export async function saveAdminInvoiceTemplate(config: InvoiceTemplate | Partial
       : { invoiceTemplate: parsed };
   const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
 async function stripInvoiceTemplateDraft() {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>) }
@@ -1142,6 +1169,7 @@ export async function publishAdminInvoiceTemplate(config: InvoiceTemplate | Part
     const { error } = await db().from("site_settings").update(payload).eq("id", 1);
     if (!error) {
       if ("invoice_template" in payload) await stripInvoiceTemplateDraft();
+      bumpAdminSettingsCache();
       void revalidateAfterPublishLayout("/");
       return { ok: true as const };
     }
@@ -1159,7 +1187,7 @@ export async function publishAdminInvoiceTemplate(config: InvoiceTemplate | Part
 }
 
 export async function discardAdminInvoiceTemplate() {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>) }
@@ -1171,6 +1199,7 @@ export async function discardAdminInvoiceTemplate() {
     .update({ draft: Object.keys(draft).length ? draft : null })
     .eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
@@ -1181,7 +1210,7 @@ export function editorEmailSenders(row: Record<string, unknown> | null): EmailSe
 }
 
 export async function saveAdminEmailSenders(config: EmailSenderConfig) {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const parsed = parseEmailSenderConfig(config);
   const draft =
     current?.draft && typeof current.draft === "object"
@@ -1189,11 +1218,12 @@ export async function saveAdminEmailSenders(config: EmailSenderConfig) {
       : { emailSenders: parsed };
   const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
 async function stripEmailSendersDraft() {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>) }
@@ -1224,6 +1254,7 @@ export async function publishAdminEmailSenders(config: EmailSenderConfig) {
         };
       }
       await stripEmailSendersDraft();
+      bumpAdminSettingsCache();
       void revalidateAfterPublishLayout("/");
       return { ok: true as const };
     }
@@ -1241,7 +1272,7 @@ export async function publishAdminEmailSenders(config: EmailSenderConfig) {
 }
 
 export async function discardAdminEmailSenders() {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>) }
@@ -1253,12 +1284,14 @@ export async function discardAdminEmailSenders() {
     .update({ draft: Object.keys(draft).length ? draft : null })
     .eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
 export async function discardAdminSettingsDraft() {
   const { error } = await db().from("site_settings").update({ draft: null }).eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   return { ok: true as const };
 }
 
@@ -1269,6 +1302,7 @@ export async function saveAdminHomeSections(sections: HomeSectionEntry[]) {
     .update({ home_sections: normalized })
     .eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminSettingsCache();
   void revalidateAfterPublish("/");
   void revalidateAfterPublish("/admin/home");
   return { ok: true as const, sections: normalized };
@@ -1276,7 +1310,7 @@ export async function saveAdminHomeSections(sections: HomeSectionEntry[]) {
 
 export async function saveAdminLifestyleShop(raw: unknown) {
   const shop = normalizeLifestyleShop(raw);
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const enabled = normalizeHomeSections(current?.home_sections).map((section) =>
     section.id === "lifestyle" ? { ...section, enabled: true } : section
   );
@@ -1293,6 +1327,7 @@ export async function saveAdminLifestyleShop(raw: unknown) {
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const { error } = await db().from("site_settings").update(payload).eq("id", 1);
     if (!error) {
+      bumpAdminSettingsCache();
       void revalidateAfterPublish("/");
       void revalidateAfterPublish("/admin/home");
       return { ok: true as const, shop, sections };
@@ -1602,7 +1637,7 @@ export async function ensureFallbackShopTypes() {
   );
 }
 
-export async function listAdminShopTypes(): Promise<ShopType[]> {
+async function listAdminShopTypesUncached(): Promise<ShopType[]> {
   await ensureFallbackShopTypes();
   const { data, error } = await db()
     .from("categories")
@@ -1616,6 +1651,19 @@ export async function listAdminShopTypes(): Promise<ShopType[]> {
   }
   const counts = await productCountsByCategory();
   return (data ?? []).map((row) => mapCategoryRow(row as Record<string, unknown>, counts));
+}
+
+function bumpAdminShopTypesCache() {
+  revalidateAdminCacheTag(ADMIN_SHOP_TYPES_CACHE_TAG);
+  revalidateAdminCacheTag("admin-products");
+}
+
+export async function listAdminShopTypes(): Promise<ShopType[]> {
+  return unstable_cache(
+    listAdminShopTypesUncached,
+    ["admin-shop-types-v1"],
+    { revalidate: 300, tags: [ADMIN_SHOP_TYPES_CACHE_TAG] },
+  )();
 }
 
 export async function getAdminShopType(id: string): Promise<ShopType | null> {
@@ -1675,6 +1723,7 @@ export async function createAdminShopType(doc: {
     }
     return { ok: false as const, error: error.message, status: 500 };
   }
+  bumpAdminShopTypesCache();
   revalidateShopTypePaths(slug);
   return { ok: true as const, id: String(data.id) };
 }
@@ -1702,6 +1751,7 @@ export async function saveAdminShopType(
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminShopTypesCache();
   revalidateShopTypePaths(current.slug);
   return { ok: true as const };
 }
@@ -1713,6 +1763,7 @@ export async function deleteAdminShopType(id: string) {
   if (!blocked.ok) return { ok: false as const, error: blocked.error, status: 409 };
   const { error } = await db().from("categories").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminShopTypesCache();
   revalidateShopTypePaths(current.slug);
   return { ok: true as const };
 }

@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { getAdminSecret } from "@/lib/admin";
 import { isAdminCachePath } from "@/lib/revalidate-path-rules";
@@ -50,4 +50,9 @@ export async function revalidateAfterPublishLayout(
     return;
   }
   await revalidateStorefront([{ path, type: "layout" }]);
+}
+
+/** Bust `unstable_cache` entries tagged for admin-only data (settings, shop types, etc.). */
+export function revalidateAdminCacheTag(tag: string): void {
+  revalidateTag(tag);
 }

@@ -1,6 +1,9 @@
 import { getServiceClient } from "@/lib/supabase/server";
 import { revalidateAfterPublish } from "@/lib/revalidate-storefront";
-import { getAdminSettings } from "@/lib/db/admin-store";
+import {
+  getAdminSettings,
+  getAdminSettingsForUpdate,
+} from "@/lib/db/admin-store";
 import {
   parseDealList,
   validateDealAdminInput,
@@ -47,7 +50,7 @@ async function dealsFromDraft(): Promise<DealRecord[]> {
 }
 
 async function saveDealsToDraft(deals: DealRecord[]): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
-  const current = await getAdminSettings();
+  const current = await getAdminSettingsForUpdate();
   const draft =
     current?.draft && typeof current.draft === "object"
       ? { ...(current.draft as Record<string, unknown>), productDeals: deals }
