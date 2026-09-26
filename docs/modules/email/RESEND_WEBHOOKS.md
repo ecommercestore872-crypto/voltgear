@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|--------|
-| URL | `https://voltgear-admin.vercel.app/api/webhooks/resend` (or your admin production host) |
+| URL | `https://buyntryy.com/api/webhooks/resend` (proxied to admin app) |
 | Events | `email.bounced`, `email.complained` |
 | Env | `RESEND_WEBHOOK_SECRET` — signing secret from Resend (starts with `whsec_`) |
 
@@ -15,6 +15,18 @@ Set the same secret on the **admin** Vercel project. Shop (**voltgear**) does no
 1. [Resend → Webhooks](https://resend.com/webhooks) → Add endpoint.
 2. Paste admin URL above; select bounce + complaint events.
 3. Copy signing secret → Vercel admin env `RESEND_WEBHOOK_SECRET` → redeploy admin.
+
+## CLI (repo)
+
+| Command | Purpose |
+|---------|---------|
+| `npm run resend:health` | Probe `buyntryy.com` webhook + Resend API (needs full API key for webhook list) |
+| `npm run resend:webhook-setup` | Create/update webhook via API (full-access key) |
+| `npm run resend:backfill-suppressions` | Copy recent Resend bounces into Supabase (full-access key) |
+
+**Send-only API keys** (Resend default for “Sending access”) cannot list emails or webhooks. Use the dashboard for webhooks; create a **Full access** key in [API keys](https://resend.com/api-keys) only if you want the scripts above.
+
+Opening the webhook URL in a browser uses **GET** and should return JSON `{ ok, configured }` after admin deploy. Resend always uses **POST**.
 
 ## Monitoring
 

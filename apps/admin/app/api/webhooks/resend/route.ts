@@ -14,6 +14,16 @@ export const dynamic = "force-dynamic";
  * Resend → Webhooks → endpoint (admin app, low shop CPU).
  * Subscribe to email.bounced + email.complained in Resend dashboard.
  */
+export async function GET() {
+  const configured = Boolean(process.env.RESEND_WEBHOOK_SECRET?.trim());
+  return NextResponse.json({
+    ok: true,
+    service: "resend-webhook",
+    configured,
+    note: "Resend delivers events via POST with Svix signatures.",
+  });
+}
+
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const secret = process.env.RESEND_WEBHOOK_SECRET?.trim() ?? "";
