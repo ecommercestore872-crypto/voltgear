@@ -1,9 +1,7 @@
+import dynamic from "next/dynamic";
 import { Fragment, type ReactNode } from "react";
-import { GadgetBlogSection } from "@/components/gadget/gadget-blog-section";
 import { GadgetFeaturedProduct } from "@/components/gadget/gadget-featured-product";
-import { GadgetLifestyleShop } from "@/components/gadget/gadget-lifestyle-shop";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
-import { GadgetReviewsSlider } from "@/components/gadget/gadget-reviews-slider";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
 import { GadgetTrustStrip } from "@/components/gadget/gadget-trust-strip";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
@@ -36,6 +34,30 @@ import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Page, Product, Testimonial } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+
+const GadgetReviewsSlider = dynamic(
+  () =>
+    import("@/components/gadget/gadget-reviews-slider").then(
+      (m) => m.GadgetReviewsSlider,
+    ),
+  { loading: () => null },
+);
+
+const GadgetBlogSection = dynamic(
+  () =>
+    import("@/components/gadget/gadget-blog-section").then(
+      (m) => m.GadgetBlogSection,
+    ),
+  { loading: () => null },
+);
+
+const GadgetLifestyleShop = dynamic(
+  () =>
+    import("@/components/gadget/gadget-lifestyle-shop").then(
+      (m) => m.GadgetLifestyleShop,
+    ),
+  { loading: () => null },
+);
 
 function hasUsableImage(product: Product) {
   return Boolean(product.images?.[0] || product.cloudinaryImages?.[0]);

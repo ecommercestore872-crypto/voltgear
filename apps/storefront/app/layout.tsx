@@ -33,7 +33,6 @@ import type { SiteSettings } from "@/lib/types";
 import "./globals.css";
 
 import { StorefrontAnnouncementBar } from "@/components/promotions/announcement-bar";
-import { StorefrontPromoPopup } from "@/components/promotions/storefront-promo-popup";
 import { ScrollToTopButton } from "@/components/ui/scroll-to-top-button";
 
 const CartDrawer = dynamic(
@@ -66,6 +65,14 @@ const CompareBarWrapper = dynamic(
       (m) => m.CompareBarWrapper,
     ),
   { ssr: false, loading: () => null },
+);
+
+const StorefrontPromoPopup = dynamic(
+  () =>
+    import("@/components/promotions/storefront-promo-popup").then(
+      (m) => m.StorefrontPromoPopup,
+    ),
+  { loading: () => null },
 );
 
 const SITE_URL = indexSiteUrl();

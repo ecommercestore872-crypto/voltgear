@@ -2,36 +2,22 @@ import type { Metadata } from "next";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { GadgetBuyBox } from "@/components/gadget/gadget-buy-box";
-import { GadgetDealPair } from "@/components/gadget/gadget-deal-pair";
-import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
-import { GadgetProductTabs } from "@/components/gadget/gadget-product-tabs";
-import { ReviewsSection } from "@/components/product/product-info-sections";
+import { GadgetPdpDeferred } from "@/components/product/gadget-pdp-deferred";
 import { ProductViewTracker } from "@/components/product/product-view-tracker";
-import {
-  applyGadgetStudioImages,
-  applyGadgetStudioImagesList,
-} from "@/lib/gadget-product-images";
+import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { loadPdpProductBySlug } from "@/lib/db/product-pdp";
-import {
-  fetchApprovedReviews,
-  fetchCatalogProductsBySlugs,
-  fetchRelatedProducts,
-  fetchSiteSettings,
-} from "@/lib/db/store";
-import { normalizeDealSlug, publicDealsForSlug } from "@/lib/db/deal-rules";
-import { fetchDealCatalogForSlugs, listProductDeals } from "@/lib/db/deal-store";
+import { fetchSiteSettings } from "@/lib/db/store";
 import { normalizeSettings } from "@/lib/site-config";
 import { imageUrl } from "@/lib/sanity/image";
-import type { Product, ProductReview } from "@/lib/types";
+import type { Product } from "@/lib/types";
 import { indexSiteUrl, productStructuredData } from "@/lib/seo-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 
 export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
-
-const RELATED_LIMIT = 4;
 
 export async function generateMetadata({
   params,
@@ -45,7 +31,10 @@ export async function generateMetadata({
   const lowerName = product.name.toLowerCase();
   if (lowerName.includes("20000mah") && lowerName.includes("power bank")) {
     title = `Best 20000mAh Power Bank Pakistan: ${product.name} | COD`;
-  } else if (lowerName.includes("j10") || (lowerName.includes("mic") && lowerName.includes("wireless"))) {
+  } else if (
+    lowerName.includes("j10") ||
+    (lowerName.includes("mic") && lowerName.includes("wireless"))
+  ) {
     title = `${product.name} Wireless Mic Price in Pakistan | Buy n Try`;
   } else if (lowerName.includes("smartwatch") || lowerName.includes("watch")) {
     title = `${product.name} Price in Pakistan | Smartwatches at Buy n Try`;
@@ -80,13 +69,7 @@ export async function generateMetadata({
       title,
       description,
       url,
-      images: firstImg ? [{ url: firstImg, alt: product.name }] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: firstImg ? [firstImg] : undefined,
+      images: firstImg ? [{ url: firstImg }] : undefined,
     },
     alternates: {
       canonical: url,
@@ -98,97 +81,35 @@ export async function generateMetadata({
   };
 }
 
+function PdpDeferredFallback() {
+  return (
+    <div
+      className="mt-10 min-h-[240px] animate-pulse rounded-2xl bg-[var(--g-line)]/40"
+      aria-hidden
+    />
+  );
+}
+
 export default async function Product2Page({
   params,
 }: {
   params: { slug: string };
 }) {
   let product: Product | null = null;
-  let relatedProducts: Product[] = [];
   let settings = null;
-  let approvedReviews: ProductReview[] = [];
-  let deals: Awaited<ReturnType<typeof listProductDeals>> = [];
-  let dealCatalog: Awaited<ReturnType<typeof fetchDealCatalogForSlugs>> = [];
-  let dealPartnerBySlug = new Map<string, Product>();
-  let dealRows: ReturnType<typeof publicDealsForSlug> = [];
   try {
-    product = await loadPdpProductBySlug(params.slug);
-    if (product) {
-      const [settingsResult, approvedReviewsResult, dealsResult] =
-        await Promise.all([
-          fetchSiteSettings().catch(() => null),
-          fetchApprovedReviews(product._id, false),
-          listProductDeals().catch(() => []),
-        ]);
-      settings = settingsResult;
-      approvedReviews = approvedReviewsResult;
-      deals = dealsResult;
-
-      const slugKey = normalizeDealSlug(product.slug);
-      const slugsForDeals = new Set<string>([product.slug]);
-      for (const deal of deals) {
-        if (!deal.active) continue;
-        const a = normalizeDealSlug(deal.slugA);
-        const b = normalizeDealSlug(deal.slugB);
-        if (a !== slugKey && b !== slugKey) continue;
-        slugsForDeals.add(a === slugKey ? b : a);
-      }
-      dealCatalog = await fetchDealCatalogForSlugs([...slugsForDeals]).catch(
-        () => [],
-      );
-
-      dealRows = publicDealsForSlug(product.slug, deals, dealCatalog);
-      const dealSlugs = dealRows.map((row) => row.otherSlug);
-
-      const [related, dealPartners] = await Promise.all([
-        fetchRelatedProducts(product._id, product.category, RELATED_LIMIT),
-        dealSlugs.length
-          ? fetchCatalogProductsBySlugs(dealSlugs)
-          : Promise.resolve([]),
-      ]);
-      relatedProducts = related;
-      dealPartnerBySlug = new Map(dealPartners.map((p) => [p.slug, p]));
-    }
+    [product, settings] = await Promise.all([
+      loadPdpProductBySlug(params.slug),
+      fetchSiteSettings().catch(() => null),
+    ]);
   } catch {
     product = null;
   }
 
   if (!product) notFound();
 
-  // Deduplicate: avoid showing the same review twice when it appears
-  // in both the Supabase review_submissions table and the legacy product.reviews array.
-  const seen = new Set<string>();
-  const mergedReviews = [...approvedReviews, ...(product.reviews ?? [])].filter(
-    (r) => {
-      const key = `${(r.name ?? "").toLowerCase().trim()}|${(r.comment ?? "").toLowerCase().trim()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    },
-  );
-  const productWithReviews: Product = mergedReviews.length
-    ? {
-        ...product,
-        reviews: mergedReviews,
-        reviewCount:
-          (product.reviewCount ?? 0) +
-          (approvedReviews.length ? approvedReviews.length : 0),
-      }
-    : product;
-
-  product = applyGadgetStudioImages(productWithReviews);
-  relatedProducts = applyGadgetStudioImagesList(relatedProducts);
-
+  product = applyGadgetStudioImages(product);
   const config = normalizeSettings(settings);
-  const pairBlocks = dealRows
-    .map((row) => ({
-      percentOff: row.percentOff,
-      other: dealPartnerBySlug.get(row.otherSlug) ?? null,
-    }))
-    .filter((row): row is { percentOff: number; other: Product } =>
-      Boolean(row.other),
-    )
-    .slice(0, 2);
 
   const siteUrl = indexSiteUrl();
   const productImg = product.images?.[0]
@@ -268,10 +189,11 @@ export default async function Product2Page({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([productJsonLd, breadcrumbJsonLd, dynamicFaqJsonLd]).replace(
-            /</g,
-            "\\u003c",
-          ),
+          __html: JSON.stringify([
+            productJsonLd,
+            breadcrumbJsonLd,
+            dynamicFaqJsonLd,
+          ]).replace(/</g, "\\u003c"),
         }}
       />
       <ProductViewTracker
@@ -311,70 +233,10 @@ export default async function Product2Page({
         <div className="mt-6">
           <GadgetBuyBox product={product} config={config} />
         </div>
-        {pairBlocks.map((row) => (
-          <GadgetDealPair
-            key={row.other.slug}
-            percentOff={row.percentOff}
-            other={row.other}
-          />
-        ))}
-        <div className="mt-10">
-          <GadgetProductTabs product={product} />
-        </div>
 
-        <div className="mt-12">
-          <ReviewsSection
-            product={product}
-            reviews={product.reviews ?? []}
-            rating={product.rating}
-            includeDemo={false}
-          />
-        </div>
-
-        {relatedProducts.length ? (
-          <section className="mt-14 pb-4">
-            <div className="mb-6 flex items-end justify-between gap-3">
-              <h2 className="gadget-display text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-                You may also like
-              </h2>
-              <Link
-                href={products2Href(product.category)}
-                className="text-sm font-medium text-[var(--g-sage)] hover:text-[var(--g-forest)]"
-              >
-                View all
-              </Link>
-            </div>
-            <div className="gadget-product-grid">
-              {relatedProducts.map((p) => (
-                <GadgetProductCard key={p._id} product={p} />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {/* SEO Internal Link Matrix */}
-        <section className="mt-16 border-t border-[var(--g-border)]/20 pt-10 pb-8">
-          <h3 className="text-xl font-bold text-slate-800 mb-6">Explore Popular Categories in Pakistan</h3>
-          <div className="flex flex-wrap gap-3">
-            {[
-              { name: "Bluetooth Calling Smartwatches", path: "/products/smartwatch" },
-              { name: "Noise Cancelling Earbuds", path: "/products/earbuds" },
-              { name: "Fast Charging Power Banks", path: "/products/power-bank" },
-              { name: "Wireless Vlogging Mics", path: "/products/microphones" },
-              { name: "Tripod Stands for Mobile", path: "/products/tripod" },
-              { name: "Selfie Ring Lights", path: "/products/ring-light" },
-              { name: "GaN Fast Chargers", path: "/products/charger" },
-            ].map((link) => (
-              <Link
-                key={link.name}
-                href={link.path}
-                className="bg-white border border-slate-200 text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 transition-colors px-4 py-2 rounded-full text-sm font-medium shadow-sm"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
-        </section>
+        <Suspense fallback={<PdpDeferredFallback />}>
+          <GadgetPdpDeferred product={product} />
+        </Suspense>
       </div>
     </div>
   );

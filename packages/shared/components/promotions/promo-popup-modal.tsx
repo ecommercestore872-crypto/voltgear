@@ -26,10 +26,9 @@ export function PromoPopupModal({
     if (!code) return;
     const seen = window.localStorage.getItem(WELCOME_POPUP_STORAGE_KEY);
     if (welcomePopupStillHidden(seen)) return;
-    const timer = window.setTimeout(
-      () => setIsOpen(true),
-      WELCOME_POPUP_DELAY_MS,
-    );
+    const mobile = window.matchMedia("(max-width: 639px)").matches;
+    const delay = mobile ? Math.max(WELCOME_POPUP_DELAY_MS, 45_000) : WELCOME_POPUP_DELAY_MS;
+    const timer = window.setTimeout(() => setIsOpen(true), delay);
     return () => window.clearTimeout(timer);
   }, [code]);
 

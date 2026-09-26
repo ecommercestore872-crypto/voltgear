@@ -51,6 +51,7 @@ import {
   products2Href,
   readGadgetPreviewSession,
 } from "@/lib/gadget-preview";
+import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
 import { normalizePhone } from "@/lib/messaging";
@@ -740,6 +741,12 @@ export default function CheckoutPage() {
 
             {step === 1 && (
               <section>
+                <CheckoutCodAssist
+                  freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
+                  shippingFee={Number(config.shippingFee ?? 0)}
+                  whatsappNumber={config.whatsappNumber}
+                  supportPhone={config.supportPhone}
+                />
                 {/* Immediate Trust Badges */}
                 <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                   {[
