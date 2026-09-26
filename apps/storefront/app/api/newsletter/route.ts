@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextRequest, NextResponse } from "next/server";
 
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
@@ -14,7 +15,7 @@ function clientIp(req: Request): string {
   return forwarded.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
 }
 
-export async function POST(req: NextRequest) {
+async function POSTHandler(req: NextRequest) {
   const ip = clientIp(req);
   if (ip && !rateLimiter.take({ ip })) {
     return NextResponse.json(
@@ -45,3 +46,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }
+
+export const POST = withShopApiObservability("POST /api/newsletter", POSTHandler);

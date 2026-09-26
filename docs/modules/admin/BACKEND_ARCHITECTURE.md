@@ -53,7 +53,9 @@ Optional: `ADMIN_API_LOG_ALL=1` logs every wrapped admin route.
 
 **Admin API coverage:** all `apps/admin/app/api/**/route.ts` handlers wrapped via `withAdminApiObservability` (maintain with `node scripts/wrap-admin-api-observability.mjs` after adding new routes).
 
-**Checkout:** existing `checkoutSloLog` — keep as primary SLO; shop wrapper optional on POST if extended later.
+**Shop API coverage:** all `apps/storefront/app/api/**/route.ts` except **checkout** (uses `[checkout-slo]` on every request). Maintain with `node scripts/wrap-shop-api-observability.mjs` after adding routes.
+
+**Checkout:** `checkoutSloLog` — primary SLO; not wrapped with `shop_api` to avoid duplicate logs.
 
 ## Security
 
@@ -94,4 +96,11 @@ After adding a new admin API route:
 ```bash
 node scripts/wrap-admin-api-observability.mjs
 npm run build:admin
+```
+
+After adding a new storefront API route (except checkout):
+
+```bash
+node scripts/wrap-shop-api-observability.mjs
+npm run build:storefront
 ```

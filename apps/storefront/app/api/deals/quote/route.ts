@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { applyDealsToCart, normalizeDealSlug } from "@/lib/db/deal-rules";
@@ -7,7 +8,7 @@ import { takeDealQuoteLimit } from "@/lib/public-api-guard";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   const rate = takeDealQuoteLimit(request);
   if (!rate.ok) {
     return NextResponse.json({ error: rate.error }, { status: rate.status });
@@ -51,3 +52,5 @@ export async function POST(request: Request) {
     })),
   });
 }
+
+export const POST = withShopApiObservability("POST /api/deals/quote", POSTHandler);

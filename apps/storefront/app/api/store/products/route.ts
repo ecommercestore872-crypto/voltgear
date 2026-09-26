@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import {
@@ -26,7 +27,7 @@ function json(data: unknown, status = 200) {
   });
 }
 
-export async function GET(request: Request) {
+async function GETHandler(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get("slug");
@@ -78,3 +79,5 @@ export async function GET(request: Request) {
     return json([], 500);
   }
 }
+
+export const GET = withShopApiObservability("GET /api/store/products", GETHandler);

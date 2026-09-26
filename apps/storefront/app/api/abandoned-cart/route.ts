@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { enqueueEmailEvent } from "@/lib/order-store";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
  * Called from the checkout page when a visitor who entered their email leaves
  * before completing the order. Queues an abandoned-cart email (3h delay).
  */
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   try {
     const limited = takePublicPostLimit(request, "abandoned");
     if (!limited.ok) {
@@ -54,3 +55,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 }
+
+export const POST = withShopApiObservability("POST /api/abandoned-cart", POSTHandler);

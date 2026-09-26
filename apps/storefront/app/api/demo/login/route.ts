@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { demoCookieOptions } from "@/lib/demo";
@@ -10,7 +11,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (
     process.env.NODE_ENV === "production" ||
     process.env.VERCEL_ENV === "production"
@@ -36,3 +37,5 @@ export async function POST(request: Request) {
   res.cookies.set(DEMO_COOKIE, DEMO_COOKIE_VALUE, demoCookieOptions());
   return res;
 }
+
+export const POST = withShopApiObservability("POST /api/demo/login", POSTHandler);

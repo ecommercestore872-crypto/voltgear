@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { revalidatePath } from "next/cache";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -24,7 +25,7 @@ const DEFAULT_PATHS = [
  *     -H "Authorization: Bearer <ADMIN_TOKEN>" \
  *     -H "Content-Type: application/json" -d '{"paths":["/","/products"]}'
  */
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   if (!isAdminRequest(request)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -82,3 +83,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const POST = withShopApiObservability("POST /api/revalidate", POSTHandler);

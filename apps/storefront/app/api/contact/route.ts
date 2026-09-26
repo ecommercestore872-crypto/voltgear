@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { createContactSubmission } from "@/lib/db/inbox-store";
@@ -6,7 +7,7 @@ import { takePublicPostLimit } from "@/lib/public-api-guard";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   try {
     const limited = takePublicPostLimit(request, "contact");
     if (!limited.ok) {
@@ -53,3 +54,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const POST = withShopApiObservability("POST /api/contact", POSTHandler);

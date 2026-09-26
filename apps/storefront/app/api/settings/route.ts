@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { fetchSiteSettings } from "@/lib/db/store";
 import { normalizeSettings } from "@/lib/site-config";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
@@ -11,7 +12,7 @@ export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
  * operational defaults (PKR 5,000 free-shipping threshold, Rs 199 shipping
  * fee) when Sanity is not configured.
  */
-export async function GET() {
+async function GETHandler() {
   try {
     const settings = await fetchSiteSettings();
     return Response.json(normalizeSettings(settings), {
@@ -27,3 +28,5 @@ export async function GET() {
     });
   }
 }
+
+export const GET = withShopApiObservability("GET /api/settings", GETHandler);

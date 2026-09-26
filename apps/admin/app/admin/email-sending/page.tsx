@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 
-const EmailSendersForm = dynamic(
+const EmailSendersForm = nextDynamic(
   () =>
     import("@/components/admin/email-senders-form").then((m) => ({
       default: m.EmailSendersForm,

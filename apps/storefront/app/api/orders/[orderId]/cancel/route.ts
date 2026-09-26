@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import {
@@ -19,7 +20,7 @@ export const dynamic = "force-dynamic";
  * Shopper: cancel own order within 24h while new/processing.
  * Body: { "email": "checkout@email.com" }
  */
-export async function POST(
+async function POSTHandler(
   request: Request,
   { params }: { params: { orderId: string } },
 ) {
@@ -103,3 +104,5 @@ export async function POST(
         : "not sent (no email on order)",
   });
 }
+
+export const POST = withShopApiObservability("POST /api/orders/:orderId/cancel", POSTHandler);

@@ -1,9 +1,10 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 import { getPromoByCode, countPriorOrdersForEmail } from "@/lib/db/promo-store";
 import { applyPromoToTotals } from "@/lib/db/promo-rules";
 import { takePublicPostLimit } from "@/lib/public-api-guard";
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   try {
     const limited = takePublicPostLimit(request, "promo");
     if (!limited.ok) {
@@ -61,3 +62,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const POST = withShopApiObservability("POST /api/promo/validate", POSTHandler);

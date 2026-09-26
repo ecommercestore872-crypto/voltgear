@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { getOrdersByEmail } from "@/lib/order-store";
@@ -19,7 +20,7 @@ interface ReviewBody {
   productName?: string;
 }
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   try {
     const limited = takePublicPostLimit(request, "review");
     if (!limited.ok) {
@@ -85,3 +86,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const POST = withShopApiObservability("POST /api/reviews", POSTHandler);

@@ -1,8 +1,11 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 import { fetchAllProducts } from "@/lib/db/store";
 import { resolveTikTokContentId } from "@/lib/tiktok-browser-events";
 
-export const revalidate = 3600;
+/** On-demand generation; CDN caches via Cache-Control (no build-time DB). */
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export function escapeCSV(val: string | number | undefined | null): string {
   if (val === null || val === undefined) return "";
@@ -115,7 +118,7 @@ export function generateCSV(products: any[]): string {
   return csv;
 }
 
-export async function GET() {
+async function GETHandler() {
   const products = await fetchAllProducts(false); // exclude demo
   const csv = generateCSV(products);
 
@@ -127,3 +130,5 @@ export async function GET() {
     }
   });
 }
+
+export const GET = withShopApiObservability("GET /api/catalog/tiktok.csv", GETHandler);

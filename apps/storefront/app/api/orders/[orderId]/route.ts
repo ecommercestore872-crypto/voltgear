@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { getOrderById } from "@/lib/order-store";
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
  *
  * Returns a summary (status, timeline, items, totals) — no phone/address.
  */
-export async function GET(
+async function GETHandler(
   request: Request,
   { params }: { params: { orderId: string } },
 ) {
@@ -48,3 +49,5 @@ export async function GET(
 
   return NextResponse.json(toShopperTrackPayload(order!));
 }
+
+export const GET = withShopApiObservability("GET /api/orders/:orderId", GETHandler);

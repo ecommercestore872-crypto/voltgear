@@ -1,3 +1,4 @@
+import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
 
@@ -42,7 +43,7 @@ function clientIp(request: Request): string {
   return request.headers.get("x-real-ip") || "unknown";
 }
 
-export async function POST(request: Request) {
+async function POSTHandler(request: Request) {
   try {
     const ip = clientIp(request);
     if (!uploadLimiter.take({ ip })) {
@@ -128,3 +129,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const POST = withShopApiObservability("POST /api/upload", POSTHandler);
