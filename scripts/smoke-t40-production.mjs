@@ -8,6 +8,10 @@ const shop = (process.env.SHOP_URL || "https://buyntryy.com").replace(/\/$/, "")
 const adminBase = (
   process.env.ADMIN_PUBLIC_URL || "https://voltgear-admin.vercel.app"
 ).replace(/\/$/, "");
+const sameOrigin =
+  process.env.ADMIN_SAME_ORIGIN === "1" ||
+  process.env.ADMIN_SAME_ORIGIN === "true" ||
+  (process.env.ADMIN_PUBLIC_URL && adminBase === shop);
 
 async function followRedirectOnce(path) {
   const res = await fetch(`${shop}${path}`, { redirect: "manual" });
@@ -17,16 +21,44 @@ async function followRedirectOnce(path) {
 async function main() {
   const checks = [];
 
-  for (const [path, expectedDest] of [
-    ["/admin", `${adminBase}/admin`],
-    ["/admin/login", `${adminBase}/admin/login`],
-    ["/studio", `${adminBase}/admin/login`],
-  ]) {
-    const { status, location } = await followRedirectOnce(path);
-    const ok =
-      (status === 307 || status === 308 || status === 302) &&
-      location?.replace(/\/$/, "") === expectedDest.replace(/\/$/, "");
-    checks.push({ name: `redirect ${path}`, ok, status, location, expectedDest });
+  if (sameOrigin) {
+    for (const path of ["/admin/login", "/admin"]) {
+      const res = await fetch(`${shop}${path}`, { redirect: "manual" });
+      checks.push({
+        name: `same-origin ${path} (no external redirect)`,
+        ok: res.status >= 200 && res.status < 400,
+        status: res.status,
+        location: res.headers.get("location"),
+      });
+    }
+    const studio = await followRedirectOnce("/studio");
+    checks.push({
+      name: "same-origin /studio → /admin/login",
+      ok:
+        studio.status >= 200 &&
+        studio.status < 400 &&
+        !studio.location?.startsWith("http"),
+      status: studio.status,
+      location: studio.location,
+    });
+  } else {
+    for (const [path, expectedDest] of [
+      ["/admin", `${adminBase}/admin`],
+      ["/admin/login", `${adminBase}/admin/login`],
+      ["/studio", `${adminBase}/admin/login`],
+    ]) {
+      const { status, location } = await followRedirectOnce(path);
+      const ok =
+        (status === 307 || status === 308 || status === 302) &&
+        location?.replace(/\/$/, "") === expectedDest.replace(/\/$/, "");
+      checks.push({
+        name: `redirect ${path}`,
+        ok,
+        status,
+        location,
+        expectedDest,
+      });
+    }
   }
 
   const revalidate = await fetch(`${shop}/api/revalidate`, {
@@ -40,10 +72,14 @@ async function main() {
     status: revalidate.status,
   });
 
-  const adminApi = await fetch(`${shop}/api/admin/analytics`, { redirect: "manual" });
+  const adminApi = await fetch(`${shop}/api/admin/analytics`, {
+    redirect: "manual",
+  });
   checks.push({
-    name: "GET /api/admin/* absent on shop",
-    ok: adminApi.status === 404,
+    name: sameOrigin
+      ? "GET /api/admin/* proxied on shop → 401 without auth"
+      : "GET /api/admin/* absent on shop",
+    ok: sameOrigin ? adminApi.status === 401 : adminApi.status === 404,
     status: adminApi.status,
   });
 
@@ -58,7 +94,11 @@ async function main() {
     console.error("\nT-40 smoke failed:", failed.length, "check(s)");
     process.exit(1);
   }
-  console.log("\nT-40 smoke passed (shop redirects + revalidate gate + no /api/admin on shop).");
+  console.log(
+    sameOrigin
+      ? "\nT-40 smoke passed (buyntryy.com/admin same-origin + revalidate gate)."
+      : "\nT-40 smoke passed (shop redirects + revalidate gate + no /api/admin on shop).",
+  );
   console.log(
     "Manual: publish a product in admin; confirm shop PDP updates (admin needs STOREFRONT_URL + matching ADMIN_TOKEN).",
   );

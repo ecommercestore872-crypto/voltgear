@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { expectedAdminRedirectDestination } from "./storefront-admin-redirects.mjs";
 import {
-  expectedAdminRedirectDestination,
+  isAdminSameOriginMode,
   storefrontAdminRedirects,
-} from "./storefront-admin-redirects.mjs";
+  storefrontAdminRewrites,
+} from "./storefront-admin-routing.mjs";
 
 describe("storefrontAdminRedirects", () => {
   it("maps /admin and /studio when ADMIN_PUBLIC_URL is set", () => {
@@ -33,6 +35,44 @@ describe("storefrontAdminRedirects", () => {
     assert.deepEqual(
       storefrontAdminRedirects({ NODE_ENV: "production" }),
       [],
+    );
+  });
+
+  it("skips redirects when same-origin proxy is enabled", () => {
+    assert.deepEqual(
+      storefrontAdminRedirects({
+        NODE_ENV: "production",
+        NEXT_PUBLIC_SITE_URL: "https://buyntryy.com",
+        ADMIN_PUBLIC_URL: "https://buyntryy.com",
+        ADMIN_PROXY_UPSTREAM: "https://voltgear-admin-pi.vercel.app",
+      }),
+      [],
+    );
+    assert.ok(
+      isAdminSameOriginMode({
+        NEXT_PUBLIC_SITE_URL: "https://buyntryy.com",
+        ADMIN_PUBLIC_URL: "https://buyntryy.com",
+        ADMIN_PROXY_UPSTREAM: "https://voltgear-admin-pi.vercel.app",
+      }),
+    );
+  });
+});
+
+describe("storefrontAdminRewrites", () => {
+  it("proxies /admin and /api/admin when same-origin", () => {
+    const env = {
+      NEXT_PUBLIC_SITE_URL: "https://buyntryy.com",
+      ADMIN_PUBLIC_URL: "https://buyntryy.com",
+      ADMIN_PROXY_UPSTREAM: "https://voltgear-admin-pi.vercel.app/",
+    };
+    const rules = storefrontAdminRewrites(env);
+    assert.ok(rules.some((r) => r.source === "/admin/:path*"));
+    assert.ok(
+      rules.some(
+        (r) =>
+          r.destination ===
+          "https://voltgear-admin-pi.vercel.app/api/admin/:path*",
+      ),
     );
   });
 });

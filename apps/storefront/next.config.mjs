@@ -73,6 +73,12 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    const { storefrontAdminRewrites } = await import(
+      "../../packages/shared/lib/storefront-admin-routing.mjs"
+    );
+    return storefrontAdminRewrites(process.env);
+  },
   async redirects() {
     const { storefrontAdminRedirects } = await import(
       "../../packages/shared/lib/storefront-admin-redirects.mjs"

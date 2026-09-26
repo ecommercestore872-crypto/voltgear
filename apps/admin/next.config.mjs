@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
+const adminAssetOrigin = process.env.NEXT_PUBLIC_ADMIN_ASSET_ORIGIN?.replace(
+  /\/$/,
+  "",
+);
+
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  ...(adminAssetOrigin ? { assetPrefix: adminAssetOrigin } : {}),
   eslint: {
     ignoreDuringBuilds: true,
   },

@@ -6,12 +6,25 @@ The repo is an npm monorepo: **shop** (`apps/storefront`) and **admin** (`apps/a
 
 | App | Host (target) | Vercel root directory |
 |---|---|---|
-| Shop | https://buyntryy.com (custom) / production storefront project | `apps/storefront` |
-| Admin | https://voltgear-admin-dashboard.vercel.app | `apps/admin` |
+| Shop | https://buyntryy.com | `apps/storefront` |
+| Admin (staff URL) | **https://buyntryy.com/admin** (same-origin proxy) or redirect target below | `apps/admin` (separate Vercel project) |
 
 ## Two-project setup (T-40)
 
-1. **Shop project** — Settings → General → **Root Directory** = `apps/storefront`. Set **`ADMIN_PUBLIC_URL=https://voltgear-admin-dashboard.vercel.app`** (no trailing slash) so `/admin/*` and `/studio` redirect to admin.
+### Recommended: admin at **buyntryy.com/admin** (URL stays on shop domain)
+
+Two Vercel projects still; the shop **proxies** `/admin` and `/api/admin/*` to the admin deployment.
+
+| Project | Variables (production + preview) |
+|---------|----------------------------------|
+| **voltgear** (shop) | `NEXT_PUBLIC_SITE_URL=https://buyntryy.com`, `ADMIN_PUBLIC_URL=https://buyntryy.com`, `ADMIN_PROXY_UPSTREAM=https://<your-admin>.vercel.app` (no trailing slash) |
+| **voltgear-admin** | `NEXT_PUBLIC_SITE_URL=https://buyntryy.com`, `STOREFRONT_URL=https://buyntryy.com`, `NEXT_PUBLIC_ADMIN_ASSET_ORIGIN=https://<your-admin>.vercel.app` (loads JS/CSS from admin host) |
+
+Redeploy **both** after changing these. Smoke: `ADMIN_SAME_ORIGIN=1 npm run smoke:t40` (default `ADMIN_PUBLIC_URL` matches shop).
+
+### Legacy: redirect to separate admin host
+
+1. **Shop project** — Settings → General → **Root Directory** = `apps/storefront`. Set **`ADMIN_PUBLIC_URL=https://voltgear-admin-dashboard.vercel.app`** (no trailing slash) so `/admin/*` and `/studio` **redirect** off buyntryy.com. Do **not** set `ADMIN_PROXY_UPSTREAM`.
 2. **Admin project** — On your personal Vercel account: project **`voltgear-admin-dashboard`** → **https://voltgear-admin-dashboard.vercel.app**, root **`apps/admin`**. Copy Supabase, Cloudinary, Resend, `ADMIN_TOKEN`, etc. Add **`STOREFRONT_URL=https://buyntryy.com`**.
 3. **Ignored Build Step** (each project, repo root as context for the script path):
    - Shop: `bash scripts/vercel-should-build-storefront.sh`

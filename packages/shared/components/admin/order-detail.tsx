@@ -103,7 +103,7 @@ export function OrderDetail({
     setOk(null);
     try {
       await adminFetch(
-        `/api/orders/${encodeURIComponent(order.orderId)}/status`,
+        `/api/admin/orders/${encodeURIComponent(order.orderId)}/status`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -139,9 +139,12 @@ export function OrderDetail({
     setSaving(true);
     setError(null);
     try {
-      await adminFetch(`/api/orders/${encodeURIComponent(order.orderId)}`, {
-        method: "DELETE",
-      });
+      await adminFetch(
+        `/api/admin/orders/${encodeURIComponent(order.orderId)}`,
+        {
+          method: "DELETE",
+        },
+      );
       router.push("/admin/orders");
       router.refresh();
     } catch (err) {
