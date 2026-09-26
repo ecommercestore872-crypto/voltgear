@@ -17,16 +17,20 @@ export function parseHeroSlideMeta(subtitle?: string | null): {
   }
 }
 
-/** Optimized URL for LCP preload (mobile-first). */
+/** Optimized URL for LCP preload (mobile-first; matches hero `quality={70}`). */
 export function heroLcpImageUrl(
   slide: Pick<HeroSlide, "imageUrl" | "subtitle">,
-  opts: { mobile?: boolean } = {},
+  opts: { mobile?: boolean; quality?: number | string } = {},
 ): string {
   const mobile = opts.mobile !== false;
+  const quality = opts.quality ?? 70;
   const meta = parseHeroSlideMeta(slide.subtitle);
   const src =
     mobile && meta.mobile?.trim() ? meta.mobile.trim() : slide.imageUrl?.trim();
   if (!src) return "";
   if (src.startsWith("/") && !src.startsWith("//")) return src;
-  return cloudinaryImageUrl(src, { w: mobile ? 828 : 1280, q: "auto" });
+  return cloudinaryImageUrl(src, {
+    w: mobile ? 828 : 1280,
+    q: String(quality),
+  });
 }

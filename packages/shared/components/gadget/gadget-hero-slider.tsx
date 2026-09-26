@@ -6,67 +6,18 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 
 import { cloudinaryLoader } from "@/lib/cloudinary";
-import { resolveSlideCta } from "@/lib/db/hero-slide-rules";
 import type { GadgetCreativeBanner } from "@/lib/gadget-creatives";
-import { product2Href } from "@/lib/gadget-preview";
+import {
+  fallbackHeroBanners,
+  heroSlidesToBanners,
+  type GadgetHeroBanner,
+} from "@/lib/gadget-hero-banners";
 import type { HeroSlide } from "@/lib/types";
 
 const INTERVAL_MS = 5500;
 const FADE_MS = 700;
 
-export type GadgetHeroBanner = {
-  id: string;
-  title?: string;
-  subtitle?: string | null;
-  imageUrl: string;
-  mobileImageUrl?: string;
-  href: string;
-  ctaDisabled?: boolean;
-  ctaLabel?: string;
-};
-
-function fromAdminSlides(slides: HeroSlide[]): GadgetHeroBanner[] {
-  return slides.map((slide) => {
-    const cta = resolveSlideCta(slide.product.stockStatus);
-    let subtitle = slide.subtitle;
-    let ctaLabel = "Shop " + (slide.title || "this offer");
-    let mobileImageUrl = "";
-    let href = product2Href(slide.product.slug);
-
-    if (subtitle && subtitle.trim().startsWith("{")) {
-      try {
-        const parsed = JSON.parse(subtitle);
-        subtitle = parsed.text || "";
-        if (parsed.cta) {
-          ctaLabel = parsed.cta;
-        }
-        if (parsed.mobile) {
-          mobileImageUrl = parsed.mobile;
-        }
-        if (parsed.linkType === "all") {
-          href = "/products";
-        } else if (parsed.linkType === "category" && parsed.category) {
-          href = `/products?category=${parsed.category}`;
-        } else if (parsed.linkType === "none") {
-          href = "";
-        }
-      } catch (e) {
-        // Fallback to plain string if parse fails
-      }
-    }
-
-    return {
-      id: slide.id,
-      title: slide.title, // NO fallback to product name! If they leave it blank, no text overlay!
-      subtitle,
-      imageUrl: slide.imageUrl,
-      mobileImageUrl,
-      href,
-      ctaDisabled: cta.disabled,
-      ctaLabel: ctaLabel === "Shop this offer" ? "" : ctaLabel, // If empty, we can just omit it
-    };
-  });
-}
+export type { GadgetHeroBanner } from "@/lib/gadget-hero-banners";
 
 export function GadgetHeroSlider({
   slides = [],
@@ -77,15 +28,8 @@ export function GadgetHeroSlider({
 }) {
   const banners: GadgetHeroBanner[] =
     slides.length > 0
-      ? fromAdminSlides(slides)
-      : fallbackBanners.map((b) => ({
-          id: b.id,
-          title: b.title,
-          subtitle: undefined,
-          imageUrl: b.imageUrl,
-          href: b.href,
-          ctaLabel: "Shop this offer",
-        }));
+      ? heroSlidesToBanners(slides)
+      : fallbackHeroBanners(fallbackBanners);
 
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);

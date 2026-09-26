@@ -47,6 +47,9 @@ vercel_inspect*.json
 *.tsbuildinfo
 
 # local debug / CLI dumps (never commit)
+.lh-*.json
+.lighthouse-*.json
+.tmp-lh/
 /logs*.json
 /eslint*.json
 /db_images_output.json
