@@ -40,6 +40,22 @@ describe("cloudinaryImageUrl", () => {
     assert.match(out, /w_640/);
   });
 
+  it("cloudinaryLoader serves blog covers from /public/blog without Cloudinary fetch", () => {
+    const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";
+    try {
+      const out = cloudinaryLoader({
+        src: "/blog/cover-tws-earbuds.webp",
+        width: 800,
+        quality: 70,
+      });
+      assert.equal(out, "/blog/cover-tws-earbuds.webp");
+    } finally {
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      else process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prev;
+    }
+  });
+
   it("cloudinaryLoader fetches first-party static assets through Cloudinary", () => {
     const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";

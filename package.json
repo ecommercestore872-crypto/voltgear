@@ -13,6 +13,7 @@
     "build": "npm run build -w @voltgear/storefront && npm run build -w @voltgear/admin",
     "build:header-logo": "node scripts/build-header-logo.mjs",
     "generate:favicons": "node scripts/generate-favicons.mjs",
+    "convert:blog-covers": "node scripts/convert-blog-covers-webp.mjs",
     "build:storefront": "npm run build -w @voltgear/storefront",
     "build:admin": "npm run build -w @voltgear/admin",
     "start": "npm run start -w @voltgear/storefront",

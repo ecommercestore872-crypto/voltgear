@@ -89,6 +89,10 @@ export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
     return cloudinaryImageUrl(src, { w: width, q });
   }
   if (src.startsWith("/") && !src.startsWith("//")) {
+    // Blog covers live in /public/blog as pre-optimized WebP — do not proxy via fetch.
+    if (src.startsWith("/blog/")) {
+      return src;
+    }
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     if (cloudName) {
       const origin = indexSiteUrl().replace(/\/$/, "");
