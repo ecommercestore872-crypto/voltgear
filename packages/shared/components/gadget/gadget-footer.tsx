@@ -73,7 +73,7 @@ export function GadgetFooter({
 
   return (
     <footer className="bg-[var(--g-cream)] pt-6 sm:px-3 sm:pb-3 sm:pt-8">
-      <div className="overflow-hidden rounded-t-[2.25rem] bg-[var(--g-forest)] text-[var(--g-white)] sm:rounded-[2.25rem]">
+      <div className="overflow-hidden rounded-t-[2.25rem] border-t-4 border-[var(--g-gold)] bg-[var(--g-forest)] text-[var(--g-white)] shadow-[0_-12px_40px_rgba(14,36,25,0.2)] sm:rounded-[2.25rem]">
         {/* Pre-footer Trust Row */}
         <div className="border-b border-white/10 px-5 py-6 sm:px-8">
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 text-center sm:grid-cols-4 sm:gap-6">

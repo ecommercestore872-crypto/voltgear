@@ -37,8 +37,8 @@ export function CategoryGlyph({
           />
           <circle cx="25" cy="29" r="5.5" fill="currentColor" />
           <circle cx="39" cy="29" r="5.5" fill="currentColor" />
-          <circle cx="25" cy="29" r="2" fill="#F5F1E8" opacity="0.9" />
-          <circle cx="39" cy="29" r="2" fill="#F5F1E8" opacity="0.9" />
+          <circle cx="25" cy="29" r="2" fill="#F6F0E6" opacity="0.9" />
+          <circle cx="39" cy="29" r="2" fill="#F6F0E6" opacity="0.9" />
         </svg>
       );
     case "neckband":
@@ -81,10 +81,10 @@ export function CategoryGlyph({
             rx="8"
             fill="currentColor"
           />
-          <circle cx="32" cy="32" r="8" fill="#F5F1E8" />
+          <circle cx="32" cy="32" r="8" fill="#F6F0E6" />
           <path
             d="M32 28v5l4 2"
-            stroke="#1F3626"
+            stroke="#1A3328"
             strokeWidth="2"
             strokeLinecap="round"
           />
@@ -116,8 +116,8 @@ export function CategoryGlyph({
             rx="8"
             fill="currentColor"
           />
-          <circle cx="32" cy="28" r="7" fill="#F5F1E8" />
-          <circle cx="32" cy="44" r="4" fill="#F5F1E8" opacity="0.7" />
+          <circle cx="32" cy="28" r="7" fill="#F6F0E6" />
+          <circle cx="32" cy="44" r="4" fill="#F6F0E6" opacity="0.7" />
         </svg>
       );
     case "dashcam":
@@ -131,7 +131,7 @@ export function CategoryGlyph({
             rx="6"
             fill="currentColor"
           />
-          <circle cx="28" cy="34" r="7" fill="#F5F1E8" />
+          <circle cx="28" cy="34" r="7" fill="#F6F0E6" />
           <circle cx="28" cy="34" r="3" fill="currentColor" />
           <rect
             x="40"
@@ -139,7 +139,7 @@ export function CategoryGlyph({
             width="8"
             height="8"
             rx="2"
-            fill="#F5F1E8"
+            fill="#F6F0E6"
             opacity="0.7"
           />
         </svg>
@@ -155,14 +155,14 @@ export function CategoryGlyph({
             rx="5"
             fill="currentColor"
           />
-          <circle cx="26" cy="35" r="7" fill="#F5F1E8" />
+          <circle cx="26" cy="35" r="7" fill="#F6F0E6" />
           <rect
             x="38"
             y="31"
             width="10"
             height="8"
             rx="2"
-            fill="#F5F1E8"
+            fill="#F6F0E6"
             opacity="0.65"
           />
           <path
@@ -185,9 +185,9 @@ export function CategoryGlyph({
             rx="6"
             fill="currentColor"
           />
-          <circle cx="18" cy="36" r="2.5" fill="#F5F1E8" />
-          <circle cx="32" cy="36" r="2.5" fill="#F5F1E8" />
-          <circle cx="46" cy="36" r="2.5" fill="#F5F1E8" />
+          <circle cx="18" cy="36" r="2.5" fill="#F6F0E6" />
+          <circle cx="32" cy="36" r="2.5" fill="#F6F0E6" />
+          <circle cx="46" cy="36" r="2.5" fill="#F6F0E6" />
         </svg>
       );
     case "trimmer":
@@ -208,7 +208,7 @@ export function CategoryGlyph({
           />
           <path
             d="M28 14h8M28 20h8M28 26h8"
-            stroke="#F5F1E8"
+            stroke="#F6F0E6"
             strokeWidth="1.5"
           />
         </svg>
@@ -226,7 +226,7 @@ export function CategoryGlyph({
           />
           <path
             d="M32 24v8l5 3"
-            stroke="#F5F1E8"
+            stroke="#F6F0E6"
             strokeWidth="2.5"
             strokeLinecap="round"
           />
@@ -236,7 +236,7 @@ export function CategoryGlyph({
             width="12"
             height="3"
             rx="1.5"
-            fill="#F5F1E8"
+            fill="#F6F0E6"
             opacity="0.6"
           />
         </svg>
@@ -258,7 +258,7 @@ export function CategoryGlyph({
             strokeWidth="3"
             strokeLinecap="round"
           />
-          <path d="M30 24h4v8h-4z" fill="#F5F1E8" />
+          <path d="M30 24h4v8h-4z" fill="#F6F0E6" />
         </svg>
       );
     case "cable":

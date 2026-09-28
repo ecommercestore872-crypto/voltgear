@@ -1,4 +1,11 @@
-import { BadgeCheck, Banknote, RefreshCw, Truck } from "lucide-react";
+import {
+  ArrowCounterClockwise,
+  Money,
+  SealCheck,
+  Truck,
+} from "@phosphor-icons/react/ssr";
+
+import { PHOSPHOR_TRUST } from "@/components/icons/phosphor-chrome";
 
 export type TrustItem = {
   key: string;
@@ -7,12 +14,21 @@ export type TrustItem = {
   icon: "cod" | "shipping" | "returns" | "curated";
 };
 
-const ICONS = {
-  cod: Banknote,
-  shipping: Truck,
-  returns: RefreshCw,
-  curated: BadgeCheck,
-} as const;
+function TrustPhosphorIcon({ icon }: { icon: TrustItem["icon"] }) {
+  const props = { ...PHOSPHOR_TRUST, "aria-hidden": true as const };
+  switch (icon) {
+    case "cod":
+      return <Money {...props} />;
+    case "shipping":
+      return <Truck {...props} />;
+    case "returns":
+      return <ArrowCounterClockwise {...props} />;
+    case "curated":
+      return <SealCheck {...props} />;
+    default:
+      return <SealCheck {...props} />;
+  }
+}
 
 export function GadgetTrustStrip({
   items,
@@ -31,7 +47,7 @@ export function GadgetTrustStrip({
       aria-label="Why shop with us"
     >
       <div className="mx-auto max-w-6xl">
-        <div className="flex flex-col items-center justify-between gap-3 rounded-[2rem] border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[color-mix(in_srgb,var(--g-blush)_55%,white)] px-5 py-3 shadow-[0_4px_16px_rgba(31,54,38,0.06)] backdrop-blur-md lg:flex-row lg:gap-6 lg:px-7 lg:py-3.5">
+        <div className="flex flex-col items-center justify-between gap-3 rounded-[2rem] border border-[color-mix(in_srgb,var(--g-gold)_35%,var(--g-line))] bg-[color-mix(in_srgb,var(--g-blush)_72%,white)] px-5 py-3 shadow-[0_8px_24px_rgba(14,36,25,0.1)] lg:flex-row lg:gap-6 lg:px-7 lg:py-3.5">
           {/* Left headline matching reference image */}
           <div className="shrink-0 text-center lg:text-left">
             <p className="text-sm font-bold text-[var(--g-charcoal)] sm:text-base lg:text-[15px]">
@@ -45,7 +61,6 @@ export function GadgetTrustStrip({
           {/* Right inline trust indicators */}
           <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-auto lg:gap-5">
             {items.map((item) => {
-              const Icon = ICONS[item.icon];
               return (
                 <div
                   key={item.key}
@@ -62,7 +77,7 @@ export function GadgetTrustStrip({
                             : "bg-[color-mix(in_srgb,var(--g-forest)_14%,var(--g-cream))] text-[var(--g-forest)]"
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5 stroke-[1.6]" aria-hidden />
+                    <TrustPhosphorIcon icon={item.icon} />
                   </span>
                   <div className="min-w-0 text-left">
                     <p className="truncate text-[11px] font-semibold leading-tight text-[var(--g-charcoal)] sm:text-[12px]">

@@ -12,7 +12,7 @@ export function GadgetHomeHeroFallback() {
       aria-busy="true"
       aria-label="Loading campaign banners"
     >
-      <div className="mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
+      <div className="gadget-hero-shell mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)]">
         <div className="relative w-full min-h-[320px] aspect-square animate-pulse bg-[var(--g-forest)] sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1]" />
       </div>
     </section>

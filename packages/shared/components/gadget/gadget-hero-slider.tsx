@@ -110,7 +110,7 @@ export function GadgetHeroSlider({
       aria-roledescription="carousel"
       aria-label="Campaign banners"
     >
-      <div className="group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)] shadow-[0_20px_50px_rgba(31,54,38,0.18)]">
+      <div className="gadget-hero-shell group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)]">
         <div className="relative w-full min-h-[320px] aspect-square sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1]">
           {banners.map((banner, i) => {
             const isActive = i === index;
@@ -245,7 +245,7 @@ export function GadgetHeroSlider({
               active.ctaLabel ? (
                 <Link
                   href={active.href}
-                  className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[#f0b429] px-5 py-2 text-xs font-black uppercase tracking-wider text-[#1a1a1a] shadow-[0_8px_20px_rgba(245,166,35,0.4)] transition-all hover:scale-105 hover:bg-[#f5c14d] sm:px-6 sm:text-sm"
+                  className="gadget-hero-cta pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-5 py-2 text-xs font-black uppercase tracking-wider sm:px-6 sm:text-sm"
                 >
                   <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
                   <span className="max-w-[16ch] truncate sm:max-w-none">

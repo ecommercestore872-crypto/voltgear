@@ -62,7 +62,7 @@ describe("DEFAULT_FOOTER_COMPANY_LINKS", () => {
 });
 
 describe("useSettingsLogo", () => {
-  it("returns null for a blank logo so the wordmark can show", () => {
+  it("returns null for a blank logo so the wordmark shows", () => {
     assert.equal(useSettingsLogo("  "), null);
     assert.equal(useSettingsLogo("https://img/logo.png"), "https://img/logo.png");
   });

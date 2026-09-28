@@ -1,7 +1,9 @@
 export const SHOPPER_BRAND = {
   spokenName: "Buy n Try",
   seal: "BNT",
-  sealSrc: "/brand/bnt-seal.png",
+  sealSrc: "/brand/bnt-seal.webp",
+  /** PNG for email clients with weak WebP support */
+  sealEmailSrc: "/brand/bnt-seal.png",
   tagline: "Buy it. Try it.",
   preferredWelcomeCode: "BNT10",
   fallbackStoreName: "Buy n Try",

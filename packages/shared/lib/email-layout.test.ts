@@ -8,7 +8,7 @@ describe("resolveEmailLogoUrl", () => {
   it("uses the BNT seal on the shop origin when no custom logo is set", () => {
     assert.equal(
       resolveEmailLogoUrl(null, "https://buyntryy.com"),
-      `https://buyntryy.com${SHOPPER_BRAND.sealSrc}`
+      `https://buyntryy.com${SHOPPER_BRAND.sealEmailSrc}`
     );
   });
 

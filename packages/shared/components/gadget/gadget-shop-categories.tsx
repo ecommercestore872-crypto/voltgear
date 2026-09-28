@@ -173,8 +173,8 @@ export function GadgetShopCategories({
                   [
                     "bg-[var(--g-forest)]",
                     "bg-[var(--g-sage)]",
+                    "bg-[color-mix(in_srgb,var(--g-gold)_75%,var(--g-forest))]",
                     "bg-[var(--g-terracotta)]",
-                    "bg-[var(--g-forest-mid)]",
                   ][idx % 4]
                 }`}
               >

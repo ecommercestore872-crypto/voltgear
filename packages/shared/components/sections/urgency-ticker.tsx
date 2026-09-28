@@ -54,7 +54,7 @@ export function UrgencyTicker({
 
   return (
     <div
-      className={`relative overflow-hidden bg-emerald-900 text-white ${className}`}
+      className={`gadget-urgency-bar relative overflow-hidden ${className}`}
       role="region"
       aria-label="Announcement"
     >
@@ -89,34 +89,34 @@ export function UrgencyTicker({
             className="flex items-center gap-3 px-6"
             aria-hidden={i > 0}
           >
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
+            <span className="gadget-urgency-accent text-xs font-semibold uppercase tracking-wider">
               {config.message}
             </span>
             {time ? (
               <>
-                <span className="text-emerald-500">•</span>
-                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
+                <span className="gadget-urgency-accent opacity-70">•</span>
+                <span className="gadget-urgency-accent text-xs font-semibold uppercase tracking-wider">
                   ENDS IN
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="rounded bg-white/20 px-1.5 py-0.5 font-mono text-xs font-bold tabular-nums">
                     {String(time.days).padStart(2, "0")}
                   </span>
-                  <span className="text-emerald-300">d</span>
+                  <span className="gadget-urgency-accent text-[10px]">d</span>
                   <span className="rounded bg-white/20 px-1.5 py-0.5 font-mono text-xs font-bold tabular-nums">
                     {String(time.hours).padStart(2, "0")}
                   </span>
-                  <span className="text-emerald-300">h</span>
+                  <span className="gadget-urgency-accent text-[10px]">h</span>
                   <span className="rounded bg-white/20 px-1.5 py-0.5 font-mono text-xs font-bold tabular-nums">
                     {String(time.minutes).padStart(2, "0")}
                   </span>
-                  <span className="text-emerald-300">m</span>
+                  <span className="gadget-urgency-accent text-[10px]">m</span>
                   <span className="rounded bg-white/20 px-1.5 py-0.5 font-mono text-xs font-bold tabular-nums">
                     {String(time.seconds).padStart(2, "0")}
                   </span>
-                  <span className="text-emerald-300">s</span>
+                  <span className="gadget-urgency-accent text-[10px]">s</span>
                 </span>
-                <span className="text-emerald-500">•</span>
+                <span className="gadget-urgency-accent opacity-70">•</span>
               </>
             ) : null}
           </div>

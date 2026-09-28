@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buy n Try — header & trust icon library research</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Newsreader:opsz,wght@6..72,600&display=swap" rel="stylesheet" />
+  <!-- Live library fonts for accurate visual compare -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/duotone/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" />
+  <style>
+    :root {
+      --cream: #f6f0e6;
+      --sand: #f0e8dc;
+      --forest: #1a3328;
+      --sage: #6b8f71;
+      --gold: #c9a962;
+      --terracotta: #b85c38;
+      --charcoal: #2a2824;
+      --taupe: #5a5349;
+      --line: rgba(26, 51, 40, 0.12);
+      --panel: #121614;
+      --panel-2: #1a201c;
+      --text: #ebe6dc;
+      --muted: #9a9488;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Manrope, system-ui, sans-serif; background: var(--panel); color: var(--text); line-height: 1.55; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 28px 18px 72px; }
+    h1 { font-family: Newsreader, Georgia, serif; font-size: clamp(1.6rem, 3vw, 2rem); margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lede { color: var(--muted); font-size: 14px; max-width: 44rem; margin-bottom: 24px; }
+    .ref {
+      background: var(--panel-2);
+      border: 1px solid #2f3832;
+      border-radius: 14px;
+      padding: 16px 18px 18px;
+      margin-bottom: 28px;
+    }
+    .ref h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold); margin: 0 0 12px; }
+    .ref img { max-width: 100%; height: auto; border-radius: 10px; border: 1px solid #333; display: block; background: var(--cream); }
+    .ref p { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+    .research {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: var(--panel-2);
+      border: 1px solid #2f3832;
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--sage); margin: 0 0 10px; }
+    .card ul { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: 13px; }
+    .card li { margin: 5px 0; }
+    .card a { color: var(--gold); }
+    table.lib-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    table.lib-table th, table.lib-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #2a322c; vertical-align: top; }
+    table.lib-table th { color: var(--gold); }
+    table.lib-table td { color: var(--muted); }
+    .lib-row {
+      margin-bottom: 22px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #2f3832;
+      background: #101412;
+    }
+    .lib-meta {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid #2a322c;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .lib-meta h3 { margin: 0; font-family: Newsreader, serif; font-size: 1.15rem; }
+    .lib-meta .pkg { font-size: 11px; color: var(--gold); font-family: ui-monospace, monospace; }
+    .lib-meta .note { font-size: 12px; color: var(--muted); flex: 1 1 100%; margin: 4px 0 0; }
+    .badge-rec {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 999px; background: rgba(107,143,113,0.2); color: #b8d4bc; border: 1px solid rgba(107,143,113,0.35);
+    }
+    .stage {
+      background: var(--cream);
+      padding: 20px 16px 18px;
+    }
+    .stage-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--taupe); margin-bottom: 10px;
+    }
+    /* —— Header chrome (matches live GadgetSearchInput + nav icons) —— */
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .search-pill {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      min-width: 0;
+    }
+    .search-icon-wrap {
+      width: 28px; height: 28px; margin-left: 8px;
+      border-radius: 50%;
+      background: var(--cream);
+      display: grid; place-items: center;
+      color: var(--forest);
+      flex-shrink: 0;
+    }
+    .search-pill input {
+      border: none; background: transparent; outline: none;
+      font: 500 13px/1 Manrope, sans-serif;
+      color: var(--charcoal);
+      width: 100%;
+      padding: 0 12px 0 8px;
+    }
+    .search-pill input::placeholder { color: rgba(42,40,36,0.55); }
+    .icon-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #fff;
+      display: grid; place-items: center;
+      color: var(--forest);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .icon-btn .count {
+      position: absolute; top: -2px; right: -2px;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px;
+      background: var(--terracotta);
+      color: #fff;
+      font-size: 9px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .icon-btn svg { width: 18px; height: 18px; }
+    .icon-btn i { font-size: 18px; line-height: 1; }
+    .ph-duotone { font-size: 20px; }
+
+    /* Icon sizing per library */
+    .lib-lucide .search-icon-wrap svg,
+    .lib-hero .search-icon-wrap svg { width: 15px; height: 15px; }
+    .lib-lucide .icon-btn svg { width: 17px; height: 17px; stroke-width: 1.75; }
+    .lib-hero .icon-btn svg { width: 18px; height: 18px; stroke-width: 1.5; }
+    .lib-iconoir .search-icon-wrap svg,
+    .lib-iconoir .icon-btn svg { stroke-width: 1.35; width: 17px; height: 17px; }
+
+    .trust-block { margin-top: 18px; padding-top: 16px; border-top: 1px dashed rgba(26,51,40,0.15); }
+    .trust-headline {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--charcoal);
+      margin-bottom: 12px;
+    }
+    .trust-headline em { font-style: normal; color: var(--terracotta); font-weight: 800; }
+    /* Layout A: current strip */
+    .trust-a {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px 10px;
+      border-radius: 20px;
+      border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line));
+      background: color-mix(in srgb, #f5ebe3 72%, white);
+    }
+    .trust-a .cell {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      text-align: center; font-size: 9px; font-weight: 600; color: var(--charcoal); line-height: 1.25;
+    }
+    .trust-a .ico {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: grid; place-items: center;
+    }
+    .trust-a .ico svg { width: 15px; height: 15px; }
+    .trust-a .ico i { font-size: 16px; }
+    /* Layout B: inline bar */
+    .trust-b {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px;
+      font-size: 11px; font-weight: 600; color: var(--forest);
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--sage) 12%, var(--cream));
+    }
+    .trust-b span { display: inline-flex; align-items: center; gap: 5px; }
+    .trust-b i, .trust-b svg { opacity: 0.9; }
+    /* Layout C: forest COD bar */
+    .trust-c {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 20px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--forest);
+      color: var(--cream);
+      font-size: 10px; font-weight: 600;
+    }
+    .trust-c span { display: inline-flex; align-items: center; gap: 6px; }
+    .trust-c .accent { color: var(--gold); }
+    .foot { font-size: 12px; color: var(--muted); padding: 12px 16px; border-top: 1px solid #2a322c; }
+    .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .toc a {
+      font-size: 11px; font-weight: 600; color: var(--cream);
+      text-decoration: none; padding: 6px 10px; border-radius: 8px;
+      border: 1px solid #3a4540; background: #1a201c;
+    }
+    .toc a:hover { border-color: var(--gold); color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Header & trust icons — library research</h1>
+    <p class="lede">
+      Scope: <strong>search pill</strong>, <strong>wishlist</strong>, <strong>cart bag</strong>, and <strong>trust strip</strong> only.
+      Category circle glyphs excluded (you’ll handle those separately). Chrome matches your live navbar pattern.
+    </p>
+
+    <div class="ref">
+      <h2>Your current chrome (reference)</h2>
+      <img src="reference-header-chrome.png" width="560" height="120" alt="Search the shop with heart and cart circular buttons" />
+      <p>Pill search · white circles · thin outline icons · terracotta count badge · Lucide <code>Search</code>, <code>Heart</code>, <code>ShoppingBag</code> at ~1.75 stroke.</p>
+    </div>
+
+    <div class="research">
+      <div class="card">
+        <h2>Internet research — icon libraries (2025–2026)</h2>
+        <table class="lib-table">
+          <thead>
+            <tr><th>Library</th><th>npm</th><th>Icons</th><th>Style</th><th>Fit for BNT header/trust</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Lucide</strong> (now)</td><td>lucide-react</td><td>1,500+</td><td>24px outline, <code>strokeWidth</code> prop</td><td>Already installed; reads “default SaaS” unless tuned to 1.5–1.75</td></tr>
+            <tr><td><strong>Heroicons</strong></td><td>@heroicons/react</td><td>~300</td><td>Outline + solid + mini</td><td>Tailwind-native; solid cart/heart for clearer mobile taps</td></tr>
+            <tr><td><strong>Phosphor</strong></td><td>@phosphor-icons/react</td><td>1,200+</td><td>6 weights + <strong>duotone</strong></td><td><strong>Best for trust row</strong> — duotone adds hierarchy without emoji</td></tr>
+            <tr><td><strong>Tabler</strong></td><td>@tabler/icons-react</td><td>5,000+</td><td>2px stroke grid</td><td>Coverage; slightly heavier than your screenshot</td></tr>
+            <tr><td><strong>Iconoir</strong></td><td>iconoir-react</td><td>1,600+</td><td>1.5px default, softer curves</td><td>Closest “boutique light line” without custom SVG</td></tr>
+            <tr><td><strong>Remix Icon</strong></td><td>remixicon</td><td>2,800+</td><td>Line + fill pairs</td><td>Fill heart/bag on hover states; popular in commerce themes</td></tr>
+            <tr><td><strong>Radix Icons</strong></td><td>@radix-ui/react-icons</td><td>~320</td><td>15×15 compact</td><td>Good for dense admin; often too small for your 44px circles</td></tr>
+          </tbody>
+        </table>
+        <ul style="margin-top:12px">
+          <li>Sources: <a href="https://allsvgicons.com/blog/react-svg-icons/" target="_blank" rel="noopener">React icon comparison 2026</a>,
+            <a href="https://www.shadcndesign.com/blog/comparing-icon-libraries-shadcn-ui" target="_blank" rel="noopener">shadcn library compare</a>,
+            <a href="https://tabler.io/guides/how-to-use-svg-icons-in-react" target="_blank" rel="noopener">Tabler React guide</a>.</li>
+          <li>All listed libraries are MIT/ISC, tree-shakeable, and work in Next.js Server Components (SVG only).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Internet research — trust strip UX (not category)</h2>
+        <ul>
+          <li><strong>3–4 signals max</strong> per band; more badges = “trust inflation” and lower credibility.</li>
+          <li><strong>COD on PK stores</strong> is a primary trust signal — show on home/trust strip, not only checkout
+            (<a href="https://suplex.design/blog/ecommerce-trust-building-design-elements" target="_blank" rel="noopener">Suplex</a>,
+            <a href="https://www.customfit.ai/blog/checkout-pricing/checkout-trust-signals-badges" target="_blank" rel="noopener">CustomFit</a>).</li>
+          <li><strong>Plain-language beats clip-art</strong> — “Free returns · 7 days” next to a simple icon outperforms generic SSL PNGs.</li>
+          <li><strong>Inline SVG</strong> preferred over heavy badge image sprites (performance + sharp on retina).</li>
+          <li>Your layout (headline + 4 columns) matches “compact trust strip”; alternatives below are layout-only, same icons.</li>
+        </ul>
+      </div>
+    </div>
+
+    <nav class="toc" aria-label="Jump to library">
+      <a href="#lib-lucide">Lucide (current)</a>
+      <a href="#lib-hero">Heroicons</a>
+      <a href="#lib-phosphor">Phosphor</a>
+      <a href="#lib-tabler">Tabler</a>
+      <a href="#lib-remix">Remix</a>
+      <a href="#lib-iconoir">Iconoir</a>
+    </nav>
+
+    <div id="panels"></div>
+
+    <p style="font-size:13px;color:var(--muted);margin-top:24px">
+      <strong>Suggested shortlist for Buy n Try:</strong>
+      keep Lucide for dev speed <em>or</em> switch header to <strong>Iconoir 1.35 stroke</strong> for softer boutique lines;
+      use <strong>Phosphor duotone</strong> only on the trust strip for depth. Hybrid = one npm extra, not six.
+    </p>
+  </div>
+
+  <script>
+    const TRUST = [
+      { key: "cod", label: "COD", sub: "Cash on delivery", bg: "color-mix(in srgb, #b85c38 22%, var(--cream))", fg: "#b85c38" },
+      { key: "ship", label: "Shipping", sub: "Across PK", bg: "color-mix(in srgb, #6b8f71 22%, var(--cream))", fg: "#1a3328" },
+      { key: "ret", label: "Returns", sub: "Easy policy", bg: "color-mix(in srgb, #6b8f71 18%, var(--cream))", fg: "#3d6b45" },
+      { key: "cur", label: "Curated", sub: "Quality checked", bg: "color-mix(in srgb, #1a3328 12%, var(--cream))", fg: "#1a3328" },
+    ];
+
+    const phosphorMap = {
+      search: "ph-magnifying-glass",
+      heart: "ph-heart",
+      bag: "ph-shopping-bag",
+      cod: "ph-money",
+      ship: "ph-truck",
+      ret: "ph-arrow-counter-clockwise",
+      cur: "ph-seal-check",
+    };
+    const phosphorDuotone = {
+      cod: "ph-duotone ph-money",
+      ship: "ph-duotone ph-truck",
+      ret: "ph-duotone ph-arrow-counter-clockwise",
+      cur: "ph-duotone ph-seal-check",
+    };
+    const tablerMap = {
+      search: "ti ti-search",
+      heart: "ti ti-heart",
+      bag: "ti ti-shopping-bag",
+      cod: "ti ti-cash",
+      ship: "ti ti-truck-delivery",
+      ret: "ti ti-reload",
+      cur: "ti ti-rosette-discount-check",
+    };
+    const remixMap = {
+      search: "ri-search-line",
+      heart: "ri-heart-line",
+      bag: "ri-shopping-bag-line",
+      cod: "ri-money-dollar-circle-line",
+      ship: "ri-truck-line",
+      ret: "ri-arrow-go-back-line",
+      cur: "ri-verified-badge-line",
+    };
+
+    const lucide = {
+      search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>`,
+      heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.5-7 10-7 10Z"/></svg>`,
+      bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6h15l-1.5 9H8L6 6Z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="20" r="1.5" fill="currentColor" stroke="none"/></svg>`,
+      cod: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4M7 14h2"/></svg>`,
+      ship: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 12h13l3 4H6l-3-4Z"/><path d="M16 12l2-4h3"/></svg>`,
+      ret: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a4 4 0 0 1 0 8h-1"/></svg>`,
+      cur: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 16.5 7.1 18.2l.9-5.5-4-3.9 5.5-.8L12 3z"/></svg>`,
+    };
+
+    const hero = {
+      search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>`,
+      heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>`,
+      bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>`,
+      cod: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" d="M2 8.5h20M2 12h20M6 16h5"/></svg>`,
+      ship: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.625 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>`,
+      ret: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>`,
+      cur: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"/></svg>`,
+    };
+
+    const iconoir = {
+      search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><circle cx="11" cy="11" r="7"/><path d="M18 18l3 3" stroke-linecap="round"/></svg>`,
+      heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><path d="M12 20.5S5 15.5 5 9.5a4 4 0 0 1 7-2.2A4 4 0 0 1 19 9.5c0 6-7 11-7 11Z" stroke-linejoin="round"/></svg>`,
+      bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`,
+      cod: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h6M7 14h4"/></svg>`,
+      ship: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><path d="M3 13h12l2 3H5L3 13Z"/><path d="M15 13l2-4h4"/></svg>`,
+      ret: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><path d="M6 12H18"/><path d="M10 8 6 12l4 4" stroke-linecap="round"/></svg>`,
+      cur: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><path d="M12 3l2.2 4.5 4.9.7-3.5 3.4.8 4.9L12 14.8 7.6 16.5l.8-4.9L5 8.2l4.9-.7L12 3z"/></svg>`,
+    };
+
+    const libraries = [
+      { id: "lib-lucide", name: "Lucide", pkg: "lucide-react (installed)", rec: false,
+        note: "What you ship today. Tune strokeWidth 1.5–1.75 in circles; avoid mixing 2.2 search with 1.75 nav.",
+        type: "svg", icons: lucide, trustLayout: "a" },
+      { id: "lib-hero", name: "Heroicons", pkg: "@heroicons/react", rec: false,
+        note: "Tailwind team set. Slightly rounder paths; outline for header, optional solid on pressed cart state.",
+        type: "svg", icons: hero, trustLayout: "b" },
+      { id: "lib-phosphor", name: "Phosphor", pkg: "@phosphor-icons/react", rec: true,
+        note: "Recommended for trust strip: Regular in header + Duotone in trust cells (loaded via CDN below for accuracy).",
+        type: "phosphor", trustLayout: "a-duotone" },
+      { id: "lib-tabler", name: "Tabler", pkg: "@tabler/icons-react", rec: false,
+        note: "2px grid — bolder than your screenshot; good if you want stronger legibility on low-end Android.",
+        type: "tabler", trustLayout: "b" },
+      { id: "lib-remix", name: "Remix Icon", pkg: "remixicon / react wrapper", rec: false,
+        note: "Commerce themes often use line + fill pairs (heart-line → heart-fill when wishlisted).",
+        type: "remix", trustLayout: "c" },
+      { id: "lib-iconoir", name: "Iconoir", pkg: "iconoir-react", rec: true,
+        note: "Recommended for header chrome: default 1.5 stroke feels closest to your screenshot’s light lines.",
+        type: "svg", icons: iconoir, trustLayout: "a" },
+    ];
+
+    function iconHtml(lib, key) {
+      if (lib.type === "phosphor") return `<i class="ph ${phosphorMap[key]}"></i>`;
+      if (lib.type === "tabler") return `<i class="${tablerMap[key]}"></i>`;
+      if (lib.type === "remix") return `<i class="${remixMap[key]}"></i>`;
+      return lib.icons[key];
+    }
+
+    function headerChrome(lib) {
+      return `
+        <div class="stage-label">Header chrome</div>
+        <div class="header-row ${lib.id}">
+          <div class="search-pill">
+            <span class="search-icon-wrap">${iconHtml(lib, "search")}</span>
+            <input type="search" readonly value="" placeholder="Search the shop" aria-label="Search preview" />
+          </div>
+          <div class="icon-btn" title="Wishlist">${iconHtml(lib, "heart")}</div>
+          <div class="icon-btn" title="Cart">${iconHtml(lib, "bag")}<span class="count">1</span></div>
+        </div>`;
+    }
+
+    function trustA(lib, duotone) {
+      return `
+        <div class="trust-a">
+          ${TRUST.map((t) => `
+            <div class="cell">
+              <span class="ico" style="background:${t.bg};color:${t.fg}">
+                ${duotone
+                  ? `<i class="${phosphorDuotone[t.key]}" style="font-size:18px"></i>`
+                  : iconHtml(lib, t.key === "cur" ? "cur" : t.key === "ret" ? "ret" : t.key)}
+              </span>
+              ${t.label}<br>${t.sub}
+            </div>`).join("")}
+        </div>`;
+    }
+
+    function trustB(lib) {
+      return `<div class="trust-b">
+        ${TRUST.map((t) => `<span>${iconHtml(lib, t.key === "cur" ? "cur" : t.key)} ${t.label}</span>`).join("")}
+      </div>`;
+    }
+
+    function trustC(lib) {
+      return `<div class="trust-c">
+        ${TRUST.map((t) => `<span>${iconHtml(lib, t.key === "cur" ? "cur" : t.key)} <span class="accent">${t.label}</span> · ${t.sub}</span>`).join("")}
+      </div>`;
+    }
+
+    function trustBlock(lib) {
+      let inner = "";
+      if (lib.trustLayout === "a") inner = trustA(lib, false);
+      else if (lib.trustLayout === "a-duotone") inner = trustA(lib, true);
+      else if (lib.trustLayout === "b") inner = trustB(lib);
+      else inner = trustC(lib);
+      const layoutName = { a: "Layout A — your 4-column strip", "a-duotone": "Layout A + Phosphor duotone icons", b: "Layout B — inline text bar", c: "Layout C — forest COD bar" }[lib.trustLayout];
+      return `
+        <div class="trust-block">
+          <div class="stage-label">Trust strip · ${layoutName}</div>
+          <div class="trust-headline">Exceptional Quality <em>Delivered</em></div>
+          ${inner}
+        </div>`;
+    }
+
+    document.getElementById("panels").innerHTML = libraries.map((lib) => `
+      <section class="lib-row ${lib.id}" id="${lib.id}">
+        <div class="lib-meta">
+          <div>
+            <h3>${lib.name} ${lib.rec ? '<span class="badge-rec">Shortlist</span>' : ""}</h3>
+            <div class="pkg">${lib.pkg}</div>
+          </div>
+          <p class="note">${lib.note}</p>
+        </div>
+        <div class="stage lib-${lib.id.replace("lib-", "")}">
+          ${headerChrome(lib)}
+          ${trustBlock(lib)}
+        </div>
+        <div class="foot">Header + trust only · category glyphs unchanged</div>
+      </section>
+    `).join("");
+  </script>
+</body>
+</html>

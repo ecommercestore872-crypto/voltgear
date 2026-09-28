@@ -30,7 +30,7 @@ export function InvoiceDocument({
     invoiceTotals(order);
   const isCod = order.payment === "cod";
   const customer = order.customer;
-  const accent = template.accent || "#1F3626";
+  const accent = template.accent || "#1A3328";
   const title = template.documentTitle || "Invoice";
   const contact = [identity.email, identity.phone]
     .filter(Boolean)

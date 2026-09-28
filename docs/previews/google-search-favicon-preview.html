@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buy n Try — Google search icon preview</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #202124;
+      color: #e8eaed;
+      padding: 24px 16px 48px;
+    }
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 18px;
+      font-weight: 400;
+      margin: 0 0 8px;
+      color: #9aa0a6;
+    }
+    p.lead {
+      margin: 0 0 28px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #bdc1c6;
+    }
+    .panel {
+      background: #fff;
+      color: #202124;
+      border-radius: 12px;
+      padding: 20px 20px 24px;
+      margin-bottom: 20px;
+    }
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #5f6368;
+    }
+    /* Google result row */
+    .result {
+      max-width: 600px;
+    }
+    .result-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    .favicon-wrap {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #1f3626;
+    }
+    .favicon-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .site-line {
+      font-size: 14px;
+      line-height: 1.3;
+      color: #202124;
+    }
+    .site-line .name { display: block; }
+    .site-line .url {
+      font-size: 12px;
+      color: #4d5156;
+    }
+    .title {
+      font-size: 20px;
+      line-height: 1.3;
+      color: #1a0dab;
+      margin: 8px 0 6px;
+      font-family: Arial, sans-serif;
+    }
+    .snippet {
+      font-size: 14px;
+      line-height: 1.58;
+      color: #4d5156;
+    }
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 520px) {
+      .compare { grid-template-columns: 1fr; }
+    }
+    .chip {
+      text-align: center;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    .chip.dark-bg {
+      background: #303134;
+    }
+    .chip p {
+      margin: 12px 0 0;
+      font-size: 12px;
+      color: #5f6368;
+    }
+    .chip.dark-bg p { color: #9aa0a6; }
+    .icon-lg {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #1f3626;
+    }
+    .icon-lg img { width: 100%; height: 100%; object-fit: cover; }
+    .icon-square {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #1f3626;
+    }
+    .icon-square img { width: 100%; height: 100%; object-fit: cover; }
+    /* Browser tab mock */
+    .tab-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      background: #dee1e6;
+      padding: 8px 8px 0;
+      border-radius: 10px 10px 0 0;
+    }
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 8px 8px 0 0;
+      font-size: 13px;
+      color: #3c4043;
+      max-width: 240px;
+    }
+    .tab img {
+      width: 16px;
+      height: 16px;
+      border-radius: 2px;
+    }
+    .tab span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tab-inactive {
+      background: transparent;
+      opacity: 0.7;
+      padding: 8px 10px;
+    }
+    .note {
+      font-size: 13px;
+      color: #9aa0a6;
+      margin-top: 24px;
+      line-height: 1.5;
+    }
+    code { font-size: 12px; color: #8ab4f8; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Preview — search &amp; tab icon (live assets)</h1>
+    <p class="lead">
+      Uses your regenerated files from <code>apps/storefront/public/favicon-*.png</code>
+      (same BNT seal as the header, forest green edge — no white corners).
+    </p>
+
+    <div class="panel">
+      <h2>Google search result (mobile-style)</h2>
+      <div class="result">
+        <div class="result-head">
+          <div class="favicon-wrap">
+            <img src="../../apps/storefront/public/favicon-48.png" width="28" height="28" alt="" />
+          </div>
+          <div class="site-line">
+            <span class="name">Buy n Try</span>
+            <span class="url">https://buyntryy.com</span>
+          </div>
+        </div>
+        <div class="title">Buy n Try — Smartwatches, Earbuds, Tripods &amp; Chargers in Pakistan</div>
+        <p class="snippet">
+          Buy authentic tripods, earbuds, smartwatches, chargers and adapters. Try it at home —
+          cash on delivery nationwide. buyntryy.com
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Browser title bar</h2>
+      <div class="tab-bar">
+        <div class="tab">
+          <img src="../../apps/storefront/public/favicon-16.png" width="16" height="16" alt="" />
+          <span>Buy n Try — Smartwatches…</span>
+        </div>
+        <div class="tab tab-inactive">Gmail</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>How Google crops the icon</h2>
+      <div class="compare">
+        <div class="chip">
+          <div class="icon-lg">
+            <img src="../../apps/storefront/public/favicon-192.png" alt="" />
+          </div>
+          <p><strong>Circle</strong> (what search shows next to your URL)</p>
+        </div>
+        <div class="chip">
+          <div class="icon-square">
+            <img src="../../apps/storefront/public/favicon-192.png" alt="" />
+          </div>
+          <p><strong>Square file</strong> (full 192×192 asset on disk)</p>
+        </div>
+      </div>
+      <div class="compare" style="margin-top:16px">
+        <div class="chip dark-bg">
+          <div class="icon-lg">
+            <img src="../../apps/storefront/public/favicon-192.png" alt="" />
+          </div>
+          <p>On dark UI — no white halo</p>
+        </div>
+        <div class="chip">
+          <div class="icon-lg">
+            <img src="../../apps/storefront/public/favicon-192.png" alt="" />
+          </div>
+          <p>On white results page</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="note">
+      Open this file in Chrome (double-click or drag into browser). After you deploy to
+      <strong>voltgear</strong>, live Google may still show the old icon until Google recrawls
+      (often a few days). Your tab icon updates as soon as the new deploy is live + hard refresh.
+    </p>
+  </div>
+</body>
+</html>

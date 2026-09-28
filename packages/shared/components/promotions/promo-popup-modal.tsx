@@ -76,7 +76,7 @@ export function PromoPopupModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="welcome-coupon-title"
-        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream)] p-6 text-[var(--g-charcoal)] shadow-[0_16px_40px_rgba(31,54,38,0.12)]"
+        className="gadget-premium-dialog relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream)] p-6 pt-7 text-[var(--g-charcoal)]"
       >
         <button
           ref={closeRef}
@@ -113,7 +113,7 @@ export function PromoPopupModal({
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--g-forest)] px-4 py-2.5 text-xs font-semibold text-[var(--g-cream)] transition hover:bg-[var(--g-forest-mid)]"
+            className="gadget-buy-cta inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold transition"
           >
             {copied ? (
               <>

@@ -204,7 +204,7 @@ export function PurchaseSection({ product }: { product: Product }) {
           </div>
 
           <div className="mt-1 flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold tracking-wide">
+            <div className="gadget-trust-pill flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold tracking-wide">
               <Check className="w-3.5 h-3.5" strokeWidth={3} />
               {stock.soldOut ? "Out of Stock" : "In Stock"}
             </div>

@@ -4,19 +4,23 @@ import Link from "next/link";
 import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
 import {
-  ChevronDown,
-  Heart,
+  CaretDown,
   Headphones,
-  HelpCircle,
-  Menu,
+  Heart,
+  List,
   Package,
   Phone,
+  Question,
   ShoppingBag,
   Truck,
   X,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 
 import { useCart } from "@/components/cart/cart-provider";
+import {
+  PHOSPHOR_HEADER,
+  PHOSPHOR_SEARCH,
+} from "@/components/icons/phosphor-chrome";
 import { useWishlist } from "@/components/wishlist/wishlist-provider";
 import { GadgetSearchInput } from "@/components/gadget/gadget-search-input";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
@@ -34,9 +38,9 @@ import { cn } from "@/lib/utils";
 function helpIcon(href: string) {
   if (href.startsWith("/track")) return Package;
   if (href.startsWith("/shipping")) return Truck;
-  if (href.startsWith("/faq")) return HelpCircle;
+  if (href.startsWith("/faq")) return Question;
   if (href.startsWith("/contact")) return Headphones;
-  return HelpCircle;
+  return Question;
 }
 
 function IconHit({
@@ -49,7 +53,7 @@ function IconHit({
       type="button"
       className={cn(
         "relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors",
-        "hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)]",
+        "hover:border-[var(--g-gold)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] hover:shadow-[0_8px_20px_var(--g-glow-forest)]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest)]",
         className,
       )}
@@ -118,7 +122,7 @@ export function GadgetNavbar({
               aria-label="Close menu"
               onClick={() => setOpen(false)}
             >
-              <X className="h-4 w-4" />
+              <X {...PHOSPHOR_HEADER} aria-hidden />
             </button>
           </div>
 
@@ -196,7 +200,8 @@ export function GadgetNavbar({
                       className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
                     >
                       <Icon
-                        className="h-4 w-4 text-[var(--g-sage)]"
+                        {...PHOSPHOR_HEADER}
+                        className="text-[var(--g-sage)]"
                         aria-hidden
                       />
                       {link.label}
@@ -212,7 +217,7 @@ export function GadgetNavbar({
               href={`tel:${phone.replace(/\s+/g, "")}`}
               className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--g-forest)] px-4 text-sm font-semibold text-[var(--g-cream)]"
             >
-              <Phone className="h-4 w-4" aria-hidden />
+              <Phone {...PHOSPHOR_HEADER} aria-hidden />
               Call {phone}
             </a>
           ) : null}
@@ -225,7 +230,7 @@ export function GadgetNavbar({
       className="sticky top-0 z-40 text-[var(--g-charcoal)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]"
       style={{ paddingTop: "var(--g-safe-top)" }}
     >
-      <div className="hidden bg-[var(--g-forest)] text-[var(--g-cream)] md:block">
+      <div className="gadget-topbar-premium hidden text-[var(--g-cream)] md:block">
         <div className="mx-auto flex h-8 max-w-[90rem] items-center justify-between gap-6 px-6 text-[10px] font-semibold uppercase tracking-[0.16em] xl:px-8">
           <p className="min-w-0 truncate">
             <span className="text-[var(--g-cream)]">{tagline}</span>
@@ -259,7 +264,7 @@ export function GadgetNavbar({
         </div>
       </div>
 
-      <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)]/95 backdrop-blur-md">
+      <div className="gadget-main-nav border-b border-[var(--g-line)] backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-4 px-3 sm:h-[4.25rem] sm:px-4 lg:gap-6 lg:px-6 xl:px-8">
           <Link
             href="/"
@@ -293,8 +298,10 @@ export function GadgetNavbar({
                 onClick={() => setShopOpen((v) => !v)}
               >
                 Shop
-                <ChevronDown
-                  className={`h-3.5 w-3.5 text-[var(--g-sage)] transition ${shopOpen ? "rotate-180" : ""}`}
+                <CaretDown
+                  {...PHOSPHOR_SEARCH}
+                  className={`text-[var(--g-sage)] transition ${shopOpen ? "rotate-180" : ""}`}
+                  aria-hidden
                 />
               </button>
               {shopOpen ? (
@@ -305,7 +312,7 @@ export function GadgetNavbar({
                     onClick={() => setShopOpen(false)}
                   >
                     <span>{settings?.navShopAllText?.trim() || "All products"}</span>
-                    <span className="text-[var(--g-terracotta)]">→</span>
+                    <span className="text-[var(--g-gold)]">→</span>
                   </Link>
                   <div className="mx-3 border-t border-[var(--g-line)]" />
                   <div className="max-h-[320px] overflow-y-auto">
@@ -358,9 +365,9 @@ export function GadgetNavbar({
               title="Wishlist"
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:h-11 sm:w-11"
             >
-              <Heart className="h-4 w-4 stroke-[1.75]" />
+              <Heart {...PHOSPHOR_HEADER} aria-hidden />
               {wishCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#7a2e12] px-1 text-[9px] font-bold text-white">
+                <span className="gadget-sale-badge absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold">
                   {wishCount}
                 </span>
               ) : null}
@@ -370,9 +377,9 @@ export function GadgetNavbar({
               onClick={openCart}
               aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
             >
-              <ShoppingBag className="h-4 w-4 stroke-[1.75]" />
+              <ShoppingBag {...PHOSPHOR_HEADER} aria-hidden />
               {count > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#7a2e12] px-1 text-[9px] font-bold text-white">
+                <span className="gadget-sale-badge absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold">
                   {count}
                 </span>
               ) : null}
@@ -384,7 +391,11 @@ export function GadgetNavbar({
               onClick={() => setOpen((v) => !v)}
               className="lg:hidden"
             >
-              {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              {open ? (
+                <X {...PHOSPHOR_HEADER} aria-hidden />
+              ) : (
+                <List {...PHOSPHOR_HEADER} aria-hidden />
+              )}
             </IconHit>
           </div>
         </div>

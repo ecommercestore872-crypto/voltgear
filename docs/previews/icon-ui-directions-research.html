@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buy n Try — icon & UI component research</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Newsreader:opsz,wght@6..72,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #f6f0e6;
+      --cream-deep: #ede4d4;
+      --forest: #1a3328;
+      --forest-mid: #243d30;
+      --sage: #6b8f71;
+      --gold: #c9a962;
+      --terracotta: #b85c38;
+      --taupe: #5a5349;
+      --line: rgba(26, 51, 40, 0.12);
+      --panel: #141816;
+      --panel-2: #1c211e;
+      --text: #e8e4dc;
+      --muted: #9a9488;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Manrope, system-ui, sans-serif;
+      background: var(--panel);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+    h1 {
+      font-family: Newsreader, Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(1.75rem, 3vw, 2.25rem);
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+    .lede { color: var(--muted); max-width: 52rem; font-size: 15px; margin-bottom: 28px; }
+    .research {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+    .research-card {
+      background: var(--panel-2);
+      border: 1px solid #2a322c;
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .research-card h2 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--gold);
+      margin: 0 0 10px;
+      font-weight: 600;
+    }
+    .research-card ul { margin: 0; padding-left: 1.15rem; color: var(--muted); font-size: 14px; }
+    .research-card li { margin: 6px 0; }
+    .research-card strong { color: var(--text); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+      gap: 18px;
+    }
+    .dir {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #2f3832;
+      background: #121614;
+      display: flex;
+      flex-direction: column;
+    }
+    .dir-head {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid #2a322c;
+    }
+    .dir-head .num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--sage);
+      text-transform: uppercase;
+    }
+    .dir-head h3 {
+      margin: 4px 0 6px;
+      font-family: Newsreader, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .dir-head p { margin: 0; font-size: 13px; color: var(--muted); }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(201, 169, 98, 0.12);
+      color: var(--gold);
+      border: 1px solid rgba(201, 169, 98, 0.25);
+    }
+    .tag.rec { background: rgba(107, 143, 113, 0.15); color: #a8c9ad; border-color: rgba(107, 143, 113, 0.35); }
+    .mock {
+      background: var(--cream);
+      color: var(--forest);
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .mock-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      opacity: 0.85;
+    }
+    .mock-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--cream) 88%, white);
+      border: 1px solid var(--line);
+    }
+    .mock-nav .word {
+      font-family: Newsreader, serif;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .icon-row { display: flex; gap: 8px; align-items: center; }
+    .icon-slot {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: var(--cream-deep);
+      border: 1px solid var(--line);
+    }
+    .icon-slot svg { width: 20px; height: 20px; }
+    .trust {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .trust-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-align: center;
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--taupe);
+      line-height: 1.2;
+    }
+    .trust-item .bubble {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+    }
+    .cats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .cat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--forest);
+    }
+    .cat-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--cream);
+      box-shadow: 0 4px 12px rgba(26, 51, 40, 0.15);
+    }
+    .cat-circle svg { width: 26px; height: 26px; }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-mock {
+      flex: 1;
+      min-width: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      border: none;
+    }
+    .btn-mock.primary {
+      background: linear-gradient(165deg, color-mix(in srgb, var(--sage) 55%, #2a5c3a), var(--forest-mid), var(--forest));
+      color: var(--cream);
+      border: 1px solid color-mix(in srgb, var(--gold) 32%, var(--forest));
+    }
+    .btn-mock.ghost {
+      background: var(--cream-deep);
+      color: var(--forest);
+      border: 1px solid var(--line);
+    }
+    .btn-mock svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .dir-foot {
+      padding: 12px 18px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid #2a322c;
+    }
+    .compare-bar {
+      margin-top: 40px;
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px dashed #3d4840;
+      background: var(--panel-2);
+    }
+    .compare-bar h2 {
+      font-family: Newsreader, serif;
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #2a322c;
+      vertical-align: top;
+    }
+    th { color: var(--gold); font-weight: 600; }
+    td { color: var(--muted); }
+    .note {
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 52rem;
+    }
+    .note code { font-size: 12px; color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Icon & UI component research — Buy n Try</h1>
+    <p class="lede">
+      Eight visual <strong>systems</strong> (not single icons), each applied to the same chrome: nav actions, trust strip, category circles, and cart/wishlist buttons.
+      Goal: feel hand-finished and ownable — not “default Lucide storefront.” Aligns with T-32: one family, no emoji UI, forest on cream, BNT seal as anchor.
+    </p>
+
+    <div class="research">
+      <div class="research-card">
+        <h2>Where you are today</h2>
+        <ul>
+          <li><strong>~80+ components</strong> import <strong>Lucide</strong> (search, cart, truck, banknote, chevrons, dialogs).</li>
+          <li><strong>Category circles</strong> already use custom filled SVGs in <code>gadget-category-glyphs.tsx</code> (earbuds, watch, speaker…) — stronger than generic stock.</li>
+          <li><strong>T-32 target:</strong> 1.75px stroke UI icons + refined category silhouettes; ban Sparkles/Gift as chrome; stars as drawn SVG only.</li>
+          <li><strong>Gap:</strong> Lucide reads “SaaS template”; category glyphs read “boutique hardware” — two languages fighting each other.</li>
+        </ul>
+      </div>
+      <div class="research-card">
+        <h2>What “new to the world” means here</h2>
+        <ul>
+          <li><strong>Ownable metaphor:</strong> icons tied to BNT seal geometry (ring, arc, cream well) — shoppers subconsciously link UI to your mark.</li>
+          <li><strong>Category = product stage:</strong> same cream cutout + forest mass as PDP cards (extend existing glyphs, don’t swap to outline sets).</li>
+          <li><strong>Trust for PK:</strong> COD / delivery / returns drawn as calm commerce glyphs, not “fintech” or “gift box” clichés.</li>
+          <li><strong>Production path:</strong> hand-tuned SVG React components (like today’s glyphs) or a small 24-icon kit exported once — not a live CDN of random AI icons.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid" id="directions"></div>
+
+    <div class="compare-bar">
+      <h2>Quick comparison</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Direction</th>
+            <th>Uniqueness</th>
+            <th>Build cost</th>
+            <th>T-32 fit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>A — Lucide quiet</td><td>Low</td><td>Done</td><td>Baseline only</td></tr>
+          <tr><td>B — BNT ring micro-glyphs</td><td>Very high</td><td>Medium (24 icons)</td><td>Excellent — brand-native</td></tr>
+          <tr><td>C — Hardware stage filled</td><td>High</td><td>Low — extend glyphs</td><td>Excellent — already started</td></tr>
+          <tr><td>D — Blueprint bench</td><td>High</td><td>Medium</td><td>Good for “try before buy” story</td></tr>
+          <tr><td>E — Wax stamp trust</td><td>Very high</td><td>Medium</td><td>Great for COD / guarantee row</td></tr>
+          <tr><td>F — Duotone forest/sage</td><td>Medium</td><td>Low (CSS + SVG layers)</td><td>Modern, still cohesive</td></tr>
+          <tr><td>G — Radial segment (seal DNA)</td><td>Very high</td><td>High</td><td>Signature but needs discipline</td></tr>
+          <tr><td>H — Soft notch stroke</td><td>Medium-high</td><td>Medium</td><td>Human, boutique; watch stroke consistency</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note">
+      Open this file in a browser: <code>docs/previews/icon-ui-directions-research.html</code>.
+      Pick 1–2 directions (or a hybrid, e.g. <strong>C for categories + B for nav/trust</strong>) before we spec implementation.
+    </p>
+  </div>
+
+  <script>
+    const C = {
+      cream: "#F6F0E6",
+      creamDeep: "#EDE4D4",
+      forest: "#1A3328",
+      sage: "#6B8F71",
+      gold: "#C9A962",
+      terracotta: "#B85C38",
+    };
+
+    /** Shared metaphors: search, cart, cod, ship, return, wish, filter, user */
+    const directions = [
+      {
+        num: "A",
+        title: "Lucide quiet (today)",
+        blurb: "Uniform 1.75px stroke, forest on cream. Fast but generic.",
+        tags: ["Baseline", "80+ imports"],
+        foot: "Keep only if speed beats distinction. T-32 already asks to refine beyond this.",
+        style: "lucide",
+        catBg: ["var(--forest)", "var(--sage)", "color-mix(in srgb, var(--gold) 75%, var(--forest))", "var(--terracotta)"],
+      },
+      {
+        num: "B",
+        title: "BNT ring micro-glyphs",
+        blurb: "Every action sits inside a thin gold ring + forest disk — mini seal.",
+        tags: ["Recommended", "Brand-native"],
+        foot: "Nav + trust + bag become unmistakably Buy n Try. Pair with real seal in header.",
+        style: "ring",
+        catBg: ["var(--forest)", "var(--forest-mid)", "var(--forest)", "var(--forest-mid)"],
+      },
+      {
+        num: "C",
+        title: "Hardware stage filled",
+        blurb: "Extend category-glyphs language to ALL UI: cream cutouts, forest mass.",
+        tags: ["Recommended", "Lowest risk"],
+        foot: "Unifies shop circles with cart/search icons. No second icon vendor.",
+        style: "filled",
+        catBg: ["var(--forest)", "var(--sage)", "color-mix(in srgb, var(--gold) 75%, var(--forest))", "var(--terracotta)"],
+      },
+      {
+        num: "D",
+        title: "Blueprint bench",
+        blurb: "Hairline strokes, corner ticks, dimension hints — “test lab” for Try.",
+        tags: ["Out of box", "Tech boutique"],
+        foot: "Distinct on PK accessory stores. Use sparingly on trust + PDP specs.",
+        style: "blueprint",
+        catBg: ["transparent", "transparent", "transparent", "transparent"],
+      },
+      {
+        num: "E",
+        title: "Wax stamp trust",
+        blurb: "Circular embossed badges for COD, delivery, returns — not square Lucide tiles.",
+        tags: ["Trust row", "Premium COD"],
+        foot: "Strong for conversion strip; nav may stay simpler stroke.",
+        style: "stamp",
+        catBg: ["var(--forest)", "var(--sage)", "var(--gold)", "var(--terracotta)"],
+      },
+      {
+        num: "F",
+        title: "Forest / sage duotone",
+        blurb: "Two-layer SVG: sage silhouette + forest detail — soft but structured.",
+        tags: ["Modern", "Phosphor-like"],
+        foot: "Easy hybrid: duotone actions + filled category glyphs.",
+        style: "duotone",
+        catBg: ["var(--forest)", "var(--sage)", "var(--forest-mid)", "var(--sage)"],
+      },
+      {
+        num: "G",
+        title: "Radial segment (seal DNA)",
+        blurb: "Icons built from 3–5 radial slices like the BNT seal — abstract but coherent.",
+        tags: ["Signature", "High craft"],
+        foot: "Most “new”; needs a strict 24-icon grid so it doesn’t look decorative noise.",
+        style: "radial",
+        catBg: ["var(--forest)", "var(--forest)", "var(--forest)", "var(--forest)"],
+      },
+      {
+        num: "H",
+        title: "Soft notch stroke",
+        blurb: "Rounded caps + single intentional “notch” on each path — human, not geometric perfect.",
+        tags: ["Boutique", "Hand-finished"],
+        foot: "Feels artisan; document stroke rules so admin UI stays consistent.",
+        style: "notch",
+        catBg: ["var(--sage)", "var(--forest)", "var(--sage)", "var(--forest)"],
+      },
+    ];
+
+    function icons(style) {
+      const s = {
+        lucide: {
+          search: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="1.75"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>`,
+          cart: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="1.75"><path d="M6 6h15l-1.5 9H8L6 6Z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.5" fill="${C.forest}"/><circle cx="18" cy="20" r="1.5" fill="${C.forest}"/></svg>`,
+          cod: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.terracotta}" stroke-width="1.75"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4M7 14h2"/></svg>`,
+          ship: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="1.75"><path d="M3 12h13l3 4H6l-3-4Z"/><path d="M16 12l2-4h3"/></svg>`,
+          ret: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.sage}" stroke-width="1.75"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a4 4 0 0 1 0 8h-1"/></svg>`,
+          wish: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="1.75"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.5-7 10-7 10Z"/></svg>`,
+          filter: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="1.75"><path d="M4 6h16M7 12h10M10 18h4"/></svg>`,
+          user: `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="1.75"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>`,
+          bud: `<svg viewBox="0 0 64 64"><circle cx="25" cy="29" r="5.5" fill="currentColor"/><circle cx="39" cy="29" r="5.5" fill="currentColor"/></svg>`,
+          watch: `<svg viewBox="0 0 64 64"><rect x="18" y="18" width="28" height="28" rx="8" fill="currentColor"/></svg>`,
+          spk: `<svg viewBox="0 0 64 64"><rect x="20" y="12" width="24" height="40" rx="8" fill="currentColor"/></svg>`,
+          pwr: `<svg viewBox="0 0 64 64"><rect x="22" y="20" width="20" height="32" rx="4" fill="currentColor"/></svg>`,
+        },
+        ring: {
+          search: ringIcon(`${C.forest}`, `<circle cx="12" cy="12" r="5" fill="none" stroke="${C.cream}" stroke-width="1.5"/><path d="M16 16l4 4" stroke="${C.cream}" stroke-width="1.5"/>`),
+          cart: ringIcon(`${C.forest}`, `<path d="M8 10h12l-1 6H9L8 10Z" fill="${C.cream}"/><circle cx="10" cy="19" r="1.2" fill="${C.gold}"/><circle cx="16" cy="19" r="1.2" fill="${C.gold}"/>`),
+          cod: ringIcon(`${C.terracotta}`, `<text x="12" y="15" text-anchor="middle" fill="${C.cream}" font-size="7" font-weight="700" font-family="Manrope">COD</text>`),
+          ship: ringIcon(`${C.forest}`, `<path d="M6 14h10l2 3H8L6 14Z" fill="${C.cream}"/>`),
+          ret: ringIcon(`${C.sage}`, `<path d="M9 12 6 9l3-3" stroke="${C.cream}" stroke-width="1.3" fill="none"/>`),
+          wish: ringIcon(`${C.forest}`, `<path d="M12 17s-4-2.5-4-6a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0c0 3.5-4 6-4 6Z" fill="${C.gold}"/>`),
+          filter: ringIcon(`${C.forest}`, `<path d="M6 9h12M8 12h8M10 15h4" stroke="${C.cream}" stroke-width="1.3"/>`),
+          user: ringIcon(`${C.forest}`, `<circle cx="12" cy="10" r="3" fill="${C.cream}"/><path d="M6 18c0-3 2.7-5 6-5s6 2 6 5" fill="${C.cream}"/>`),
+          bud: ringCat("buds"),
+          watch: ringCat("watch"),
+          spk: ringCat("spk"),
+          pwr: ringCat("pwr"),
+        },
+        filled: {
+          search: filledIcon(`<circle cx="11" cy="11" r="6" fill="${C.forest}"/><circle cx="11" cy="11" r="3" fill="${C.cream}"/><rect x="15" y="15" width="6" height="2.5" rx="1" transform="rotate(45 15 15)" fill="${C.forest}"/>`),
+          cart: filledIcon(`<path d="M7 8h14l-1.2 7H8.5L7 8Z" fill="${C.forest}"/><circle cx="10" cy="18" r="2" fill="${C.cream}"/><circle cx="17" cy="18" r="2" fill="${C.cream}"/>`),
+          cod: filledIcon(`<rect x="5" y="7" width="14" height="10" rx="2" fill="${C.terracotta}"/><rect x="7" y="10" width="8" height="2" rx="1" fill="${C.cream}"/>`),
+          ship: filledIcon(`<path d="M4 13h12l2.5 3H6L4 13Z" fill="${C.forest}"/><rect x="14" y="10" width="6" height="3" rx="1" fill="${C.sage}"/>`),
+          ret: filledIcon(`<path d="M8 13 5 10l3-3v6Z" fill="${C.sage}"/><path d="M5 10h8a3 3 0 1 1 0 6H9" stroke="${C.forest}" stroke-width="2" fill="none"/>`),
+          wish: filledIcon(`<path d="M12 18s-5-3-5-7a3 3 0 0 1 6 0 3 3 0 0 1 6 0c0 4-5 7-5 7Z" fill="${C.forest}"/><circle cx="12" cy="10" r="1.5" fill="${C.cream}"/>`),
+          filter: filledIcon(`<rect x="5" y="6" width="14" height="2" rx="1" fill="${C.forest}"/><rect x="7" y="11" width="10" height="2" rx="1" fill="${C.sage}"/><rect x="9" y="16" width="6" height="2" rx="1" fill="${C.forest}"/>`),
+          user: filledIcon(`<circle cx="12" cy="9" r="4" fill="${C.forest}"/><path d="M5 19a7 7 0 0 1 14 0v1H5v-1Z" fill="${C.sage}"/>`),
+          bud: filledCat(`<circle cx="22" cy="32" r="6" fill="${C.cream}"/><circle cx="42" cy="32" r="6" fill="${C.cream}"/>`),
+          watch: filledCat(`<rect x="20" y="20" width="24" height="24" rx="6" fill="${C.cream}"/><circle cx="32" cy="32" r="5" fill="${C.forest}"/>`),
+          spk: filledCat(`<rect x="22" y="14" width="20" height="36" rx="6" fill="${C.cream}"/><circle cx="32" cy="28" r="5" fill="${C.forest}"/>`),
+          pwr: filledCat(`<rect x="24" y="12" width="16" height="40" rx="4" fill="${C.cream}"/><rect x="28" y="18" width="8" height="20" rx="2" fill="${C.forest}"/>`),
+        },
+        blueprint: {
+          search: bp(`<circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/><path d="M5 11h2M11 5v2"/>`),
+          cart: bp(`<path d="M6 8h14l-1.5 8H8L6 8Z"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>`),
+          cod: bp(`<rect x="4" y="7" width="16" height="10" rx="1"/><path d="M4 12h16M8 9v6"/>`),
+          ship: bp(`<path d="M3 13h14l2 3H5L3 13Z"/><path d="M17 13l3-3"/>`),
+          ret: bp(`<path d="M8 13 4 9l4-4"/><path d="M4 9h10a3 3 0 1 1 0 6"/>`),
+          wish: bp(`<path d="M12 19s-6-3.5-6-9a3.5 3.5 0 0 1 7-1.5 3.5 3.5 0 0 1 7 1.5c0 5.5-6 9-6 9Z"/>`),
+          filter: bp(`<path d="M4 7h16M7 12h10M10 17h4"/>`),
+          user: bp(`<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>`),
+          bud: bp(`<circle cx="24" cy="32" r="5"/><circle cx="40" cy="32" r="5"/><path d="M12 32h40"/>`),
+          watch: bp(`<rect x="20" y="20" width="24" height="24" rx="2"/><path d="M32 20v-4M32 44v4"/>`),
+          spk: bp(`<rect x="22" y="14" width="20" height="36" rx="2"/><circle cx="32" cy="28" r="4"/>`),
+          pwr: bp(`<rect x="26" y="12" width="12" height="40" rx="2"/><path d="M20 32h4M40 32h4"/>`),
+        },
+        stamp: {
+          search: stamp(`${C.forest}`, "⌕"),
+          cart: stamp(`${C.forest}`, "BNT"),
+          cod: stamp(`${C.terracotta}`, "₨"),
+          ship: stamp(`${C.sage}`, "→"),
+          ret: stamp(`${C.sage}`, "↺"),
+          wish: stamp(`${C.forest}`, "♥"),
+          filter: stamp(`${C.forest}`, "≡"),
+          user: stamp(`${C.forest}`, "◎"),
+          bud: stampCircle(`${C.forest}`, "◉◉"),
+          watch: stampCircle(`${C.gold}`, "◷"),
+          spk: stampCircle(`${C.sage}`, "▮"),
+          pwr: stampCircle(`${C.terracotta}`, "⚡"),
+        },
+        duotone: {
+          search: duo(`${C.sage}`, `${C.forest}`, `<circle cx="11" cy="11" r="7"/><path d="M18 18l4 4"/>`),
+          cart: duo(`${C.sage}`, `${C.forest}`, `<path d="M6 7h15l-1.5 9H8L6 7Z"/>`),
+          cod: duo(`${C.terracotta}`, `${C.forest}`, `<rect x="4" y="7" width="16" height="10" rx="2"/>`),
+          ship: duo(`${C.sage}`, `${C.forest}`, `<path d="M4 12h13l3 4H6l-2-4Z"/>`),
+          ret: duo(`${C.sage}`, `${C.forest}`, `<path d="M9 14 5 10l4-4M5 10h10a3 3 0 1 1 0 6"/>`),
+          wish: duo(`${C.sage}`, `${C.forest}`, `<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.5-7 10-7 10Z"/>`),
+          filter: duo(`${C.sage}`, `${C.forest}`, `<path d="M4 6h16M7 12h10M10 18h4"/>`),
+          user: duo(`${C.sage}`, `${C.forest}`, `<circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/>`),
+          bud: duoCat("◉ ◉"),
+          watch: duoCat("◷"),
+          spk: duoCat("▮"),
+          pwr: duoCat("⚡"),
+        },
+        radial: {
+          search: radialIcon(8),
+          cart: radialIcon(5),
+          cod: radialIcon(3),
+          ship: radialIcon(6),
+          ret: radialIcon(4),
+          wish: radialIcon(7),
+          filter: radialIcon(9),
+          user: radialIcon(2),
+          bud: radialCat(4),
+          watch: radialCat(6),
+          spk: radialCat(3),
+          pwr: radialCat(5),
+        },
+        notch: {
+          search: notch(`<circle cx="11" cy="11" r="6.5"/><path d="M16.5 16.5 21 21"/>`),
+          cart: notch(`<path d="M7 7h14l-1.2 7.5H8.3L7 7Z"/><circle cx="10" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>`),
+          cod: notch(`<path d="M5 8h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><path d="M8 12h6"/>`),
+          ship: notch(`<path d="M4 13h12l2.5 3.5H6.5L4 13Z"/>`),
+          ret: notch(`<path d="M9 13 5.5 9.5 9 6"/><path d="M5.5 9.5H14a3 3 0 1 1 0 6h-1"/>`),
+          wish: notch(`<path d="M12 18.5c0 0-5.5-3.2-5.5-7.5a3.2 3.2 0 0 1 6.1-1.2 3.2 3.2 0 0 1 6.1 1.2c0 4.3-5.5 7.5-5.5 7.5Z"/>`),
+          filter: notch(`<path d="M5 7h14M8 12h8M11 17h2"/>`),
+          user: notch(`<circle cx="12" cy="8.5" r="3.8"/><path d="M5.5 19.5c.6-3.5 3-5.5 6.5-5.5s5.9 2 6.5 5.5"/>`),
+          bud: notch(`<circle cx="23" cy="32" r="5"/><circle cx="41" cy="32" r="5"/>`),
+          watch: notch(`<rect x="20" y="22" width="24" height="22" rx="7"/>`),
+          spk: notch(`<rect x="22" y="14" width="20" height="36" rx="9"/>`),
+          pwr: notch(`<rect x="25" y="12" width="14" height="40" rx="5"/>`),
+        },
+      };
+      return s[style] || s.lucide;
+    }
+
+    function ringIcon(bg, inner) {
+      return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="none" stroke="${C.gold}" stroke-width="1.2"/><circle cx="12" cy="12" r="9" fill="${bg}"/>${inner}</svg>`;
+    }
+    function ringCat(type) {
+      const inners = {
+        buds: `<circle cx="10" cy="12" r="2" fill="${C.cream}"/><circle cx="14" cy="12" r="2" fill="${C.cream}"/>`,
+        watch: `<rect x="9" y="9" width="6" height="6" rx="1.5" fill="${C.cream}"/>`,
+        spk: `<rect x="9" y="7" width="6" height="10" rx="2" fill="${C.cream}"/>`,
+        pwr: `<rect x="10" y="8" width="4" height="8" rx="1" fill="${C.cream}"/>`,
+      };
+      return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="none" stroke="${C.gold}" stroke-width="1"/><circle cx="12" cy="12" r="10" fill="${C.forest}"/>${inners[type]}</svg>`;
+    }
+    function filledIcon(inner) {
+      return `<svg viewBox="0 0 24 24">${inner}</svg>`;
+    }
+    function filledCat(inner) {
+      return `<svg viewBox="0 0 64 64"><ellipse cx="32" cy="52" rx="18" ry="5" fill="${C.forest}" opacity="0.15"/>${inner}</svg>`;
+    }
+    function bp(inner) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="0.85">${inner}</svg>`;
+    }
+    function stamp(bg, char) {
+      return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${C.creamDeep}" stroke="${bg}" stroke-width="1.5"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="${C.gold}" stroke-width="0.8" stroke-dasharray="2 2"/><text x="12" y="15" text-anchor="middle" fill="${bg}" font-size="9" font-weight="700" font-family="Newsreader">${char}</text></svg>`;
+    }
+    function stampCircle(bg, char) {
+      return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${bg}"/><text x="12" y="14" text-anchor="middle" fill="${C.cream}" font-size="7" font-weight="700">${char}</text></svg>`;
+    }
+    function duo(back, front, path) {
+      return `<svg viewBox="0 0 24 24"><g fill="none" stroke="${back}" stroke-width="2.5">${path}</g><g fill="none" stroke="${front}" stroke-width="1.4">${path}</g></svg>`;
+    }
+    function duoCat(char) {
+      return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${C.sage}" opacity="0.35"/><text x="12" y="15" text-anchor="middle" fill="${C.forest}" font-size="10" font-weight="700">${char}</text></svg>`;
+    }
+    function radialIcon(n) {
+      let segs = "";
+      for (let i = 0; i < 8; i++) {
+        const a0 = (i / 8) * Math.PI * 2;
+        const a1 = ((i + 1) / 8) * Math.PI * 2;
+        const r0 = i % 2 === 0 ? 4 : 6;
+        const r1 = 10;
+        const x0 = 12 + Math.cos(a0) * r0;
+        const y0 = 12 + Math.sin(a0) * r0;
+        const x1 = 12 + Math.cos(a1) * r0;
+        const y1 = 12 + Math.sin(a1) * r0;
+        const x2 = 12 + Math.cos(a1) * r1;
+        const y2 = 12 + Math.sin(a1) * r1;
+        const x3 = 12 + Math.cos(a0) * r1;
+        const y3 = 12 + Math.sin(a0) * r1;
+        const fill = i % n === 0 ? C.gold : i % 2 ? C.sage : C.forest;
+        segs += `<path d="M${x0} ${y0} L${x1} ${y1} L${x2} ${y2} L${x3} ${y3}Z" fill="${fill}"/>`;
+      }
+      return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${C.creamDeep}"/>${segs}<circle cx="12" cy="12" r="3" fill="${C.cream}"/></svg>`;
+    }
+    function radialCat(n) {
+      return radialIcon(n).replace('viewBox="0 0 24 24"', 'viewBox="0 0 24 24" width="26" height="26"');
+    }
+    function notch(inner) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="${C.forest}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+    }
+
+    function renderDir(d) {
+      const ic = icons(d.style);
+      const tagHtml = d.tags.map((t) => `<span class="tag${t.includes("Recommended") ? " rec" : ""}">${t}</span>`).join("");
+      const navIcons = ["search", "wish", "cart", "user"].map((k) => `<span class="icon-slot">${ic[k]}</span>`).join("");
+      const trust = [
+        ["cod", "COD", "Cash"],
+        ["ship", "Ship", "Fast"],
+        ["ret", "Returns", "Easy"],
+        ["wish", "Curated", "BNT"],
+      ].map(([k, t, sub]) => `
+        <div class="trust-item">
+          <span class="bubble" style="background:color-mix(in srgb, var(--sage) 18%, var(--cream))">${ic[k]}</span>
+          ${t}<br>${sub}
+        </div>`).join("");
+      const cats = [
+        ["bud", "Earbuds"],
+        ["watch", "Watch"],
+        ["spk", "Audio"],
+        ["pwr", "Power"],
+      ].map(([k, label], i) => `
+        <div class="cat">
+          <span class="cat-circle" style="background:${d.catBg[i]}">${ic[k]}</span>
+          ${label}
+        </div>`).join("");
+
+      const blueprintStyle = d.style === "blueprint" ? "border:1px dashed var(--forest);background:var(--cream-deep)" : "";
+
+      return `
+        <article class="dir">
+          <div class="dir-head">
+            <div class="num">Direction ${d.num}</div>
+            <h3>${d.title}</h3>
+            <p>${d.blurb}</p>
+            <div class="tags">${tagHtml}</div>
+          </div>
+          <div class="mock">
+            <span class="mock-label">Nav chrome</span>
+            <div class="mock-nav">
+              <span class="word">Buy n Try</span>
+              <div class="icon-row">${navIcons}</div>
+            </div>
+            <span class="mock-label">Trust strip</span>
+            <div class="trust">${trust}</div>
+            <span class="mock-label">Shop by type</span>
+            <div class="cats">${cats}</div>
+            <span class="mock-label">Product actions</span>
+            <div class="actions">
+              <button type="button" class="btn-mock primary">${ic.cart} Add</button>
+              <button type="button" class="btn-mock ghost">${ic.filter} Filter</button>
+            </div>
+          </div>
+          <div class="dir-foot">${d.foot}</div>
+        </article>`;
+    }
+
+    document.getElementById("directions").innerHTML = directions.map(renderDir).join("");
+  </script>
+</body>
+</html>

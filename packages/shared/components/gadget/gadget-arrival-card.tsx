@@ -99,7 +99,7 @@ export function GadgetArrivalCard({
               </span>
             ) : null}
             {!stock.soldOut && off ? (
-              <span className="shrink-0 rounded-md bg-[#7a2e12] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white shadow-sm z-20">
+              <span className="gadget-sale-badge shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm z-20">
                 −{off}%
               </span>
             ) : null}
@@ -190,7 +190,7 @@ export function GadgetArrivalCard({
                 onClick={handleBuy}
                 title={`Add ${product.name} to cart`}
                 aria-label={`Add ${product.name} to cart`}
-                className="flex h-12 w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--g-forest)] text-[13px] font-semibold text-[var(--g-cream)] transition duration-200 hover:bg-[var(--g-forest-mid)] active:scale-[0.99]"
+                className="gadget-buy-cta flex h-12 w-full items-center justify-center gap-1.5 rounded-xl text-[13px] font-semibold transition duration-200 active:scale-[0.99]"
               >
                 {added ? (
                   <>

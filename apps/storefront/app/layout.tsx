@@ -90,8 +90,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F5F1E8" },
-    { media: "(prefers-color-scheme: dark)", color: "#1F3626" },
+    { media: "(prefers-color-scheme: light)", color: "#FAF6EE" },
+    { media: "(prefers-color-scheme: dark)", color: "#0E2419" },
   ],
 };
 
@@ -153,6 +153,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon", sizes: "32x32" },
+      { url: "/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
       { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
       { url: "/favicon-96.png", type: "image/png", sizes: "96x96" },
       { url: "/favicon-144.png", type: "image/png", sizes: "144x144" },

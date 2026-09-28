@@ -3,10 +3,10 @@ import { publicSiteUrl } from "./deploy-rules";
 
 /** Forest / gold / cream — matches the BNT seal on the live shop. */
 export const EMAIL_PALETTE = {
-  forest: "#1b3624",
-  forestMid: "#234a32",
-  gold: "#c9a227",
-  cream: "#f6efe3",
+  forest: "#1a3328",
+  forestMid: "#243d30",
+  gold: "#c9a962",
+  cream: "#f6f0e6",
   sand: "#fffaf3",
   card: "#ffffff",
   ink: "#1a1a1a",
@@ -35,7 +35,7 @@ export function resolveEmailLogoUrl(
   if (custom.startsWith("//")) return `https:${custom}`;
   if (custom.startsWith("/")) return `${base}${custom}`;
   if (custom) return `${base}/${custom}`;
-  return `${base}${SHOPPER_BRAND.sealSrc}`;
+  return `${base}${SHOPPER_BRAND.sealEmailSrc}`;
 }
 
 export function emailButtonHtml(input: {

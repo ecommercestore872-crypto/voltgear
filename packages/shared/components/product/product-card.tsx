@@ -125,9 +125,9 @@ export function ProductCard({
 
         <div className="flex items-center justify-between gap-2 pt-1 w-full">
           <div className="flex flex-col text-left">
-            <span className="font-semibold">{formatPrice(product.price)}</span>
+            <span className="gadget-price-accent font-semibold">{formatPrice(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-xs text-muted-foreground line-through">
+              <span className="gadget-price-sale text-xs line-through opacity-90">
                 {formatPrice(product.compareAtPrice)}
               </span>
             )}

@@ -254,7 +254,7 @@ export function ReviewsSection({
                         {review.name}
                       </span>
                       {review.verified ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                        <span className="gadget-trust-pill inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
                           <BadgeCheck className="h-2.5 w-2.5" />
                           Verified
                         </span>

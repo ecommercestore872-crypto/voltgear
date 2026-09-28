@@ -10,6 +10,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: [
       "lucide-react",
+      "@phosphor-icons/react",
       "@supabase/supabase-js",
       "@radix-ui/react-accordion",
       "@radix-ui/react-dialog",

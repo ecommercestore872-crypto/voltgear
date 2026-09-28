@@ -424,7 +424,7 @@ export function GadgetBuyBox({
               type="button"
               disabled={outOfStock || !selectionReady}
               onClick={(e) => handleAdd(true, e)}
-              className="gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white shadow-lg shadow-green-600/30 transition-transform active:scale-95 px-6 text-base font-bold tracking-wide disabled:cursor-not-allowed disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
+              className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full px-6 text-base font-bold tracking-wide transition-transform active:scale-95 disabled:cursor-not-allowed disabled:border-[var(--g-line)] disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
             >
               {added ? (
                 <>
@@ -536,7 +536,7 @@ export function GadgetBuyBox({
                 }
                 handleAdd(true, e);
               }}
-              className="gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 active:bg-green-700 text-white shadow-xl shadow-green-600/40 transition-transform active:scale-95 text-base font-bold"
+              className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full text-base font-bold transition-transform active:scale-95"
             >
               <ShoppingBag className="h-4 w-4" />
               {selectionReady ? "Buy now" : "Choose options"}

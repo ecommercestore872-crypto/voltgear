@@ -41,8 +41,8 @@ function toCards(posts: Page[]): BlogCardPost[] {
 
 function coverGradient(i: number) {
   const tones = [
-    "from-[#1f3626] to-[#3d5c48]",
-    "from-[#25392a] to-[#8fa888]",
+    "from-[var(--g-forest)] to-[var(--g-forest-mid)]",
+    "from-[var(--g-forest-mid)] to-[var(--g-sage)]",
     "from-[#1a1a1a] to-[#5c6b5a]",
     "from-[#2a4032] to-[#efeae0]",
   ];

@@ -31,7 +31,7 @@ export function ShopBrandMark({
   return (
     <span
       className={cn(
-        "shop-brand-shine inline-flex w-auto",
+        "inline-flex w-auto items-center",
         compact ? "h-8 sm:h-9" : "h-9 sm:h-10",
         className,
       )}
@@ -42,7 +42,7 @@ export function ShopBrandMark({
         alt={name}
         decoding={priority ? "sync" : "async"}
         fetchPriority={priority ? "high" : "auto"}
-        className="h-full w-auto object-contain object-left"
+        className="h-full w-auto max-w-[220px] object-contain object-left"
       />
     </span>
   );

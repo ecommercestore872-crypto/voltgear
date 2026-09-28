@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Buy n Try — trusted boutique palette</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #eee; padding: 24px; margin: 0; }
+    h1 { font-size: 1.125rem; font-weight: 500; color: #aaa; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-width: 900px; }
+    .swatch { border-radius: 10px; overflow: hidden; border: 1px solid #333; }
+    .chip { height: 72px; }
+    .meta { padding: 8px 10px; background: #252525; font-size: 11px; line-height: 1.4; }
+    .meta strong { display: block; color: #fff; font-size: 12px; }
+    .demo { margin-top: 32px; max-width: 900px; border-radius: 12px; overflow: hidden; border: 1px solid #333; }
+    .demo-nav { background: #1a3328; color: #f6f0e6; padding: 14px 20px; font-weight: 600; }
+    .demo-body { background: #f6f0e6; color: #1a1a1a; padding: 24px 20px; }
+    .demo-body p { color: #5a5349; font-size: 14px; max-width: 36rem; }
+    .btn { display: inline-block; margin-top: 12px; background: #1a3328; color: #f6f0e6; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; }
+    .sale { color: #b85c38; font-weight: 700; }
+    .gold { color: #c9a962; }
+  </style>
+</head>
+<body>
+  <h1>Trusted boutique tokens (live in globals.css)</h1>
+  <div class="grid">
+    <div class="swatch"><div class="chip" style="background:#F6F0E6"></div><div class="meta"><strong>Cream canvas</strong>#F6F0E6 · --g-cream</div></div>
+    <div class="swatch"><div class="chip" style="background:#EDE4D4"></div><div class="meta"><strong>Stage / pad</strong>#EDE4D4 · --g-cream-deep</div></div>
+    <div class="swatch"><div class="chip" style="background:#1A3328"></div><div class="meta"><strong>Forest CTA</strong>#1A3328 · trust</div></div>
+    <div class="swatch"><div class="chip" style="background:#243D30"></div><div class="meta"><strong>Forest mid</strong>#243D30 · footer bands</div></div>
+    <div class="swatch"><div class="chip" style="background:#6B8F71"></div><div class="meta"><strong>Sage</strong>#6B8F71 · quiet labels</div></div>
+    <div class="swatch"><div class="chip" style="background:#C9A962"></div><div class="meta"><strong>Champagne gold</strong>#C9A962 · BNT seal</div></div>
+    <div class="swatch"><div class="chip" style="background:#B85C38"></div><div class="meta"><strong>Sale</strong>#B85C38 · urgency only</div></div>
+    <div class="swatch"><div class="chip" style="background:#5A5349"></div><div class="meta"><strong>Taupe</strong>#5A5349 · secondary type</div></div>
+  </div>
+  <div class="demo">
+    <div class="demo-nav">Buy n Try</div>
+    <div class="demo-body">
+      <p>Warm cream background, forest button, <span class="gold">gold</span> accent for brand, <span class="sale">sale price</span> only when discounted.</p>
+      <span class="btn">Add to cart</span>
+    </div>
+  </div>
+</body>
+</html>

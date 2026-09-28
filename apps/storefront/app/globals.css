@@ -244,27 +244,26 @@
 /* Shared Biometic tokens — storefront (.gadget-theme) + admin (.admin-theme) */
 .gadget-theme,
 .admin-theme {
-  --g-cream: #f5f1e8;
-  --g-cream-deep: #efeae0;
-  --g-forest: #1f3626;
-  --g-forest-mid: #25392a;
-  --g-sage: #8fa888;
+  --g-cream: #faf6ee;
+  --g-cream-deep: #e3d2b8;
+  --g-forest: #0e2419;
+  --g-forest-mid: #1a3d2e;
+  --g-sage: #3d7a52;
   --g-charcoal: #1a1a1a;
   --g-white: #ffffff;
-  --g-taupe: #8a8578;
-  /* Accessories Hub Conversion & Brand Tokens */
-  --g-sale: #c87a4b;
+  --g-taupe: #5a5349;
+  --g-sale: #b85c38;
   --g-danger: #b42318;
-  --g-amber: #c87a4b;
-  --g-amber-hover: #e0951c;
-  --g-amber-text: #7a4500; /* WCAG AAA compliant deep bronze text */
+  --g-amber: #b85c38;
+  --g-amber-hover: #c67048;
+  --g-amber-text: #7a3a1a;
   --g-price-strike: #64748b;
-  --g-card-border: #e8e3d8;
-  --g-terracotta: #c87a4b;
-  --g-gold: #f5a623;
-  --g-sand: #fdfbf7;
-  --g-olive: #3b483c;
-  --g-line: #e8e3d8;
+  --g-card-border: #e5dace;
+  --g-terracotta: #b85c38;
+  --g-gold: #d4af37;
+  --g-sand: #fffdf8;
+  --g-olive: #3a5242;
+  --g-line: #e5dace;
   --g-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --g-dur-fast: 180ms;
   --g-dur-med: 320ms;
@@ -279,52 +278,39 @@
   --card-foreground: 0 0% 10%;
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 10%;
-  --primary: 140 27% 17%;
-  --primary-foreground: 40 33% 94%;
-  --secondary: 40 20% 91%;
+  --primary: 152 52% 10%;
+  --primary-foreground: 40 45% 96%;
+  --secondary: 36 28% 90%;
   --secondary-foreground: 0 0% 10%;
-  --muted: 40 20% 91%;
-  --muted-foreground: 40 8% 50%;
-  --accent: 40 20% 91%;
+  --muted: 36 28% 90%;
+  --muted-foreground: 30 8% 42%;
+  --accent: 36 28% 90%;
   --accent-foreground: 0 0% 10%;
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 100%;
-  --border: 40 12% 82%;
-  --input: 40 12% 82%;
-  --ring: 140 27% 17%;
+  --border: 36 22% 84%;
+  --input: 36 22% 84%;
+  --ring: 150 32% 15%;
 }
 
 /* Gadget craft system — motion + type tokens (T-19) */
 .gadget-theme {
-  /* Shopper-only complementary set: forest + sage + terracotta on warm cream */
-  --g-cream: #f7efe2;
-  --g-cream-deep: #ebdcc6;
-  --g-forest: #1b3d29;
-  --g-forest-mid: #2f5840;
-  --g-sage: #2f6b38;
-  --g-charcoal: #1a1a1a;
-  --g-taupe: #5c564c;
-  --g-sale: #c45e32;
-  --g-terracotta: #c45e32;
-  --g-amber: #c45e32;
-  --g-amber-hover: #d47244;
-  --g-amber-text: #8a3d1c;
-  --g-sand: #fff8ee;
-  --g-olive: #3d5c45;
-  --g-line: #e3d2b8;
-  --g-card-border: #e3d2b8;
-  --g-blush: #f4e2cc;
-  --g-leaf: #3e7a4a;
-  --primary: 148 38% 17%;
-  --primary-foreground: 36 48% 93%;
-  --accent: 118 28% 86%;
-  --accent-foreground: 148 38% 16%;
-  --ring: 148 38% 17%;
+  /* Trusted boutique: forest trust + champagne gold + calm sage on warm cream */
+  --g-blush: #e8d4ba;
+  --g-leaf: #5a8260;
+  --g-glow-forest: rgba(14, 36, 25, 0.38);
+  --g-glow-gold: rgba(212, 175, 55, 0.45);
+  --primary: 152 52% 10%;
+  --primary-foreground: 40 45% 96%;
+  --accent: 36 35% 88%;
+  --accent-foreground: 150 32% 15%;
+  --ring: 150 32% 15%;
   color: var(--g-charcoal);
   font-family: var(--font-gadget-sans), system-ui, sans-serif;
   background:
-    radial-gradient(ellipse 90% 50% at 0% -8%, color-mix(in srgb, var(--g-sage) 20%, var(--g-cream)) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 42% at 100% 0%, color-mix(in srgb, var(--g-terracotta) 14%, var(--g-cream)) 0%, transparent 50%),
+    radial-gradient(ellipse 95% 55% at 0% -10%, color-mix(in srgb, var(--g-sage) 32%, var(--g-cream)) 0%, transparent 58%),
+    radial-gradient(ellipse 75% 48% at 100% 0%, color-mix(in srgb, var(--g-gold) 22%, var(--g-cream)) 0%, transparent 52%),
+    radial-gradient(ellipse 80% 40% at 50% 100%, color-mix(in srgb, var(--g-forest) 12%, var(--g-cream)) 0%, transparent 55%),
     var(--g-cream);
   min-width: 0;
   overflow-x: clip;
@@ -415,7 +401,7 @@
   border: 1px solid color-mix(in srgb, var(--g-white) 55%, var(--g-line));
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--g-white) 80%, transparent) inset,
-    0 10px 32px rgba(31, 54, 38, 0.06);
+    0 10px 32px rgba(26, 51, 40, 0.06);
   backdrop-filter: blur(18px) saturate(1.35);
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
 }
@@ -488,25 +474,26 @@
 
 .gadget-theme .gadget-studio-stage {
   background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, #fffdf8 0%, var(--g-blush) 62%, color-mix(in srgb, var(--g-sage) 18%, var(--g-cream-deep)) 100%);
+    radial-gradient(ellipse 70% 55% at 50% 38%, var(--g-sand) 0%, var(--g-blush) 55%, color-mix(in srgb, var(--g-sage) 22%, var(--g-cream-deep)) 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g-gold) 12%, var(--g-line));
 }
 
 .gadget-theme .gadget-band-leaf {
   background:
-    radial-gradient(ellipse 80% 70% at 0% 0%, color-mix(in srgb, var(--g-sage) 22%, transparent) 0%, transparent 55%),
-    color-mix(in srgb, var(--g-sage) 12%, var(--g-cream));
+    radial-gradient(ellipse 85% 75% at 0% 0%, color-mix(in srgb, var(--g-sage) 38%, transparent) 0%, transparent 58%),
+    color-mix(in srgb, var(--g-sage) 18%, var(--g-cream));
 }
 
 .gadget-theme .gadget-band-clay {
   background:
-    radial-gradient(ellipse 80% 70% at 100% 0%, color-mix(in srgb, var(--g-terracotta) 18%, transparent) 0%, transparent 50%),
-    color-mix(in srgb, var(--g-terracotta) 10%, var(--g-cream));
+    radial-gradient(ellipse 85% 75% at 100% 0%, color-mix(in srgb, var(--g-gold) 28%, transparent) 0%, transparent 55%),
+    color-mix(in srgb, var(--g-terracotta) 14%, var(--g-cream));
 }
 
 .gadget-theme .gadget-band-forest {
   background:
-    radial-gradient(ellipse 70% 60% at 50% 100%, color-mix(in srgb, var(--g-forest) 10%, transparent) 0%, transparent 55%),
-    color-mix(in srgb, var(--g-forest) 6%, var(--g-cream));
+    radial-gradient(ellipse 75% 65% at 50% 100%, color-mix(in srgb, var(--g-forest) 22%, transparent) 0%, transparent 58%),
+    color-mix(in srgb, var(--g-forest) 12%, var(--g-cream));
 }
 
 .gadget-theme .gadget-ticket-well {
@@ -543,7 +530,7 @@
   font-size: 0.72em;
   letter-spacing: 0;
   line-height: 1;
-  color: var(--g-terracotta);
+  color: var(--g-gold);
   transform: translateY(0.06em);
   padding: 0 0.14em 0 0.1em;
 }
@@ -553,7 +540,7 @@
   width: 1.75rem;
   height: 1px;
   margin-top: 0.4rem;
-  background: var(--g-terracotta);
+  background: color-mix(in srgb, var(--g-gold) 85%, var(--g-forest));
 }
 
 .gadget-theme .bnt-lockup-tag {
@@ -671,41 +658,53 @@
     0 12px 36px rgba(31, 54, 38, 0.06);
 }
 
-.gadget-theme .gadget-btn-primary {
+.gadget-theme .gadget-btn-primary,
+.gadget-theme .gadget-buy-cta {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(165deg, #3a6b48 0%, var(--g-forest) 52%, #163022 100%);
-  color: var(--g-white);
+  border: 1px solid color-mix(in srgb, var(--g-gold) 32%, var(--g-forest));
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--g-sage) 55%, #2a5c3a) 0%,
+    var(--g-forest-mid) 42%,
+    var(--g-forest) 100%
+  );
+  color: var(--g-cream);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.18) inset,
-    0 10px 24px rgba(31, 54, 38, 0.24);
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 12px 28px rgba(14, 36, 25, 0.35);
   transition:
     transform var(--g-dur-fast) var(--g-ease),
     box-shadow var(--g-dur-med) var(--g-ease),
     filter var(--g-dur-fast) ease;
 }
 
-.gadget-theme .gadget-btn-primary::after {
+.gadget-theme .gadget-btn-primary::after,
+.gadget-theme .gadget-buy-cta::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.16) 50%, transparent 65%);
   transform: translateX(-120%);
   transition: transform 0.55s var(--g-ease);
+  pointer-events: none;
 }
 
-.gadget-theme .gadget-btn-primary:hover {
-  filter: brightness(1.05);
+.gadget-theme .gadget-btn-primary:hover,
+.gadget-theme .gadget-buy-cta:hover {
+  filter: brightness(1.06);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.22) inset,
-    0 14px 28px rgba(31, 54, 38, 0.28);
+    0 1px 0 rgba(255, 255, 255, 0.24) inset,
+    0 16px 32px rgba(14, 36, 25, 0.4);
 }
 
-.gadget-theme .gadget-btn-primary:hover::after {
+.gadget-theme .gadget-btn-primary:hover::after,
+.gadget-theme .gadget-buy-cta:hover::after {
   transform: translateX(120%);
 }
 
-.gadget-theme .gadget-btn-primary:active {
+.gadget-theme .gadget-btn-primary:active,
+.gadget-theme .gadget-buy-cta:active {
   transform: translateY(1px) scale(0.98);
 }
 
@@ -736,7 +735,7 @@
   right: 0.7rem;
   bottom: 0.45rem;
   height: 1px;
-  background: var(--g-terracotta);
+  background: linear-gradient(90deg, var(--g-gold), var(--g-sage));
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform var(--g-dur-med) var(--g-ease);
@@ -758,7 +757,50 @@
   height: 2px;
   margin-top: 0.45rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--g-forest), var(--g-sage));
+  background: linear-gradient(90deg, var(--g-forest), var(--g-gold));
+}
+
+.gadget-theme .gadget-hero-cta {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--g-gold) 88%, white) 0%,
+    var(--g-gold) 100%
+  );
+  color: var(--g-forest);
+  border: 1px solid color-mix(in srgb, var(--g-forest) 25%, var(--g-gold));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 10px 28px color-mix(in srgb, var(--g-gold) 50%, transparent);
+  transition:
+    transform var(--g-dur-fast) var(--g-ease),
+    box-shadow var(--g-dur-med) var(--g-ease),
+    filter var(--g-dur-fast) ease;
+}
+
+.gadget-theme .gadget-hero-cta:hover {
+  filter: brightness(1.04);
+  transform: scale(1.03);
+}
+
+.gadget-theme .gadget-sale-badge {
+  background: linear-gradient(135deg, var(--g-sale) 0%, color-mix(in srgb, var(--g-gold) 35%, var(--g-sale)) 100%);
+  color: var(--g-cream);
+}
+
+.gadget-theme .bg-primary.text-primary-foreground {
+  border: 1px solid color-mix(in srgb, var(--g-gold) 28%, var(--g-forest));
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--g-sage) 50%, #2a5c3a) 0%,
+    var(--g-forest-mid) 45%,
+    var(--g-forest) 100%
+  );
+  color: var(--g-cream);
+  box-shadow: 0 10px 24px rgba(14, 36, 25, 0.3);
+}
+
+.gadget-theme .bg-primary.text-primary-foreground:hover {
+  filter: brightness(1.05);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1426,6 +1468,146 @@
 .admin-theme .admin-sidebar-brand {
   font-family: var(--font-gadget-display), Georgia, serif;
   color: var(--g-cream);
+}
+
+/* ── Premium craft layer (shopper) ───────────────────────────────── */
+.gadget-theme ::selection {
+  background: color-mix(in srgb, var(--g-gold) 40%, var(--g-forest));
+  color: var(--g-cream);
+}
+
+.gadget-theme .gadget-h1,
+.gadget-theme .gadget-h2,
+.gadget-theme .gadget-display {
+  color: var(--g-forest);
+}
+
+.gadget-theme .gadget-eyebrow {
+  color: color-mix(in srgb, var(--g-gold) 38%, var(--g-sage));
+}
+
+.gadget-theme .gadget-topbar-premium {
+  background: linear-gradient(
+    90deg,
+    var(--g-forest) 0%,
+    color-mix(in srgb, var(--g-forest-mid) 85%, var(--g-gold)) 50%,
+    var(--g-forest) 100%
+  );
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--g-gold) 55%, transparent);
+}
+
+.gadget-theme .gadget-main-nav {
+  background: color-mix(in srgb, var(--g-cream) 88%, white);
+  box-shadow: 0 8px 32px rgba(14, 36, 25, 0.06);
+}
+
+.gadget-theme .gadget-hero-shell {
+  box-shadow:
+    0 24px 56px var(--g-glow-forest),
+    0 0 0 1px color-mix(in srgb, var(--g-gold) 22%, var(--g-forest)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.gadget-theme .gadget-hero-shell::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 60% at 20% 0%,
+    color-mix(in srgb, var(--g-gold) 12%, transparent),
+    transparent 55%
+  );
+  z-index: 1;
+}
+
+.gadget-theme .gadget-hero-shell > * {
+  position: relative;
+  z-index: 2;
+}
+
+.gadget-theme .group:hover .gadget-studio-stage {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--g-gold) 28%, var(--g-line)),
+    0 16px 40px rgba(14, 36, 25, 0.14);
+}
+
+.gadget-theme .gadget-premium-dialog {
+  box-shadow:
+    0 24px 64px rgba(14, 36, 25, 0.22),
+    0 0 0 1px color-mix(in srgb, var(--g-gold) 25%, var(--g-line));
+}
+
+.gadget-theme .gadget-premium-dialog::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--g-forest),
+    var(--g-gold),
+    var(--g-sage),
+    var(--g-gold),
+    var(--g-forest)
+  );
+}
+
+.gadget-theme .gadget-trust-pill {
+  background: color-mix(in srgb, var(--g-sage) 14%, var(--g-cream));
+  border: 1px solid color-mix(in srgb, var(--g-sage) 35%, var(--g-line));
+  color: var(--g-forest);
+}
+
+.gadget-theme .gadget-urgency-bar {
+  background: linear-gradient(
+    90deg,
+    var(--g-forest) 0%,
+    color-mix(in srgb, var(--g-forest-mid) 70%, black) 50%,
+    var(--g-forest) 100%
+  );
+  color: var(--g-cream);
+  border-bottom: 2px solid color-mix(in srgb, var(--g-gold) 65%, transparent);
+}
+
+.gadget-theme .gadget-urgency-bar .gadget-urgency-accent {
+  color: color-mix(in srgb, var(--g-gold) 75%, var(--g-cream));
+}
+
+.gadget-theme .gadget-announce-premium {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--g-forest-mid) 40%, var(--g-forest)) 0%,
+    var(--g-forest) 100%
+  );
+  border-bottom: 2px solid color-mix(in srgb, var(--g-gold) 50%, transparent);
+}
+
+.gadget-theme .gadget-band-forest {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 100%, color-mix(in srgb, var(--g-forest) 35%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 0% 0%, color-mix(in srgb, var(--g-gold) 12%, transparent) 0%, transparent 50%),
+    color-mix(in srgb, var(--g-forest) 14%, var(--g-cream));
+}
+
+.gadget-theme .gadget-price-accent {
+  color: var(--g-forest);
+  font-variant-numeric: tabular-nums;
+}
+
+.gadget-theme .gadget-price-sale {
+  color: var(--g-sale);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gadget-theme .gadget-hover-lift:hover {
+    box-shadow:
+      0 22px 48px rgba(14, 36, 25, 0.14),
+      0 0 0 1px color-mix(in srgb, var(--g-gold) 18%, var(--g-line)),
+      0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  }
 }
 
 .admin-theme .admin-nav-link {

@@ -40,7 +40,7 @@ export function cloudinaryAssetPathAfterUpload(uploadTail: string): string {
  * responsive width). Accepts either a full URL or a bare public ID.
  */
 /** Cream pad for square product cards (matches storefront `--g-cream` / studio stage). */
-export const CLOUDINARY_CARD_PAD_RGB = "fffdf8";
+export const CLOUDINARY_CARD_PAD_RGB = "e3d2b8";
 
 export function cloudinaryImageUrl(
   src: string | undefined | null,

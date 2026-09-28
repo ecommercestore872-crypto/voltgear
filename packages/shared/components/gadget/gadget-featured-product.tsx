@@ -117,7 +117,7 @@ export function GadgetFeaturedProduct({
               </span>
             )}
             {off ? (
-              <span className="absolute left-4 top-4 rounded-full bg-[#7a2e12] px-3 py-1 text-xs font-bold text-white">
+              <span className="gadget-sale-badge absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-bold">
                 {off}% OFF
               </span>
             ) : null}
@@ -198,7 +198,7 @@ export function GadgetFeaturedProduct({
                   ref={btnRef}
                   type="button"
                   onClick={handleBuy}
-                  className="gadget-press inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--g-forest)] px-7 text-sm font-bold text-[var(--g-white)] shadow-[0_8px_24px_rgba(31,54,38,0.22)] transition hover:bg-[var(--g-forest-mid)]"
+                  className="gadget-buy-cta gadget-press inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-sm font-bold transition"
                 >
                   {added ? (
                     <>

@@ -11,7 +11,8 @@ describe("SHOPPER_BRAND", () => {
   it("uses Buy n Try spoken name and BNT seal", () => {
     assert.equal(SHOPPER_BRAND.spokenName, "Buy n Try");
     assert.equal(SHOPPER_BRAND.seal, "BNT");
-    assert.equal(SHOPPER_BRAND.sealSrc, "/brand/bnt-seal.png");
+    assert.equal(SHOPPER_BRAND.sealSrc, "/brand/bnt-seal.webp");
+    assert.equal(SHOPPER_BRAND.sealEmailSrc, "/brand/bnt-seal.png");
     assert.equal(SHOPPER_BRAND.tagline, "Buy it. Try it.");
     assert.equal(SHOPPER_BRAND.preferredWelcomeCode, "BNT10");
     assert.equal(SHOPPER_BRAND.fallbackStoreName, "Buy n Try");
