@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,7 +12,11 @@ import { isAdminLoginPath } from "@/lib/storefront-layout-rules";
 import { cn } from "@/lib/utils";
 
 import { adminFetch } from "./admin-fetch";
-import { AdminCommandPalette } from "./admin-command-palette";
+const AdminCommandPalette = dynamic(
+  () =>
+    import("./admin-command-palette").then((m) => m.AdminCommandPalette),
+  { ssr: false },
+);
 
 type NavLink = { href: string; label: string; exact?: boolean };
 type NavGroup = { label?: string; items: NavLink[] };

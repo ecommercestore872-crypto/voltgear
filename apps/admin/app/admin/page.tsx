@@ -4,8 +4,8 @@ import { Dashboard } from "@/components/admin/dashboard";
 import { fetchOrdersForAdminDashboard } from "@/lib/db/admin-dashboard-data";
 import { fetchAdminOrderDashboardMetrics } from "@/lib/db/admin-order-dashboard-sql";
 import {
-  listAdminProductsForDashboard,
-  listPendingReviewSubmissions,
+  countPendingReviewSubmissions,
+  fetchAdminDashboardCatalogMetrics,
 } from "@/lib/db/admin-store";
 import {
   buildDashboardSnapshot,
@@ -21,16 +21,16 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminIndexPage() {
   try {
-    const [orderMetrics, products, reviews] = await Promise.all([
+    const [orderMetrics, catalog, pendingReviewCount] = await Promise.all([
       fetchAdminOrderDashboardMetrics(),
-      listAdminProductsForDashboard(),
-      listPendingReviewSubmissions(),
+      fetchAdminDashboardCatalogMetrics(),
+      countPendingReviewSubmissions(),
     ]);
 
     if (orderMetrics) {
       const snapshot = buildDashboardSnapshotWithOrderMetrics(orderMetrics, {
-        products,
-        reviews,
+        catalog,
+        pendingReviewCount,
       });
       return <Dashboard snapshot={snapshot} />;
     }
@@ -38,8 +38,8 @@ export default async function AdminIndexPage() {
     const { orders, practiceOrderCount } = await fetchOrdersForAdminDashboard();
     const snapshot = buildDashboardSnapshot({
       orders,
-      products,
-      reviews,
+      catalog,
+      pendingReviewCount,
       practiceOrderCount,
     });
     return <Dashboard snapshot={snapshot} />;

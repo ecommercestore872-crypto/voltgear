@@ -2,6 +2,8 @@
 
 Production stack optimized for **low DB round-trips**, **co-located compute**, and **observable APIs**.
 
+**Staff UI routing, pages, and API map:** [ADMIN_ARCHITECTURE.md](./ADMIN_ARCHITECTURE.md).
+
 ## Topology
 
 ```

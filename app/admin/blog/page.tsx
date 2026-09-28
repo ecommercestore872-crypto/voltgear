@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { listAdminPages } from "@/lib/db/admin-store";
+import { listAdminPagesIndex } from "@/lib/db/admin-store";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -12,9 +12,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminBlogPage() {
-  const pages = (await listAdminPages()).filter(
-    (page) => page.page_type === "blog",
-  );
+  const pages = await listAdminPagesIndex({ pageType: "blog" });
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">

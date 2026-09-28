@@ -838,7 +838,36 @@ export async function getOrdersByPhone(phone: string): Promise<Order[]> {
   return Promise.all((data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)));
 }
 
-/** Delivered orders with line items — for deal pair suggestions only (no full history load). */
+const DEAL_SUGGESTION_ORDER_LIMIT = 1000;
+
+function mapDeliveredOrderRowForDealSuggestions(row: Record<string, unknown>) {
+  const items = row.order_items as Record<string, unknown>[] | undefined;
+  return {
+    status: row.status != null ? String(row.status) : undefined,
+    isDemo: row.is_demo === true,
+    items: (items ?? []).map((i) => ({
+      slug: i.slug ? String(i.slug) : undefined,
+      quantity: i.quantity != null ? Number(i.quantity) : undefined,
+    })),
+  };
+}
+
+/** Delivered orders with line item slugs only — deal pair suggestions (no history, sync map). */
+export async function listDeliveredOrdersForDealSuggestions() {
+  const { data, error } = await db()
+    .from("orders")
+    .select("status, is_demo, order_items(slug, quantity)")
+    .eq("status", "delivered")
+    .eq("is_demo", false)
+    .order("created_at", { ascending: false })
+    .limit(DEAL_SUGGESTION_ORDER_LIMIT);
+  if (error) return [];
+  return (data ?? []).map((row) =>
+    mapDeliveredOrderRowForDealSuggestions(row as Record<string, unknown>),
+  );
+}
+
+/** @deprecated Prefer listDeliveredOrdersForDealSuggestions — lighter payload. */
 export async function getDeliveredOrdersWithItemsForDeals(): Promise<Order[]> {
   const { data, error } = await db()
     .from("orders")
@@ -848,7 +877,7 @@ export async function getDeliveredOrdersWithItemsForDeals(): Promise<Order[]> {
     .eq("status", "delivered")
     .eq("is_demo", false)
     .order("created_at", { ascending: false })
-    .limit(2500);
+    .limit(DEAL_SUGGESTION_ORDER_LIMIT);
   if (error) return [];
   return Promise.all(
     (data ?? []).map((row) => loadOrderBundle(row as Record<string, unknown>)),

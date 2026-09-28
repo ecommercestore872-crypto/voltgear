@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { listAdminPages } from "@/lib/db/admin-store";
+import { listAdminPagesIndex } from "@/lib/db/admin-store";
 
 export const metadata: Metadata = {
   title: "Pages",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPagesPage() {
-  const pages = await listAdminPages();
+  const pages = await listAdminPagesIndex();
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

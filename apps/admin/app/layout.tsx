@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
+import { adminFontClass } from "../lib/admin-fonts";
 import { cn } from "@/lib/utils";
 
 import "./globals.css";
@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={cn(gadgetFontClass, "min-h-dvh bg-background")}>
+      <body className={cn(adminFontClass, "min-h-dvh bg-background")}>
         {children}
       </body>
     </html>

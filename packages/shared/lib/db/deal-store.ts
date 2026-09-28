@@ -71,7 +71,8 @@ export async function listProductDeals(): Promise<DealRecord[]> {
   throw error;
 }
 
-async function fetchDealCatalogProducts(): Promise<
+/** Product floor fields for deals UI — no images (one query). */
+export async function fetchDealCatalogBasics(): Promise<
   { id: string; slug: string; name: string; price: number; costPrice: number | null }[]
 > {
   const { data, error } = await db()
@@ -131,7 +132,7 @@ export async function fetchDealCatalogForSlugs(
 }
 
 export async function fetchDealCatalog(): Promise<DealCatalogProduct[]> {
-  const products = await fetchDealCatalogProducts();
+  const products = await fetchDealCatalogBasics();
   const ids = products.map((p) => p.slug);
   const images = new Map<string, string>();
   if (ids.length) {

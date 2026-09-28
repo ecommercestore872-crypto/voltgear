@@ -4,11 +4,11 @@ import { isAdminRequest } from "@/lib/admin";
 import { suggestDealPairs } from "@/lib/db/deal-rules";
 import {
   createProductDeal,
-  fetchDealCatalog,
+  fetchDealCatalogBasics,
   listProductDeals,
   loadDealFloorExtras,
 } from "@/lib/db/deal-store";
-import { getDeliveredOrdersWithItemsForDeals } from "@/lib/order-store";
+import { listDeliveredOrdersForDealSuggestions } from "@/lib/order-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,11 +20,12 @@ export async function GET(request: Request) {
   try {
     const [deals, catalog, extras, orders] = await Promise.all([
       listProductDeals(),
-      fetchDealCatalog(),
+      fetchDealCatalogBasics(),
       loadDealFloorExtras(),
-      getDeliveredOrdersWithItemsForDeals(),
+      listDeliveredOrdersForDealSuggestions(),
     ]);
-    const suggestions = suggestDealPairs(orders, catalog, extras, deals);
+    const catalogForRules = catalog.map((p) => ({ ...p, imageUrl: null }));
+    const suggestions = suggestDealPairs(orders, catalogForRules, extras, deals);
     return NextResponse.json({
       deals,
       suggestions,

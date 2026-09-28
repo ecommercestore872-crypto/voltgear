@@ -17,7 +17,6 @@ import {
   mergeApprovedReview,
   mergeProductForm,
   slugify,
-  slugTaken,
   toImageRows,
   toLiveProductRow,
   toReviewRows,
@@ -125,10 +124,18 @@ export function editorDocument(product: AdminProduct): ProductDocument {
   return { ...doc, costPrice: doc.costPrice ?? product.costPrice };
 }
 
-async function allProductSlugs() {
-  const { data, error } = await db().from("products").select("id, slug");
+async function isProductSlugTaken(slug: string, exceptId?: string): Promise<boolean> {
+  const normalized = slug.trim();
+  if (!normalized) return false;
+  let query = db().from("products").select("id").eq("slug", normalized).limit(1);
+  if (exceptId) query = query.neq("id", exceptId);
+  const { data, error } = await query;
   if (error) throw error;
-  return (data ?? []).map((r) => ({ id: String(r.id), slug: String(r.slug) }));
+  return (data?.length ?? 0) > 0;
+}
+
+function bumpAdminProductsCache() {
+  revalidateAdminCacheTag("admin-products");
 }
 
 const ADMIN_PRODUCT_LIST_EMBED = "id, name, slug, category, price, cost_price, compare_at_price, stock_status, quantity, status, is_demo, updated_at, draft, product_images ( url, sort_order )";
@@ -170,6 +177,74 @@ export async function listAdminProductsForDashboard(): Promise<AdminProductDashb
     status: asStatus(row.status),
     isDemo: Boolean(row.is_demo),
   }));
+}
+
+export type AdminDashboardCatalogMetrics = {
+  lowStockCount: number;
+  lowStockProducts: { id: string; name: string; stockStatus: string }[];
+  draftProductCount: number;
+  firstDraftProductId: string | null;
+};
+
+/** Bounded queries for admin home — avoids loading every product row. */
+export async function fetchAdminDashboardCatalogMetrics(): Promise<AdminDashboardCatalogMetrics> {
+  const client = db();
+  const [
+    { count: lowStockCount, error: lowErr },
+    { data: lowRows, error: lowRowsErr },
+    { count: draftCount, error: draftErr },
+    { data: firstDraft, error: firstDraftErr },
+  ] = await Promise.all([
+    client
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("is_demo", false)
+      .eq("status", "published")
+      .in("stock_status", [...STOCK_ATTENTION_STATUSES]),
+    client
+      .from("products")
+      .select(ADMIN_PRODUCT_DASHBOARD_SELECT)
+      .eq("is_demo", false)
+      .eq("status", "published")
+      .in("stock_status", [...STOCK_ATTENTION_STATUSES])
+      .order("updated_at", { ascending: false })
+      .limit(8),
+    client
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .neq("status", "published"),
+    client
+      .from("products")
+      .select("id")
+      .neq("status", "published")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (lowErr) throw lowErr;
+  if (lowRowsErr) throw lowRowsErr;
+  if (draftErr) throw draftErr;
+  if (firstDraftErr) throw firstDraftErr;
+
+  return {
+    lowStockCount: lowStockCount ?? 0,
+    lowStockProducts: (lowRows ?? []).map((row) => ({
+      id: String(row.id),
+      name: String(row.name ?? ""),
+      stockStatus: String(row.stock_status ?? "in-stock"),
+    })),
+    draftProductCount: draftCount ?? 0,
+    firstDraftProductId: firstDraft?.id ? String(firstDraft.id) : null,
+  };
+}
+
+export async function countPendingReviewSubmissions(): Promise<number> {
+  const { count, error } = await db()
+    .from("review_submissions")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending");
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function listAdminProductPickers(): Promise<AdminProductPickerRow[]> {
@@ -330,7 +405,7 @@ export async function createAdminProduct(doc: ProductDocument) {
   const merged = mergeProductForm(undefined, doc);
   const save = canSaveDraft(merged, await assignableCategoryRefs());
   if (!save.ok) return { ok: false as const, error: save.error, status: 400 };
-  if (slugTaken(merged.slug, await allProductSlugs())) {
+  if (await isProductSlugTaken(merged.slug)) {
     return { ok: false as const, error: "That product name is already used.", status: 409 };
   }
   const { data, error } = await db()
@@ -361,6 +436,7 @@ export async function createAdminProduct(doc: ProductDocument) {
     }
     return { ok: false as const, error: error.message, status: 500 };
   }
+  bumpAdminProductsCache();
   void revalidateAfterPublish("/admin/products");
   return { ok: true as const, id: String(data.id) };
 }
@@ -371,7 +447,7 @@ export async function saveAdminProduct(id: string, doc: ProductDocument) {
   const merged = mergeProductForm(editorDocument(current), doc);
   const save = canSaveDraft(merged, await assignableCategoryRefs());
   if (!save.ok) return { ok: false as const, error: save.error, status: 400 };
-  if (slugTaken(merged.slug, await allProductSlugs(), id)) {
+  if (await isProductSlugTaken(merged.slug, id)) {
     return { ok: false as const, error: "That product name is already used.", status: 409 };
   }
   const { error } = await db()
@@ -387,7 +463,8 @@ export async function saveAdminProduct(id: string, doc: ProductDocument) {
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  
+
+  bumpAdminProductsCache();
   void revalidateAfterPublish(`/admin/products/${id}`, "/admin/products");
   return { ok: true as const };
 }
@@ -439,7 +516,7 @@ export async function publishAdminProduct(id: string, doc: ProductDocument) {
   const merged = withGeneratedVariants(mergeProductForm(editorDocument(current), doc));
   const gate = canPublish(merged, await assignableCategoryRefs());
   if (!gate.ok) return { ok: false as const, error: gate.error, status: 400 };
-  if (slugTaken(merged.slug, await allProductSlugs(), id)) {
+  if (await isProductSlugTaken(merged.slug, id)) {
     return { ok: false as const, error: "That product name is already used.", status: 409 };
   }
   const row = toLiveProductRow(merged);
@@ -465,6 +542,7 @@ export async function publishAdminProduct(id: string, doc: ProductDocument) {
     "/admin/products",
     ...(current.slug !== merged.slug ? [`/product/${current.slug}`] : []),
   );
+  bumpAdminProductsCache();
   return { ok: true as const };
 }
 
@@ -484,6 +562,7 @@ export async function unpublishAdminProduct(id: string) {
     `/admin/products/${id}`,
     "/admin/products",
   );
+  bumpAdminProductsCache();
   return { ok: true as const };
 }
 
@@ -493,6 +572,7 @@ export async function discardAdminProductDraft(id: string) {
     .update({ draft: null, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
+  bumpAdminProductsCache();
   void revalidateAfterPublish(`/admin/products/${id}`, "/admin/products");
   return { ok: true as const };
 }
@@ -529,6 +609,7 @@ export async function deleteAdminProduct(id: string) {
     "/api/store/products",
     "/admin/products",
   );
+  bumpAdminProductsCache();
   return { ok: true as const };
 }
 
@@ -545,6 +626,21 @@ type PageDoc = {
   seo?: { title?: string; description?: string; featured?: boolean; homeOrder?: number };
   isDemo?: boolean;
 };
+
+const ADMIN_PAGE_LIST_SELECT =
+  "id, title, slug, page_type, status, draft, seo, updated_at";
+
+/** List pages for admin index screens — no sections/body JSON. */
+export async function listAdminPagesIndex(options?: { pageType?: "static" | "blog" }) {
+  let query = db()
+    .from("pages")
+    .select(ADMIN_PAGE_LIST_SELECT)
+    .order("updated_at", { ascending: false });
+  if (options?.pageType) query = query.eq("page_type", options.pageType);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+}
 
 export async function listAdminPages() {
   const { data, error } = await db().from("pages").select("*").order("updated_at", { ascending: false });

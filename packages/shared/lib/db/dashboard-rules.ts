@@ -1,3 +1,4 @@
+import type { AdminDashboardCatalogMetrics } from "./admin-store";
 import type { AdminOrderDashboardMetrics } from "./admin-order-dashboard-sql";
 
 export const DASHBOARD_TIMEZONE = "Asia/Karachi";
@@ -132,36 +133,24 @@ export function productMatchesStockAttention(stockStatus: string): boolean {
 export function buildDashboardSnapshotWithOrderMetrics(
   orderMetrics: AdminOrderDashboardMetrics,
   input: {
-    products: SnapshotProduct[];
-    reviews: SnapshotReview[];
+    catalog: AdminDashboardCatalogMetrics;
+    pendingReviewCount: number;
   },
 ): DashboardSnapshot {
-  const livePublished = input.products.filter(
-    (p) => !p.isDemo && p.status === "published",
-  );
-  const attention = livePublished.filter((p) =>
-    productMatchesStockAttention(p.stockStatus ?? "in-stock"),
-  );
-  const drafts = input.products.filter((p) => p.status !== "published");
-
   return {
     todayOrderCount: orderMetrics.todayOrderCount,
     todayRevenue: orderMetrics.todayRevenue,
     pendingCount: orderMetrics.pendingCount,
     deliveredTodayCount: orderMetrics.deliveredTodayCount,
     cancelledTodayCount: orderMetrics.cancelledTodayCount,
-    lowStockCount: attention.length,
+    lowStockCount: input.catalog.lowStockCount,
     pendingOrders: orderMetrics.pendingOrders,
     shippedWaitingCount: orderMetrics.shippedWaitingCount,
     shippedStaleOrders: orderMetrics.shippedStaleOrders,
-    lowStockProducts: attention.slice(0, 8).map((p) => ({
-      id: p._id,
-      name: p.name,
-      stockStatus: p.stockStatus ?? "in-stock",
-    })),
-    pendingReviewCount: input.reviews.filter((r) => r.status === "pending").length,
-    draftProductCount: drafts.length,
-    firstDraftProductId: drafts[0]?._id ?? null,
+    lowStockProducts: input.catalog.lowStockProducts,
+    pendingReviewCount: input.pendingReviewCount,
+    draftProductCount: input.catalog.draftProductCount,
+    firstDraftProductId: input.catalog.firstDraftProductId,
     practiceOrderCount: orderMetrics.practiceOrderCount,
     monthRevenue: orderMetrics.monthRevenue,
     monthDeliveredRevenue: orderMetrics.monthDeliveredRevenue,
@@ -173,8 +162,10 @@ export function buildDashboardSnapshotWithOrderMetrics(
 export function buildDashboardSnapshot(
   input: {
     orders: SnapshotOrder[];
-    products: SnapshotProduct[];
-    reviews: SnapshotReview[];
+    products?: SnapshotProduct[];
+    catalog?: AdminDashboardCatalogMetrics;
+    reviews?: SnapshotReview[];
+    pendingReviewCount?: number;
     /** When set, avoids loading demo orders into `orders` just for a count. */
     practiceOrderCount?: number;
   },
@@ -217,11 +208,32 @@ export function buildDashboardSnapshot(
     })
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 
-  const livePublished = input.products.filter((p) => !p.isDemo && p.status === "published");
-  const attention = livePublished.filter((p) =>
-    productMatchesStockAttention(p.stockStatus ?? "in-stock")
-  );
-  const drafts = input.products.filter((p) => p.status !== "published");
+  const catalog =
+    input.catalog ??
+    (() => {
+      const products = input.products ?? [];
+      const livePublished = products.filter(
+        (p) => !p.isDemo && p.status === "published",
+      );
+      const attention = livePublished.filter((p) =>
+        productMatchesStockAttention(p.stockStatus ?? "in-stock"),
+      );
+      const drafts = products.filter((p) => p.status !== "published");
+      return {
+        lowStockCount: attention.length,
+        lowStockProducts: attention.slice(0, 8).map((p) => ({
+          id: p._id,
+          name: p.name,
+          stockStatus: p.stockStatus ?? "in-stock",
+        })),
+        draftProductCount: drafts.length,
+        firstDraftProductId: drafts[0]?._id ?? null,
+      };
+    })();
+
+  const pendingReviewCount =
+    input.pendingReviewCount ??
+    (input.reviews ?? []).filter((r) => r.status === "pending").length;
 
   const shippedStale = live
     .filter((o) => isShippedStale(o, now))
@@ -241,7 +253,7 @@ export function buildDashboardSnapshot(
     cancelledTodayCount: live.filter(
       (o) => o.status === "cancelled" && isOnKarachiDay(o.statusUpdatedAt, now)
     ).length,
-    lowStockCount: attention.length,
+    lowStockCount: catalog.lowStockCount,
     pendingOrders: pending.slice(0, 8).map((o) => ({
       orderId: o.orderId,
       customerName: o.customer?.name ?? "",
@@ -259,14 +271,10 @@ export function buildDashboardSnapshot(
         daysShipped: karachiCalendarDaysSince(since, now) ?? 0,
       };
     }),
-    lowStockProducts: attention.slice(0, 8).map((p) => ({
-      id: p._id,
-      name: p.name,
-      stockStatus: p.stockStatus ?? "in-stock",
-    })),
-    pendingReviewCount: input.reviews.filter((r) => r.status === "pending").length,
-    draftProductCount: drafts.length,
-    firstDraftProductId: drafts[0]?._id ?? null,
+    lowStockProducts: catalog.lowStockProducts,
+    pendingReviewCount,
+    draftProductCount: catalog.draftProductCount,
+    firstDraftProductId: catalog.firstDraftProductId,
     practiceOrderCount,
     monthRevenue,
     monthDeliveredRevenue,
