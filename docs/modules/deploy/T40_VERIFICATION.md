@@ -50,4 +50,6 @@ Expect JSON with `"revalidated": true`.
 
 ## Cron
 
-Daily `/api/flows` runs on **shop** only (`apps/storefront/vercel.json`). Admin project must not define the same cron.
+Daily `/api/flows` runs on **shop** only (`apps/storefront/vercel.json`).
+
+Admin project defines **`GET /api/admin/warm`** (`apps/admin/vercel.json`, daily) — uses the same `CRON_SECRET`; do not duplicate `/api/flows` on admin.

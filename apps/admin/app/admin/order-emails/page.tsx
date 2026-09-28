@@ -1,7 +1,17 @@
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 
-import { OrderEmailsForm } from "@/components/admin/order-emails-form";
 import { editorOrderEmails, getAdminSettings } from "@/lib/db/admin-store";
+
+const OrderEmailsForm = nextDynamic(
+  () =>
+    import("@/components/admin/order-emails-form").then((m) => m.OrderEmailsForm),
+  {
+    loading: () => (
+      <p className="p-6 text-sm text-muted-foreground">Loading order emails…</p>
+    ),
+  },
+);
 
 export const metadata: Metadata = {
   title: "Order emails",

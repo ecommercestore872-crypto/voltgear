@@ -113,6 +113,14 @@ The repo root still contains legacy `app/admin` and `lib/db/admin-store.ts` for 
 5. Run `node scripts/wrap-admin-api-observability.mjs` if you added routes.
 6. `npm run build:admin` before merge.
 
+## Cold start mitigation
+
+- **`GET /api/admin/warm`** — requires `Authorization: Bearer CRON_SECRET` (same secret as shop `/api/flows`).
+- **`apps/admin/vercel.json`** cron: daily `0 7 * * *` UTC (Hobby: once/day; on Pro you can tighten the schedule in the dashboard).
+- Set **`CRON_SECRET`** on the **voltgear-admin** Vercel project (same value as shop is fine).
+
+Staff should use the **admin host directly** when possible (avoid shop → admin proxy double hop).
+
 ## Verification
 
 ```bash

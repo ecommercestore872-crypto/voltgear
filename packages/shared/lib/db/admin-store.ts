@@ -138,7 +138,11 @@ function bumpAdminProductsCache() {
   revalidateAdminCacheTag("admin-products");
 }
 
-const ADMIN_PRODUCT_LIST_EMBED = "id, name, slug, category, price, cost_price, compare_at_price, stock_status, quantity, status, is_demo, updated_at, draft, product_images ( url, sort_order )";
+/** Product grid — thumbnail + metadata; draft JSON loaded separately when needed. */
+const ADMIN_PRODUCT_GRID_SELECT =
+  "id, name, slug, category, price, cost_price, compare_at_price, stock_status, quantity, status, is_demo, updated_at, product_images ( url, sort_order )";
+
+const ADMIN_PRODUCT_LIST_EMBED = `${ADMIN_PRODUCT_GRID_SELECT}, draft`;
 
 /** Dashboard snapshots — no images or draft JSON. */
 const ADMIN_PRODUCT_DASHBOARD_SELECT =
@@ -284,7 +288,7 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
     .filter(Boolean) as AdminProduct[];
 }
 
-const ADMIN_PRODUCT_SEARCH_LIMIT = 500;
+const ADMIN_PRODUCT_SEARCH_LIMIT = 120;
 export const ADMIN_PRODUCTS_PAGE_SIZE = 48;
 
 const STOCK_ATTENTION_STATUSES = ["low-stock", "out-of-stock"] as const;
@@ -303,6 +307,34 @@ export async function countAdminProducts(opts?: {
   return count ?? 0;
 }
 
+async function productIdsWithUnpublishedDraft(ids: string[]): Promise<Set<string>> {
+  const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (!unique.length) return new Set();
+  const { data, error } = await db()
+    .from("products")
+    .select("id")
+    .in("id", unique)
+    .not("draft", "is", null);
+  if (error) throw error;
+  return new Set((data ?? []).map((row) => String(row.id)));
+}
+
+async function finalizeAdminProductGridRows(
+  rows: Record<string, unknown>[],
+): Promise<AdminProduct[]> {
+  const products = rows
+    .map((row) => toAdminProduct(row as Record<string, unknown>))
+    .filter(Boolean) as AdminProduct[];
+  const draftIds = await productIdsWithUnpublishedDraft(
+    products.map((p) => p._id),
+  );
+  return products.map((p) => ({
+    ...p,
+    draft: null,
+    hasUnpublishedDraft: draftIds.has(p._id),
+  }));
+}
+
 export async function listAdminProductsPage(opts: {
   page: number;
   pageSize?: number;
@@ -318,7 +350,7 @@ export async function listAdminProductsPage(opts: {
   const to = from + pageSize - 1;
   let query = db()
     .from("products")
-    .select(ADMIN_PRODUCT_LIST_EMBED)
+    .select(ADMIN_PRODUCT_GRID_SELECT)
     .order("updated_at", { ascending: false })
     .range(from, to);
   if (opts.category) query = query.eq("category", opts.category);
@@ -327,9 +359,7 @@ export async function listAdminProductsPage(opts: {
   }
   const { data, error } = await query;
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => toAdminProduct(row as Record<string, unknown>))
-    .filter(Boolean) as AdminProduct[];
+  return finalizeAdminProductGridRows((data ?? []) as Record<string, unknown>[]);
 }
 
 async function listAdminProductCategoryCountsUncached(): Promise<
@@ -381,14 +411,12 @@ export async function listAdminProductsSearch(term: string): Promise<AdminProduc
   const pattern = `%${cleaned}%`;
   const { data, error } = await db()
     .from("products")
-    .select(ADMIN_PRODUCT_LIST_EMBED)
+    .select(ADMIN_PRODUCT_GRID_SELECT)
     .or(`name.ilike.${pattern},slug.ilike.${pattern},category.ilike.${pattern}`)
     .order("updated_at", { ascending: false })
     .limit(ADMIN_PRODUCT_SEARCH_LIMIT);
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => toAdminProduct(row as Record<string, unknown>))
-    .filter(Boolean) as AdminProduct[];
+  return finalizeAdminProductGridRows((data ?? []) as Record<string, unknown>[]);
 }
 
 export async function getAdminProduct(id: string): Promise<AdminProduct | null> {

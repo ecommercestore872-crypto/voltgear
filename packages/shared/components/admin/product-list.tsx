@@ -36,21 +36,30 @@ function adminProductsHref(opts: {
   return qs ? `/admin/products?${qs}` : "/admin/products";
 }
 
-function ProductStatusBadge({ status, draft }: { status: string; draft: any }) {
+function ProductStatusBadge({
+  status,
+  draft,
+  hasUnpublishedDraft,
+}: {
+  status: string;
+  draft: unknown;
+  hasUnpublishedDraft?: boolean;
+}) {
+  const pendingChanges = Boolean(draft) || Boolean(hasUnpublishedDraft);
   if (status === "published" || status === "active") {
     return (
       <div className="flex items-center gap-1.5">
         <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30">
           Published
         </span>
-        {draft ? (
+        {pendingChanges ? (
           <span className="text-[10px] uppercase font-bold text-amber-500/80 tracking-widest" title="Has unpublished changes">*Draft</span>
         ) : null}
       </div>
     );
   }
   
-  if (status === "draft" || draft) {
+  if (status === "draft" || pendingChanges) {
     return (
       <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest shadow-sm bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500/30">
         Draft
@@ -127,7 +136,11 @@ function ProductRows({
               </div>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <ProductStatusBadge status={p.status} draft={p.draft} />
+              <ProductStatusBadge
+                status={p.status}
+                draft={p.draft}
+                hasUnpublishedDraft={p.hasUnpublishedDraft}
+              />
               <StockBadge stock={p.stockStatus} />
             </div>
           </Link>
@@ -175,7 +188,11 @@ function ProductRows({
                   </Link>
                 </td>
                 <td className="px-4 py-3 align-middle">
-                  <ProductStatusBadge status={p.status} draft={p.draft} />
+                  <ProductStatusBadge
+                status={p.status}
+                draft={p.draft}
+                hasUnpublishedDraft={p.hasUnpublishedDraft}
+              />
                 </td>
                 <td className="px-4 py-3 align-middle">
                   <StockBadge stock={p.stockStatus} />

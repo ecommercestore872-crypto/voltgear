@@ -89,7 +89,7 @@ Do **not** set `ADMIN_API_LOG_ALL=1` in production unless debugging (extra log v
 ## Deploy checklist
 
 1. Push `main` → Git builds **voltgear** + **voltgear-admin** (or CLI prod deploy both).
-2. Env: shop `ADMIN_PROXY_UPSTREAM`, admin `NEXT_PUBLIC_ADMIN_ASSET_ORIGIN`, shared Supabase keys.
+2. Env: shop `ADMIN_PROXY_UPSTREAM`, admin `NEXT_PUBLIC_ADMIN_ASSET_ORIGIN`, shared Supabase keys; **`CRON_SECRET` on admin** for `/api/admin/warm`.
 3. Smoke: `ADMIN_SAME_ORIGIN=1 npm run smoke:t40`
 4. Watch Vercel for `admin_api` / `admin_supabase_slow` after traffic.
 

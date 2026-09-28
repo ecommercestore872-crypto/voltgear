@@ -181,7 +181,7 @@ export function SettingsForm({
     }
     setLoadingProducts(true);
     void adminFetch(
-      `/api/admin/products?category=${encodeURIComponent(selectedCategory)}&pageSize=100`,
+      `/api/admin/products?category=${encodeURIComponent(selectedCategory)}&pageSize=48`,
     )
       .then((json: { products?: FeaturedProductOption[] }) => {
         const list = json.products ?? [];

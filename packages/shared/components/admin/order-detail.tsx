@@ -1,12 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Printer, Truck } from "lucide-react";
 
 import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
+import { StatusBadge } from "@/components/admin/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,10 +20,12 @@ import {
 } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
-import { StatusBadge } from "@/components/admin/status-badge";
-import { PostExChitModal } from "@/components/admin/postex-chit-modal";
-import { Badge } from "@/components/ui/badge";
-import { Printer, Truck } from "lucide-react";
+
+const PostExChitModal = dynamic(
+  () =>
+    import("@/components/admin/postex-chit-modal").then((m) => m.PostExChitModal),
+  { ssr: false },
+);
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   new: "New",

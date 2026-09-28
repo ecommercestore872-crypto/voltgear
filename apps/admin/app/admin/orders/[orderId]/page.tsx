@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 
-import { OrderDetail } from "@/components/admin/order-detail";
 import { getOrderById } from "@/lib/order-store";
+
+const OrderDetail = nextDynamic(
+  () => import("@/components/admin/order-detail").then((m) => m.OrderDetail),
+  {
+    loading: () => (
+      <p className="p-6 text-sm text-muted-foreground">Loading order…</p>
+    ),
+  },
+);
 
 export const metadata: Metadata = {
   title: "Order",

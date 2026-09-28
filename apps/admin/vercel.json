@@ -3,5 +3,11 @@
   "framework": "nextjs",
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w @voltgear/admin",
-  "regions": ["syd1"]
+  "regions": ["syd1"],
+  "crons": [
+    {
+      "path": "/api/admin/warm",
+      "schedule": "0 7 * * *"
+    }
+  ]
 }
