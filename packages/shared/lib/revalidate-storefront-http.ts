@@ -12,10 +12,12 @@ export async function postStorefrontRevalidate(
   storefrontUrl: string,
   bearerToken: string,
   paths: RevalidatePathEntry[],
+  tags: string[] = [],
   fetchFn: typeof fetch = fetch,
 ): Promise<RevalidateHttpResult> {
   const base = storefrontUrl.replace(/\/$/, "");
-  if (paths.length === 0) return { ok: true };
+  const cleanTags = tags.map((t) => t.trim()).filter(Boolean);
+  if (paths.length === 0 && cleanTags.length === 0) return { ok: true };
 
   let res: Response;
   try {
@@ -25,7 +27,7 @@ export async function postStorefrontRevalidate(
         Authorization: `Bearer ${bearerToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ paths }),
+      body: JSON.stringify({ paths, tags: cleanTags }),
     });
   } catch (err) {
     return {

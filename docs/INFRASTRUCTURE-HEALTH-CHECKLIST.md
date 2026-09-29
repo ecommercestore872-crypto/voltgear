@@ -159,6 +159,8 @@ Watch: falling hit rate, rising DB reads, revalidate storms, stale prices (check
 
 Shop ISR TTLs: `packages/shared/lib/storefront-cache.ts` (`STOREFRONT_CATALOG_REVALIDATE`, etc.).
 
+**Admin → shop sync (monthly smoke):** On **voltgear-admin**, confirm `STOREFRONT_URL=https://buyntryy.com` and matching admin bearer token. Save a category cover image → homepage circle updates within ~1 minute. Vercel admin logs should show `[storefront-revalidate]` with `"ok":true`. See `docs/modules/admin/ADMIN_ARCHITECTURE.md` (merchandising cache tags).
+
 ---
 
 ## 9. Backups & DR

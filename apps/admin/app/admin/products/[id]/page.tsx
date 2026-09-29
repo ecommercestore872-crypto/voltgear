@@ -9,9 +9,11 @@ const ProductForm = nextDynamic(
     })),
   { loading: () => <p className="text-sm text-muted-foreground p-6">Loading editor…</p> },
 );
-import { getAdminProduct, listAdminShopTypes } from "@/lib/db/admin-store";
-import { membershipIdsForProduct } from "@/lib/db/collection-rules";
-import { listAdminCollections } from "@/lib/db/collection-store";
+import { getAdminProductForEditor, listAdminShopTypes } from "@/lib/db/admin-store";
+import {
+  listAdminCollectionPickers,
+  listManualCollectionIdsForProduct,
+} from "@/lib/db/collection-store";
 
 export const metadata: Metadata = {
   title: "Edit product",
@@ -25,26 +27,19 @@ export default async function EditProductPage({
 }: {
   params: { id: string };
 }) {
-  const [product, shopTypes, collections] = await Promise.all([
-    getAdminProduct(params.id),
+  const [product, shopTypes, collections, collectionIds] = await Promise.all([
+    getAdminProductForEditor(params.id),
     listAdminShopTypes().catch(() => []),
-    listAdminCollections().catch(() => []),
+    listAdminCollectionPickers().catch(() => []),
+    listManualCollectionIdsForProduct(params.id).catch(() => []),
   ]);
   if (!product) notFound();
-  const picker = collections.map((c) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    mode: c.mode,
-    autoRule: c.autoRule,
-    homeSlot: c.homeSlot,
-  }));
   return (
     <ProductForm
       product={product}
       shopTypes={shopTypes}
-      collections={picker}
-      collectionIds={membershipIdsForProduct(collections, product._id)}
+      collections={collections}
+      collectionIds={collectionIds}
     />
   );
 }

@@ -5,7 +5,7 @@ import { isAdminRequest } from "@/lib/admin";
 import {
   deleteAdminProduct,
   discardAdminProductDraft,
-  getAdminProduct,
+  getAdminProductForEditor,
   publishAdminProduct,
   saveAdminProduct,
   unpublishAdminProduct,
@@ -21,7 +21,7 @@ async function GETHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const product = await getAdminProduct(params.id);
+  const product = await getAdminProductForEditor(params.id);
   if (!product)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   return NextResponse.json({ product });

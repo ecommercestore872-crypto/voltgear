@@ -92,13 +92,32 @@ Do **not** duplicate business logic in API routes; do **not** load `select("*")`
 
 ## Caching tags
 
+### Admin app (`unstable_cache` on admin host)
+
 | Tag | Used for | Invalidate on |
 |-----|----------|----------------|
 | `admin-settings` | Settings reads | Settings writes |
 | `admin-shop-types` | Categories list | Category CRUD |
 | `admin-products` | Category product counts | Product CRUD, shop type bump |
 
-Writes that affect the shop call `revalidateAfterPublish(...)` with path batching (single HTTP to storefront when configured).
+### Shop app (storefront data — bust from admin via `/api/revalidate`)
+
+All merchandising writes should call **`revalidateShopMerchandising(...paths)`** once. That POSTs shop paths **and** these tags in a **single** request when `STOREFRONT_URL` is set:
+
+| Tag | Data |
+|-----|------|
+| `storefront-shop-types` | Category names, slugs, **cover images**, active flag |
+| `storefront-homepage-catalog` | Homepage product pool |
+| `storefront-home-slots` | Bestsellers / featured / offers rails |
+| `storefront-catalog-grid` | PLP grids, category pages, related products |
+| `storefront-extra-rails` | Extra collection carousels |
+| `storefront-site-settings` | Layout, home sections, featured override |
+| `storefront-hero-slides` | Hero carousel |
+| `storefront-testimonials` | Reviews strip |
+
+**Required env on voltgear-admin:** `STOREFRONT_URL=https://buyntryy.com` (same `ADMIN_TOKEN` as shop revalidate bearer). Without it, admin only revalidates its own host — **shoppers can stay stale up to ISR TTL (~5 min).**
+
+Observability: search Vercel logs for `[storefront-revalidate]` after saves.
 
 ## Duplicate code note
 

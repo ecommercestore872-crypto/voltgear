@@ -1,4 +1,4 @@
-import { revalidateAfterPublish } from "@/lib/revalidate-storefront";
+import { revalidateShopMerchandising } from "@/lib/revalidate-storefront";
 
 import { mapProduct } from "@/lib/db/map";
 import { slugify } from "@/lib/db/publish";
@@ -204,7 +204,7 @@ export async function createAdminHomepageSection(doc: HomepageSectionDoc) {
     await db().from("homepage_section_products").insert(rows);
   }
 
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const, id: sectionId };
 }
 
@@ -251,14 +251,14 @@ export async function saveAdminHomepageSection(id: string, doc: HomepageSectionD
     await db().from("homepage_section_products").insert(rows);
   }
 
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 
 export async function deleteAdminHomepageSection(id: string) {
   const { error } = await db().from("homepage_sections").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 
@@ -274,7 +274,7 @@ export async function reorderAdminHomepageSections(orderedIds: string[]) {
       .eq("id", orderedIds[i]);
   }
 
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 

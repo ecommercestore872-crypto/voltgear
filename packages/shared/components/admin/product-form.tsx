@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
@@ -7,7 +8,10 @@ import { useMemo, useRef, useState } from "react";
 import { StringArrayInput } from "@/components/admin/string-array-input";
 import { ObjectArrayInput } from "@/components/admin/object-array-input";
 
-import { MediaField } from "@/components/admin/media-field";
+const MediaField = dynamic(
+  () => import("@/components/admin/media-field").then((m) => m.MediaField),
+  { ssr: false },
+);
 import { PublishBar } from "@/components/admin/publish-bar";
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
@@ -21,7 +25,11 @@ import type { ShopType } from "@/lib/categories";
 import { PRODUCT_PHOTO_HINT } from "@/lib/product-image";
 import type { AdminProduct } from "@/lib/db/admin-types";
 import { ProductCollectionsFields } from "@/components/admin/product-collections-fields";
-import { VariantAxesFields } from "@/components/admin/variant-axes-fields";
+const VariantAxesFields = dynamic(
+  () =>
+    import("@/components/admin/variant-axes-fields").then((m) => m.VariantAxesFields),
+  { ssr: false },
+);
 import type { CollectionPickerItem } from "@/lib/db/collection-rules";
 import {
   portableTextToPlain,
@@ -231,7 +239,6 @@ export function ProductForm({
       } else {
         commitSavedBaseline(latestPayload);
       }
-      router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) {
         router.replace("/admin/login");

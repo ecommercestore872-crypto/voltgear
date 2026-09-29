@@ -1,5 +1,3 @@
-import { categoryImageUrl } from "@/lib/site-static-image";
-
 export function isGadgetPreviewPath(pathname: string): boolean {
   return (
     pathname === "/" ||
@@ -136,11 +134,12 @@ export function collectionHref(slug: string): string {
 
 export function gadgetShopTypeLinks(
   types: { name: string; slug: string; imageUrl?: string }[]
-): { label: string; href: string; imageUrl?: string }[] {
+): { label: string; href: string; slug: string; imageUrl?: string }[] {
   return types.map((t) => ({
     label: t.name,
     href: products2Href(t.slug),
-    imageUrl: categoryImageUrl(t.imageUrl, 256),
+    slug: t.slug,
+    imageUrl: t.imageUrl,
   }));
 }
 

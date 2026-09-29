@@ -4,6 +4,8 @@ import {
   revalidateAdminCacheTag,
   revalidateAfterPublish,
   revalidateAfterPublishLayout,
+  revalidateShopMerchandising,
+  revalidateShopMerchandisingLayout,
 } from "@/lib/revalidate-storefront";
 
 const ADMIN_SETTINGS_CACHE_TAG = "admin-settings";
@@ -50,10 +52,13 @@ import { SHOPPER_BRAND, shouldReplaceBrandName } from "@/lib/brand";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { Product, SiteSettings } from "@/lib/types";
 
-const PRODUCT_EMBED = `
+const PRODUCT_EDITOR_EMBED = `
   *,
   product_images ( url, sort_order, source ),
-  product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default ),
+  product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )
+`;
+
+const PRODUCT_EMBED = `${PRODUCT_EDITOR_EMBED},
   product_reviews ( name, rating, review_date, comment, verified, image, is_demo )
 `;
 
@@ -429,6 +434,28 @@ export async function getAdminProduct(id: string): Promise<AdminProduct | null> 
   return toAdminProduct(data as Record<string, unknown> | null);
 }
 
+/** Admin product editor — skips review rows (reviews live in draft JSON). */
+export async function getAdminProductForEditor(id: string): Promise<AdminProduct | null> {
+  const { data, error } = await db()
+    .from("products")
+    .select(PRODUCT_EDITOR_EMBED)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return toAdminProduct(data as Record<string, unknown> | null);
+}
+
+async function getAdminProductForDraftSave(id: string): Promise<AdminProduct | null> {
+  const { data, error } = await db().from("products").select("*").eq("id", id).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const row = data as Record<string, unknown>;
+  if (row.draft && typeof row.draft === "object") {
+    return toAdminProduct(row);
+  }
+  return getAdminProduct(id);
+}
+
 export async function createAdminProduct(doc: ProductDocument) {
   const merged = mergeProductForm(undefined, doc);
   const save = canSaveDraft(merged, await assignableCategoryRefs());
@@ -470,7 +497,7 @@ export async function createAdminProduct(doc: ProductDocument) {
 }
 
 export async function saveAdminProduct(id: string, doc: ProductDocument) {
-  const current = await getAdminProduct(id);
+  const current = await getAdminProductForDraftSave(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
   const merged = mergeProductForm(editorDocument(current), doc);
   const save = canSaveDraft(merged, await assignableCategoryRefs());
@@ -559,7 +586,7 @@ export async function publishAdminProduct(id: string, doc: ProductDocument) {
       status: 500,
     };
   }
-  void revalidateAfterPublish(
+  void revalidateShopMerchandising(
     "/",
     "/products",
     ...extraCategoryPathsToRevalidate(current.category, merged.category),
@@ -582,7 +609,7 @@ export async function unpublishAdminProduct(id: string) {
     .update({ status: "unpublished", updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish(
+  void revalidateShopMerchandising(
     "/",
     "/products",
     `/product/${current.slug}`,
@@ -630,7 +657,7 @@ export async function deleteAdminProduct(id: string) {
     await client.storage.from("product-images").remove(Array.from(storageImages));
   }
 
-  void revalidateAfterPublish(
+  void revalidateShopMerchandising(
     "/",
     "/products",
     `/product/${current.slug}`,
@@ -816,14 +843,14 @@ export async function publishAdminHero(doc: Record<string, unknown>) {
   }
 
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 
 export async function unpublishAdminHero() {
   const { error } = await db().from("hero_sections").update({ status: "unpublished" }).eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 
@@ -924,7 +951,7 @@ export async function createAdminHeroSlide(doc: HeroSlideDoc) {
     .single();
   if (error) return { ok: false as const, error: error.message, status: 500 };
   void count;
-  void revalidateAfterPublish("/", "/admin/hero");
+  void revalidateShopMerchandising("/", "/admin/hero");
   return { ok: true as const, id: data.id as string, slide: data };
 }
 
@@ -944,7 +971,7 @@ export async function updateAdminHeroSlide(id: string, doc: HeroSlideDoc) {
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/", "/admin/hero");
+  void revalidateShopMerchandising("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -980,7 +1007,7 @@ export async function publishAdminHeroSlide(id: string, doc?: HeroSlideDoc) {
     .update({ status: "published", updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/", "/admin/hero");
+  void revalidateShopMerchandising("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -990,14 +1017,14 @@ export async function unpublishAdminHeroSlide(id: string) {
     .update({ status: "draft", updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/", "/admin/hero");
+  void revalidateShopMerchandising("/", "/admin/hero");
   return { ok: true as const };
 }
 
 export async function deleteAdminHeroSlide(id: string) {
   const { error } = await db().from("hero_slides").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/", "/admin/hero");
+  void revalidateShopMerchandising("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -1009,7 +1036,7 @@ export async function reorderAdminHeroSlides(orderedIds: string[]) {
       .eq("id", orderedIds[i]);
     if (error) return { ok: false as const, error: error.message, status: 500 };
   }
-  void revalidateAfterPublish("/", "/admin/hero");
+  void revalidateShopMerchandising("/", "/admin/hero");
   return { ok: true as const };
 }
 
@@ -1158,7 +1185,7 @@ export async function publishAdminSettings(doc: Record<string, unknown>) {
     const { error } = await db().from("site_settings").upsert(payload, { onConflict: "id" });
     if (!error) {
       bumpAdminSettingsCache();
-      void revalidateAfterPublishLayout("/");
+      void revalidateShopMerchandisingLayout("/");
       return { ok: true as const };
     }
     const missing = missingSchemaColumn(error);
@@ -1419,7 +1446,7 @@ export async function saveAdminHomeSections(sections: HomeSectionEntry[]) {
     .eq("id", 1);
   if (error) return { ok: false as const, error: error.message, status: 500 };
   bumpAdminSettingsCache();
-  void revalidateAfterPublish("/", "/admin/home");
+  void revalidateShopMerchandising("/", "/admin/home");
   return { ok: true as const, sections: normalized };
 }
 
@@ -1443,8 +1470,7 @@ export async function saveAdminLifestyleShop(raw: unknown) {
     const { error } = await db().from("site_settings").update(payload).eq("id", 1);
     if (!error) {
       bumpAdminSettingsCache();
-      void revalidateAfterPublish("/");
-      void revalidateAfterPublish("/admin/home");
+      void revalidateShopMerchandising("/", "/admin/home");
       return { ok: true as const, shop, sections };
     }
     const missing = missingSchemaColumn(error);
@@ -1537,14 +1563,14 @@ export async function publishAdminTestimonial(id: string, doc: TestimonialDoc) {
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 
 export async function unpublishAdminTestimonial(id: string) {
   const { error } = await db().from("testimonials").update({ status: "unpublished" }).eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 
@@ -1557,7 +1583,7 @@ export async function discardAdminTestimonialDraft(id: string) {
 export async function deleteAdminTestimonial(id: string) {
   const { error } = await db().from("testimonials").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/");
+  void revalidateShopMerchandising("/");
   return { ok: true as const };
 }
 
@@ -1677,7 +1703,7 @@ export async function purgeDemoData(): Promise<DemoPurgeResult> {
     pages: await deleteDemoRows("pages"),
     products: await deleteDemoRows("products"),
   };
-  void revalidateAfterPublish(
+  void revalidateShopMerchandising(
     "/",
     "/products",
     "/search",
@@ -1697,7 +1723,7 @@ export async function purgeDemoData(): Promise<DemoPurgeResult> {
 }
 
 function revalidateShopTypePaths(slug?: string) {
-  void revalidateAfterPublish(
+  void revalidateShopMerchandising(
     "/",
     "/products",
     "/search",
@@ -1743,7 +1769,8 @@ async function allShopTypeSlugs() {
 
 async function assignableCategoryRefs(): Promise<{ slug: string }[]> {
   try {
-    return await allShopTypeSlugs();
+    const types = await listAdminShopTypes();
+    return types.map((t) => ({ slug: t.slug }));
   } catch (err) {
     const code = err && typeof err === "object" && "code" in err ? String((err as { code: unknown }).code) : "";
     if (code === "42P01") return [];
@@ -1868,12 +1895,16 @@ export async function saveAdminShopType(
   const name = doc.name?.trim() ?? "";
   const gate = canSaveShopType({ name, slug: current.slug });
   if (!gate.ok) return { ok: false as const, error: gate.error, status: 400 };
+  const nextImageUrl =
+    doc.imageUrl !== undefined
+      ? doc.imageUrl?.trim() || null
+      : current.imageUrl?.trim() || null;
   const { error } = await db()
     .from("categories")
     .update({
       name,
       description: doc.description?.trim() || null,
-      image_url: doc.imageUrl?.trim() || null,
+      image_url: nextImageUrl,
       sort_order:
         doc.sortOrder != null && Number.isFinite(Number(doc.sortOrder))
           ? Number(doc.sortOrder)

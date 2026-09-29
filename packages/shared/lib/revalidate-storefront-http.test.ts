@@ -18,6 +18,7 @@ describe("postStorefrontRevalidate", () => {
       "https://shop.example.com",
       "test-admin-token",
       [{ path: "/" }, { path: "/products" }],
+      [],
       fetchFn,
     );
 
@@ -29,6 +30,29 @@ describe("postStorefrontRevalidate", () => {
     );
     assert.deepStrictEqual(JSON.parse(String(capturedInit?.body)), {
       paths: [{ path: "/" }, { path: "/products" }],
+      tags: [],
+    });
+  });
+
+  test("POSTs tags without paths for data-cache bust", async () => {
+    let body = "";
+    const fetchFn = mock.fn(async (_input, init) => {
+      body = String(init?.body);
+      return new Response(JSON.stringify({ revalidated: true }), { status: 200 });
+    }) as typeof fetch;
+
+    const result = await postStorefrontRevalidate(
+      "https://shop.example.com",
+      "token",
+      [],
+      ["storefront-shop-types", "storefront-homepage-catalog"],
+      fetchFn,
+    );
+
+    assert.strictEqual(result.ok, true);
+    assert.deepStrictEqual(JSON.parse(body), {
+      paths: [],
+      tags: ["storefront-shop-types", "storefront-homepage-catalog"],
     });
   });
 
@@ -39,6 +63,7 @@ describe("postStorefrontRevalidate", () => {
       "https://shop.example.com",
       "token",
       [{ path: "/products" }],
+      [],
       fetchFn,
     );
 

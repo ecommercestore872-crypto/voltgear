@@ -14,7 +14,7 @@ import type { Product } from "@/lib/types";
 export type CategoryIconTile = {
   label: string;
   href: string;
-  product: Product;
+  product?: Product;
   imageUrl?: string;
 };
 
@@ -31,10 +31,11 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
     key: `p-${t.href}`,
     label: t.label,
     href: t.href,
-    image:
-      categoryImageUrl(t.imageUrl, 256) ||
-      gadgetImageSrc(t.product, PRODUCT_IMAGE.card) ||
-      undefined,
+    image: t.imageUrl?.trim()
+      ? categoryImageUrl(t.imageUrl, 256)
+      : t.product
+        ? gadgetImageSrc(t.product, PRODUCT_IMAGE.card)
+        : undefined,
   }));
 
   return fromProducts;
@@ -169,12 +170,12 @@ export function GadgetShopCategories({
             >
               {/* Circle Avatar Stage */}
               <div
-                className={`relative flex h-[5.5rem] w-[5.5rem] items-center justify-center overflow-hidden rounded-full shadow-md ring-2 ring-white/70 transition duration-300 group-hover:scale-105 group-hover:shadow-xl sm:h-28 sm:w-28 ${
+                className={`relative flex h-[5.75rem] w-[5.75rem] items-center justify-center overflow-hidden rounded-full bg-[var(--g-cream)] shadow-md ring-[3px] transition duration-300 group-hover:scale-105 group-hover:shadow-lg sm:h-28 sm:w-28 ${
                   [
-                    "bg-[var(--g-forest)]",
-                    "bg-[var(--g-sage)]",
-                    "bg-[color-mix(in_srgb,var(--g-gold)_75%,var(--g-forest))]",
-                    "bg-[var(--g-terracotta)]",
+                    "ring-[var(--g-forest)]",
+                    "ring-[var(--g-sage)]",
+                    "ring-[color-mix(in_srgb,var(--g-gold)_80%,var(--g-forest))]",
+                    "ring-[var(--g-terracotta)]",
                   ][idx % 4]
                 }`}
               >
@@ -183,9 +184,9 @@ export function GadgetShopCategories({
                     src={tile.image}
                     alt=""
                     fill
-                    quality={70}
-                    sizes="(max-width: 640px) 88px, 112px"
-                    className="object-cover transition duration-300 group-hover:scale-110"
+                    quality={90}
+                    sizes="(max-width: 640px) 96px, 128px"
+                    className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.04]"
                   />
                 ) : tile.glyph ? (
                   <CategoryGlyph

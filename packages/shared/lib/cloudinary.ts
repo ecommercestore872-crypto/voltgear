@@ -90,7 +90,7 @@ export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
   }
   if (src.startsWith("/") && !src.startsWith("//")) {
     // Blog covers live in /public/blog as pre-optimized WebP — do not proxy via fetch.
-    if (src.startsWith("/blog/")) {
+    if (src.startsWith("/blog/") || src.startsWith("/categories/")) {
       return src;
     }
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;

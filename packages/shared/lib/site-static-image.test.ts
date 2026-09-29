@@ -7,7 +7,7 @@ describe("siteStaticImageUrl", () => {
   it("returns local path when Cloudinary is not configured", () => {
     const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     delete process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    assert.equal(siteStaticImageUrl("/categories/charger.png", { w: 256 }), "/categories/charger.png");
+    assert.equal(siteStaticImageUrl("/categories/charger.webp", { w: 256 }), "/categories/charger.webp");
     if (prev) process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prev;
   });
 });

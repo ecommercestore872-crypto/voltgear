@@ -84,7 +84,7 @@ export default async function Products2CategoryPage({
   }
 
   const shop = findShopType(shopTypes, params.category);
-  if (!shop && !products.some((p) => p.category === params.category)) {
+  if (!shop) {
     notFound();
   }
 

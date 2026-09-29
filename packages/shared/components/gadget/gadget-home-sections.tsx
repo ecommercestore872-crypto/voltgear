@@ -33,6 +33,10 @@ import {
 import { normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import type { Page, Product, Testimonial } from "@/lib/types";
+import {
+  filterProductsToActiveCategories,
+  slugSetFromShopTypeLinks,
+} from "@/lib/home-active-categories";
 import { formatPrice } from "@/lib/utils";
 
 const GadgetReviewsSlider = dynamic(
@@ -158,21 +162,35 @@ export async function GadgetHomeSections() {
     products = [];
   }
 
+  const activeCategorySlugs = slugSetFromShopTypeLinks(shopTypes);
+  const keepActiveCategory = (list: Product[]) =>
+    filterProductsToActiveCategories(list, activeCategorySlugs);
+  products = keepActiveCategory(products);
+  if (slotBestsellers) slotBestsellers = keepActiveCategory(slotBestsellers);
+  if (slotFeatured) slotFeatured = keepActiveCategory(slotFeatured);
+  if (slotOffers) slotOffers = keepActiveCategory(slotOffers);
+  extraRails = extraRails.map((rail) => ({
+    ...rail,
+    products: keepActiveCategory(rail.products),
+  }));
+
   const config = normalizeSettings(settings);
   const threshold = Number(config.freeShippingThreshold ?? 0);
 
   const categoryCards = shopTypes
     .map((cat) => {
-      const slug = cat.href.split("/").pop() as string;
+      const slug = cat.slug ?? (cat.href.split("/").pop() as string);
       const candidates = products.filter((p) => p.category === slug);
       const rep =
         candidates.find(
           (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p),
-        ) ?? null;
-      return rep ? { ...cat, product: rep } : null;
+        ) ?? undefined;
+      if (!rep && !cat.imageUrl) return null;
+      return { ...cat, product: rep };
     })
-    .filter((c): c is { label: string; href: string; product: Product } =>
-      Boolean(c),
+    .filter(
+      (c): c is { label: string; href: string; slug: string; imageUrl?: string; product?: Product } =>
+        Boolean(c),
     );
 
   const trust = [

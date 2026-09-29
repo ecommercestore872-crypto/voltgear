@@ -56,18 +56,16 @@ describe("cloudinaryImageUrl", () => {
     }
   });
 
-  it("cloudinaryLoader fetches first-party static assets through Cloudinary", () => {
+  it("cloudinaryLoader serves category cutouts from origin (no fetch)", () => {
     const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";
     try {
       const out = cloudinaryLoader({
-        src: "/categories/charger.png",
+        src: "/categories/charger.webp",
         width: 256,
         quality: 70,
       });
-      assert.match(out, /res\.cloudinary\.com\/demo/);
-      assert.match(out, /w_256/);
-      assert.match(out, /charger\.png/);
+      assert.equal(out, "/categories/charger.webp");
     } finally {
       if (prev === undefined) delete process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
       else process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prev;

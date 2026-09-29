@@ -1,5 +1,5 @@
 import { withShopApiObservability } from "@/lib/shop-api-observability";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { isAdminRequest } from "@/lib/admin";
 import { submitIndexNow } from "@/lib/indexnow-rules";
@@ -62,6 +62,14 @@ async function POSTHandler(request: Request) {
     for (const { path, type } of entries) revalidatePath(path, type);
     const paths = entries.map((e) => e.path);
 
+    const tags: string[] = [];
+    if (Array.isArray(body?.tags)) {
+      for (const raw of body.tags) {
+        if (typeof raw === "string" && raw.trim()) tags.push(raw.trim());
+      }
+    }
+    for (const tag of tags) revalidateTag(tag);
+
     const indexNow = await submitIndexNow({
       siteUrl: indexSiteUrl(),
       urls: paths,
@@ -70,6 +78,7 @@ async function POSTHandler(request: Request) {
     return Response.json({
       revalidated: true,
       paths,
+      tags,
       indexNow,
       now: Date.now(),
     });

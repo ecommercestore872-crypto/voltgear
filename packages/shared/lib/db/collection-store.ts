@@ -1,6 +1,11 @@
 import { unstable_cache } from "next/cache";
 
-import { revalidateAfterPublish } from "@/lib/revalidate-storefront";
+import {
+  STOREFRONT_EXTRA_RAILS_CACHE_TAG,
+  STOREFRONT_HOME_SLOTS_CACHE_TAG,
+} from "@/lib/storefront-cache";
+
+import { revalidateShopMerchandising } from "@/lib/revalidate-storefront";
 
 import {
   canAssignProductToCollection,
@@ -14,6 +19,7 @@ import {
   type CollectionAutoRule,
   type CollectionHomeSlot,
   type CollectionMode,
+  type CollectionPickerItem,
 } from "@/lib/db/collection-rules";
 import {
   orderProductsByIds,
@@ -103,6 +109,51 @@ export async function fetchSitemapCollections(): Promise<
         : undefined,
     }))
     .filter((row) => row.slug);
+}
+
+/** Product editor — metadata only (no collection_products scan). */
+export async function listAdminCollectionPickers(): Promise<CollectionPickerItem[]> {
+  await ensureGeneratedHomeCollections();
+  const { data, error } = await adminDb()
+    .from("collections")
+    .select("id, name, slug, mode, auto_rule, home_slot, sort_order, active")
+    .eq("active", true)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String((row as { id: string }).id),
+    name: String((row as { name?: string }).name ?? ""),
+    slug: String((row as { slug?: string }).slug ?? ""),
+    mode: (row as { mode?: string }).mode === "auto" ? "auto" : "manual",
+    autoRule:
+      (row as { auto_rule?: string }).auto_rule === "featured" ||
+      (row as { auto_rule?: string }).auto_rule === "bestsellers"
+        ? ((row as { auto_rule: "featured" | "bestsellers" }).auto_rule)
+        : null,
+    homeSlot: parseHomeSlot((row as { home_slot?: unknown }).home_slot),
+  }));
+}
+
+/** Manual collection memberships for one product (product editor). */
+export async function listManualCollectionIdsForProduct(
+  productId: string,
+): Promise<string[]> {
+  const { data: links, error: linkErr } = await adminDb()
+    .from("collection_products")
+    .select("collection_id")
+    .eq("product_id", productId);
+  if (linkErr) throw linkErr;
+  const ids = [...new Set((links ?? []).map((r) => String((r as { collection_id: string }).collection_id)))];
+  if (!ids.length) return [];
+  const { data: cols, error: colErr } = await adminDb()
+    .from("collections")
+    .select("id, mode")
+    .in("id", ids);
+  if (colErr) throw colErr;
+  return (cols ?? [])
+    .filter((c) => (c as { mode?: string }).mode === "manual")
+    .map((c) => String((c as { id: string }).id));
 }
 
 export async function listAdminCollections(): Promise<AdminCollection[]> {
@@ -221,7 +272,7 @@ export async function createAdminCollection(input: {
   if (mode === "manual" && input.productIds?.length) {
     await replaceCollectionProducts(id, input.productIds);
   }
-  void revalidateAfterPublish(
+  void revalidateShopMerchandising(
     "/admin/collections",
     "/",
     "/admin/home",
@@ -294,7 +345,7 @@ export async function updateAdminCollection(
     await replaceCollectionProducts(id, input.productIds);
   }
 
-  void revalidateAfterPublish(
+  void revalidateShopMerchandising(
     "/admin/collections",
     `/admin/collections/${id}`,
     "/",
@@ -316,7 +367,7 @@ async function clearHomeSlot(slot: CollectionHomeSlot, exceptId?: string) {
 export async function deleteAdminCollection(id: string) {
   const { error } = await adminDb().from("collections").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateAfterPublish("/admin/collections");
+  void revalidateShopMerchandising("/admin/collections", "/", "/products");
   return { ok: true as const };
 }
 
@@ -511,7 +562,7 @@ const loadHomeSlotProductsBundle = unstable_cache(
     return result;
   },
   ["fetchProductsForHomeSlots"],
-  { revalidate: 60 },
+  { revalidate: 60, tags: [STOREFRONT_HOME_SLOTS_CACHE_TAG] },
 );
 
 /** All reserved home-slot rails in one cached bundle (one product IN query). */
@@ -583,7 +634,7 @@ export const fetchExtraCollectionRails = unstable_cache(
     return rails;
   },
   ["fetchExtraCollectionRails"],
-  { revalidate: 60 }
+  { revalidate: 60, tags: [STOREFRONT_EXTRA_RAILS_CACHE_TAG] },
 );
 
 export async function getStorefrontCollectionBySlug(
@@ -674,6 +725,6 @@ export async function setProductCollections(
       publishPaths.push(`/admin/collections/${c.id}`, `/collections/${c.slug}`);
     }
   }
-  void revalidateAfterPublish(...publishPaths);
+  void revalidateShopMerchandising(...publishPaths);
   return { ok: true };
 }
