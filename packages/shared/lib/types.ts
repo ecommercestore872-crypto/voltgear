@@ -170,6 +170,8 @@ export interface SiteSettings {
   homeFeaturedTitle?: string;
   homeFeaturedSubtitle?: string;
   homeFeaturedProductDescription?: string;
+  homeFeaturedProductSlug?: string | null;
+  homeFeaturedCustomImage?: string | null;
   homeSections?: { id: string; enabled: boolean }[];
   lifestyleShop?: import("./db/lifestyle-shop-rules").LifestyleShopConfig;
   

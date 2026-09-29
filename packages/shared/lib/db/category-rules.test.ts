@@ -125,6 +125,18 @@ describe("mergeProductForm", () => {
     assert.equal(merged.shortDescription, "Updated");
   });
 
+  it("applies full-editor fields like badge and features", () => {
+    const merged = mergeProductForm(existing, {
+      ...existing,
+      badge: "Sale",
+      features: ["Fast charge"],
+      brand: "VoltGear",
+      description: { type: "doc" },
+    });
+    assert.equal(merged.badge, "Sale");
+    assert.deepEqual(merged.features, ["Fast charge"]);
+  });
+
   it("uses a pasted TikTok link and drops the old Cloudinary id", () => {
     const merged = mergeProductForm(existing, {
       name: existing.name,

@@ -1,5 +1,7 @@
 import { getServiceClient } from "@/lib/supabase/server";
 import { revalidatePath, unstable_cache } from "next/cache";
+
+import { revalidateStorefrontCacheTags } from "@/lib/revalidate-storefront";
 import {
   normalizePromoCode,
   validatePromoAdminInput,
@@ -49,11 +51,17 @@ export async function listPromoCodes(): Promise<PromoCodeRow[]> {
 }
 
 /** Cached for storefront welcome popup — avoids a Supabase round-trip on every page. */
+const STOREFRONT_PROMO_CODES_CACHE_TAG = "storefront-promo-codes";
+
 export const listPromoCodesForStorefront = unstable_cache(
   async () => listPromoCodes(),
-  ["storefront-promo-codes"],
-  { revalidate: 300 },
+  [STOREFRONT_PROMO_CODES_CACHE_TAG],
+  { revalidate: 300, tags: [STOREFRONT_PROMO_CODES_CACHE_TAG] },
 );
+
+function bustStorefrontPromoCache() {
+  void revalidateStorefrontCacheTags([STOREFRONT_PROMO_CODES_CACHE_TAG]);
+}
 
 export async function getPromoByCode(
   codeRaw: string
@@ -95,6 +103,7 @@ export async function createPromoCode(input: Record<string, unknown>): Promise<
     return { ok: false, error: "Failed to create code.", status: 500 };
   }
   revalidatePath("/admin/promos");
+  bustStorefrontPromoCache();
   return { ok: true, promo: mapRow(data as Record<string, unknown>) };
 }
 
@@ -128,6 +137,7 @@ export async function updatePromoCode(
   }
   if (!data) return { ok: false, error: "Not found.", status: 404 };
   revalidatePath("/admin/promos");
+  bustStorefrontPromoCache();
   return { ok: true, promo: mapRow(data as Record<string, unknown>) };
 }
 
@@ -168,6 +178,7 @@ export async function deletePromoCode(
     return { ok: false, error: "Failed to delete code.", status: 500 };
   }
   revalidatePath("/admin/promos");
+  bustStorefrontPromoCache();
   return { ok: true };
 }
 

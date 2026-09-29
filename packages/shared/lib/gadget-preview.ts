@@ -145,12 +145,20 @@ export function gadgetShopTypeLinks(
 
 export type GadgetVideoKind = "none" | "file" | "instagram" | "tiktok";
 
+/** Admin paste often omits https:// — normalize before classifying or embedding. */
+export function normalizeSocialVideoUrl(url?: string | null): string {
+  const raw = url?.trim() ?? "";
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `https://${raw.replace(/^\/+/, "")}`;
+}
+
 export function videoKind(
   url?: string | null,
   cloudinaryPublicId?: string | null
 ): GadgetVideoKind {
   if (cloudinaryPublicId?.trim()) return "file";
-  const raw = url?.trim() ?? "";
+  const raw = normalizeSocialVideoUrl(url);
   if (!raw) return "none";
   try {
     const host = new URL(raw).hostname.replace(/^www\./, "").toLowerCase();
@@ -165,14 +173,21 @@ export function videoKind(
 
 export function videoEmbedSrc(kind: GadgetVideoKind, url: string): string | null {
   if (kind !== "instagram" && kind !== "tiktok") return null;
+  const normalized = normalizeSocialVideoUrl(url);
+  if (!normalized) return null;
   let parsed: URL;
   try {
-    parsed = new URL(url);
+    parsed = new URL(normalized);
   } catch {
     return null;
   }
-  const path = parsed.pathname.replace(/\/$/, "");
+  let path = parsed.pathname.replace(/\/$/, "");
   if (kind === "instagram") {
+    path = path.replace(/^\/reels\//i, "/reel/");
+    const reel = path.match(/\/(?:reel|p)\/([A-Za-z0-9_-]+)/i);
+    if (reel?.[1]) {
+      return `https://www.instagram.com/reel/${reel[1]}/embed`;
+    }
     return `${parsed.origin}${path}/embed`;
   }
   return `https://www.tiktok.com/embed${path}`;

@@ -29,6 +29,17 @@ function stock(v: unknown): StockStatus {
   return "in-stock";
 }
 
+function socialVideoUrlFromRow(
+  productVideo: unknown,
+  key: "instagramUrl" | "tiktokUrl",
+): string | undefined {
+  if (!productVideo || typeof productVideo !== "object") return undefined;
+  const raw = (productVideo as Record<string, unknown>)[key];
+  if (typeof raw !== "string") return undefined;
+  const trimmed = raw.trim();
+  return trimmed || undefined;
+}
+
 export function mapProduct(
   row: Record<string, unknown> | null,
   opts?: { includeDemoReviews?: boolean }
@@ -102,12 +113,8 @@ export function mapProduct(
           poster: (row.product_video as { poster?: string }).poster,
         }
       : undefined,
-    instagramUrl: row.product_video
-      ? (row.product_video as { instagramUrl?: string }).instagramUrl
-      : undefined,
-    tiktokUrl: row.product_video
-      ? (row.product_video as { tiktokUrl?: string }).tiktokUrl
-      : undefined,
+    instagramUrl: socialVideoUrlFromRow(row.product_video, "instagramUrl"),
+    tiktokUrl: socialVideoUrlFromRow(row.product_video, "tiktokUrl"),
     variants,
     colorEnabled: Boolean(row.color_enabled),
     sizeEnabled: Boolean(row.size_enabled),
@@ -160,7 +167,12 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     returnPolicy: row.return_policy ? String(row.return_policy) : undefined,
     warrantyInfo: row.warranty_info ? String(row.warranty_info) : undefined,
     codEnabled: row.cod_enabled as boolean | undefined,
+    maxCodAmount:
+      row.max_cod_amount != null && Number.isFinite(Number(row.max_cod_amount))
+        ? num(row.max_cod_amount)
+        : undefined,
     whatsappNumber: row.whatsapp_number ? String(row.whatsapp_number) : undefined,
+    whatsappConfirmFlow: row.whatsapp_confirm_flow === true,
     warrantyMonths: row.warranty_months != null ? num(row.warranty_months) : undefined,
     returnWindowDays: row.return_window_days != null ? num(row.return_window_days) : undefined,
     navLinks: parseChromeLinks(row.nav_links) ?? undefined,
@@ -179,6 +191,16 @@ export function mapSettings(row: Record<string, unknown> | null): SiteSettings |
     homeFeaturedTitle: row.home_featured_title ? String(row.home_featured_title) : undefined,
     homeFeaturedSubtitle: row.home_featured_subtitle ? String(row.home_featured_subtitle) : undefined,
     homeFeaturedProductDescription: row.home_featured_product_description ? String(row.home_featured_product_description) : undefined,
+    homeFeaturedProductSlug: row.home_featured_product_slug
+      ? String(row.home_featured_product_slug)
+      : undefined,
+    homeFeaturedCustomImage: row.home_featured_custom_image
+      ? String(row.home_featured_custom_image)
+      : undefined,
+    homeTrustHeadline: row.home_trust_headline ? String(row.home_trust_headline) : undefined,
+    homeTrustAccent: row.home_trust_accent ? String(row.home_trust_accent) : undefined,
+    topbarAccent: row.topbar_accent ? String(row.topbar_accent) : undefined,
+    navShopAllText: row.nav_shop_all_text ? String(row.nav_shop_all_text) : undefined,
     homeSections: normalizeHomeSections(row.home_sections),
     lifestyleShop: normalizeLifestyleShop(row.lifestyle_shop),
     draft: row.draft && typeof row.draft === "object" ? row.draft : undefined,

@@ -20,7 +20,8 @@ async function main() {
     const { error, count } = await supabase
       .from("categories")
       .update({ image_url: type.imageUrl })
-      .eq("slug", type.slug);
+      .eq("slug", type.slug)
+      .or("image_url.is.null,image_url.ilike.%/categories/%.png");
     if (error) {
       console.error(type.slug, error.message);
       continue;

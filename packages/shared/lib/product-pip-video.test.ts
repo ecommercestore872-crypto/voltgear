@@ -98,6 +98,22 @@ describe("productWatchLinks", () => {
   it("shows nothing when neither link is set", () => {
     assert.deepEqual(productWatchLinks({}), []);
   });
+
+  it("shows TikTok icon for vm.tiktok.com short links", () => {
+    const links = productWatchLinks({
+      tiktokUrl: "https://vm.tiktok.com/ZMexample123/",
+    });
+    assert.equal(links.length, 1);
+    assert.equal(links[0]?.platform, "tiktok");
+  });
+
+  it("shows Instagram icon when https:// is omitted", () => {
+    const links = productWatchLinks({
+      instagramUrl: "www.instagram.com/reel/abc123/",
+    });
+    assert.equal(links.length, 1);
+    assert.equal(links[0]?.platform, "instagram");
+  });
 });
 
 describe("pip dismiss memory", () => {

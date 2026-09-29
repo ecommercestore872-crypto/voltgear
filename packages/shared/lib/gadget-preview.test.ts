@@ -9,6 +9,7 @@ import {
   isGadgetPreviewPath,
   product2Href,
   shouldUseGadgetChrome,
+  normalizeSocialVideoUrl,
   videoEmbedSrc,
   videoKind,
 } from "./gadget-preview";
@@ -77,6 +78,15 @@ describe("shouldUseGadgetChrome", () => {
   });
 });
 
+
+describe("normalizeSocialVideoUrl", () => {
+  it("adds https when missing", () => {
+    assert.equal(
+      normalizeSocialVideoUrl("www.tiktok.com/@shop/video/123"),
+      "https://www.tiktok.com/@shop/video/123",
+    );
+  });
+});
 
 describe("videoKind", () => {
   it("classifies Cloudinary/mp4, Instagram, TikTok, and empty", () => {

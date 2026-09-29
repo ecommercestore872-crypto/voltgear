@@ -8,12 +8,14 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { CategoryGlyph } from "@/components/gadget/gadget-category-glyphs";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
+import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
 import { categoryImageUrl } from "@/lib/site-static-image";
 import type { Product } from "@/lib/types";
 
 export type CategoryIconTile = {
   label: string;
   href: string;
+  slug?: string;
   product?: Product;
   imageUrl?: string;
 };
@@ -22,6 +24,7 @@ type SlideTile = {
   key: string;
   label: string;
   href: string;
+  slug?: string;
   image?: string;
   glyph?: string;
 };
@@ -31,14 +34,43 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
     key: `p-${t.href}`,
     label: t.label,
     href: t.href,
-    image: t.imageUrl?.trim()
-      ? categoryImageUrl(t.imageUrl, 256)
-      : t.product
-        ? gadgetImageSrc(t.product, PRODUCT_IMAGE.card)
-        : undefined,
+    slug: t.slug ?? t.href.split("/").filter(Boolean).pop(),
+    image: (() => {
+      const slug = t.slug ?? t.href.split("/").filter(Boolean).pop();
+      const path = resolveCategoryImagePath(t.imageUrl, slug);
+      if (path) return categoryImageUrl(path, 256);
+      if (t.product) return gadgetImageSrc(t.product, PRODUCT_IMAGE.card);
+      return undefined;
+    })(),
   }));
 
   return fromProducts;
+}
+
+function CategoryTileImage({
+  src,
+  slug,
+}: {
+  src: string;
+  slug?: string;
+}) {
+  const [current, setCurrent] = useState(src);
+  const fallback = slug ? resolveCategoryImagePath(null, slug) : undefined;
+  const display = categoryImageUrl(current, 256) ?? current;
+
+  return (
+    <Image
+      src={display}
+      alt=""
+      fill
+      quality={90}
+      sizes="(max-width: 640px) 96px, 128px"
+      className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.04]"
+      onError={() => {
+        if (fallback && current !== fallback) setCurrent(fallback);
+      }}
+    />
+  );
 }
 
 export function GadgetShopCategories({
@@ -180,14 +212,7 @@ export function GadgetShopCategories({
                 }`}
               >
                 {tile.image ? (
-                  <Image
-                    src={tile.image}
-                    alt=""
-                    fill
-                    quality={90}
-                    sizes="(max-width: 640px) 96px, 128px"
-                    className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.04]"
-                  />
+                  <CategoryTileImage src={tile.image} slug={tile.slug} />
                 ) : tile.glyph ? (
                   <CategoryGlyph
                     name={tile.glyph}

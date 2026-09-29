@@ -1,5 +1,10 @@
 import { CLOUDINARY_CLOUD_NAME } from "@/lib/cloudinary";
-import { videoEmbedSrc, videoKind, type GadgetVideoKind } from "@/lib/gadget-preview";
+import {
+  normalizeSocialVideoUrl,
+  videoEmbedSrc,
+  videoKind,
+  type GadgetVideoKind,
+} from "@/lib/gadget-preview";
 
 export type ProductWatchLink = {
   platform: "instagram" | "tiktok";
@@ -20,11 +25,15 @@ export function productWatchLinks(product: {
   const videoKindName = videoKind(videoUrl);
 
   function push(platform: "instagram" | "tiktok", href: string) {
-    const playSrc = videoOnlyPlaySrc(platform, href);
-    if (!playSrc) return;
+    const normalized = normalizeSocialVideoUrl(href);
+    if (!normalized || videoKind(normalized) !== platform) return;
+    const playSrc =
+      videoOnlyPlaySrc(platform, normalized) ??
+      videoEmbedSrc(platform, normalized) ??
+      normalized;
     links.push({
       platform,
-      href,
+      href: normalized,
       playSrc,
       openLabel: platform === "instagram" ? "Watch on Instagram" : "Watch on TikTok",
     });

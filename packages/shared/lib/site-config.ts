@@ -124,10 +124,10 @@ export function normalizeSettings(
     homeFeaturedTitle: settings?.homeFeaturedTitle?.trim() || null,
     homeFeaturedSubtitle: settings?.homeFeaturedSubtitle?.trim() || null,
     homeFeaturedProductDescription: settings?.homeFeaturedProductDescription?.trim() || null,
-    homeTrustHeadline: (settings as any)?.draft?.homeTrustHeadline?.trim() || settings?.homeTrustHeadline?.trim() || null,
-    homeTrustAccent: (settings as any)?.draft?.homeTrustAccent?.trim() || settings?.homeTrustAccent?.trim() || null,
-    topbarAccent: (settings as any)?.draft?.topbarAccent?.trim() || settings?.topbarAccent?.trim() || null,
-    navShopAllText: (settings as any)?.draft?.navShopAllText?.trim() || settings?.navShopAllText?.trim() || null,
+    homeTrustHeadline: settings?.homeTrustHeadline?.trim() || null,
+    homeTrustAccent: settings?.homeTrustAccent?.trim() || null,
+    topbarAccent: settings?.topbarAccent?.trim() || null,
+    navShopAllText: settings?.navShopAllText?.trim() || null,
   };
 }
 

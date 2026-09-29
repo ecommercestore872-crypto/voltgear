@@ -106,6 +106,8 @@ export function productToDocument(product: Product, costPrice?: number): Product
     compatibility: product.compatibility,
     inTheBox: product.inTheBox,
     productVideo: product.productVideo,
+    instagramUrl: product.instagramUrl,
+    tiktokUrl: product.tiktokUrl,
     variants: product.variants,
     colorEnabled: product.colorEnabled,
     sizeEnabled: product.sizeEnabled,
@@ -1132,12 +1134,18 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
     phone: doc.phone ?? null,
     address: doc.address ?? null,
     social_links: doc.socialLinks ?? null,
+    header_links: Array.isArray(doc.headerLinks) ? sanitizeChromeLinks(doc.headerLinks) : null,
     free_shipping_threshold: doc.freeShippingThreshold ?? null,
     shipping_fee: doc.shippingFee ?? null,
     return_policy: doc.returnPolicy ?? null,
     warranty_info: doc.warrantyInfo ?? null,
     cod_enabled: doc.codEnabled ?? true,
+    max_cod_amount:
+      doc.maxCodAmount != null && Number.isFinite(Number(doc.maxCodAmount))
+        ? Number(doc.maxCodAmount)
+        : null,
     whatsapp_number: doc.whatsappNumber ?? null,
+    whatsapp_confirm_flow: doc.whatsappConfirmFlow === true,
     warranty_months: doc.warrantyMonths ?? null,
     return_window_days: doc.returnWindowDays ?? null,
     announcement: doc.announcement ?? null,
@@ -1150,6 +1158,23 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
     footer_care_links: Array.isArray(doc.footerCareLinks)
       ? sanitizeChromeLinks(doc.footerCareLinks)
       : null,
+    home_bestsellers_title: doc.homeBestsellersTitle ?? null,
+    home_offers_title: doc.homeOffersTitle ?? null,
+    home_categories_title: doc.homeCategoriesTitle ?? null,
+    home_featured_eyebrow: doc.homeFeaturedEyebrow ?? null,
+    home_featured_title: doc.homeFeaturedTitle ?? null,
+    home_featured_subtitle: doc.homeFeaturedSubtitle ?? null,
+    home_featured_product_description: doc.homeFeaturedProductDescription ?? null,
+    home_featured_product_slug: doc.homeFeaturedProductSlug
+      ? String(doc.homeFeaturedProductSlug).trim() || null
+      : null,
+    home_featured_custom_image: doc.homeFeaturedCustomImage
+      ? String(doc.homeFeaturedCustomImage).trim() || null
+      : null,
+    home_trust_headline: doc.homeTrustHeadline ?? null,
+    home_trust_accent: doc.homeTrustAccent ?? null,
+    topbar_accent: doc.topbarAccent ?? null,
+    nav_shop_all_text: doc.navShopAllText ?? null,
     status: "published",
     draft: null,
     ...(doc.orderEmails ? { order_emails: parseOrderEmailConfig(doc.orderEmails) } : {}),
@@ -1158,8 +1183,39 @@ function settingsLiveRow(doc: Partial<SiteSettings> & Record<string, unknown>) {
   };
 }
 
+function mergeSettingsDraft(
+  incoming: Record<string, unknown>,
+  currentDraft: Record<string, unknown> | null
+): Record<string, unknown> {
+  const base =
+    currentDraft && typeof currentDraft === "object" ? { ...currentDraft } : {};
+  return { ...base, ...incoming };
+}
+
+function settingsPublishDraftLeftover(
+  doc: Record<string, unknown>,
+  currentDraft: Record<string, unknown> | null
+): Record<string, unknown> {
+  const leftover: Record<string, unknown> = {};
+  if (!doc.orderEmails && currentDraft?.orderEmails) {
+    leftover.orderEmails = parseOrderEmailConfig(currentDraft.orderEmails);
+  }
+  if (currentDraft?.productDeals) {
+    leftover.productDeals = currentDraft.productDeals;
+  }
+  return leftover;
+}
+
 export async function saveAdminSettings(draft: Record<string, unknown>) {
-  const { error } = await db().from("site_settings").upsert({ id: 1, draft }, { onConflict: "id" });
+  const current = await getAdminSettingsForUpdate();
+  const currentDraft =
+    current?.draft && typeof current.draft === "object"
+      ? (current.draft as Record<string, unknown>)
+      : null;
+  const merged = mergeSettingsDraft(draft, currentDraft);
+  const { error } = await db()
+    .from("site_settings")
+    .upsert({ id: 1, draft: merged }, { onConflict: "id" });
   if (error) return { ok: false as const, error: error.message, status: 500 };
   bumpAdminSettingsCache();
   return { ok: true as const };
@@ -1173,13 +1229,7 @@ export async function publishAdminSettings(doc: Record<string, unknown>) {
     current?.draft && typeof current.draft === "object"
       ? (current.draft as Record<string, unknown>)
       : null;
-  const leftover = {
-    ...((!doc.orderEmails && currentDraft?.orderEmails)
-      ? { orderEmails: parseOrderEmailConfig(currentDraft.orderEmails) }
-      : {}),
-    homeFeaturedProductSlug: doc.homeFeaturedProductSlug || null,
-    homeFeaturedCustomImage: doc.homeFeaturedCustomImage || null,
-  };
+  const leftover = settingsPublishDraftLeftover(doc, currentDraft);
   let payload: Record<string, unknown> = { ...settingsLiveRow(doc), draft: leftover };
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const { error } = await db().from("site_settings").upsert(payload, { onConflict: "id" });

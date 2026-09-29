@@ -83,30 +83,60 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-/** Keep extras the short admin form does not show. Video on the form wins. */
+/** Short mobile/quick saves omit description and brand; empty detail arrays mean "unchanged". */
+function isShortProductFormPatch(form: ProductDocument): boolean {
+  return form.description === undefined && form.brand === undefined;
+}
+
+function mergeDetailList<T>(
+  formValue: T[] | undefined,
+  existingValue: T[] | undefined,
+  shortPatch: boolean
+): T[] | undefined {
+  if (formValue === undefined) return existingValue;
+  if (shortPatch && formValue.length === 0) return existingValue;
+  return formValue;
+}
+
+function mergeProductVideo(
+  form: ProductDocument,
+  existing: ProductDocument | undefined
+): ProductDocument["productVideo"] {
+  if (form.productVideo === undefined) return existing?.productVideo;
+  const videoUrl = form.productVideo.url?.trim() || "";
+  const poster = form.productVideo.poster?.trim() || undefined;
+  if (videoUrl) {
+    return { url: videoUrl, poster, cloudinaryPublicId: undefined };
+  }
+  if (poster) {
+    return {
+      url: undefined,
+      poster,
+      cloudinaryPublicId: existing?.productVideo?.cloudinaryPublicId,
+    };
+  }
+  return undefined;
+}
+
+/** Keep extras the short admin form does not show. Full editor fields always win. */
 export function mergeProductForm(
   existing: ProductDocument | undefined,
   form: ProductDocument
 ): ProductDocument {
   const name = form.name?.trim() ?? "";
   const slug = form.slug?.trim() || slugify(name);
-  const videoUrl = form.productVideo?.url?.trim() || "";
-  const poster = form.productVideo?.poster?.trim() || undefined;
-  const productVideo = videoUrl
-    ? { url: videoUrl, poster, cloudinaryPublicId: undefined }
-    : poster
-      ? { url: undefined, poster, cloudinaryPublicId: existing?.productVideo?.cloudinaryPublicId }
-      : undefined;
+  const shortPatch = isShortProductFormPatch(form);
+  const productVideo = mergeProductVideo(form, existing);
 
   return {
     name,
     slug,
     category: form.category?.trim() ?? "",
     price: Number.isFinite(form.price) ? form.price : 0,
-    compareAtPrice: form.compareAtPrice,
+    compareAtPrice: form.compareAtPrice ?? existing?.compareAtPrice,
     images: form.images ?? [],
-    shortDescription: form.shortDescription,
-    description: form.description,
+    shortDescription: form.shortDescription ?? existing?.shortDescription,
+    description: form.description ?? existing?.description,
     stockStatus:
       form.quantity === 0 ? "out-of-stock" : form.stockStatus || "in-stock",
     quantity:
@@ -120,23 +150,23 @@ export function mergeProductForm(
         ? form.costPrice
         : existing?.costPrice,
     productVideo,
-    brand: existing?.brand,
-    sku: existing?.sku,
-    badge: existing?.badge,
-    cloudinaryImages: existing?.cloudinaryImages,
-    features: existing?.features,
-    specifications: existing?.specifications,
-    compatibility: existing?.compatibility,
-    inTheBox: existing?.inTheBox,
-    variants: existing?.variants,
+    brand: form.brand ?? existing?.brand,
+    sku: form.sku ?? existing?.sku,
+    badge: form.badge ?? existing?.badge,
+    cloudinaryImages: form.cloudinaryImages ?? existing?.cloudinaryImages,
+    features: mergeDetailList(form.features, existing?.features, shortPatch),
+    specifications: mergeDetailList(form.specifications, existing?.specifications, shortPatch),
+    compatibility: mergeDetailList(form.compatibility, existing?.compatibility, shortPatch),
+    inTheBox: mergeDetailList(form.inTheBox, existing?.inTheBox, shortPatch),
+    variants: mergeDetailList(form.variants, existing?.variants, shortPatch),
     colorEnabled: form.colorEnabled ?? existing?.colorEnabled ?? false,
     sizeEnabled: form.sizeEnabled ?? existing?.sizeEnabled ?? false,
     colorOptions: form.colorOptions ?? existing?.colorOptions ?? [],
     sizeOptions: form.sizeOptions ?? existing?.sizeOptions ?? [],
-    productFaq: existing?.productFaq,
-    reviews: existing?.reviews,
-    rating: existing?.rating,
-    reviewCount: existing?.reviewCount,
+    productFaq: mergeDetailList(form.productFaq, existing?.productFaq, shortPatch),
+    reviews: form.reviews ?? existing?.reviews,
+    rating: form.rating ?? existing?.rating,
+    reviewCount: form.reviewCount ?? existing?.reviewCount,
     tiktokUrl: form.tiktokUrl ?? existing?.tiktokUrl,
     instagramUrl: form.instagramUrl ?? existing?.instagramUrl,
     addons: form.addons ?? existing?.addons ?? [],

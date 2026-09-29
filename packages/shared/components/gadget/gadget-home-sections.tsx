@@ -141,8 +141,13 @@ export async function GadgetHomeSections() {
       })),
     }));
 
-    if (settings?.draft?.homeFeaturedProductSlug) {
-      const slug = String(settings.draft.homeFeaturedProductSlug);
+    const featuredOverrideSlug =
+      settings?.homeFeaturedProductSlug?.trim() ||
+      (settings?.draft?.homeFeaturedProductSlug
+        ? String(settings.draft.homeFeaturedProductSlug)
+        : "");
+    if (featuredOverrideSlug) {
+      const slug = featuredOverrideSlug;
       const alreadyLoaded =
         products.some((p) => p.slug === slug) ||
         slotBestsellers?.some((p) => p.slug === slug) ||
@@ -236,12 +241,14 @@ export async function GadgetHomeSections() {
     slotBestsellers?.length ? slotBestsellers : newArrivals
   ).slice(0, 8);
 
-  const overrideSlug = settings?.draft?.homeFeaturedProductSlug as
-    | string
-    | undefined;
-  const customImage = settings?.draft?.homeFeaturedCustomImage as
-    | string
-    | undefined;
+  const overrideSlug =
+    settings?.homeFeaturedProductSlug?.trim() ||
+    (settings?.draft?.homeFeaturedProductSlug as string | undefined)?.trim() ||
+    undefined;
+  const customImage =
+    settings?.homeFeaturedCustomImage?.trim() ||
+    (settings?.draft?.homeFeaturedCustomImage as string | undefined)?.trim() ||
+    undefined;
 
   const featuredProduct = overrideSlug
     ? (products.find((p) => p.slug === overrideSlug) ?? null)

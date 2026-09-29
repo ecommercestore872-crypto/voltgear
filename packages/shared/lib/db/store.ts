@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
+import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
 import {
   STOREFRONT_CATALOG_GRID_CACHE_TAG,
   STOREFRONT_HERO_SLIDES_CACHE_TAG,
@@ -365,14 +366,20 @@ export const fetchShopTypes = unstable_cache(
       .order("sort_order", { ascending: true });
 
     if (!error && data && data.length > 0) {
-      dbTypes = data.map((row) => ({
-        id: String(row.id),
-        name: String(row.name),
-        slug: String(row.slug),
-        description: String(row.description ?? ""),
-        imageUrl: row.image_url ? String(row.image_url) : undefined,
-        sortOrder: Number(row.sort_order ?? 0),
-      }));
+      dbTypes = data.map((row) => {
+        const slug = String(row.slug);
+        return {
+          id: String(row.id),
+          name: String(row.name),
+          slug,
+          description: String(row.description ?? ""),
+          imageUrl: resolveCategoryImagePath(
+            row.image_url ? String(row.image_url) : null,
+            slug,
+          ),
+          sortOrder: Number(row.sort_order ?? 0),
+        };
+      });
     }
 
     const mergedMap = new Map<string, ShopType>();

@@ -332,6 +332,10 @@ export function ProductForm({
             onBusyChange={handleBusyChange}
           />
           <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground -mt-2 mb-3">
+              Links appear on the product page after you <strong>Publish</strong> (Save draft alone
+              does not update the live shop). Use full share URLs from Instagram or TikTok.
+            </p>
             <Label htmlFor="tiktok-url">TikTok Video Link</Label>
             <Input
               id="tiktok-url"
