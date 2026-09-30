@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -20,12 +19,6 @@ import {
 } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
-
-const PostExChitModal = dynamic(
-  () =>
-    import("@/components/admin/postex-chit-modal").then((m) => m.PostExChitModal),
-  { ssr: false },
-);
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   new: "New",
@@ -53,7 +46,6 @@ export function OrderDetail({
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [bookingPostEx, setBookingPostEx] = useState(false);
-  const [showChitModal, setShowChitModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
 
@@ -71,6 +63,11 @@ export function OrderDetail({
   const customer = order.customer ?? {};
   const history = order.statusHistory ?? [];
   const emailIssue = orderEmailIssueFromHistory(history);
+  const postexTracking =
+    order.postexTrackingNumber?.trim() ||
+    (typeof order.postex_tracking_number === "string"
+      ? order.postex_tracking_number.trim()
+      : "");
 
   async function handleBookPostEx() {
     setBookingPostEx(true);
@@ -215,23 +212,24 @@ export function OrderDetail({
               {bookingPostEx ? "Pushing to PostEx…" : "Book with PostEx"}
             </Button>
             <Button
+              asChild
               type="button"
-              onClick={() => setShowChitModal(true)}
+              variant="outline"
+              disabled={!postexTracking}
               className="inline-flex items-center gap-1.5 shadow-sm"
             >
-              <Printer className="h-4 w-4" />
-              Print PostEx Chit
+              <Link
+                href={`/api/admin/postex/airway-bill/${encodeURIComponent(order.orderId)}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Printer className="h-4 w-4" />
+                Print PostEx Airway Bill
+              </Link>
             </Button>
           </div>
         </div>
       </div>
-
-      {showChitModal && (
-        <PostExChitModal
-          order={order}
-          onClose={() => setShowChitModal(false)}
-        />
-      )}
 
       {emailIssue ? (
         <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">

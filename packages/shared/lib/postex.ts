@@ -63,6 +63,21 @@ export function resolvePostExTrackOrderUrl(
   return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v1/track-order/${tn}`;
 }
 
+/** PostEx get-invoice / airway bill URL (host base + integration path). */
+export function resolvePostExGetInvoiceUrl(
+  trackingNumbers: string | string[],
+  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
+): string {
+  const list = (Array.isArray(trackingNumbers) ? trackingNumbers : [trackingNumbers])
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const url = new URL(
+    `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v1/get-invoice`,
+  );
+  url.searchParams.set("trackingNumbers", list.join(","));
+  return url.toString();
+}
+
 function getPostExToken(): string {
   const token = process.env.POSTEX_API_TOKEN;
   return token ? token.trim() : "";
