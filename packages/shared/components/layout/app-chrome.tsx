@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Children, useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import dynamic from "next/dynamic";
 
@@ -54,18 +54,22 @@ export function AppChrome({
   demoBanner: ReactNode;
 }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [sessionActive, setSessionActive] = useState(false);
+  const [checkoutFromGadget, setCheckoutFromGadget] = useState(false);
 
   useEffect(() => {
     if (!pathname) return;
-    const search = searchParams?.toString() ?? "";
-    syncGadgetPreviewSession(pathname, search);
+    const currentSearch =
+      typeof window !== "undefined" ? window.location.search : "";
+    const params = new URLSearchParams(
+      currentSearch.startsWith("?") ? currentSearch.slice(1) : currentSearch,
+    );
+    syncGadgetPreviewSession(pathname, params.toString());
+    setCheckoutFromGadget(params.get("from") === "gadget");
     setSessionActive(
-      readGadgetPreviewSession() || searchParams?.get("from") === "gadget",
+      readGadgetPreviewSession() || params.get("from") === "gadget",
     );
     if (typeof window !== "undefined") {
-      const currentSearch = window.location.search;
       persistClickAttribution(
         captureClickAttribution(
           `${window.location.pathname}${currentSearch}`,
@@ -80,7 +84,7 @@ export function AppChrome({
         window.history.replaceState(window.history.state, "", cleaned);
       }
     }
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   if (!pathname) {
     return (
@@ -99,10 +103,9 @@ export function AppChrome({
     return <>{nodes.at(-1) ?? children}</>;
   }
 
-  const search = searchParams?.toString() ?? "";
   const gadget = shouldUseGadgetChrome(pathname, {
-    search,
-    sessionActive: sessionActive || searchParams?.get("from") === "gadget",
+    search: checkoutFromGadget ? "from=gadget" : "",
+    sessionActive: sessionActive || checkoutFromGadget,
   });
 
   return (

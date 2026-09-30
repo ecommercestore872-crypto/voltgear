@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -222,13 +222,16 @@ function FreeShippingBar({
 
 export function CartDrawer() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [sessionActive, setSessionActive] = useState(false);
+  const [searchString, setSearchString] = useState("");
   useEffect(() => {
+    const search =
+      typeof window !== "undefined" ? window.location.search : "";
+    setSearchString(search.startsWith("?") ? search.slice(1) : search);
     setSessionActive(readGadgetPreviewSession());
-  }, [pathname, searchParams]);
+  }, [pathname]);
   const gadget = shouldUseGadgetChrome(pathname || "", {
-    search: searchParams?.toString() ?? "",
+    search: searchString,
     sessionActive: sessionActive || isGadgetPreviewPath(pathname || ""),
   });
   const shopHref = gadget ? products2Href() : "/products";

@@ -4,6 +4,7 @@ import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
 import {
   STOREFRONT_CATALOG_GRID_CACHE_TAG,
+  STOREFRONT_CATALOG_REVALIDATE,
   STOREFRONT_HERO_SLIDES_CACHE_TAG,
   STOREFRONT_HOMEPAGE_CATALOG_CACHE_TAG,
   STOREFRONT_SHOP_TYPES_CACHE_TAG,
@@ -77,6 +78,13 @@ const PRODUCT_EMBED = `
 /** Card/rail fields only — keeps catalog HTML and RSC payloads small for conversion speed. */
 export const CATALOG_PRODUCT_EMBED =
   "id, name, slug, category, price, compare_at_price, cloudinary_images, short_description, sku, brand, stock_status, quantity, rating, review_count, featured, badge, is_demo, status, created_at, product_images ( url, sort_order, source ), product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )";
+
+/** PDP: full product row + media/variants; reviews load below the fold separately. */
+const PDP_PRODUCT_EMBED = `
+  *,
+  product_images ( url, sort_order, source ),
+  product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )
+`;
 
 function db() {
   return getServiceClient();
@@ -161,6 +169,38 @@ export async function fetchProductBySlug(slug: string, includeDemo = false): Pro
   );
   if (error) throw error;
   return mapProduct(data as Record<string, unknown> | null, { includeDemoReviews: includeDemo });
+}
+
+async function loadPdpProductRow(slug: string): Promise<Product | null> {
+  const trimmed = slug.trim();
+  if (!trimmed) return null;
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(PDP_PRODUCT_EMBED)
+        .eq("slug", trimmed)
+        .eq("status", LIVE),
+      false,
+    ).maybeSingle(),
+  );
+  if (error) throw error;
+  return mapProduct(data as Record<string, unknown> | null, {
+    includeDemoReviews: false,
+  });
+}
+
+export async function loadCachedPdpProductBySlug(slug: string): Promise<Product | null> {
+  const trimmed = slug.trim();
+  if (!trimmed) return null;
+  return unstable_cache(
+    async () => loadPdpProductRow(trimmed),
+    ["pdp-product-v1", trimmed],
+    {
+      revalidate: STOREFRONT_CATALOG_REVALIDATE,
+      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, `pdp-product-${trimmed}`],
+    },
+  )();
 }
 
 async function loadRelatedCatalogProducts(
