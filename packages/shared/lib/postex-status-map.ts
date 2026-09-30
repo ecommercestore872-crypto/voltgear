@@ -59,6 +59,21 @@ export function mapPostExTransactionStatusToBuyNTry(
   };
 }
 
+const STATUS_PIPELINE: OrderStatus[] = ["new", "processing", "shipped", "delivered"];
+
+/** Automatic PostEx sync may only advance along new → processing → shipped → delivered. */
+export function isForwardPostExStatusTransition(
+  from: OrderStatus,
+  to: OrderStatus,
+): boolean {
+  if (from === to) return false;
+  if (from === "cancelled" || to === "cancelled") return false;
+  const fromIdx = STATUS_PIPELINE.indexOf(from);
+  const toIdx = STATUS_PIPELINE.indexOf(to);
+  if (fromIdx === -1 || toIdx === -1) return false;
+  return toIdx > fromIdx;
+}
+
 export function derivePostExStatusPreviewAction(
   currentBuyNTryStatus: OrderStatus | undefined,
   mapResult: PostExToBuyNTryMapResult,
@@ -76,5 +91,16 @@ export function derivePostExStatusPreviewAction(
     return { action: "no_change", proposedBuyNTryStatus: proposed };
   }
 
+  if (!isForwardPostExStatusTransition(current, proposed)) {
+    return { action: "no_change", proposedBuyNTryStatus: current };
+  }
+
   return { action: "would_update", proposedBuyNTryStatus: proposed };
+}
+
+export function formatPostExStatusSyncHistoryNote(
+  postexStatus: string | null | undefined,
+): string {
+  const label = postexStatus?.trim() || "unknown";
+  return `PostEx status sync: ${label}`;
 }

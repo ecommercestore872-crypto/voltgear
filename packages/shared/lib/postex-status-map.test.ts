@@ -79,4 +79,11 @@ describe("derivePostExStatusPreviewAction", () => {
     assert.equal(preview.action, "manual_review");
     assert.equal(preview.proposedBuyNTryStatus, null);
   });
+
+  it("Booked + current shipped -> no_change (no regression to processing)", () => {
+    const mapResult = mapPostExTransactionStatusToBuyNTry("Booked");
+    const preview = derivePostExStatusPreviewAction("shipped", mapResult);
+    assert.equal(preview.action, "no_change");
+    assert.equal(preview.proposedBuyNTryStatus, "shipped");
+  });
 });
