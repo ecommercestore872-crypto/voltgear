@@ -26,6 +26,12 @@ describe("storefront shell must not suspend on ad query strings", () => {
     assert.doesNotMatch(src, /useSearchParams/);
   });
 
+  it("search page does not use server searchParams (ISR shell)", () => {
+    const pagePath = join(sharedRoot, "../../apps/storefront/app/search/page.tsx");
+    const src = readFileSync(pagePath, "utf8");
+    assert.doesNotMatch(src, /searchParams/);
+  });
+
   it("PDP page uses server LCP hero slot", () => {
     const pagePath = join(
       sharedRoot,

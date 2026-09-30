@@ -1,6 +1,5 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -63,15 +62,22 @@ export function TikTokPixel() {
     host,
   });
 
-  if (!load) return null;
+  useEffect(() => {
+    if (!load || !pixelId.trim()) return;
 
-  return (
-    <Script
-      id="tiktok-pixel-base"
-      strategy="lazyOnload"
-      dangerouslySetInnerHTML={{
-        __html: tiktokPixelBootstrapSource(pixelId.trim()),
-      }}
-    />
-  );
+    function inject() {
+      if (document.getElementById("tiktok-pixel-base")) return;
+      const s = document.createElement("script");
+      s.id = "tiktok-pixel-base";
+      s.async = true;
+      s.text = tiktokPixelBootstrapSource(pixelId.trim());
+      document.head.appendChild(s);
+    }
+
+    window.addEventListener("load", () => window.setTimeout(inject, 2500), {
+      once: true,
+    });
+  }, [load, pixelId]);
+
+  return null;
 }

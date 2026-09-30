@@ -2,8 +2,22 @@ import type { Metadata } from "next";
 import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 
+import dynamic from "next/dynamic";
+
 import { GadgetSupportLayout } from "@/components/gadget/gadget-support-layout";
-import { TrackOrder } from "@/components/orders/track-order";
+
+const TrackOrder = dynamic(
+  () => import("@/components/orders/track-order").then((m) => m.TrackOrder),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="min-h-[200px] animate-pulse rounded-2xl bg-[var(--g-line)]/30"
+        aria-busy="true"
+      />
+    ),
+  },
+);
 
 export const metadata: Metadata = {
   title: "Track Your Order",

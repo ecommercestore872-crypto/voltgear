@@ -1,14 +1,12 @@
-import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
-export const metadata: Metadata = {
-  title: "Checkout",
-  robots: { index: false, follow: false },
-};
+import { CheckoutStaticShell } from "@/components/checkout/checkout-static-shell";
 
-export default function CheckoutLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function CheckoutLayout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <CheckoutStaticShell />
+      {children}
+    </>
+  );
 }

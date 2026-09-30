@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { GadgetPdpProductGrid } from "@/components/gadget/gadget-pdp-product-grid";
+import { GadgetPdpServerFacts } from "@/components/gadget/gadget-pdp-server-facts";
 import { GadgetPdpServerHero } from "@/components/gadget/gadget-pdp-server-hero";
 import { GadgetPdpDeferred } from "@/components/product/gadget-pdp-deferred";
 import { ProductViewTracker } from "@/components/product/product-view-tracker";
@@ -211,6 +212,8 @@ export default async function Product2Page({
         sku={product.sku}
       />
       <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
+        <GadgetPdpServerFacts product={product} config={config} />
+
         <nav
           aria-label="Breadcrumb"
           className="flex flex-wrap items-center gap-1 text-xs text-[var(--g-taupe)]"

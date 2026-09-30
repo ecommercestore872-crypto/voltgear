@@ -635,6 +635,21 @@ export async function fetchReviewProducts(includeDemo = false): Promise<
     }));
 }
 
+export async function fetchCachedApprovedReviews(
+  productId: string,
+): Promise<ProductReview[]> {
+  const id = productId.trim();
+  if (!id) return [];
+  return unstable_cache(
+    async () => fetchApprovedReviews(id, false),
+    ["approved-reviews-v1", id],
+    {
+      revalidate: STOREFRONT_CATALOG_REVALIDATE,
+      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, `product-reviews-${id}`],
+    },
+  )();
+}
+
 export async function fetchApprovedReviews(
   productId: string,
   includeDemo = false

@@ -5,7 +5,14 @@ import { pdpProductCacheTag } from "./gadget-pdp-lcp";
 export const WARM_PDP_SLUG_LIMIT = 40;
 export const WARM_HTTP_FETCH_LIMIT = 20;
 
-const CORE_PATHS = ["/", "/products"] as const;
+const CORE_PATHS = [
+  "/",
+  "/products",
+  "/cod/lahore",
+  "/cod/karachi",
+  "/cod/islamabad",
+  "/cod/rawalpindi",
+] as const;
 
 export function storefrontWarmPaths(): readonly string[] {
   return CORE_PATHS;
