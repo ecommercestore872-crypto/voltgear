@@ -4,7 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { GadgetBuyBox } from "@/components/gadget/gadget-buy-box";
+import { GadgetPdpProductGrid } from "@/components/gadget/gadget-pdp-product-grid";
+import { GadgetPdpServerHero } from "@/components/gadget/gadget-pdp-server-hero";
 import { GadgetPdpDeferred } from "@/components/product/gadget-pdp-deferred";
 import { ProductViewTracker } from "@/components/product/product-view-tracker";
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
@@ -231,7 +232,11 @@ export default async function Product2Page({
         </nav>
 
         <div className="mt-6">
-          <GadgetBuyBox product={product} config={config} />
+          <GadgetPdpProductGrid
+            product={product}
+            config={config}
+            lcpHero={<GadgetPdpServerHero product={product} />}
+          />
         </div>
 
         <Suspense fallback={<PdpDeferredFallback />}>

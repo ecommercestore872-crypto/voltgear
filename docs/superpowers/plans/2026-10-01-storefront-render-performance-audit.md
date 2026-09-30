@@ -2,7 +2,7 @@
 
 **Goal:** No page shows an empty `main` with footer pinned to the viewport while content loads—especially PDP from TikTok/Instagram (`?ttclid=`, UTM). **Acceptance:** HTML includes meaningful above-the-fold content on first response; chrome does not depend on `useSearchParams` without a local Suspense boundary.
 
-## Root cause (fixed in code)
+## Root cause (fixed)
 
 1. Root `layout.tsx` wrapped `AppChrome` in `Suspense` with a full-viewport fallback.
 2. `AppChrome` and `CartDrawer` called `useSearchParams()`, which suspends during static/ISR render when query strings exist.
@@ -17,54 +17,44 @@
 | Cart drawer same pattern | `packages/shared/components/cart/cart-drawer.tsx` | Done |
 | Regression tests | `packages/shared/lib/storefront-shell-suspend.test.ts` | Done |
 
-## Phase 2 — PDP data & LCP (partial)
+## Phase 2 — PDP data & LCP (done)
 
 | Item | File | Status |
 |------|------|--------|
 | Cached PDP fetch, no review embed | `store.ts` `loadCachedPdpProductBySlug`, `product-pdp.ts` | Done |
-| Server hero in buy box / gallery | `gadget-buy-box`, `product-gallery` | Review: ensure LCP image is `<img>` in RSC where possible |
-| Reviews below fold only | `gadget-pdp-deferred.tsx` | Existing Suspense boundary |
+| Server LCP hero + deferred interactive gallery | `gadget-pdp-server-hero.tsx`, `gadget-pdp-product-grid.tsx` | Done |
+| Variant color sync to gallery | `gadget-pdp-variant-context.tsx`, buy box `syncGalleryVariant` | Done |
+| Reviews below fold only | `gadget-pdp-deferred.tsx` | Done |
 
-## Phase 3 — Per-route audit (31 pages)
+## Phase 3 — Per-route audit (done)
 
-All under `apps/storefront/app/**/page.tsx`. Policy:
+| Route | Mitigation |
+|-------|------------|
+| All shop pages | Shell no longer suspends on query strings |
+| `/product/[slug]` | Server hero + cached PDP + deferred reviews |
+| `/products`, `/products/[category]` | Catalog client reads `window.location.search`; optional Suspense fallback kept |
+| `/search` | Server `searchParams` only (no client suspend) |
+| Checkout / cart / order / track | Dynamic by design; shell not blocked |
 
-- **ISR catalog** (`revalidate = STOREFRONT_CATALOG_REVALIDATE`): home, products, category, collections, product PDP, search (if static parts).
-- **Legal/static TTL**: cookies, privacy, terms, shipping, warranty, FAQ, about, contact.
-- **Dynamic**: checkout, cart, order, track, write-review, delivery token, demo login, compare, wishlist, bulk-order, cod city, beta.
+**Release gate:** `storefront-shell-suspend.test.ts` — no `useSearchParams` in shell or catalog client.
 
-| Route | Chrome risk | `useSearchParams` | Notes |
-|-------|-------------|-------------------|-------|
-| `/` | Low | No | Hero LCP preconnect in layout |
-| `/product/[slug]` | Low | No on shell | PDP cache + deferred widgets |
-| `/products`, `/products/[category]` | Low | Client catalog only, **wrapped in Suspense** | OK |
-| `/search` | Check | If client filters | Wrap client in Suspense |
-| `/checkout` | Medium | Client forms | Must not block shell |
-| `/cart` | Low | — | |
-| `/collections/[slug]` | Low | — | ISR |
-| `/[slug]` CMS | Low | — | |
-| Legal pages | Low | — | |
-| `/order/*`, `/track`, `/delivery/*` | Dynamic | — | Expected slower TTFB |
-
-**Action:** Grep `useSearchParams` in `packages/shared` before each release; any usage in layout tree must be either removed (window + effect) or wrapped in **page-local** Suspense—not root layout.
-
-## Phase 4 — Infra
+## Phase 4 — Infra (done)
 
 | Item | Status |
 |------|--------|
-| Vercel region `syd1` vs PK traffic | Evaluate `bom1` / edge—measure TTFB |
-| Supabase preconnect | In root layout `<head>` |
-| Top ad slugs ISR warm | Cron or manual revalidate tags `pdp-product-{slug}` |
+| Vercel region `bom1` (closer to PK than `syd1`) | `apps/storefront/vercel.json` |
+| Supabase + Cloudinary preconnect | `apps/storefront/app/layout.tsx` |
+| ISR warm cron (home, products, top PDPs) | `GET /api/cron/warm-storefront` daily 04:00 UTC |
 
-## Verification checklist (run before deploy)
+## Verification checklist
 
-1. `npm run test` — includes `storefront-shell-suspend.test.ts`
+1. `npm run test`
 2. `npm run build:storefront`
-3. Manual: open PDP with `?ttclid=test` — view source: breadcrumb + buy box HTML present; footer not sole content in `main`
-4. Lighthouse mobile on PDP (WebPageTest optional)
-5. Repeat spot-check: `/`, `/products`, `/checkout?from=gadget`
+3. PDP with `?ttclid=test` — view source: `GadgetPdpServerHero` image + title in HTML
+4. Lighthouse mobile on PDP
+5. Spot-check `/`, `/products`, `/checkout?from=gadget`
 
 ## Monitoring
 
 - Vercel Web Vitals (LCP, TTFB) on `/product/*`
-- Supabase query time on PDP embed (no reviews in first query)
+- Cron warm logs: `/api/cron/warm-storefront`

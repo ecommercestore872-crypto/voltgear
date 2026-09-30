@@ -20,6 +20,7 @@ import {
   mapSettings,
   mapTestimonial,
 } from "@/lib/db/map";
+import { pdpProductCacheTag } from "@/lib/gadget-pdp-lcp";
 import { pickBestsellers } from "@/lib/db/bestsellers-rules";
 import { MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import { formatOrderId, nextSequentialNumber } from "@/lib/db/order-id";
@@ -198,7 +199,7 @@ export async function loadCachedPdpProductBySlug(slug: string): Promise<Product 
     ["pdp-product-v1", trimmed],
     {
       revalidate: STOREFRONT_CATALOG_REVALIDATE,
-      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, `pdp-product-${trimmed}`],
+      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, pdpProductCacheTag(trimmed)],
     },
   )();
 }

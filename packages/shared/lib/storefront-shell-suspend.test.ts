@@ -21,6 +21,21 @@ describe("storefront shell must not suspend on ad query strings", () => {
     assert.doesNotMatch(src, /useSearchParams/);
   });
 
+  it("GadgetShopCatalogClient does not import useSearchParams", () => {
+    const src = readShared("components/gadget/gadget-shop-catalog-client.tsx");
+    assert.doesNotMatch(src, /useSearchParams/);
+  });
+
+  it("PDP page uses server LCP hero slot", () => {
+    const pagePath = join(
+      sharedRoot,
+      "../../apps/storefront/app/product/[slug]/page.tsx",
+    );
+    const src = readFileSync(pagePath, "utf8");
+    assert.match(src, /GadgetPdpServerHero/);
+    assert.match(src, /GadgetPdpProductGrid/);
+  });
+
   it("root layout does not wrap AppChrome in Suspense", () => {
     const layoutPath = join(
       sharedRoot,

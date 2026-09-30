@@ -3,11 +3,15 @@
   "framework": "nextjs",
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w @voltgear/storefront",
-  "regions": ["syd1"],
+  "regions": ["bom1"],
   "crons": [
     {
       "path": "/api/flows",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/warm-storefront",
+      "schedule": "0 4 * * *"
     }
   ]
 }

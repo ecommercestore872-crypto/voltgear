@@ -28,6 +28,7 @@ import { warrantyLabel } from "@/lib/site-config";
 import type { Product, ProductVariant } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
 import { imageUrl } from "@/lib/sanity/image";
+import { useOptionalGadgetPdpVariantImage } from "@/components/gadget/gadget-pdp-variant-context";
 import {
   axesEnabled,
   canSubmitVariantSelection,
@@ -45,10 +46,17 @@ function defaultVariant(product: Product): ProductVariant | null {
 export function GadgetBuyBox({
   product,
   config,
+  infoOnly = false,
+  syncGalleryVariant = false,
 }: {
   product: Product;
   config: PublicSiteConfig;
+  /** When true, omit gallery column (use `GadgetPdpGalleryShell` in the page grid). */
+  infoOnly?: boolean;
+  /** Push selected variant image to `GadgetPdpVariantProvider` gallery column. */
+  syncGalleryVariant?: boolean;
 }) {
+  const galleryVariant = useOptionalGadgetPdpVariantImage();
   const { addItem, openCart } = useCart();
   const axesOn = axesEnabled(product);
   const [colorKey, setColorKey] = useState<string | null>(() =>
@@ -124,6 +132,11 @@ export function GadgetBuyBox({
       }
     : null;
 
+  useEffect(() => {
+    if (!syncGalleryVariant || !galleryVariant) return;
+    galleryVariant.setVariantImage(variantImage);
+  }, [syncGalleryVariant, galleryVariant, variantImage]);
+
   function scrollToOptions() {
     document.getElementById("gadget-buy-options")?.scrollIntoView({
       behavior: "smooth",
@@ -172,13 +185,7 @@ export function GadgetBuyBox({
     window.setTimeout(() => setAdded(false), 1600);
   }
 
-  return (
-    <>
-      <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-8 lg:gap-12">
-        <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:max-w-lg md:max-w-none md:p-3 lg:p-4">
-          <ProductGallery product={product} variantImage={variantImage} />
-        </div>
-
+  const infoColumn = (
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
@@ -511,7 +518,20 @@ export function GadgetBuyBox({
             Secure checkout · Order confirmation by SMS
           </p>
         </div>
-      </div>
+  );
+
+  return (
+    <>
+      {infoOnly ? (
+        infoColumn
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-8 lg:gap-12">
+          <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:max-w-lg md:max-w-none md:p-3 lg:p-4">
+            <ProductGallery product={product} variantImage={variantImage} />
+          </div>
+          {infoColumn}
+        </div>
+      )}
 
       {/* Mobile sticky CTA — safe-area for iPhone home indicator */}
       {!outOfStock && showStickyCta ? (
