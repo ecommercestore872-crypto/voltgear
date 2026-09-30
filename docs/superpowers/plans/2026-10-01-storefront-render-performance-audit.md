@@ -19,11 +19,15 @@
 
 ## Remaining (non-shop or lower priority)
 
-- Admin Supabase views / RLS lint fixes
-- Re-enable TypeScript in CI for storefront
-- Remove legacy `e commerce store/app/` when confirmed unused
+- Apply Supabase migration `20261017000000_admin_customer_rollups_security_invoker.sql` on Final-store
+- Re-enable TypeScript in Next build (currently `ignoreBuildErrors`) — incremental
+- Remove legacy root `app/` tree when confirmed unused (see `app/DEPRECATED.md`)
 - Home page: optional further section-level cache tuning
-- Bundle budget automation in CI
+
+## CI
+
+- GitHub Actions: `.github/workflows/storefront-ci.yml` — `npm run test` + `build:storefront` on `main` / PRs
+- Local: `npm run ci:storefront`
 
 ## Verification
 

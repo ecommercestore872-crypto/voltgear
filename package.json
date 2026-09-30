@@ -17,6 +17,7 @@
     "convert:category-cutouts": "node scripts/category-cutouts-to-webp.mjs",
     "seed:category-webp": "tsx scripts/sync-category-webp-urls.ts",
     "build:storefront": "npm run build -w @voltgear/storefront",
+    "ci:storefront": "npm run test && npm run build:storefront",
     "build:admin": "npm run build -w @voltgear/admin",
     "start": "npm run start -w @voltgear/storefront",
     "lint": "npm run lint -w @voltgear/storefront",

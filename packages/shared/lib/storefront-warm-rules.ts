@@ -3,7 +3,7 @@ import type { Product } from "@/lib/types";
 import { pdpProductCacheTag } from "./gadget-pdp-lcp";
 
 export const WARM_PDP_SLUG_LIMIT = 40;
-export const WARM_HTTP_FETCH_LIMIT = 20;
+export const WARM_HTTP_FETCH_LIMIT = 30;
 
 const CORE_PATHS = [
   "/",
