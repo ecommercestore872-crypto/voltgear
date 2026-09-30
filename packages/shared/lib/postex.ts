@@ -22,21 +22,146 @@ export type PostExBookingResponse = {
   };
 };
 
+export type PostExCreateOrderFailure = {
+  ok: false;
+  error: string;
+  upstreamHttpStatus?: number;
+};
+
+export type PostExCreateOrderSuccess = {
+  ok: true;
+  trackingNumber: string;
+  data: unknown;
+};
+
+export type PostExCreateOrderResult = PostExCreateOrderSuccess | PostExCreateOrderFailure;
+
+const POSTEX_INTEGRATION_API_SUFFIX = "/services/integration/api";
+
 const POSTEX_BASE_URL =
   process.env.POSTEX_API_BASE_URL || "https://api.postex.pk/services/integration/api";
+
+function resolvePostExHostBase(
+  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
+): string {
+  return (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
+}
+
+/** PostEx create-order URL (host base + integration path). */
+export function resolvePostExCreateOrderUrl(
+  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
+): string {
+  return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v3/create-order`;
+}
+
+/** PostEx track-order URL (host base + integration path). */
+export function resolvePostExTrackOrderUrl(
+  trackingNumber: string,
+  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
+): string {
+  const tn = encodeURIComponent(trackingNumber.trim());
+  return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v1/track-order/${tn}`;
+}
 
 function getPostExToken(): string {
   const token = process.env.POSTEX_API_TOKEN;
   return token ? token.trim() : "";
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
+function postExStatusOk(statusCode: unknown): boolean {
+  return statusCode === "200" || statusCode === 200 || statusCode === "201" || statusCode === 201;
+}
+
+/** Safe JSON body read — never throws on HTML/plain text. */
+export async function readPostExJsonResponse(
+  res: Response,
+): Promise<
+  | { ok: true; data: Record<string, unknown>; upstreamHttpStatus: number }
+  | { ok: false; error: string; upstreamHttpStatus: number }
+> {
+  const upstreamHttpStatus = res.status;
+  const contentType = (res.headers.get("content-type") ?? "").toLowerCase();
+  let text: string;
+  try {
+    text = await res.text();
+  } catch {
+    return {
+      ok: false,
+      error: "Failed to communicate with PostEx API.",
+      upstreamHttpStatus,
+    };
+  }
+
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return {
+      ok: false,
+      error: "PostEx returned an empty response.",
+      upstreamHttpStatus,
+    };
+  }
+
+  const looksJson =
+    contentType.includes("json") || trimmed.startsWith("{") || trimmed.startsWith("[");
+  if (!looksJson) {
+    return {
+      ok: false,
+      error: "PostEx returned a non-JSON response",
+      upstreamHttpStatus,
+    };
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(text);
+    const data = asRecord(parsed);
+    if (!data) {
+      return {
+        ok: false,
+        error: "PostEx returned a non-JSON response",
+        upstreamHttpStatus,
+      };
+    }
+    return { ok: true, data, upstreamHttpStatus };
+  } catch {
+    return {
+      ok: false,
+      error: "PostEx returned a non-JSON response",
+      upstreamHttpStatus,
+    };
+  }
+}
+
+function extractTrackingNumber(data: Record<string, unknown>): string | null {
+  const dist = asRecord(data.dist);
+  const fromDist = dist?.trackingNumber ?? dist?.orderTrackingNumber;
+  const top = data.trackingNumber;
+  const candidate = fromDist ?? top;
+  if (candidate == null) return null;
+  const s = String(candidate).trim();
+  return s.length ? s : null;
+}
+
 /**
  * Creates an order shipment in PostEx system.
  */
 export async function createPostExOrder(
-  payload: PostExOrderPayload
-): Promise<{ ok: true; trackingNumber: string; data: any } | { ok: false; error: string }> {
-  const token = getPostExToken();
+  payload: PostExOrderPayload,
+  options: {
+    fetchImpl?: typeof fetch;
+    env?: Pick<
+      NodeJS.ProcessEnv,
+      "POSTEX_API_TOKEN" | "POSTEX_API_BASE_URL" | "POSTEX_PICKUP_ADDRESS_CODE" | "NEXT_PUBLIC_POSTEX_PICKUP_ADDRESS_CODE"
+    >;
+  } = {},
+): Promise<PostExCreateOrderResult> {
+  const env = options.env ?? process.env;
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const token = env.POSTEX_API_TOKEN?.trim() ?? "";
   if (!token) {
     return {
       ok: false,
@@ -46,8 +171,8 @@ export async function createPostExOrder(
 
   const pickupAddressCode =
     payload.pickupAddressCode ||
-    process.env.POSTEX_PICKUP_ADDRESS_CODE ||
-    process.env.NEXT_PUBLIC_POSTEX_PICKUP_ADDRESS_CODE ||
+    env.POSTEX_PICKUP_ADDRESS_CODE?.trim() ||
+    env.NEXT_PUBLIC_POSTEX_PICKUP_ADDRESS_CODE?.trim() ||
     "001";
 
   const body = {
@@ -64,35 +189,56 @@ export async function createPostExOrder(
     orderType: "Normal",
   };
 
+  const url = resolvePostExCreateOrderUrl(env);
+
+  let res: Response;
   try {
-    const res = await fetch(`${POSTEX_BASE_URL}/v3/create-order`, {
+    res = await fetchImpl(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        token: token,
+        token,
       },
       body: JSON.stringify(body),
     });
-
-    const data = await res.json();
-
-    if (!res.ok || data.statusCode !== "200" && data.statusCode !== 200 && data.statusCode !== "201") {
-      const msg = data.statusMessage || data.message || `PostEx error (${res.status})`;
-      return { ok: false, error: msg };
-    }
-
-    const trackingNumber =
-      data.dist?.trackingNumber || data.trackingNumber || data.dist?.orderTrackingNumber;
-
-    if (!trackingNumber) {
-      return { ok: false, error: "PostEx booking succeeded but tracking number was missing in response." };
-    }
-
-    return { ok: true, trackingNumber, data };
-  } catch (err: any) {
-    console.error("[PostEx API Error]:", err);
-    return { ok: false, error: err.message || "Failed to communicate with PostEx API." };
+  } catch (err: unknown) {
+    console.error(
+      "[PostEx API Error]:",
+      err instanceof Error ? err.message : "network error",
+    );
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to communicate with PostEx API.",
+    };
   }
+
+  const parsed = await readPostExJsonResponse(res);
+  if (!parsed.ok) {
+    console.error("[PostEx API Error]:", parsed.error, `(HTTP ${parsed.upstreamHttpStatus})`);
+    return parsed;
+  }
+
+  const data = parsed.data;
+  const upstreamHttpStatus = parsed.upstreamHttpStatus;
+
+  if (!res.ok || !postExStatusOk(data.statusCode)) {
+    const msg =
+      (typeof data.statusMessage === "string" && data.statusMessage) ||
+      (typeof data.message === "string" && data.message) ||
+      `PostEx error (${upstreamHttpStatus})`;
+    return { ok: false, error: msg, upstreamHttpStatus };
+  }
+
+  const trackingNumber = extractTrackingNumber(data);
+  if (!trackingNumber) {
+    return {
+      ok: false,
+      error: "PostEx booking succeeded but tracking number was missing in response.",
+      upstreamHttpStatus,
+    };
+  }
+
+  return { ok: true, trackingNumber, data };
 }
 
 /**
@@ -146,7 +292,8 @@ export async function getPostExInvoice(
     }
 
     return { ok: true, pdfBase64: data.dist || data.invoice || "" };
-  } catch (err: any) {
-    return { ok: false, error: err.message || "PostEx invoice request failed." };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "PostEx invoice request failed.";
+    return { ok: false, error: message };
   }
 }
