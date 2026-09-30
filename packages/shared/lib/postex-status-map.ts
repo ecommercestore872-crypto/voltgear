@@ -23,6 +23,9 @@ const MANUAL_REVIEW_STATUSES = new Set([
   "delivery under review",
   "expired",
   "un-assigned by me",
+  "cancelled",
+  "cancelled by merchant",
+  "unassigned by merchant",
 ]);
 
 /** Normalize PostEx transactionStatus for stable comparisons. */

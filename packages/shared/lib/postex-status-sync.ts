@@ -92,6 +92,13 @@ export async function runPostExStatusSyncForOrderId(
     };
   }
 
+  const trackingMeta = {
+    orderPickupDate: trackSafe.orderPickupDate,
+    orderDeliveryDate: trackSafe.orderDeliveryDate,
+    transactionDate: trackSafe.transactionDate,
+    transactionStatusHistory: trackSafe.transactionStatusHistory,
+  };
+
   if (preview.action === "no_change" || !preview.proposedBuyNTryStatus) {
     return {
       status: 200,
@@ -102,6 +109,7 @@ export async function runPostExStatusSyncForOrderId(
         previousStatus,
         newStatus: previousStatus,
         action: "no_change",
+        ...trackingMeta,
       },
     };
   }
@@ -125,6 +133,7 @@ export async function runPostExStatusSyncForOrderId(
       previousStatus,
       newStatus,
       action: "updated",
+      ...trackingMeta,
     },
   };
 }

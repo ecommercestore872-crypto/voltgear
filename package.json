@@ -27,6 +27,7 @@
     "ensure:admin-auth": "tsx scripts/ensure-admin-auth-user.ts",
     "indexnow": "tsx scripts/submit-indexnow.ts",
     "smoke:t40": "node scripts/smoke-t40-production.mjs",
+    "postex:smoke": "node scripts/postex-smoke.mjs",
     "resend:health": "node scripts/resend-health.mjs",
     "resend:webhook-setup": "node scripts/setup-resend-webhook.mjs",
     "resend:backfill-suppressions": "node scripts/backfill-resend-suppressions.mjs",

@@ -9,6 +9,7 @@ export type PostExOrderPayload = {
   orderDetail?: string;
   invoiceDivision?: number;
   items?: number;
+  transactionNotes?: string;
 };
 
 export type PostExBookingResponse = {
@@ -190,7 +191,7 @@ export async function createPostExOrder(
     env.NEXT_PUBLIC_POSTEX_PICKUP_ADDRESS_CODE?.trim() ||
     "001";
 
-  const body = {
+  const body: Record<string, unknown> = {
     orderRefNumber: payload.orderRefNumber,
     invoicePayment: payload.invoicePayment,
     customerName: payload.customerName,
@@ -203,6 +204,8 @@ export async function createPostExOrder(
     items: payload.items || 1,
     orderType: "Normal",
   };
+  const notes = payload.transactionNotes?.trim();
+  if (notes) body.transactionNotes = notes;
 
   const url = resolvePostExCreateOrderUrl(env);
 

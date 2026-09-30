@@ -5,13 +5,10 @@
 import { spawnSync } from "node:child_process";
 import { execSync } from "node:child_process";
 
-const files = execSync(
-  'git ls-files "packages/shared/lib/**/*.test.ts" "packages/shared/lib/**/*.test.mjs"',
-  { encoding: "utf8" },
-)
+const files = execSync('git ls-files "packages/shared/lib/"', { encoding: "utf8" })
   .trim()
   .split(/\r?\n/)
-  .filter(Boolean);
+  .filter((f) => f.endsWith(".test.ts") || f.endsWith(".test.mjs"));
 
 if (!files.length) {
   console.error("No test files found.");

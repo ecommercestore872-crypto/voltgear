@@ -1,4 +1,4 @@
-name: Storefront CI
+name: Monorepo CI
 
 on:
   push:
@@ -28,4 +28,8 @@ jobs:
         run: npm run build:storefront
         env:
           NEXT_PUBLIC_SITE_URL: https://buyntryy.com
+          ADMIN_TOKEN: ci-placeholder-not-for-production
+      - name: Build admin
+        run: npm run build:admin
+        env:
           ADMIN_TOKEN: ci-placeholder-not-for-production

@@ -2,7 +2,7 @@ import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextRequest, NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
-import { runPostExConnectivityTest } from "@/lib/postex-connectivity";
+import { runPostExPickupAddressLookup } from "@/lib/postex-pickup-address";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ async function GETHandler(req: NextRequest) {
     );
   }
 
-  const result = await runPostExConnectivityTest();
+  const result = await runPostExPickupAddressLookup();
   const httpStatus = result.success ? 200 : (result.httpStatus ?? 502);
 
   return NextResponse.json(
@@ -22,7 +22,7 @@ async function GETHandler(req: NextRequest) {
       success: result.success,
       statusCode: result.statusCode,
       statusMessage: result.statusMessage,
-      operationalCityCount: result.operationalCityCount,
+      pickupAddresses: result.pickupAddresses,
       ...(result.upstreamHttpStatus != null
         ? { upstreamHttpStatus: result.upstreamHttpStatus }
         : {}),
@@ -34,6 +34,6 @@ async function GETHandler(req: NextRequest) {
 }
 
 export const GET = withAdminApiObservability(
-  "GET /api/admin/postex/connectivity",
+  "GET /api/admin/postex/pickup-address",
   GETHandler,
 );

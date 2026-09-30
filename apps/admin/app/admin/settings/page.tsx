@@ -9,6 +9,7 @@ const SettingsForm = nextDynamic(
   { loading: () => <p className="text-sm text-muted-foreground p-6">Loading settings…</p> },
 );
 import { ChangePassword } from "@/components/admin/change-password";
+import { PostExShippingPanel } from "@/components/admin/postex-shipping-panel";
 import {
   getAdminSettings,
   listAdminProductsSearch,
@@ -73,6 +74,7 @@ export default async function AdminSettingsPage() {
         shopCategories={shopCategories}
         initialFeaturedProduct={initialFeaturedProduct}
       />
+      <PostExShippingPanel />
       <div className="mx-auto max-w-5xl border-t pt-10">
         <ChangePassword />
       </div>

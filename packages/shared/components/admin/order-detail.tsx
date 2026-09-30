@@ -46,6 +46,11 @@ export function OrderDetail({
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [bookingPostEx, setBookingPostEx] = useState(false);
+  const [syncingPostEx, setSyncingPostEx] = useState(false);
+  const [checkingPostEx, setCheckingPostEx] = useState(false);
+  const [reconcilingPostEx, setReconcilingPostEx] = useState(false);
+  const [cancellingPostEx, setCancellingPostEx] = useState(false);
+  const [postExHint, setPostExHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
 
@@ -69,16 +74,58 @@ export function OrderDetail({
       ? order.postex_tracking_number.trim()
       : "");
 
+  const postExBusy =
+    bookingPostEx ||
+    syncingPostEx ||
+    checkingPostEx ||
+    reconcilingPostEx ||
+    cancellingPostEx;
+
+  async function handleCheckPostExReady() {
+    setCheckingPostEx(true);
+    setError(null);
+    setPostExHint(null);
+    try {
+      const data = (await adminFetch(
+        `/api/admin/postex/order-payload/${encodeURIComponent(order.orderId)}`,
+      )) as { success?: boolean; error?: string; missingOrInvalid?: string[] };
+      if (data.success) {
+        setPostExHint("Order passes PostEx validation (dry run). Safe to book.");
+      } else if (data.missingOrInvalid?.length) {
+        setPostExHint(
+          `Not ready: ${data.missingOrInvalid.join("; ")}.`,
+        );
+      } else {
+        setPostExHint(data.error ?? "PostEx dry run failed.");
+      }
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        router.replace("/admin/login");
+        return;
+      }
+      setError(
+        err instanceof Error ? err.message : "PostEx validation failed.",
+      );
+    } finally {
+      setCheckingPostEx(false);
+    }
+  }
+
   async function handleBookPostEx() {
+    if (postexTracking) return;
     setBookingPostEx(true);
     setError(null);
     setOk(null);
+    setPostExHint(null);
     try {
       const data = (await adminFetch("/api/admin/postex/book", {
         method: "POST",
         body: JSON.stringify({ orderId: order.orderId }),
-      })) as { trackingNumber?: string };
-      setOk(`PostEx booked! Tracking #: ${data.trackingNumber ?? "—"}`);
+      })) as { trackingNumber?: string; message?: string };
+      setOk(
+        data.message ??
+          `PostEx booked! Tracking #: ${data.trackingNumber ?? "—"}`,
+      );
       router.refresh();
     } catch (err) {
       if (err instanceof AdminAuthError) {
@@ -90,6 +137,123 @@ export function OrderDetail({
       );
     } finally {
       setBookingPostEx(false);
+    }
+  }
+
+  async function handleSyncPostExStatus() {
+    if (!postexTracking) return;
+    setSyncingPostEx(true);
+    setError(null);
+    setOk(null);
+    try {
+      const data = (await adminFetch(
+        `/api/admin/postex/sync-status/${encodeURIComponent(order.orderId)}`,
+        { method: "POST" },
+      )) as {
+        success?: boolean;
+        message?: string;
+        error?: string;
+        applied?: boolean;
+      };
+      if (data.success) {
+        const dates = [
+          data.transactionDate ? `Created ${data.transactionDate}` : null,
+          data.orderPickupDate ? `Pickup ${data.orderPickupDate}` : null,
+          data.orderDeliveryDate ? `Delivery ${data.orderDeliveryDate}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        const base = data.message ?? "PostEx status synced.";
+        setOk(dates ? `${base} (${dates})` : base);
+        router.refresh();
+      } else {
+        setError(data.error ?? "PostEx sync failed.");
+      }
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        router.replace("/admin/login");
+        return;
+      }
+      setError(
+        err instanceof Error ? err.message : "PostEx sync failed.",
+      );
+    } finally {
+      setSyncingPostEx(false);
+    }
+  }
+
+  async function handleCancelPostEx() {
+    if (!postexTracking) return;
+    const confirmed = window.confirm(
+      "Cancel this shipment on PostEx? Use this only before pickup. You may still cancel the shop order separately.",
+    );
+    if (!confirmed) return;
+
+    setCancellingPostEx(true);
+    setError(null);
+    setOk(null);
+    try {
+      const data = (await adminFetch(
+        `/api/admin/postex/cancel/${encodeURIComponent(order.orderId)}`,
+        { method: "PUT" },
+      )) as { message?: string; error?: string };
+      setOk(data.message ?? "PostEx shipment cancelled.");
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        router.replace("/admin/login");
+        return;
+      }
+      setError(
+        err instanceof Error ? err.message : "PostEx cancel failed.",
+      );
+    } finally {
+      setCancellingPostEx(false);
+    }
+  }
+
+  async function handleReconcilePostEx() {
+    setReconcilingPostEx(true);
+    setError(null);
+    setPostExHint(null);
+    try {
+      const data = (await adminFetch(
+        `/api/admin/postex/reconcile/${encodeURIComponent(order.orderId)}`,
+      )) as {
+        foundInPostEx?: boolean;
+        postexOrder?: { trackingNumber?: string | null; transactionStatus?: string | null };
+        dbState?: { postexBookingClaimedAt?: string | null };
+        error?: string;
+      };
+      if (data.error) {
+        setPostExHint(data.error);
+        return;
+      }
+      if (data.dbState?.postexBookingClaimedAt && !postexTracking) {
+        setPostExHint(
+          `Booking lock active since ${formatDate(data.dbState.postexBookingClaimedAt)}. Reconcile with PostEx before retrying book.`,
+        );
+      }
+      if (data.foundInPostEx && data.postexOrder) {
+        const tn = data.postexOrder.trackingNumber ?? "—";
+        const st = data.postexOrder.transactionStatus ?? "unknown";
+        setPostExHint(
+          `PostEx has this order ref: tracking ${tn}, status “${st}”.`,
+        );
+      } else if (!data.foundInPostEx) {
+        setPostExHint(
+          "No matching orderRef in PostEx list for this date window. If book failed mid-flight, contact PostEx support with the order id.",
+        );
+      }
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        router.replace("/admin/login");
+        return;
+      }
+      setError(
+        err instanceof Error ? err.message : "PostEx reconcile failed.",
+      );
+    } finally {
+      setReconcilingPostEx(false);
     }
   }
 
@@ -188,10 +352,15 @@ export function OrderDetail({
               Placed {formatDate(order.createdAt)} 
               {order.statusUpdatedAt && ` • Line updated ${formatDate(order.statusUpdatedAt)}`}
             </p>
+            {postexTracking ? (
+              <p className="text-xs font-mono mt-1 text-blue-700 dark:text-blue-300">
+                PostEx tracking: {postexTracking}
+              </p>
+            ) : null}
           </div>
 
           {/* PostEx Dispatch Actions */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 flex-wrap">
             <Button asChild type="button" variant="outline" className="shadow-sm">
               <Link
                 href={`/order/${encodeURIComponent(order.orderId)}/invoice?print=1&email=${encodeURIComponent(customer.email || '')}`}
@@ -204,12 +373,48 @@ export function OrderDetail({
             <Button
               type="button"
               variant="outline"
-              disabled={bookingPostEx}
-              onClick={handleBookPostEx}
+              disabled={postExBusy || Boolean(postexTracking)}
+              onClick={() => void handleCheckPostExReady()}
+              className="shadow-sm"
+            >
+              {checkingPostEx ? "Validating…" : "Validate for PostEx"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={postExBusy || Boolean(postexTracking)}
+              onClick={() => void handleBookPostEx()}
               className="inline-flex items-center gap-1.5 shadow-sm border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-900 dark:text-blue-300 dark:bg-blue-950/30 dark:hover:bg-blue-900/50"
             >
               <Truck className="h-4 w-4" />
               {bookingPostEx ? "Pushing to PostEx…" : "Book with PostEx"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={postExBusy || !postexTracking}
+              onClick={() => void handleSyncPostExStatus()}
+              className="shadow-sm"
+            >
+              {syncingPostEx ? "Syncing…" : "Sync status from PostEx"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={postExBusy || !postexTracking || status === "delivered"}
+              onClick={() => void handleCancelPostEx()}
+              className="shadow-sm text-destructive border-destructive/30"
+            >
+              {cancellingPostEx ? "Cancelling…" : "Cancel on PostEx"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={postExBusy}
+              onClick={() => void handleReconcilePostEx()}
+              className="shadow-sm text-xs"
+            >
+              {reconcilingPostEx ? "Reconciling…" : "Reconcile with PostEx"}
             </Button>
             <Button
               asChild
@@ -230,6 +435,12 @@ export function OrderDetail({
           </div>
         </div>
       </div>
+
+      {postExHint ? (
+        <p className="rounded-md border border-blue-200 bg-blue-50/80 px-3 py-2 text-sm text-blue-950 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+          {postExHint}
+        </p>
+      ) : null}
 
       {emailIssue ? (
         <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">

@@ -61,7 +61,7 @@ New products start as drafts. First save needs a name (the web address is filled
 
 ## Storefront-only scope (2026-09)
 
-Admin nav is grouped for daily shop control: **Home / Orders**, **Catalog**, **Storefront** (hero, home layout, sections, testimonials), **Merchandising** (discounts, deals), **Content** (reviews, blog, pages), **Comms** (inbox, customers, newsletter, messaging), **Settings** (brand, order emails, email sending, invoice). **Analytics** and **Autopilot** UIs were removed; PostEx booking stays on the order detail page (`POST /api/admin/postex/book`).
+Admin nav is grouped for daily shop control: **Home / Orders**, **Catalog**, **Storefront** (hero, home layout, sections, testimonials), **Merchandising** (discounts, deals), **Content** (reviews, blog, pages), **Comms** (inbox, customers, newsletter, messaging), **Settings** (brand, order emails, email sending, invoice, **PostEx connectivity**). **Analytics** and **Autopilot** UIs were removed; PostEx booking is manual on order detail (validate → book → airway bill → sync status). See `docs/modules/shipping/POSTEX_SETUP.md`.
 
 ## Out of this module
 
