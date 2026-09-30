@@ -19,15 +19,14 @@ export function getHeroSlides(
 ): HeroSlide[] {
   const slides: HeroSlide[] = [];
 
-  // Prioritize local generated creatives for the storefront experience
-  let realImages = getFallbackHeroImages();
-  
-  if (!realImages || realImages.length === 0) {
-    realImages = realHero?.backgroundImages?.length
-      ? realHero.backgroundImages
-      : realHero?.backgroundImage
+  let realImages = realHero?.backgroundImages?.length
+    ? realHero.backgroundImages
+    : realHero?.backgroundImage
       ? [realHero.backgroundImage]
       : [];
+
+  if (realImages.length === 0) {
+    realImages = getFallbackHeroImages();
   }
 
   const hasRealImages = realImages.length > 0;
