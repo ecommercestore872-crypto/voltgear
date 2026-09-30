@@ -262,12 +262,20 @@ export function fetchCatalogProductsByCategory(category: string): Promise<Produc
 }
 
 /** Same-category related cards for PDP — bounded query, catalog embed only. */
-export const fetchRelatedProducts = unstable_cache(
-  async (excludeProductId: string, category: string, limit: number) =>
-    loadRelatedCatalogProducts(excludeProductId, category, limit),
-  ["fetchRelatedProducts"],
-  { revalidate: 60, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
-);
+export async function fetchRelatedProducts(
+  excludeProductId: string,
+  category: string,
+  limit: number,
+): Promise<Product[]> {
+  const id = excludeProductId.trim();
+  const cat = category.trim();
+  const lim = Math.max(1, Math.min(limit, 24));
+  return unstable_cache(
+    async () => loadRelatedCatalogProducts(id, cat, lim),
+    ["fetchRelatedProducts-v2", id, cat, String(lim)],
+    { revalidate: 60, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
+  )();
+}
 
 /** Slim catalog rows for explicit slugs (e.g. deal pair partners). */
 export async function fetchCatalogProductsBySlugs(

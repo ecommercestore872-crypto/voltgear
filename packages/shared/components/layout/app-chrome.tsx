@@ -86,24 +86,18 @@ export function AppChrome({
     }
   }, [pathname]);
 
-  if (!pathname) {
-    return (
-      <CartProvider>
-        <WishlistProvider>{children}</WishlistProvider>
-      </CartProvider>
-    );
-  }
+  const activePath = pathname || "/";
 
-  if (pathname.startsWith("/admin")) {
+  if (pathname?.startsWith("/admin")) {
     return <>{children}</>;
   }
 
-  if (isInvoicePath(pathname)) {
+  if (isInvoicePath(activePath)) {
     const nodes = Children.toArray(children);
     return <>{nodes.at(-1) ?? children}</>;
   }
 
-  const gadget = shouldUseGadgetChrome(pathname, {
+  const gadget = shouldUseGadgetChrome(activePath, {
     search: checkoutFromGadget ? "from=gadget" : "",
     sessionActive: sessionActive || checkoutFromGadget,
   });
@@ -111,7 +105,7 @@ export function AppChrome({
   return (
     <CartProvider>
       <WishlistProvider>
-        {!pathname.startsWith("/admin") ? <TikTokPixel /> : null}
+        {!pathname?.startsWith("/admin") ? <TikTokPixel /> : null}
         {gadget ? (
           <>
             <div

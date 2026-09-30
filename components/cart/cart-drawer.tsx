@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -222,13 +222,16 @@ function FreeShippingBar({
 
 export function CartDrawer() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [sessionActive, setSessionActive] = useState(false);
+  const [searchString, setSearchString] = useState("");
   useEffect(() => {
+    const search =
+      typeof window !== "undefined" ? window.location.search : "";
+    setSearchString(search.startsWith("?") ? search.slice(1) : search);
     setSessionActive(readGadgetPreviewSession());
-  }, [pathname, searchParams]);
+  }, [pathname]);
   const gadget = shouldUseGadgetChrome(pathname || "", {
-    search: searchParams?.toString() ?? "",
+    search: searchString,
     sessionActive: sessionActive || isGadgetPreviewPath(pathname || ""),
   });
   const shopHref = gadget ? products2Href() : "/products";
@@ -558,7 +561,7 @@ export function CartDrawer() {
                     <Link
                       href={checkoutHref(gadget)}
                       onClick={closeCart}
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--g-forest)] text-xs font-bold text-[var(--g-white)] shadow-[0_6px_16px_rgba(31,54,38,0.2)] transition hover:bg-[var(--g-forest-mid)] active:scale-[0.99]"
+                      className="gadget-buy-cta inline-flex h-11 w-full items-center justify-center gap-2 rounded-full text-xs font-bold transition active:scale-[0.99]"
                     >
                       Checkout
                       <ArrowRight className="h-3.5 w-3.5" />

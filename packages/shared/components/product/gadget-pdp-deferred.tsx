@@ -10,7 +10,10 @@ import {
 } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { normalizeDealSlug, publicDealsForSlug } from "@/lib/db/deal-rules";
-import { fetchDealCatalogForSlugs, listProductDeals } from "@/lib/db/deal-store";
+import {
+  fetchDealCatalogForSlugs,
+  listCachedProductDeals,
+} from "@/lib/db/deal-store";
 import {
   fetchCachedApprovedReviews,
   fetchCatalogProductsBySlugs,
@@ -28,7 +31,7 @@ export async function GadgetPdpDeferred({
 }) {
   const [approvedReviews, deals] = await Promise.all([
     fetchCachedApprovedReviews(productIn._id).catch(() => []),
-    listProductDeals().catch(() => []),
+    listCachedProductDeals().catch(() => []),
   ]);
 
   const slugKey = normalizeDealSlug(productIn.slug);

@@ -1,3 +1,6 @@
+import { unstable_cache } from "next/cache";
+
+import { STOREFRONT_CATALOG_GRID_CACHE_TAG, STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import { getServiceClient } from "@/lib/supabase/server";
 import { revalidateAfterPublish } from "@/lib/revalidate-storefront";
 import {
@@ -69,6 +72,17 @@ export async function listProductDeals(): Promise<DealRecord[]> {
   if (!error) return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
   if (isMissingTable(error)) return dealsFromDraft();
   throw error;
+}
+
+export async function listCachedProductDeals(): Promise<DealRecord[]> {
+  return unstable_cache(
+    async () => listProductDeals(),
+    ["product-deals-v1"],
+    {
+      revalidate: STOREFRONT_CATALOG_REVALIDATE,
+      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, "product-deals"],
+    },
+  )();
 }
 
 /** Product floor fields for deals UI — no images (one query). */

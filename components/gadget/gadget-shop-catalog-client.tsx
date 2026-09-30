@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
 import type { ShopType } from "@/lib/categories";
@@ -56,9 +56,20 @@ export function GadgetShopCatalogClient({
   guideLink?: { href: string; label: string } | null;
   maxPerCategory?: number;
 }) {
-  const searchParams = useSearchParams();
-  const query = (searchParams.get("q") || "").trim();
-  const sort = searchParams.get("sort") || "featured";
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState("featured");
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const raw =
+      typeof window !== "undefined" ? window.location.search : "";
+    const params = new URLSearchParams(
+      raw.startsWith("?") ? raw.slice(1) : raw,
+    );
+    setQuery((params.get("q") || "").trim());
+    setSort(params.get("sort") || "featured");
+  }, [pathname]);
 
   const filtered = useMemo(() => {
     const qLower = query.toLowerCase();

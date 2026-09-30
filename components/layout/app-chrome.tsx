@@ -2,10 +2,16 @@
 
 import type { ReactNode } from "react";
 import { Children, useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
-import { FirstPartyTracker } from "@/components/analytics/first-party-tracker";
-import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
+import dynamic from "next/dynamic";
+
+const TikTokPixel = dynamic(
+  () =>
+    import("@/components/analytics/tiktok-pixel").then((m) => m.TikTokPixel),
+  { ssr: false, loading: () => null },
+);
+import { captureClickAttribution, persistClickAttribution } from "@/lib/click-attribution";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
 import { CookieConsentBar } from "@/components/legal/cookie-consent-bar";
@@ -16,6 +22,7 @@ import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { GadgetNavbar } from "@/components/gadget/gadget-navbar";
 import { ShopWhatsAppButton } from "@/components/shop/shop-whatsapp-button";
 import { TrustBar } from "@/components/sections/trust-bar";
+import { cleanedPathnameAndSearch } from "@/lib/clean-marketing-url";
 import {
   readGadgetPreviewSession,
   shouldUseGadgetChrome,
@@ -47,51 +54,63 @@ export function AppChrome({
   demoBanner: ReactNode;
 }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [sessionActive, setSessionActive] = useState(false);
+  const [checkoutFromGadget, setCheckoutFromGadget] = useState(false);
 
   useEffect(() => {
     if (!pathname) return;
-    const search = searchParams?.toString() ?? "";
-    syncGadgetPreviewSession(pathname, search);
+    const currentSearch =
+      typeof window !== "undefined" ? window.location.search : "";
+    const params = new URLSearchParams(
+      currentSearch.startsWith("?") ? currentSearch.slice(1) : currentSearch,
+    );
+    syncGadgetPreviewSession(pathname, params.toString());
+    setCheckoutFromGadget(params.get("from") === "gadget");
     setSessionActive(
-      readGadgetPreviewSession() || searchParams?.get("from") === "gadget",
+      readGadgetPreviewSession() || params.get("from") === "gadget",
     );
-  }, [pathname, searchParams]);
+    if (typeof window !== "undefined") {
+      persistClickAttribution(
+        captureClickAttribution(
+          `${window.location.pathname}${currentSearch}`,
+        ),
+      );
+      const cleaned = cleanedPathnameAndSearch(
+        window.location.pathname,
+        currentSearch,
+      );
+      const current = `${window.location.pathname}${currentSearch}`;
+      if (cleaned !== current) {
+        window.history.replaceState(window.history.state, "", cleaned);
+      }
+    }
+  }, [pathname]);
 
-  if (!pathname) {
-    return (
-      <CartProvider>
-        <WishlistProvider>{children}</WishlistProvider>
-      </CartProvider>
-    );
-  }
+  const activePath = pathname || "/";
 
-  if (pathname.startsWith("/admin")) {
+  if (pathname?.startsWith("/admin")) {
     return <>{children}</>;
   }
 
-  if (isInvoicePath(pathname)) {
+  if (isInvoicePath(activePath)) {
     const nodes = Children.toArray(children);
     return <>{nodes.at(-1) ?? children}</>;
   }
 
-  const search = searchParams?.toString() ?? "";
-  const gadget = shouldUseGadgetChrome(pathname, {
-    search,
-    sessionActive: sessionActive || searchParams?.get("from") === "gadget",
+  const gadget = shouldUseGadgetChrome(activePath, {
+    search: checkoutFromGadget ? "from=gadget" : "",
+    sessionActive: sessionActive || checkoutFromGadget,
   });
 
   return (
     <CartProvider>
       <WishlistProvider>
-        {!pathname.startsWith("/admin") ? <TikTokPixel /> : null}
+        {!pathname?.startsWith("/admin") ? <TikTokPixel /> : null}
         {gadget ? (
           <>
             <div
               className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}
             >
-              <FirstPartyTracker />
               {demoBanner}
               <GadgetNavbar settings={settings} shopTypes={shopTypes} />
               <main className="min-w-0 flex-1 bg-[var(--g-cream)]">
@@ -106,7 +125,6 @@ export function AppChrome({
           </>
         ) : (
           <>
-            <FirstPartyTracker />
             {urgencyTicker}
             {demoBanner}
             <Navbar settings={settings} shopTypes={shopTypes} />

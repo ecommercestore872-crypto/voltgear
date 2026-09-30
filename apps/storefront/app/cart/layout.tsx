@@ -1,14 +1,12 @@
-import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
-export const metadata: Metadata = {
-  title: "Shopping cart",
-  robots: { index: false, follow: false },
-};
+import { CartStaticShell } from "@/components/cart/cart-static-shell";
 
-export default function CartLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function CartLayout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <CartStaticShell />
+      {children}
+    </>
+  );
 }
