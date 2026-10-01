@@ -12,7 +12,8 @@ import { ProductViewTracker } from "@/components/product/product-view-tracker";
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { loadPdpProductBySlug } from "@/lib/db/product-pdp";
-import { fetchSiteSettings } from "@/lib/db/store";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
+import { pdpLcpImageUrl } from "@/lib/gadget-pdp-lcp";
 import { normalizeSettings } from "@/lib/site-config";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
@@ -98,17 +99,15 @@ export default async function Product2Page({
   params: { slug: string };
 }) {
   let product: Product | null = null;
-  let settings = null;
   try {
-    [product, settings] = await Promise.all([
-      loadPdpProductBySlug(params.slug),
-      fetchSiteSettings().catch(() => null),
-    ]);
+    product = await loadPdpProductBySlug(params.slug);
   } catch {
     product = null;
   }
 
   if (!product) notFound();
+
+  const settings = await loadStorefrontSettings().catch(() => null);
 
   product = applyGadgetStudioImages(product);
   const config = normalizeSettings(settings);
@@ -186,8 +185,13 @@ export default async function Product2Page({
     ],
   };
 
+  const lcpPreload = pdpLcpImageUrl(product);
+
   return (
     <div className="gadget-scroll-pad-cta bg-[var(--g-cream)] text-[var(--g-charcoal)] lg:pb-10">
+      {lcpPreload ? (
+        <link rel="preload" as="image" href={lcpPreload} fetchPriority="high" />
+      ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

@@ -12,7 +12,7 @@ import { products2Href } from "@/lib/gadget-preview";
 import { normalizeDealSlug, publicDealsForSlug } from "@/lib/db/deal-rules";
 import {
   fetchDealCatalogForSlugs,
-  listCachedProductDeals,
+  listCachedDealsForProductSlug,
 } from "@/lib/db/deal-store";
 import {
   fetchCachedApprovedReviews,
@@ -29,33 +29,31 @@ export async function GadgetPdpDeferred({
 }: {
   product: Product;
 }) {
+  const slugKey = normalizeDealSlug(productIn.slug);
+
   const [approvedReviews, deals] = await Promise.all([
     fetchCachedApprovedReviews(productIn._id).catch(() => []),
-    listCachedProductDeals().catch(() => []),
+    listCachedDealsForProductSlug(productIn.slug).catch(() => []),
   ]);
 
-  const slugKey = normalizeDealSlug(productIn.slug);
   const slugsForDeals = new Set<string>([productIn.slug]);
   for (const deal of deals) {
-    if (!deal.active) continue;
     const a = normalizeDealSlug(deal.slugA);
     const b = normalizeDealSlug(deal.slugB);
-    if (a !== slugKey && b !== slugKey) continue;
     slugsForDeals.add(a === slugKey ? b : a);
   }
 
-  const dealCatalog = await fetchDealCatalogForSlugs([...slugsForDeals]).catch(
-    () => [],
-  );
-  const dealRows = publicDealsForSlug(productIn.slug, deals, dealCatalog);
-  const dealSlugs = dealRows.map((row) => row.otherSlug);
+  const dealSlugs = [...slugsForDeals].filter((s) => s !== productIn.slug);
 
-  const [related, dealPartners] = await Promise.all([
+  const [dealCatalog, related, dealPartners] = await Promise.all([
+    fetchDealCatalogForSlugs([...slugsForDeals]).catch(() => []),
     fetchRelatedProducts(productIn._id, productIn.category, RELATED_LIMIT),
     dealSlugs.length
       ? fetchCatalogProductsBySlugs(dealSlugs)
       : Promise.resolve([]),
   ]);
+
+  const dealRows = publicDealsForSlug(productIn.slug, deals, dealCatalog);
 
   const dealPartnerBySlug = new Map(dealPartners.map((p) => [p.slug, p]));
   const pairBlocks = dealRows

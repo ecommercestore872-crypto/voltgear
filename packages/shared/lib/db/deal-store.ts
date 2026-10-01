@@ -8,6 +8,7 @@ import {
   getAdminSettingsForUpdate,
 } from "@/lib/db/admin-store";
 import {
+  normalizeDealSlug,
   parseDealList,
   validateDealAdminInput,
   type DealCatalogProduct,
@@ -78,6 +79,34 @@ export async function listCachedProductDeals(): Promise<DealRecord[]> {
   return unstable_cache(
     async () => listProductDeals(),
     ["product-deals-v1"],
+    {
+      revalidate: STOREFRONT_CATALOG_REVALIDATE,
+      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, "product-deals"],
+    },
+  )();
+}
+
+/** Active pair deals touching one product slug — avoids loading all deals on every PDP. */
+export async function listCachedDealsForProductSlug(
+  slug: string,
+): Promise<DealRecord[]> {
+  const key = normalizeDealSlug(slug);
+  if (!key) return [];
+  return unstable_cache(
+    async () => {
+      const { data, error } = await db()
+        .from("product_deals")
+        .select("*")
+        .eq("active", true)
+        .or(`slug_a.eq.${key},slug_b.eq.${key}`)
+        .limit(20);
+      if (error) {
+        if (isMissingTable(error)) return [];
+        throw error;
+      }
+      return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+    },
+    ["product-deals-for-slug-v1", key],
     {
       revalidate: STOREFRONT_CATALOG_REVALIDATE,
       tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, "product-deals"],

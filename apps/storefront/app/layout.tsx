@@ -197,16 +197,6 @@ export default async function RootLayout({
   );
   const config = normalizeSettings(settings);
 
-  if (settings?.seo?.title) {
-    metadata.title = {
-      default: settings.seo.title,
-      template: `%s | ${settings.brandName}`,
-    };
-  }
-  if (settings?.seo?.description) {
-    metadata.description = settings.seo.description;
-  }
-
   const brandVars = themeCssVars(settings);
   const brandName = settings?.brandName || "Buy n Try";
   let clarityHost = "";
@@ -248,12 +238,13 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themePreviewScript() }} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var done=false;function load(){if(done)return;done=true;var ad=document.createElement('script');ad.async=1;ad.crossOrigin='anonymous';ad.src='${ADSENSE_SCRIPT_SRC}';document.head.appendChild(ad);}['scroll','click','touchstart','keydown','mousemove'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});setTimeout(load, 5500);})();`,
+            __html:
+              "if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister()})}).catch(function(){})}",
           }}
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.addEventListener('load',function(){setTimeout(function(){if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');},8000);},{once:true});`,
+            __html: `(function(){var done=false;function load(){if(done)return;done=true;var ad=document.createElement('script');ad.async=1;ad.crossOrigin='anonymous';ad.src='${ADSENSE_SCRIPT_SRC}';document.head.appendChild(ad);}['scroll','click','touchstart','keydown','mousemove'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});setTimeout(load, 5500);})();`,
           }}
         />
         <link rel="manifest" href="/manifest.json" />
