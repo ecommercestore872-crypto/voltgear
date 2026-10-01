@@ -34,22 +34,24 @@ export function OrderEmailGate({
             Confirm your order
           </h1>
           <p className="text-sm text-muted-foreground">
-            Enter the email you used at checkout to view order {orderId}.
+            Enter the email you used at checkout if you added one. If you skipped
+            email, use the confirmation link from your order screen or contact
+            support with order {orderId}.
           </p>
         </div>
         <form onSubmit={submit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="order-access-email" className="font-medium">
-              Email Address
+              Email <span className="font-normal text-muted-foreground">(optional at checkout)</span>
             </Label>
             <Input
               id="order-access-email"
-              type="email"
+              type="text"
+              inputMode="email"
               autoComplete="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="Only if you entered one at checkout"
               className="h-11"
             />
           </div>

@@ -145,6 +145,7 @@ export async function POST(request: Request) {
           return NextResponse.json({
             ok: true,
             orderId: cached,
+            lookupEmail: existing.customer?.email ?? "",
             subtotal: existing.subtotal,
             shipping: existing.shipping,
             total: existing.total,
@@ -501,6 +502,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       orderId,
+      lookupEmail: checkoutCustomer.email,
       subtotal,
       shipping: finalShipping,
       total: finalTotal,

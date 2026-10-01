@@ -423,15 +423,22 @@ export default function CheckoutPageClient() {
       idemRef.current = null;
 
       // Wait for navigation
-      const checkoutEmail = currentCustomer.email?.trim().toLowerCase() ?? "";
-      const orderQs = checkoutEmail
-        ? `?email=${encodeURIComponent(checkoutEmail)}`
+      const lookupEmail =
+        typeof data.lookupEmail === "string" && data.lookupEmail.trim()
+          ? data.lookupEmail.trim().toLowerCase()
+          : currentCustomer.email?.trim().toLowerCase() ?? "";
+      if (lookupEmail && typeof document !== "undefined") {
+        const maxAge = 60 * 60 * 24;
+        document.cookie = `bnt_order_${encodeURIComponent(data.orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(data.orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
+      }
+      const orderQs = lookupEmail
+        ? `?email=${encodeURIComponent(lookupEmail)}`
         : "";
       const serverTotal = Number(data.total);
       const purchaseTotal = Number.isFinite(serverTotal) ? serverTotal : total;
       const serverLines = Array.isArray(data.lines) ? data.lines : [];
       void identifyTikTokCustomer({
-        email: currentCustomer.email,
+        email: lookupEmail || currentCustomer.email,
         phone: currentCustomer.phone,
       });
 
@@ -470,7 +477,7 @@ export default function CheckoutPageClient() {
         saveLastOrder({
           at: Date.now(),
           orderId: data.orderId,
-          email: checkoutEmail,
+          email: lookupEmail,
           name: currentCustomer.name?.trim() ?? "",
           product: { slug: first.slug, name: first.name },
         });

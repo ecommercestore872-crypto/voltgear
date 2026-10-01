@@ -40,9 +40,12 @@ export default async function InvoicePage({
   const cookieStore = cookies();
   const isAdmin = cookieStore.get(ADMIN_COOKIE)?.value === getAdminSecret();
 
-  const email =
+  const fromQuery =
     typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
-  
+  const fromCookie =
+    cookieStore.get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
+  const email = (fromQuery || decodeURIComponent(fromCookie)).trim();
+
   if (!isAdmin) {
     if (!email) {
       return <OrderEmailGate orderId={params.id} pathSuffix="/invoice" />;

@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -51,8 +52,11 @@ export default async function OrderSuccessPage({
   const order = await getOrderByPublicId(params.id);
   if (!order) notFound();
 
-  const email =
+  const fromQuery =
     typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+  const fromCookie =
+    cookies().get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
+  const email = (fromQuery || decodeURIComponent(fromCookie)).trim();
   if (!email) {
     return <OrderEmailGate orderId={params.id} />;
   }
