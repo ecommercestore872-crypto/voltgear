@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buy n Try — Studio Commerce V2 (Visual Preview)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --browse-bg: #f3f0e8;
+      --browse-surface: #fffcf7;
+      --browse-text: #121212;
+      --browse-muted: #6b655c;
+      --browse-line: #ddd6c8;
+
+      --theater-bg: #080f0d;
+      --theater-panel: #0c1f16;
+      --theater-elevated: #122a1f;
+      --theater-text: #f8f6f1;
+      --theater-muted: #9eb0a4;
+      --theater-line: #234a36;
+
+      --accent: #2d6b44;
+      --accent-hover: #245a38;
+      --accent-soft: rgba(45, 107, 68, 0.12);
+      --accent-glow: rgba(123, 201, 149, 0.35);
+      --sale: #a84f2a;
+      --star: #c9922a;
+
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --font-sans: "DM Sans", system-ui, sans-serif;
+      --font-display: "Instrument Serif", Georgia, serif;
+      --shadow-soft: 0 20px 40px rgba(18, 28, 22, 0.07);
+      --shadow-card: 0 8px 24px rgba(18, 28, 22, 0.06);
+      --shadow-theater: 0 40px 80px rgba(0, 0, 0, 0.55);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: #1a1a1a;
+      color: var(--browse-text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .preview-banner {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #141414;
+      color: #e8e4dc;
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      border-bottom: 1px solid #333;
+    }
+
+    .preview-banner strong { color: #7bc995; }
+
+    .screen-label {
+      max-width: 1200px;
+      margin: 48px auto 16px;
+      padding: 0 24px;
+      color: #999;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .screen-frame {
+      max-width: 1200px;
+      margin: 0 auto 64px;
+      padding: 0 24px;
+    }
+
+    .device {
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid #333;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+    }
+
+    /* —— Browse (light) shell —— */
+    .browse {
+      background: var(--browse-bg);
+      min-height: 520px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      background: var(--browse-surface);
+      border-bottom: 1px solid var(--browse-line);
+    }
+
+    .logo {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--browse-muted);
+    }
+
+    .nav-links a { color: inherit; text-decoration: none; }
+    .nav-links a:hover { color: var(--browse-text); }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid var(--browse-line);
+      background: var(--browse-surface);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      color: var(--browse-muted);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      box-shadow: 0 4px 14px rgba(45, 107, 68, 0.35);
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-sale { background: var(--sale); color: #fff; }
+    .badge-new { background: var(--theater-bg); color: #fff; border: 1px solid var(--theater-line); }
+
+    .stars {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--browse-muted);
+      margin-top: 4px;
+    }
+
+    .stars span { color: var(--star); letter-spacing: -1px; }
+
+    .hero {
+      padding: 40px 28px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: end;
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    .hero-copy h1 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 52px);
+      line-height: 1.05;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .hero-copy p {
+      color: var(--browse-muted);
+      font-size: 16px;
+      max-width: 420px;
+      margin-bottom: 24px;
+    }
+
+    .device-dock {
+      margin-top: 8px;
+    }
+
+    .device-dock-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--browse-muted);
+      margin-bottom: 12px;
+    }
+
+    .device-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--browse-line);
+      background: var(--browse-surface);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--browse-text);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #1a4d32;
+    }
+
+    .hero-visual {
+      position: relative;
+      aspect-ratio: 4/3;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, #e8e4dc 0%, #d4cfc4 100%);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-badge {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: var(--theater-bg);
+      color: var(--theater-text);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .chapter {
+      padding: 8px 28px 40px;
+    }
+
+    .chapter-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+    }
+
+    .chapter-num {
+      font-family: var(--font-display);
+      font-size: 28px;
+      color: var(--accent);
+      margin-right: 8px;
+    }
+
+    .chapter-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .product-card {
+      background: var(--browse-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--browse-line);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card);
+      border-color: color-mix(in srgb, var(--accent) 25%, var(--browse-line));
+    }
+
+    .product-card-img {
+      aspect-ratio: 1;
+      background: #eeeae3;
+      position: relative;
+    }
+
+    .product-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .swatches {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+    }
+
+    .product-card-body {
+      padding: 14px;
+    }
+
+    .product-card-body h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .price {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .price del {
+      color: var(--browse-muted);
+      font-weight: 500;
+      font-size: 13px;
+      margin-left: 6px;
+    }
+
+    /* —— PDP split —— */
+    .pdp {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      min-height: 560px;
+    }
+
+    @media (max-width: 900px) {
+      .pdp { grid-template-columns: 1fr; }
+    }
+
+    .pdp-gallery {
+      background: var(--browse-bg);
+      padding: 28px;
+    }
+
+    .pdp-main-img {
+      aspect-ratio: 1;
+      border-radius: var(--radius-lg);
+      background: #fff;
+      border: 1px solid var(--browse-line);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .pdp-main-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pdp-thumbs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pdp-thumbs div {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-sm);
+      border: 2px solid transparent;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .pdp-thumbs div:first-child { border-color: var(--accent); }
+
+    .pdp-thumbs img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .setup-theater {
+      background: var(--theater-bg);
+      color: var(--theater-text);
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-theater);
+    }
+
+    .setup-theater .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--theater-muted);
+      margin-bottom: 8px;
+    }
+
+    .setup-theater h2 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .setup-theater .price-lg {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .setup-theater .price-note {
+      font-size: 13px;
+      color: var(--theater-muted);
+      margin-bottom: 24px;
+    }
+
+    .variant-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--theater-muted);
+      margin-bottom: 10px;
+    }
+
+    .variant-selected {
+      font-size: 14px;
+      font-weight: 600;
+      color: #7bc995;
+      margin-bottom: 12px;
+    }
+
+    .color-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .color-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+    }
+
+    .color-btn.on { border-color: #7bc995; box-shadow: 0 0 0 2px var(--theater-bg); }
+
+    .trust-ledger {
+      background: var(--theater-panel);
+      border: 1px solid var(--theater-line);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .trust-ledger ul {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .trust-ledger li {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--theater-muted);
+    }
+
+    .trust-ledger li strong { color: var(--theater-text); font-weight: 600; }
+
+    .trust-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(61, 122, 82, 0.25);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .btn-atc {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    .btn-atc:hover { background: var(--accent-hover); }
+
+    .btn-secondary-theater {
+      width: 100%;
+      padding: 14px;
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--theater-line);
+      color: var(--theater-text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .fit-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(123, 201, 149, 0.15);
+      color: #7bc995;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    /* —— Cart kit —— */
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      padding: 28px;
+      background: var(--browse-bg);
+      min-height: 400px;
+    }
+
+    @media (max-width: 900px) {
+      .cart-layout { grid-template-columns: 1fr; }
+    }
+
+    .cart-line {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: var(--browse-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--browse-line);
+      margin-bottom: 12px;
+    }
+
+    .cart-line-img {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-sm);
+      background: #eee;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .cart-line-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .kit-rail {
+      background: var(--theater-panel);
+      color: var(--theater-text);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      border: 1px solid var(--theater-line);
+    }
+
+    .kit-rail h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .kit-items {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .kit-item {
+      flex: 0 0 100px;
+      text-align: center;
+    }
+
+    .kit-item-img {
+      width: 100px;
+      height: 100px;
+      border-radius: var(--radius-sm);
+      background: #1a3d2e;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .kit-item-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+
+    .kit-item span { font-size: 11px; color: var(--theater-muted); }
+
+    .palette-strip {
+      max-width: 1200px;
+      margin: 0 auto 48px;
+      padding: 24px;
+      background: #222;
+      border-radius: var(--radius-lg);
+      border: 1px solid #333;
+    }
+
+    .palette-strip h2 {
+      color: #ccc;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+    }
+
+    .swatches-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .color-swatch {
+      width: 72px;
+      text-align: center;
+    }
+
+    .color-swatch div {
+      height: 48px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 6px;
+    }
+
+    .color-swatch span {
+      font-size: 10px;
+      color: #888;
+    }
+
+    .section-title {
+      max-width: 1200px;
+      margin: 40px auto 8px;
+      padding: 0 24px;
+      color: #7bc995;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .section-title.desktop-ref { color: #666; margin-top: 56px; }
+
+    .phone-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(390px, 390px));
+      gap: 36px 28px;
+      justify-content: center;
+      max-width: 1320px;
+      margin: 0 auto 48px;
+      padding: 0 16px;
+    }
+
+    .refinement-list {
+      max-width: 720px;
+      margin: 0 auto 32px;
+      padding: 20px 24px;
+      background: #252525;
+      border: 1px solid #383838;
+      border-radius: var(--radius-md);
+      color: #bbb;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .refinement-list strong { color: #7bc995; }
+    .refinement-list ul { margin: 8px 0 0 18px; }
+    .refinement-list li { margin-bottom: 4px; }
+
+    .phone-wrap {
+      flex: 0 0 auto;
+    }
+
+    .phone-wrap-label {
+      text-align: center;
+      color: #888;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+    }
+
+    .phone-shell {
+      width: 390px;
+      background: linear-gradient(160deg, #2a2a2a 0%, #111 100%);
+      border-radius: 48px;
+      padding: 14px;
+      border: 2px solid #444;
+      box-shadow: 0 48px 96px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .phone-screen {
+      border-radius: 36px;
+      overflow: hidden;
+      height: 844px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      background: var(--browse-bg);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .phone-screen::-webkit-scrollbar { width: 0; }
+
+    .phone-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 34px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .m-status {
+      height: 54px;
+      padding: 14px 24px 8px;
+      background: var(--browse-surface);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--browse-line);
+    }
+
+    .m-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--browse-surface);
+      border-bottom: 1px solid var(--browse-line);
+    }
+
+    .m-nav .logo { font-size: 20px; }
+
+    .m-nav-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .m-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid var(--browse-line);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--browse-muted);
+      background: var(--browse-surface);
+    }
+
+    .m-hero {
+      padding: 16px;
+    }
+
+    .m-hero h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+
+    .m-hero p {
+      font-size: 14px;
+      color: var(--browse-muted);
+      margin-bottom: 16px;
+    }
+
+    .m-hero-img {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 16/10;
+      margin-top: 16px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .m-hero-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .chip-scroll-wrap {
+      position: relative;
+      margin: 0 -16px;
+      padding: 0 16px;
+    }
+
+    .chip-scroll-wrap::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 40px;
+      height: 100%;
+      background: linear-gradient(to right, transparent, var(--browse-bg));
+      pointer-events: none;
+    }
+
+    .chip-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+
+    .chip-scroll::-webkit-scrollbar { display: none; }
+
+    .chip-scroll .chip {
+      flex: 0 0 auto;
+      padding: 11px 16px;
+      font-size: 12px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+
+    .m-search {
+      margin: 0 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--browse-surface);
+      border: 1px solid var(--browse-line);
+      border-radius: 999px;
+      font-size: 14px;
+      color: var(--browse-muted);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .m-search kbd {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: var(--browse-bg);
+      border: 1px solid var(--browse-line);
+      color: var(--browse-muted);
+      font-family: inherit;
+    }
+
+    .m-trust-marquee {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 10px 16px;
+      background: color-mix(in srgb, var(--accent) 8%, var(--browse-surface));
+      border-top: 1px solid var(--browse-line);
+      border-bottom: 1px solid var(--browse-line);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--browse-muted);
+      scrollbar-width: none;
+    }
+
+    .m-trust-marquee span {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .m-trust-marquee strong { color: var(--accent); font-weight: 700; }
+
+    .m-chapter {
+      padding: 20px 16px 24px;
+    }
+
+    .m-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .m-grid-2 .product-card-body { padding: 10px; }
+    .m-grid-2 .product-card-body h3 { font-size: 12px; line-height: 1.3; }
+    .m-grid-2 .price { font-size: 13px; }
+
+    .m-tab-bar {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      background: color-mix(in srgb, var(--browse-surface) 92%, transparent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--browse-line);
+      padding: 6px 4px 22px;
+      z-index: 30;
+    }
+
+    .m-tab {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--browse-muted);
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .m-tab.on { color: var(--accent); }
+
+    .m-tab svg { opacity: 0.55; }
+    .m-tab.on svg { opacity: 1; }
+
+    .m-tab-badge {
+      position: relative;
+    }
+
+    .m-tab.m-tab-badge::after {
+      content: "2";
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+    }
+
+    /* Mobile PDP */
+    .m-pdp-gallery {
+      background: #fff;
+      aspect-ratio: 1;
+    }
+
+    .m-pdp-gallery img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .m-pdp-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .m-pdp-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--browse-line);
+    }
+
+    .m-pdp-dots span.on { background: var(--accent); width: 18px; border-radius: 3px; }
+
+    .m-theater {
+      background: var(--theater-bg);
+      color: var(--theater-text);
+      padding: 20px 16px 100px;
+    }
+
+    .m-theater h2 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .m-theater .price-lg { font-size: 24px; margin-bottom: 16px; }
+
+    .m-trust-compact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .m-trust-pill {
+      background: var(--theater-panel);
+      border: 1px solid var(--theater-line);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--theater-muted);
+      text-align: center;
+    }
+
+    .m-trust-pill strong {
+      display: block;
+      color: var(--theater-text);
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .m-sticky-buy {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 30px;
+      background: linear-gradient(to top, var(--theater-bg) 55%, transparent);
+      z-index: 25;
+      margin-top: -88px;
+      border-top: 1px solid color-mix(in srgb, var(--theater-line) 60%, transparent);
+    }
+
+    .m-sticky-buy::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: color-mix(in srgb, var(--theater-bg) 85%, transparent);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: -1;
+      mask-image: linear-gradient(to top, black 60%, transparent);
+    }
+
+    .m-sticky-buy .price-block {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .m-sticky-buy .price-block .price-lg {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .m-sticky-buy .price-block span {
+      font-size: 11px;
+      color: var(--theater-muted);
+    }
+
+    .m-sticky-buy .btn-atc {
+      width: auto;
+      flex: 1.2;
+      margin: 0;
+      padding: 15px 16px;
+      font-size: 14px;
+      box-shadow: 0 6px 20px var(--accent-glow);
+    }
+
+    .qty-stepper {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--theater-line);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .qty-stepper button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: var(--theater-elevated);
+      color: var(--theater-text);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .qty-stepper span {
+      width: 36px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .m-checkout-form {
+      padding: 16px;
+      padding-bottom: 120px;
+    }
+
+    .m-field {
+      margin-bottom: 12px;
+    }
+
+    .m-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--browse-muted);
+      margin-bottom: 6px;
+    }
+
+    .m-field input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--browse-line);
+      background: var(--browse-surface);
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    .m-cod-banner {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--browse-line));
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--browse-text);
+    }
+
+    .m-cod-banner strong { display: block; margin-bottom: 2px; }
+
+    /* Mobile cart */
+    .m-cart {
+      padding: 16px 16px 100px;
+    }
+
+    .m-checkout-bar {
+      position: sticky;
+      bottom: 0;
+      background: color-mix(in srgb, var(--browse-surface) 94%, transparent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--browse-line);
+      padding: 12px 16px 26px;
+      z-index: 20;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.06);
+    }
+
+    .m-checkout-bar .btn-primary { width: 100%; padding: 16px; font-size: 15px; }
+
+    .m-filter-row {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px 12px;
+      overflow-x: auto;
+    }
+
+    .m-filter {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--browse-line);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="preview-banner">
+    <strong>Design preview only</strong> — Also open <strong>store-v2-glass-mobile.html</strong> (matches your green catalog reference) · Not the live store
+  </div>
+
+  <div class="palette-strip" style="margin-top: 32px;">
+    <h2>Color system (mix: light browse + dark theater)</h2>
+    <div class="swatches-row">
+      <div class="color-swatch"><div style="background:#f3f0e8"></div><span>Browse bg</span></div>
+      <div class="color-swatch"><div style="background:#fffcf7"></div><span>Surface</span></div>
+      <div class="color-swatch"><div style="background:#121212"></div><span>Text</span></div>
+      <div class="color-swatch"><div style="background:#080f0d"></div><span>Theater bg</span></div>
+      <div class="color-swatch"><div style="background:#0c1f16"></div><span>Forest panel</span></div>
+      <div class="color-swatch"><div style="background:#2d6b44"></div><span>Accent / CTA</span></div>
+      <div class="color-swatch"><div style="background:#7bc995"></div><span>Accent light</span></div>
+      <div class="color-swatch"><div style="background:#b85c38"></div><span>Sale</span></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Phone — primary experience (390px)</h2>
+  <p class="screen-label" style="margin-top: 8px;">Four mobile screens · refined v2 · search, trust strip, ratings, glass nav</p>
+
+  <div class="refinement-list">
+    <strong>Refinements in this preview</strong>
+    <ul>
+      <li>Warm cream palette + deeper theater black-green for clearer light/dark split</li>
+      <li>Search pill + scrolling trust strip (COD, PostEx, warranty) on home</li>
+      <li>Product cards: sale/new badges, star ratings, swatches on grid</li>
+      <li>PDP: quantity stepper, trust grid, frosted sticky buy bar with glow CTA</li>
+      <li>Checkout: COD reassurance banner, large touch fields, order summary sticky bar</li>
+      <li>Bottom nav: blur glass + SVG icons + cart badge</li>
+    </ul>
+  </div>
+
+  <div class="phone-row">
+    <div class="phone-wrap">
+      <p class="phone-wrap-label">Home + Device Dock</p>
+      <div class="phone-shell">
+        <div class="phone-screen browse">
+          <div class="phone-island" aria-hidden="true"></div>
+          <div class="m-status"><span>9:41</span><span>LTE ▮▮▮</span></div>
+          <header class="m-nav">
+            <div class="logo">Buy n <span>Try</span></div>
+            <div class="m-nav-actions">
+              <div class="m-icon" aria-hidden="true" style="font-size:14px;font-weight:700">Cart</div>
+              <div class="m-icon" aria-hidden="true" style="font-size:16px">Menu</div>
+            </div>
+          </header>
+          <div class="m-search" role="search">Search accessories, brands…<kbd>Go</kbd></div>
+          <div class="m-trust-marquee" aria-hidden="true">
+            <span><strong>COD</strong> nationwide</span>
+            <span><strong>PostEx</strong> tracking</span>
+            <span><strong>7-day</strong> returns</span>
+            <span><strong>1-year</strong> warranty</span>
+            <span><strong>4.8</strong> store rating</span>
+          </div>
+          <section class="m-hero">
+            <h1>Built for the phone in your hand.</h1>
+            <p>Premium audio, power, and protection — pay when it arrives.</p>
+            <div class="device-dock-label">Device dock</div>
+            <div class="chip-scroll-wrap">
+              <div class="chip-scroll">
+                <button type="button" class="chip active">iPhone 15</button>
+                <button type="button" class="chip">Galaxy S24</button>
+                <button type="button" class="chip">AirPods Pro</button>
+                <button type="button" class="chip">Apple Watch</button>
+                <button type="button" class="chip">Fast charge</button>
+              </div>
+            </div>
+            <div class="m-hero-img">
+              <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&q=80" alt="" width="600" height="375" />
+            </div>
+            <p style="margin-top: 16px;">
+              <button type="button" class="btn-primary" style="width:100%;padding:14px">Shop compatible</button>
+            </p>
+          </section>
+          <section class="m-chapter">
+            <div class="chapter-head" style="margin-bottom:12px">
+              <div><span class="chapter-num" style="font-size:22px">02</span>
+              <span class="chapter-title" style="font-size:16px">Power</span></div>
+            </div>
+            <div class="m-grid-2">
+              <article class="product-card">
+                <div class="product-card-img">
+                  <span class="badge badge-sale">−22%</span>
+                  <img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=300&q=80" alt="" width="300" height="300" />
+                  <div class="swatches"><span class="swatch" style="background:#1a1a1a"></span><span class="swatch" style="background:#e8e4dc"></span></div>
+                </div>
+                <div class="product-card-body">
+                  <h3>66W GaN Charger</h3>
+                  <p class="price">Rs 2,499 <del>Rs 3,199</del></p>
+                  <div class="stars"><span>★★★★★</span> 128</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-card-img">
+                  <span class="badge badge-new">New</span>
+                  <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=300&q=80" alt="" width="300" height="300" />
+                </div>
+                <div class="product-card-body">
+                  <h3>MagSafe 10K</h3>
+                  <p class="price">Rs 4,899</p>
+                  <div class="stars"><span>★★★★☆</span> 54</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-card-img">
+                  <img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=300&q=80" alt="" width="300" height="300" />
+                </div>
+                <div class="product-card-body">
+                  <h3>TWS Pro ANC</h3>
+                  <p class="price">Rs 3,299</p>
+                  <div class="stars"><span>★★★★★</span> 412</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-card-img">
+                  <img src="https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=300&q=80" alt="" width="300" height="300" />
+                </div>
+                <div class="product-card-body">
+                  <h3>Silicone Band</h3>
+                  <p class="price">Rs 899</p>
+                  <div class="stars"><span>★★★★☆</span> 89</div>
+                </div>
+              </article>
+            </div>
+          </section>
+          <nav class="m-tab-bar" aria-label="Primary">
+            <a class="m-tab on" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-9.5z"/></svg>Home</a>
+            <a class="m-tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Shop</a>
+            <a class="m-tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>Search</a>
+            <a class="m-tab m-tab-badge" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>Cart</a>
+            <a class="m-tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Account</a>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <p class="phone-wrap-label">Product · Setup Theater + sticky buy</p>
+      <div class="phone-shell">
+        <div class="phone-screen" style="background: var(--theater-bg);">
+          <div class="phone-island" aria-hidden="true"></div>
+          <div class="m-status" style="background:#fff"><span>9:41</span><span>◀ PDP</span></div>
+          <div class="m-pdp-gallery">
+            <img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80" alt="" width="600" height="600" />
+          </div>
+          <div class="m-pdp-dots"><span class="on"></span><span></span><span></span><span></span></div>
+          <div class="m-theater">
+            <p class="eyebrow">Setup theater</p>
+            <h2>4-in-1 Retractable Car Charger</h2>
+            <div class="stars" style="color:var(--theater-muted);margin-bottom:10px"><span style="color:var(--star)">★★★★★</span> 4.9 · 214 reviews</div>
+            <div class="fit-chip">Fits iPhone 15 · 66W PD</div>
+            <p class="variant-label">Finish</p>
+            <p class="variant-selected">Midnight Black</p>
+            <div class="color-row">
+              <button type="button" class="color-btn on" style="background:#1a1a1a" aria-label="Black"></button>
+              <button type="button" class="color-btn" style="background:#c4b8a8" aria-label="Sand"></button>
+              <button type="button" class="color-btn" style="background:#2a3a4a" aria-label="Navy"></button>
+            </div>
+            <p class="variant-label" style="margin-top:8px">Quantity</p>
+            <div class="qty-stepper">
+              <button type="button" aria-label="Decrease">−</button>
+              <span>1</span>
+              <button type="button" aria-label="Increase">+</button>
+            </div>
+            <div class="m-trust-compact">
+              <div class="m-trust-pill"><strong>COD</strong>Pay on delivery</div>
+              <div class="m-trust-pill"><strong>7 days</strong>Easy returns</div>
+              <div class="m-trust-pill"><strong>1 year</strong>Warranty</div>
+              <div class="m-trust-pill"><strong>PostEx</strong>Track order</div>
+            </div>
+            <p style="font-size:13px;color:var(--theater-muted);line-height:1.5">
+              Retractable USB-C + Lightning cables, dual USB ports. Built for daily drives.
+            </p>
+          </div>
+          <div class="m-sticky-buy">
+            <div class="price-block">
+              <p class="price-lg">Rs 2,499</p>
+              <span>Free COD · 2–5 day delivery</span>
+            </div>
+            <button type="button" class="btn-atc">Add to kit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <p class="phone-wrap-label">Cart + kit builder</p>
+      <div class="phone-shell">
+        <div class="phone-screen browse">
+          <div class="phone-island" aria-hidden="true"></div>
+          <div class="m-status"><span>9:41</span><span>Cart (2)</span></div>
+          <header class="m-nav">
+            <div class="logo" style="font-size:17px">Your kit</div>
+            <div class="m-icon">✎</div>
+          </header>
+          <div class="m-filter-row">
+            <span class="m-filter">All</span>
+            <span class="m-filter" style="border-color:var(--accent);color:var(--accent)">Power</span>
+            <span class="m-filter">Audio</span>
+            <span class="m-filter">Cases</span>
+          </div>
+          <div class="m-cart">
+            <div class="cart-line" style="padding:12px">
+              <div class="cart-line-img" style="width:72px;height:72px">
+                <img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=144&q=80" alt="" width="144" height="144" />
+              </div>
+              <div style="flex:1">
+                <h3 style="font-size:14px;font-weight:600">Car Charger</h3>
+                <p style="font-size:12px;color:var(--browse-muted)">Black · Qty 1</p>
+                <p class="price" style="margin-top:6px;font-size:14px">Rs 2,499</p>
+              </div>
+            </div>
+            <div class="cart-line" style="padding:12px">
+              <div class="cart-line-img" style="width:72px;height:72px">
+                <img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=144&q=80" alt="" width="144" height="144" />
+              </div>
+              <div style="flex:1">
+                <h3 style="font-size:14px;font-weight:600">USB-C Cable</h3>
+                <p style="font-size:12px;color:var(--browse-muted)">White · Qty 1</p>
+                <p class="price" style="margin-top:6px;font-size:14px">Rs 599</p>
+              </div>
+            </div>
+            <div class="kit-rail" style="margin-top:16px;padding:14px">
+              <h3 style="font-size:13px;margin-bottom:12px">Complete setup</h3>
+              <div class="kit-items">
+                <div class="kit-item" style="flex:0 0 80px">
+                  <div class="kit-item-img" style="width:80px;height:80px"><img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=160&q=80" alt="" width="160" height="160" /></div>
+                  <span>Bank</span>
+                </div>
+                <div class="kit-item" style="flex:0 0 80px">
+                  <div class="kit-item-img" style="width:80px;height:80px"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=160&q=80" alt="" width="160" height="160" /></div>
+                  <span>Tips</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="m-checkout-bar">
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:14px">
+              <span>Total</span><strong style="font-size:18px">Rs 3,098</strong>
+            </div>
+            <button type="button" class="btn-primary">Continue to checkout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <p class="phone-wrap-label">Checkout · COD-first</p>
+      <div class="phone-shell">
+        <div class="phone-screen browse">
+          <div class="phone-island" aria-hidden="true"></div>
+          <div class="m-status"><span>9:41</span><span>Checkout</span></div>
+          <header class="m-nav">
+            <div class="logo" style="font-size:17px">Delivery</div>
+            <div class="m-icon" style="font-size:13px;font-weight:700">1/2</div>
+          </header>
+          <div class="m-checkout-form">
+            <div class="m-cod-banner">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px">COD</div>
+              <div>
+                <strong>Cash on delivery selected</strong>
+                Pay Rs 3,098 when your kit arrives. No card required.
+              </div>
+            </div>
+            <div class="m-field">
+              <label for="m-name">Full name</label>
+              <input id="m-name" type="text" value="Ahmed Khan" autocomplete="name" />
+            </div>
+            <div class="m-field">
+              <label for="m-phone">Mobile (for PostEx SMS)</label>
+              <input id="m-phone" type="tel" value="03XX XXXXXXX" autocomplete="tel" />
+            </div>
+            <div class="m-field">
+              <label for="m-city">City</label>
+              <input id="m-city" type="text" value="Lahore" />
+            </div>
+            <div class="m-field">
+              <label for="m-address">Address</label>
+              <input id="m-address" type="text" value="House 12, Block C, DHA Phase 6" />
+            </div>
+            <p style="font-size:12px;color:var(--browse-muted);margin-top:8px">Email optional — order updates go to your phone.</p>
+            <div style="margin-top:20px;padding:14px;border-radius:var(--radius-md);border:1px solid var(--browse-line);background:var(--browse-surface)">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>2 items</span><span>Rs 3,098</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--browse-muted)"><span>Shipping</span><span>Free</span></div>
+            </div>
+          </div>
+          <div class="m-checkout-bar">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;color:var(--browse-muted)">
+              <span>Total due on delivery</span>
+              <strong style="font-size:20px;color:var(--browse-text)">Rs 3,098</strong>
+            </div>
+            <button type="button" class="btn-primary">Place order</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title desktop-ref">Desktop — reference layouts (optional)</h2>
+
+  <p class="screen-label">Screen 1 — Home + Device Dock</p>
+  <div class="screen-frame">
+    <div class="device browse">
+      <header class="nav">
+        <div class="logo">Buy n <span>Try</span></div>
+        <nav class="nav-links">
+          <a href="#">Shop</a>
+          <a href="#">New</a>
+          <a href="#">Deals</a>
+          <a href="#">Support</a>
+        </nav>
+        <div class="nav-actions">
+          <div class="icon-btn" aria-hidden="true">⌕</div>
+          <div class="icon-btn" aria-hidden="true">♡</div>
+          <div class="icon-btn" aria-hidden="true">🛒</div>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>Gear that fits your everyday carry.</h1>
+          <p>Earbuds, cases, power, and watch bands — curated for Pakistan. Cash on delivery nationwide.</p>
+          <div class="device-dock">
+            <div class="device-dock-label">Shop by your device</div>
+            <div class="device-chips">
+              <button type="button" class="chip active">iPhone 15</button>
+              <button type="button" class="chip">Galaxy S24</button>
+              <button type="button" class="chip">AirPods Pro</button>
+              <button type="button" class="chip">Apple Watch</button>
+              <button type="button" class="chip">Fast charge</button>
+            </div>
+          </div>
+          <p style="margin-top: 24px;">
+            <button type="button" class="btn-primary">Shop compatible gear</button>
+          </p>
+        </div>
+        <div class="hero-visual">
+          <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&q=80" alt="Premium phone and accessories flat lay" width="800" height="600" />
+          <span class="hero-badge">01 · New drop</span>
+        </div>
+      </section>
+
+      <section class="chapter">
+        <div class="chapter-head">
+          <div>
+            <span class="chapter-num">02</span>
+            <span class="chapter-title">Power &amp; cables</span>
+          </div>
+          <a href="#" style="font-size:14px;font-weight:600;color:var(--accent);text-decoration:none">View chapter →</a>
+        </div>
+        <div class="product-grid">
+          <article class="product-card">
+            <div class="product-card-img">
+              <img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=400&q=80" alt="USB-C charger" width="400" height="400" />
+              <div class="swatches">
+                <span class="swatch" style="background:#1a1a1a"></span>
+                <span class="swatch" style="background:#e8e4dc"></span>
+              </div>
+            </div>
+            <div class="product-card-body">
+              <h3>66W GaN Car Charger</h3>
+              <p class="price">Rs 2,499 <del>Rs 3,199</del></p>
+            </div>
+          </article>
+          <article class="product-card">
+            <div class="product-card-img">
+              <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80" alt="Earbuds case" width="400" height="400" />
+            </div>
+            <div class="product-card-body">
+              <h3>MagSafe Power Bank 10K</h3>
+              <p class="price">Rs 4,899</p>
+            </div>
+          </article>
+          <article class="product-card">
+            <div class="product-card-img">
+              <img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=80" alt="Wireless earbuds" width="400" height="400" />
+            </div>
+            <div class="product-card-body">
+              <h3>TWS Pro · Active noise cancel</h3>
+              <p class="price">Rs 3,299</p>
+            </div>
+          </article>
+          <article class="product-card">
+            <div class="product-card-img">
+              <img src="https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=400&q=80" alt="Smartwatch" width="400" height="400" />
+            </div>
+            <div class="product-card-body">
+              <h3>Series Band · Silicone</h3>
+              <p class="price">Rs 899</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <p class="screen-label">Screen 2 — Product page · Setup Theater (dark buy column)</p>
+  <div class="screen-frame">
+    <div class="device">
+      <div class="pdp">
+        <div class="pdp-gallery">
+          <div class="pdp-main-img">
+            <img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=700&q=80" alt="Product hero" width="700" height="700" />
+          </div>
+          <div class="pdp-thumbs">
+            <div><img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=128&q=80" alt="" width="128" height="128" /></div>
+            <div><img src="https://images.unsplash.com/photo-1598327272328-750c8973d2ed?w=128&q=80" alt="" width="128" height="128" /></div>
+            <div><img src="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=128&q=80" alt="" width="128" height="128" /></div>
+          </div>
+        </div>
+        <aside class="setup-theater">
+          <p class="eyebrow">Setup theater</p>
+          <h2>4-in-1 Retractable Car Charger</h2>
+          <p class="price-lg">Rs 2,499</p>
+          <p class="price-note">Free COD · Delivered in 2–5 days</p>
+          <div class="fit-chip">✓ Fits iPhone 15 · USB-C fast charge</div>
+          <p class="variant-label">Finish</p>
+          <p class="variant-selected">Midnight Black</p>
+          <div class="color-row">
+            <button type="button" class="color-btn on" style="background:#1a1a1a" aria-label="Black"></button>
+            <button type="button" class="color-btn" style="background:#c4b8a8" aria-label="Sand"></button>
+            <button type="button" class="color-btn" style="background:#2a3a4a" aria-label="Navy"></button>
+          </div>
+          <div class="trust-ledger">
+            <ul>
+              <li><span class="trust-icon">₨</span><strong>Cash on delivery</strong> — pay when it arrives</li>
+              <li><span class="trust-icon">↩</span><strong>7-day returns</strong> on unopened items</li>
+              <li><span class="trust-icon">✓</span><strong>1-year warranty</strong> on electronics</li>
+              <li><span class="trust-icon">📦</span><strong>PostEx tracking</strong> after dispatch</li>
+            </ul>
+          </div>
+          <button type="button" class="btn-atc">Add to kit</button>
+          <button type="button" class="btn-secondary-theater">Buy now · Checkout</button>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <p class="screen-label">Screen 3 — Cart · Kit builder (light + dark rail)</p>
+  <div class="screen-frame">
+    <div class="device browse">
+      <div class="cart-layout">
+        <div>
+          <h2 style="font-size:22px;margin-bottom:16px;font-weight:700">Your kit · 2 items</h2>
+          <div class="cart-line">
+            <div class="cart-line-img">
+              <img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=160&q=80" alt="" width="160" height="160" />
+            </div>
+            <div>
+              <h3 style="font-size:15px;font-weight:600">4-in-1 Car Charger</h3>
+              <p style="color:var(--browse-muted);font-size:13px">Midnight Black · Qty 1</p>
+              <p class="price" style="margin-top:8px">Rs 2,499</p>
+            </div>
+          </div>
+          <div class="cart-line">
+            <div class="cart-line-img">
+              <img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=160&q=80" alt="" width="160" height="160" />
+            </div>
+            <div>
+              <h3 style="font-size:15px;font-weight:600">USB-C Cable 1.2m</h3>
+              <p style="color:var(--browse-muted);font-size:13px">White · Qty 1</p>
+              <p class="price" style="margin-top:8px">Rs 599</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="kit-rail" style="margin-bottom:16px">
+            <h3>Complete your setup</h3>
+            <div class="kit-items">
+              <div class="kit-item">
+                <div class="kit-item-img"><img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=200&q=80" alt="" width="200" height="200" /></div>
+                <span>Power bank</span>
+              </div>
+              <div class="kit-item">
+                <div class="kit-item-img"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=200&q=80" alt="" width="200" height="200" /></div>
+                <span>Ear tips</span>
+              </div>
+              <div class="kit-item">
+                <div class="kit-item-img"><img src="https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=200&q=80" alt="" width="200" height="200" /></div>
+                <span>Band</span>
+              </div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--browse-line);border-radius:var(--radius-md);padding:20px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px"><span>Subtotal</span><strong>Rs 3,098</strong></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:14px;color:var(--browse-muted)"><span>Shipping</span><span>Calculated at checkout</span></div>
+            <button type="button" class="btn-primary" style="width:100%">Checkout · COD available</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="screen-label" style="margin-bottom: 80px;">End of static preview · Design reference only (not a live URL)</p>
+
+</body>
+</html>

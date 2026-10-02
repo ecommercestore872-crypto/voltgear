@@ -1,4 +1,4 @@
-import { isGadgetPreviewPath, isStoreV2BetaPath } from "@/lib/gadget-preview";
+import { isGadgetPreviewPath } from "@/lib/gadget-preview";
 
 export type ChromeMode = "admin" | "gadget" | "shop";
 
@@ -14,7 +14,6 @@ export function needsStorefrontChrome(pathname: string): boolean {
 
 export function chromeMode(pathname: string): ChromeMode {
   if (pathname.startsWith("/admin")) return "admin";
-  if (isStoreV2BetaPath(pathname)) return "shop";
   if (isGadgetPreviewPath(pathname)) return "gadget";
   return "shop";
 }

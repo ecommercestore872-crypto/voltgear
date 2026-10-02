@@ -93,6 +93,8 @@ const nextConfig = {
         destination: "https://buyntryy.com/:path*",
         permanent: true,
       },
+      { source: "/beta", destination: "/", permanent: true },
+      { source: "/beta/:path*", destination: "/", permanent: true },
       { source: "/home2", destination: "/", permanent: true },
       { source: "/home2/:path*", destination: "/", permanent: true },
       { source: "/products2", destination: "/products", permanent: true },

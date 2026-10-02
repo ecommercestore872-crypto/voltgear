@@ -7,10 +7,8 @@ import {
   hasShopperProductVideo,
   isGadgetContinuityPath,
   isGadgetPreviewPath,
-  isStoreV2BetaPath,
   product2Href,
   shouldUseGadgetChrome,
-  shouldUseStoreV2Chrome,
   normalizeSocialVideoUrl,
   videoEmbedSrc,
   videoKind,
@@ -60,24 +58,8 @@ describe("isGadgetContinuityPath", () => {
   });
 });
 
-describe("isStoreV2BetaPath", () => {
-  it("matches /beta only", () => {
-    assert.equal(isStoreV2BetaPath("/beta"), true);
-    assert.equal(isStoreV2BetaPath("/beta/extra"), true);
-    assert.equal(isStoreV2BetaPath("/"), false);
-  });
-});
-
-describe("shouldUseStoreV2Chrome", () => {
-  it("uses Store V2 shell on beta", () => {
-    assert.equal(shouldUseStoreV2Chrome("/beta"), true);
-    assert.equal(shouldUseStoreV2Chrome("/"), false);
-  });
-});
-
 describe("shouldUseGadgetChrome", () => {
   it("keeps preview routes, continuity pages, and gated checkout", () => {
-    assert.equal(shouldUseGadgetChrome("/beta"), false);
     assert.equal(shouldUseGadgetChrome("/"), true);
     assert.equal(shouldUseGadgetChrome("/home2"), true);
     assert.equal(shouldUseGadgetChrome("/order/VG-1"), true);

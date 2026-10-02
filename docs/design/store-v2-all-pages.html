@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buy n Try V2 — All Pages Design Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green-hero: linear-gradient(165deg, #2a4535 0%, #1a2e22 50%, #0f1a14 100%);
+      --page-grey: #ebe8e3;
+      --card: #fff;
+      --ink: #141414;
+      --muted: #7a756d;
+      --line: #e0dcd4;
+      --black: #121212;
+      --accent: #2d6b44;
+      --star: #c9922a;
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --font: "Inter", system-ui, sans-serif;
+      --media-radial: radial-gradient(120% 80% at 50% 100%, #e6e2d9 0%, #f6f4ef 42%, #fff 100%);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: #0a0a0a; color: #bbb; font-size: 13px; line-height: 1.45; }
+    .top { position: sticky; top: 0; z-index: 200; background: #111; border-bottom: 1px solid #333; padding: 10px 16px; text-align: center; }
+    .top strong { color: #8fd4a8; }
+    .top a.cta { display: inline-block; margin-left: 12px; padding: 8px 16px; border-radius: 999px; background: #2d6b44; color: #fff; text-decoration: none; font-weight: 700; }
+    .top a.cta:hover { background: #3a8556; }
+    .index-wrap { position: sticky; top: 42px; z-index: 150; background: #151515; border-bottom: 1px solid #2a2a2a; padding: 10px 16px; overflow-x: auto; white-space: nowrap; }
+    .index-wrap a { display: inline-block; margin-right: 8px; padding: 6px 12px; border-radius: 999px; background: #222; color: #aaa; text-decoration: none; font-size: 11px; font-weight: 600; }
+    .index-wrap a:hover { background: #2a2a2a; color: #fff; }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 24px 16px 80px; }
+    .intro { max-width: 720px; margin-bottom: 32px; }
+    .intro h1 { color: #f0f0f0; font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .page-section { margin-bottom: 56px; scroll-margin-top: 100px; }
+    .page-meta { margin-bottom: 16px; }
+    .page-meta h2 { color: #e8e8e8; font-size: 18px; font-weight: 800; }
+    .page-meta code { color: #6a9; font-size: 12px; }
+    .page-meta p { color: #777; margin-top: 4px; font-size: 12px; }
+    .frames { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+    .frame-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #666; margin-bottom: 8px; text-align: center; }
+    .phone-shell { width: 320px; background: #222; border-radius: 40px; padding: 10px; border: 2px solid #3a3a3a; flex-shrink: 0; }
+    .desktop-shell { width: 100%; max-width: 900px; background: #222; border-radius: 12px; padding: 8px; border: 1px solid #3a3a3a; flex: 1 1 100%; }
+    .scr {
+      border-radius: 30px;
+      overflow: hidden;
+      overflow-y: auto;
+      max-height: 620px;
+      background: var(--page-grey);
+      color: var(--ink);
+      position: relative;
+    }
+    .desktop-shell .scr { border-radius: 8px; max-height: 380px; }
+    .scr-green { background: var(--green-hero); color: #fff; }
+    .scr-white { background: #fff; }
+    .island { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 90px; height: 24px; background: #000; border-radius: 14px; z-index: 5; }
+    .bar { padding: 36px 14px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; }
+    .bar-light { background: var(--card); border-bottom: 1px solid var(--line); color: var(--ink); }
+    .logo { font-weight: 800; font-size: 16px; letter-spacing: -0.03em; }
+    .logo em { font-style: normal; color: var(--accent); }
+    .icon-r { width: 34px; height: 34px; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; font-size: 14px; }
+    .pad { padding: 14px; }
+    .h-hero { font-size: 22px; font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; padding: 0 14px 12px; }
+    .media { aspect-ratio: 1; background: var(--media-radial); display: flex; align-items: center; justify-content: center; padding: 14%; }
+    .media img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0,0,0,0.1)); }
+    .media-sm { aspect-ratio: 1; padding: 10%; background: var(--media-radial); }
+    .media-sm img { width: 100%; height: 100%; object-fit: contain; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 14px 14px; }
+    .card { background: #fff; border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .card-t { padding: 8px; text-align: center; font-size: 11px; font-weight: 700; }
+    .card-t span { display: block; color: var(--muted); font-weight: 600; font-size: 10px; }
+    .pill-row { display: flex; gap: 6px; padding: 0 14px 10px; overflow: hidden; }
+    .pill { padding: 8px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #d8d4cc; border: none; white-space: nowrap; }
+    .pill.on { background: var(--black); color: #fff; }
+    .btn-b { display: block; margin: 10px 14px; padding: 12px; border: none; border-radius: 999px; background: var(--black); color: #fff; font-weight: 700; font-size: 12px; text-align: center; }
+    .btn-w { background: #fff; color: var(--ink); margin: 10px 14px; padding: 12px; border-radius: 999px; font-weight: 700; font-size: 12px; text-align: center; border: none; width: calc(100% - 28px); }
+    .btn-g { background: var(--accent); color: #fff; }
+    .sheet { background: #fff; border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 16px 14px 20px; margin-top: -12px; color: var(--ink); }
+    .sheet h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .line { display: flex; gap: 10px; padding: 10px 14px; background: #fff; margin: 0 14px 8px; border-radius: 12px; align-items: center; }
+    .line .media-sm { width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0; padding: 8%; }
+    .field { margin: 0 14px 8px; }
+    .field label { display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .field input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 13px; }
+    .cod-box { margin: 0 14px 10px; padding: 10px; border-radius: 12px; background: rgba(45,107,68,0.1); border: 1px solid rgba(45,107,68,0.25); font-size: 11px; }
+    .float-nav { position: sticky; bottom: 0; display: flex; justify-content: space-around; padding: 10px 16px 16px; background: var(--black); color: #666; font-size: 16px; margin-top: 8px; }
+    .list-item { padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; }
+    .muted { color: var(--muted); font-weight: 500; }
+    .success-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(45,107,68,0.15); color: var(--accent); display: grid; place-items: center; font-size: 24px; margin: 20px auto 12px; }
+    .blog-img { height: 100px; background: #ddd; border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+    .blog-img img { width: 100%; height: 100%; object-fit: cover; }
+    .d-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; background: var(--page-grey); min-height: 360px; }
+    .d-grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; padding: 14px; }
+    .d-pdp { display: grid; grid-template-columns: 1fr 1fr; min-height: 360px; }
+    .d-pdp .pane-g { background: var(--green-hero); padding: 20px; display: flex; align-items: center; justify-content: center; }
+    .d-pdp .pane-w { padding: 24px; background: #fff; }
+  </style>
+</head>
+<body>
+
+<div class="top"><strong>Legacy thumbnails</strong> — For full browser-width pages use <a class="cta" href="preview/index.html">preview/index.html</a> (25+ routes, sticky header, Baymard footer)</div>
+<nav class="index-wrap" aria-label="Jump to page">
+  <a href="#p-home">Home</a>
+  <a href="#p-catalog">Catalog</a>
+  <a href="#p-category">Category</a>
+  <a href="#p-collection">Collection</a>
+  <a href="#p-search">Search</a>
+  <a href="#p-compare">Compare</a>
+  <a href="#p-pdp">Product</a>
+  <a href="#p-cart">Cart</a>
+  <a href="#p-checkout">Checkout</a>
+  <a href="#p-order">Order OK</a>
+  <a href="#p-invoice">Invoice</a>
+  <a href="#p-wishlist">Wishlist</a>
+  <a href="#p-review">Write review</a>
+  <a href="#p-track">Track</a>
+  <a href="#p-blog">Blog</a>
+  <a href="#p-post">Blog post</a>
+  <a href="#p-faq">FAQ</a>
+  <a href="#p-contact">Contact</a>
+  <a href="#p-about">About</a>
+  <a href="#p-shipping">Shipping</a>
+  <a href="#p-cod">COD city</a>
+  <a href="#p-bulk">Bulk order</a>
+  <a href="#p-legal">Privacy / Terms</a>
+  <a href="#p-desktop">Desktop trio</a>
+</nav>
+
+<div class="wrap">
+  <div class="intro">
+    <h1>Every storefront page — same design language</h1>
+    <p>Green hero + grey catalog + white cards + black CTAs + <code>media-well</code> product shots. Jump via nav above. Phone frame = primary; checkout funnel also shown desktop-width where it matters.</p>
+  </div>
+
+  <!-- HOME -->
+  <section class="page-section" id="p-home">
+    <div class="page-meta"><h2>1. Home</h2><code>/ · /home2</code><p>Exclusive drop hero, featured card, shop more, trust strip, chapter rails.</p></div>
+    <div class="frames">
+      <div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-green">
+        <div class="island"></div><div class="bar"><span>←</span><span>Exclusive</span><span class="icon-r">Bag</span></div>
+        <h1 class="h-hero">Upgrade what you carry every day.</h1>
+        <div class="pad"><div class="card"><div class="media"><img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=85" alt="" width="600" height="600"/></div><div class="card-t">Car Hub<span>Rs 2,499</span></div></div></div>
+        <button type="button" class="btn-w">Shop more</button>
+        <div class="pill-row" style="padding-top:8px"><span class="pill on">Audio</span><span class="pill">Power</span><span class="pill">Cases</span></div>
+        <div class="grid2"><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1590658268037-6bf12c032d8d?w=400&q=85" alt=""/></div><div class="card-t">TWS<span>Rs 3,299</span></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=400&q=85" alt=""/></div><div class="card-t">66W<span>Rs 2,499</span></div></div></div>
+        <div class="float-nav">⌂ ▦ ⌕ 🛒</div>
+      </div></div></div>
+    </div>
+  </section>
+
+  <section class="page-section" id="p-catalog">
+    <div class="page-meta"><h2>2. All products</h2><code>/products · /products2</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="island"></div><div class="bar bar-light"><span class="logo">Buy n <em>Try</em></span><span class="icon-r">🔔</span></div>
+      <div class="pad" style="padding-bottom:0"><input type="search" placeholder="Search…" style="width:100%;padding:10px 14px;border:none;border-radius:999px" readonly/></div>
+      <div class="pill-row"><button class="pill on">All</button><button class="pill">Audio</button><button class="pill">Power</button></div>
+      <div class="grid2"><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=85" alt=""/></div><div class="card-t">TWS Pro<span>Rs 3,299</span></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=85" alt=""/></div><div class="card-t">10K Bank<span>Rs 4,899</span></div></div></div>
+      <div class="float-nav">⌂ ▦ ⌕ 🛒</div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-category">
+    <div class="page-meta"><h2>3. Category PLP</h2><code>/products/[category]</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="bar bar-light"><span>← Audio</span><span class="muted">48 items</span></div>
+      <p class="pad" style="font-size:11px;color:var(--muted)">Earbuds, neckbands, speakers</p>
+      <div class="grid2"><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1590658268037-6bf12c032d8d?w=400&q=85" alt=""/></div><div class="card-t">Aura<span>Rs 2,899</span></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=85" alt=""/></div><div class="card-t">Bass<span>Rs 3,499</span></div></div></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-collection">
+    <div class="page-meta"><h2>4. Collection</h2><code>/collections/[slug]</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-green">
+      <div class="bar"><span>←</span><span>Collection</span><span></span></div>
+      <h1 class="h-hero" style="font-size:20px">Road trip essentials</h1>
+      <div class="grid2"><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400&q=85" alt=""/></div><div class="card-t">Car hub</div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=400&q=85" alt=""/></div><div class="card-t">Cables</div></div></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-search">
+    <div class="page-meta"><h2>5. Search</h2><code>/search?q=</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span class="logo">Search</span><span>✕</span></div>
+      <div class="field"><input value="charger" readonly/></div>
+      <p class="pad muted" style="font-size:11px">12 results</p>
+      <div class="line"><div class="media-sm"><img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=200&q=85" alt=""/></div><div><strong>66W GaN</strong><br/><span class="muted">Rs 2,499</span></div></div>
+      <div class="line"><div class="media-sm"><img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=200&q=85" alt=""/></div><div><strong>Car hub</strong><br/><span class="muted">Rs 2,499</span></div></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-compare">
+    <div class="page-meta"><h2>6. Compare</h2><code>/compare</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="bar bar-light"><span>Compare</span><span class="muted">2/4</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;font-size:10px">
+        <div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=300&q=85" alt=""/></div><div class="card-t">TWS A</div></div>
+        <div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1590658268037-6bf12c032d8d?w=300&q=85" alt=""/></div><div class="card-t">TWS B</div></div>
+      </div>
+      <div class="list-item"><span>Battery</span><span>32h / 28h</span></div>
+      <div class="list-item"><span>ANC</span><span>Yes / No</span></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-pdp">
+    <div class="page-meta"><h2>7. Product detail</h2><code>/product/[slug] · /product2/[slug]</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-green">
+      <div class="bar"><span>←</span><span></span><span class="icon-r" style="background:#000;color:#fff;border:none">♡</span></div>
+      <div class="media" style="background:transparent;padding:10%"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=700&q=90" alt=""/></div>
+      <div class="sheet"><h3>Studio TWS Pro</h3><p class="muted" style="font-size:11px;margin-bottom:8px">ANC · 32h · IPX5</p><p style="font-size:18px;font-weight:800">Rs 3,299</p>
+      <div class="pill-row" style="padding:8px 0"><span class="pill on">Black</span><span class="pill">Sand</span></div>
+      <button type="button" class="btn-b" style="margin:10px 0 0">Buy for Rs 3,299 · COD</button>
+      <p class="muted" style="text-align:center;font-size:10px;margin-top:8px">Reviews · Specs · In box</p></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-cart">
+    <div class="page-meta"><h2>8. Cart</h2><code>/cart</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="bar bar-light"><span class="logo">Your kit</span><span class="muted">2 items</span></div>
+      <div class="line"><div class="media-sm"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=200&q=85" alt=""/></div><div><strong>TWS Pro</strong><br/><span class="muted">Rs 3,299</span></div></div>
+      <div class="line"><div class="media-sm"><img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=200&q=85" alt=""/></div><div><strong>Cable</strong><br/><span class="muted">Rs 599</span></div></div>
+      <p class="pad" style="font-size:11px;font-weight:700">Complete setup →</p>
+      <div class="grid2" style="padding-top:0"><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=200&q=85" alt=""/></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=200&q=85" alt=""/></div></div></div>
+      <button type="button" class="btn-b">Checkout · Rs 3,898</button>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-checkout">
+    <div class="page-meta"><h2>9. Checkout</h2><code>/checkout</code></div>
+    <div class="frames">
+      <div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+        <div class="bar bar-light"><span>←</span><span>Checkout</span><span>1/2</span></div>
+        <div class="cod-box"><strong>Cash on delivery</strong> Pay when it arrives.</div>
+        <div class="field"><label>Name</label><input value="Ahmed Khan" readonly/></div>
+        <div class="field"><label>Phone</label><input value="03XX XXXXXXX" readonly/></div>
+        <div class="field"><label>City & address</label><input value="Lahore, DHA Phase 6" readonly/></div>
+        <p class="muted pad" style="font-size:10px">Email optional</p>
+        <button type="button" class="btn-b">Place order · Rs 3,898</button>
+      </div></div></div>
+    </div>
+  </section>
+
+  <section class="page-section" id="p-order">
+    <div class="page-meta"><h2>10. Order success</h2><code>/order/[id]</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="success-icon">✓</div>
+      <h3 style="text-align:center;font-size:18px;font-weight:800;color:var(--ink)">Order confirmed</h3>
+      <p class="muted" style="text-align:center;padding:0 20px 16px;font-size:12px">#BNT-1042 · COD Rs 3,898 · SMS sent</p>
+      <div class="line" style="flex-direction:column;align-items:flex-start"><strong>Delivery</strong><span class="muted">2–5 days · PostEx</span></div>
+      <button type="button" class="btn-b">Track order</button>
+      <button type="button" class="btn-w" style="background:var(--page-grey)">Continue shopping</button>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-invoice">
+    <div class="page-meta"><h2>11. Invoice</h2><code>/order/[id]/invoice</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>Invoice</span><button style="border:none;background:none;font-weight:700;font-size:11px">PDF</button></div>
+      <div class="pad" style="font-size:11px"><strong>Buy n Try</strong><br/>Order #BNT-1042<br/><br/>TWS Pro ×1 … Rs 3,299<br/>Cable ×1 … Rs 599<br/><hr style="margin:8px 0;border:none;border-top:1px solid var(--line)"/><strong>Total Rs 3,898</strong></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-wishlist">
+    <div class="page-meta"><h2>12. Wishlist</h2><code>/wishlist</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="bar bar-light"><span class="logo">Saved</span><span class="muted">3</span></div>
+      <div class="line"><div class="media-sm"><img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=200&q=85" alt=""/></div><div style="flex:1"><strong>Mag 10K</strong><br/><span class="muted">Rs 4,899</span></div><span style="color:var(--accent);font-weight:700">+</span></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-review">
+    <div class="page-meta"><h2>13. Write review</h2><code>/write-review</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>Review</span></div>
+      <div class="pad"><div class="media-sm" style="max-width:80px;margin:0 auto 8px"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=200&q=85" alt=""/></div><p style="text-align:center;font-weight:700;font-size:13px">Studio TWS Pro</p></div>
+      <p class="pad" style="text-align:center;font-size:20px;color:var(--star)">★★★★★</p>
+      <div class="field"><label>Your review</label><input value="Great battery…" readonly/></div>
+      <div class="field"><label>Photo (optional)</label><div style="height:64px;border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;color:var(--muted);font-size:11px">Upload</div></div>
+      <button type="button" class="btn-b">Submit review</button>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-track">
+    <div class="page-meta"><h2>14. Track order</h2><code>/track</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="bar bar-light"><span>Track</span></div>
+      <div class="field"><label>Order ID or phone</label><input value="BNT-1042" readonly/></div>
+      <div class="pad"><div style="border-left:2px solid var(--accent);padding-left:12px;font-size:11px"><strong>Out for delivery</strong><br/><span class="muted">PostEx · Lahore</span></div></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-blog">
+    <div class="page-meta"><h2>15. Blog index</h2><code>/blog</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="bar bar-light"><span class="logo">Journal</span></div>
+      <div class="pad"><div class="blog-img"><img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80" alt=""/></div><strong>Best earbuds under Rs 5,000</strong><p class="muted" style="font-size:11px;margin-top:4px">5 min read</p></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-post">
+    <div class="page-meta"><h2>16. Blog article</h2><code>/blog/[slug]</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>← Journal</span></div>
+      <div class="blog-img" style="height:120px;border-radius:0"><img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80" alt=""/></div>
+      <div class="pad"><h3 style="font-size:16px;font-weight:800">Best earbuds under Rs 5,000</h3><p class="muted" style="font-size:12px;margin-top:8px">Short intro paragraph and readable body text…</p></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-faq">
+    <div class="page-meta"><h2>17. FAQ</h2><code>/faq</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>FAQ</span></div>
+      <div class="list-item">COD available? <span>+</span></div>
+      <div class="list-item">Return policy <span>+</span></div>
+      <div class="list-item">Warranty claims <span>+</span></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-contact">
+    <div class="page-meta"><h2>18. Contact</h2><code>/contact</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>Contact</span></div>
+      <div class="field"><label>Name</label><input readonly/></div>
+      <div class="field"><label>Message</label><input readonly/></div>
+      <button type="button" class="btn-b">Send</button>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-about">
+    <div class="page-meta"><h2>19. About</h2><code>/about</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr">
+      <div class="bar bar-light"><span>About</span></div>
+      <p class="pad" style="font-size:12px">Buy n Try — mobile accessories for Pakistan. COD nationwide.</p>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-shipping">
+    <div class="page-meta"><h2>20. Shipping & returns</h2><code>/shipping-returns</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>Shipping</span></div>
+      <div class="pad" style="font-size:11px"><strong>Delivery</strong><p class="muted">2–5 days major cities</p><strong style="display:block;margin-top:12px">Returns</strong><p class="muted">7 days unopened</p></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-cod">
+    <div class="page-meta"><h2>21. COD city SEO</h2><code>/cod/[city]</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-green">
+      <h1 class="h-hero" style="padding-top:40px">COD in Lahore</h1>
+      <p class="pad" style="font-size:12px;opacity:0.9">Earbuds, chargers, cases — pay on delivery</p>
+      <div class="grid2"><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1590658268037-6bf12c032d8d?w=300&q=85" alt=""/></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=300&q=85" alt=""/></div></div></div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-bulk">
+    <div class="page-meta"><h2>22. Bulk order</h2><code>/bulk-order</code></div>
+    <div class="frames"><div><div class="frame-label">Phone</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>Bulk / B2B</span></div>
+      <div class="field"><label>Business name</label><input readonly/></div>
+      <div class="field"><label>Quantity & SKUs</label><input readonly/></div>
+      <button type="button" class="btn-b">Request quote</button>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-legal">
+    <div class="page-meta"><h2>23. Legal</h2><code>/privacy-policy · /terms-of-service · /cookies · /warranty</code></div>
+    <div class="frames"><div><div class="frame-label">Phone (same layout)</div><div class="phone-shell"><div class="scr scr-white">
+      <div class="bar bar-light"><span>Privacy</span></div>
+      <div class="pad" style="font-size:11px;color:var(--muted)">Readable prose, max-width typography, last updated date.</div>
+    </div></div></div></div>
+  </section>
+
+  <section class="page-section" id="p-desktop">
+    <div class="page-meta"><h2>Desktop — home · catalog · PDP</h2><p>Same tokens; wider grids (4-col) and split PDP.</p></div>
+    <div class="frames">
+      <div class="desktop-shell"><div class="frame-label">Home + catalog strip (900px)</div><div class="scr"><div class="d-hero">
+        <div style="background:var(--green-hero);border-radius:16px;padding:20px;color:#fff"><h3 style="font-size:20px;font-weight:800">Upgrade what you carry.</h3><div class="card" style="margin-top:12px"><div class="media"><img src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=500&q=85" alt=""/></div></div></div>
+        <div><h4 style="font-size:14px;font-weight:800;margin-bottom:8px">Catalog</h4><div class="d-grid4" style="padding:0"><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1590658268037-6bf12c032d8d?w=300&q=85" alt=""/></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1625948515291-69613efd2a4c?w=300&q=85" alt=""/></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=300&q=85" alt=""/></div></div><div class="card"><div class="media-sm"><img src="https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=300&q=85" alt=""/></div></div></div></div>
+      </div></div></div>
+      <div class="desktop-shell"><div class="frame-label">PDP split</div><div class="scr"><div class="d-pdp">
+        <div class="pane-g"><div class="media" style="background:transparent;max-width:280px"><img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=700&q=90" alt=""/></div></div>
+        <div class="pane-w"><h3 style="font-size:22px;font-weight:800">Studio TWS Pro</h3><p class="muted" style="margin:8px 0">Rs 3,299</p><button type="button" class="btn-b" style="max-width:280px;margin:16px 0 0">Buy · COD</button></div>
+      </div></div></div>
+    </div>
+  </section>
+
+  <p style="color:#555;font-size:12px;margin-top:40px">CMS pages <code>/[slug]</code> use the same white prose layout as FAQ/legal. Delivery token page uses minimal status + map placeholder.</p>
+</div>
+
+</body>
+</html>
