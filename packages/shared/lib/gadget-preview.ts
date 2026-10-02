@@ -1,8 +1,11 @@
+/** Store V2 beta — full HTML design shell (not gadget cream theme). */
+export function isStoreV2BetaPath(pathname: string): boolean {
+  return pathname === "/beta" || pathname.startsWith("/beta/");
+}
+
 export function isGadgetPreviewPath(pathname: string): boolean {
   return (
     pathname === "/" ||
-    pathname === "/beta" ||
-    pathname.startsWith("/beta/") ||
     pathname === "/home2" ||
     pathname.startsWith("/home2/") ||
     pathname === "/product" ||
@@ -78,10 +81,15 @@ export function isGadgetContinuityPath(pathname: string): boolean {
  * Client chrome helper: preview routes always; checkout / continuity routes
  * when `?from=gadget` or an active preview session (set on /home2|/product2|/products2).
  */
+export function shouldUseStoreV2Chrome(pathname: string): boolean {
+  return isStoreV2BetaPath(pathname);
+}
+
 export function shouldUseGadgetChrome(
   pathname: string,
   opts?: { search?: string; sessionActive?: boolean }
 ): boolean {
+  if (isStoreV2BetaPath(pathname)) return false;
   if (isGadgetPreviewPath(pathname)) return true;
   // Order confirmation / invoice + shared shopper pages always use Buy n Try chrome.
   if (pathname === "/order" || pathname.startsWith("/order/")) return true;

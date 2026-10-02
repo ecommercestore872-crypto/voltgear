@@ -26,8 +26,13 @@ import { cleanedPathnameAndSearch } from "@/lib/clean-marketing-url";
 import {
   readGadgetPreviewSession,
   shouldUseGadgetChrome,
+  shouldUseStoreV2Chrome,
   syncGadgetPreviewSession,
 } from "@/lib/gadget-preview";
+import { storeV2FontClass } from "@/components/store-v2/store-v2-fonts";
+import { StoreV2Footer } from "@/components/store-v2/store-v2-footer";
+import { StoreV2Header, StoreV2UtilityBar } from "@/components/store-v2/store-v2-header";
+import "@/components/store-v2/store-v2.css";
 import { isInvoicePath } from "@/lib/invoice-template-rules";
 import type { ShopType } from "@/lib/categories";
 import type { SiteSettings } from "@/lib/types";
@@ -101,12 +106,26 @@ export function AppChrome({
     search: checkoutFromGadget ? "from=gadget" : "",
     sessionActive: sessionActive || checkoutFromGadget,
   });
+  const storeV2 = shouldUseStoreV2Chrome(activePath);
 
   return (
     <CartProvider>
       <WishlistProvider>
         {!pathname?.startsWith("/admin") ? <TikTokPixel /> : null}
-        {gadget ? (
+        {storeV2 ? (
+          <>
+            <div className={`store-v2-site ${storeV2FontClass}`}>
+              <StoreV2UtilityBar />
+              <StoreV2Header shopTypes={shopTypes} />
+              <main className="min-w-0 flex-1">{children}</main>
+              <StoreV2Footer shopTypes={shopTypes} />
+              {cartDrawer}
+              {cartEffects}
+              <CookieConsentBar />
+            </div>
+            <ShopWhatsAppButton settings={settings} />
+          </>
+        ) : gadget ? (
           <>
             <div
               className={`gadget-theme flex min-h-dvh flex-col overflow-x-clip ${gadgetFontClass}`}

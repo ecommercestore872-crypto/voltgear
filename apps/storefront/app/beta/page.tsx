@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
-import { BetaHomePage } from "@/components/beta/beta-home-page";
+import { StoreV2HomePage } from "@/components/store-v2/store-v2-home-page";
 import { fetchSiteSettings } from "@/lib/db/store";
 import { storeAlternatesLanguages } from "@/lib/seo-rules";
 import type { SiteSettings } from "@/lib/types";
@@ -33,9 +33,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BetaPage() {
-  return (
-    <div className="beta-enhancement-wrapper">
-      <BetaHomePage />
-    </div>
-  );
+  return <StoreV2HomePage />;
 }
