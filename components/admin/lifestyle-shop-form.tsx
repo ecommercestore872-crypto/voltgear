@@ -140,7 +140,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
             id="ls-href"
             value={shop.banner.href}
             onChange={(e) => setBanner("href", e.target.value)}
-            placeholder="/products2"
+            placeholder="/products"
           />
         </div>
       </div>
@@ -174,7 +174,7 @@ export function LifestyleShopForm({ initial }: { initial?: unknown }) {
                   id={`ls-tile-href-${index}`}
                   value={tile.href}
                   onChange={(e) => setTile(index, { href: e.target.value })}
-                  placeholder="/products2/smartwatch"
+                  placeholder="/products/smartwatch"
                 />
               </div>
             </div>

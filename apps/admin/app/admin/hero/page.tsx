@@ -28,7 +28,7 @@ export default async function AdminHeroPage() {
     ]);
   } catch {
     blockers = [
-      "Hero slides table is missing — run the T-16 migration (supabase db push) before managing /home2 slides.",
+      "Hero slides table is missing — run the T-16 migration (supabase db push) before managing homepage hero slides.",
     ];
   }
 

@@ -16,10 +16,6 @@ import {
 describe("isGadgetPreviewPath", () => {
   it("treats live home and catalog preview routes as gadget chrome", () => {
     assert.equal(isGadgetPreviewPath("/"), true);
-    assert.equal(isGadgetPreviewPath("/home2"), true);
-    assert.equal(isGadgetPreviewPath("/product2/pad"), true);
-    assert.equal(isGadgetPreviewPath("/products2"), true);
-    assert.equal(isGadgetPreviewPath("/products2/earbuds"), true);
     assert.equal(isGadgetPreviewPath("/product/pad"), true);
     assert.equal(isGadgetPreviewPath("/products"), true);
     assert.equal(isGadgetPreviewPath("/collections"), true);
@@ -60,7 +56,6 @@ describe("isGadgetContinuityPath", () => {
 describe("shouldUseGadgetChrome", () => {
   it("keeps preview routes, continuity pages, and gated checkout", () => {
     assert.equal(shouldUseGadgetChrome("/"), true);
-    assert.equal(shouldUseGadgetChrome("/home2"), true);
     assert.equal(shouldUseGadgetChrome("/order/VG-1"), true);
     assert.equal(shouldUseGadgetChrome("/checkout"), false);
     assert.equal(shouldUseGadgetChrome("/checkout", { search: "from=gadget" }), true);

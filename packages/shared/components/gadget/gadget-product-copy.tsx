@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { PortableTextBlock } from "@portabletext/types";
 
 import {
@@ -6,6 +7,7 @@ import {
   type CopySpan,
   type ProductCopyBlock,
 } from "@/lib/product-detail-copy";
+import { imageUrl } from "@/lib/sanity/image";
 import { cn } from "@/lib/utils";
 
 function CopySpans({ spans }: { spans: CopySpan[] }) {
@@ -75,6 +77,42 @@ function CopyBlockView({
       >
         <CopySpans spans={block.spans} />
       </aside>
+    );
+  }
+
+  if (block.type === "image") {
+    const src = imageUrl(block.url, { w: 1000 });
+    if (!src) return null;
+    if (block.width && block.height) {
+      return (
+        <figure
+          className="gadget-copy-block gadget-copy-figure"
+          style={{ animationDelay: delay }}
+        >
+          <Image
+            src={src}
+            alt={block.alt ?? ""}
+            width={block.width}
+            height={block.height}
+            className="h-auto w-full rounded-xl border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))]"
+            sizes="(max-width: 768px) 100vw, 700px"
+          />
+        </figure>
+      );
+    }
+    return (
+      <figure
+        className="gadget-copy-block gadget-copy-figure relative my-2 aspect-video w-full overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[color-mix(in_srgb,var(--g-sage)_12%,var(--g-cream))]"
+        style={{ animationDelay: delay }}
+      >
+        <Image
+          src={src}
+          alt={block.alt ?? ""}
+          fill
+          className="object-contain"
+          sizes="700px"
+        />
+      </figure>
     );
   }
 

@@ -48,7 +48,7 @@ function hasUsableImage(product: Product) {
   return Boolean(product.images?.[0] || product.cloudinaryImages?.[0]);
 }
 
-/** Shared Biometic homepage used by live `/` (and formerly `/home2`). */
+/** Shared Biometic homepage used by live `/`. */
 export async function GadgetHomePage() {
   // Public ISR path — never read demo cookies here (that opts the whole tree into dynamic).
   const demo = false;

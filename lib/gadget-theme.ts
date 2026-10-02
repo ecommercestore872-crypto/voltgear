@@ -1,6 +1,6 @@
 /**
  * Biometic-inspired storefront tokens (cream / forest).
- * Applied under `.gadget-theme` on /home2 + gadget chrome.
+ * Applied under `.gadget-theme` on gadget storefront chrome.
  */
 export const GADGET_THEME = {
   cream: "#F5F1E8",

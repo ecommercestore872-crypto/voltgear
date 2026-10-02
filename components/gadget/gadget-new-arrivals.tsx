@@ -28,7 +28,7 @@ function TitleWithAccent({ title }: { title: string }) {
 export function GadgetNewArrivals({
   products,
   title = "Best Sellers",
-  viewAllHref = "/products2",
+  viewAllHref = "/products",
   headingId,
   tone = "default",
 }: {

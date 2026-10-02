@@ -22,8 +22,7 @@ describe("chromeMode", () => {
   it("picks admin, gadget, or shop from the path", () => {
     assert.equal(chromeMode("/admin/orders"), "admin");
     assert.equal(chromeMode("/"), "gadget");
-    assert.equal(chromeMode("/home2"), "gadget");
-    assert.equal(chromeMode("/products2"), "gadget");
+    assert.equal(chromeMode("/products"), "gadget");
     assert.equal(chromeMode("/collections/summer"), "gadget");
     assert.equal(chromeMode("/product/pad"), "gadget");
   });

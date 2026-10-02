@@ -122,7 +122,7 @@ export function GadgetHero({
             </Link>
             {product ? (
               <Link
-                href="/products2"
+                href="/products"
                 aria-label="Browse all electronics catalog"
                 className={`${ctaClass} border border-zinc-600 hover:border-white min-h-[44px]`}
               >

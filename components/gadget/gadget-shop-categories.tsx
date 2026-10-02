@@ -120,7 +120,7 @@ export function GadgetShopCategories({
 
           <div className="flex items-center gap-3">
             <Link
-              href="/products2"
+              href="/products"
               className="group inline-flex items-center gap-1.5 text-xs font-bold text-[#2a4633] transition hover:text-[var(--g-amber-text)] sm:text-sm"
             >
               <span>View all products</span>

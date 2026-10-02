@@ -15,10 +15,10 @@ describe("gadget-creatives", () => {
   });
 
   it("builds three demo hero banners with category hrefs", () => {
-    const banners = gadgetDemoHeroBanners((slug) => `/products2/${slug}`);
+    const banners = gadgetDemoHeroBanners((slug) => `/products/${slug}`);
     assert.equal(banners.length, 3);
     assert.ok(banners.every((b) => b.imageUrl.startsWith("/gadget/")));
-    assert.equal(banners[0].href, "/products2/earbuds");
+    assert.equal(banners[0].href, "/products/earbuds");
   });
 
   it("prefers admin slide image over lifestyle flatlay", () => {

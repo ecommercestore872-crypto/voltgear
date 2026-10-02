@@ -6,7 +6,7 @@ import {
 } from "@/components/gadget/gadget-home-hero";
 import { GadgetHomeSections } from "@/components/gadget/gadget-home-sections";
 
-/** Shared Biometic homepage used by live `/` (and formerly `/home2`). */
+/** Shared Biometic homepage used by live `/`. */
 export function GadgetHomePage() {
   return (
     <div className="text-[var(--g-charcoal)]">

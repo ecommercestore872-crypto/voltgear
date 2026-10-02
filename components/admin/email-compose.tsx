@@ -19,13 +19,13 @@ const BUILTIN: { id: string; label: string; subject: string; text: string }[] =
       id: "promo",
       label: "Promo",
       subject: "Something new from VoltGear",
-      text: "Hi,\n\nWe thought you’d like this update from our store.\n\nShop now: https://voltgear-coral.vercel.app/products2\n\n— VoltGear",
+      text: "Hi,\n\nWe thought you’d like this update from our store.\n\nShop now: https://buyntryy.com/products\n\n— VoltGear",
     },
     {
       id: "restock",
       label: "Back in stock",
       subject: "It’s back in stock",
-      text: "Hi,\n\nAn item you might want is available again.\n\nBrowse the shop: https://voltgear-coral.vercel.app/products2\n\n— VoltGear",
+      text: "Hi,\n\nAn item you might want is available again.\n\nBrowse the shop: https://buyntryy.com/products\n\n— VoltGear",
     },
   ];
 

@@ -1,16 +1,10 @@
 export function isGadgetPreviewPath(pathname: string): boolean {
   return (
     pathname === "/" ||
-    pathname === "/home2" ||
-    pathname.startsWith("/home2/") ||
     pathname === "/product" ||
     pathname.startsWith("/product/") ||
     pathname === "/products" ||
     pathname.startsWith("/products/") ||
-    pathname === "/product2" ||
-    pathname.startsWith("/product2/") ||
-    pathname === "/products2" ||
-    pathname.startsWith("/products2/") ||
     pathname === "/collections" ||
     pathname.startsWith("/collections/")
   );
@@ -18,7 +12,7 @@ export function isGadgetPreviewPath(pathname: string): boolean {
 
 export const GADGET_SESSION_KEY = "vg-gadget-preview";
 
-/** Checkout entry that keeps cream/forest chrome after leaving /product2. */
+/** Checkout entry that keeps cream/forest chrome after leaving gadget catalog. */
 export function checkoutHref(fromGadget: boolean): string {
   return fromGadget ? "/checkout?from=gadget" : "/checkout";
 }
@@ -74,7 +68,7 @@ export function isGadgetContinuityPath(pathname: string): boolean {
 
 /**
  * Client chrome helper: preview routes always; checkout / continuity routes
- * when `?from=gadget` or an active preview session (set on /home2|/product2|/products2).
+ * when `?from=gadget` or an active preview session (set on gadget catalog routes).
  */
 export function shouldUseGadgetChrome(
   pathname: string,

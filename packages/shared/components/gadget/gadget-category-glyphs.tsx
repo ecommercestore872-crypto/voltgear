@@ -291,24 +291,24 @@ export const EXTRA_CATEGORY_TILES: {
   href: string;
   glyph: string;
 }[] = [
-  { label: "True Wireless", href: "/products2/earbuds", glyph: "earbuds" },
-  { label: "Neckbands", href: "/products2?q=neckband", glyph: "neckband" },
-  { label: "Smart Watches", href: "/products2/smartwatch", glyph: "watch" },
+  { label: "True Wireless", href: "/products/earbuds", glyph: "earbuds" },
+  { label: "Neckbands", href: "/search?q=neckband", glyph: "neckband" },
+  { label: "Smart Watches", href: "/products/smartwatch", glyph: "watch" },
   {
     label: "Wireless Headphones",
-    href: "/products2?q=headphones",
+    href: "/search?q=headphones",
     glyph: "headphones",
   },
   {
     label: "Wireless Speakers",
-    href: "/products2?q=speaker",
+    href: "/search?q=speaker",
     glyph: "speaker",
   },
-  { label: "Dashcams", href: "/products2?q=dashcam", glyph: "dashcam" },
-  { label: "Projectors", href: "/products2?q=projector", glyph: "projector" },
-  { label: "Soundbars", href: "/products2?q=soundbar", glyph: "soundbar" },
-  { label: "Trimmers", href: "/products2?q=trimmer", glyph: "trimmer" },
-  { label: "Power Banks", href: "/products2/power-bank", glyph: "power" },
-  { label: "Chargers", href: "/products2/charger", glyph: "charger" },
-  { label: "Cables", href: "/products2?q=cable", glyph: "cable" },
+  { label: "Dashcams", href: "/search?q=dashcam", glyph: "dashcam" },
+  { label: "Projectors", href: "/search?q=projector", glyph: "projector" },
+  { label: "Soundbars", href: "/search?q=soundbar", glyph: "soundbar" },
+  { label: "Trimmers", href: "/search?q=trimmer", glyph: "trimmer" },
+  { label: "Power Banks", href: "/products/power-bank", glyph: "power" },
+  { label: "Chargers", href: "/products/charger", glyph: "charger" },
+  { label: "Cables", href: "/search?q=cable", glyph: "cable" },
 ];
