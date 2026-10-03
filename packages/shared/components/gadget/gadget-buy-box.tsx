@@ -2,16 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Banknote,
   Check,
+  ChevronDown,
   Minus,
-  Package,
   Plus,
-  RefreshCw,
-  ShieldCheck,
   ShoppingBag,
   Star,
-  Truck,
 } from "lucide-react";
 
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
@@ -25,7 +21,8 @@ import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
 import { getVariantStockState } from "@/lib/stock";
 import type { ApprovedReviewStats } from "@/lib/product-review-stats";
 import type { PublicSiteConfig } from "@/lib/site-config";
-import { warrantyLabel } from "@/lib/site-config";
+import { GadgetPdpHowItWorks } from "@/components/gadget/gadget-pdp-how-it-works";
+import { GadgetPdpTrustRow } from "@/components/gadget/gadget-pdp-trust-row";
 import type { Product, ProductVariant } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
 import { imageUrl } from "@/lib/sanity/image";
@@ -124,7 +121,6 @@ export function GadgetBuyBox({
   const reviewCount = reviewStats?.count ?? 0;
   const rating = reviewStats?.averageRating ?? 0;
   const showLiveReviews = reviewCount > 0 && rating > 0;
-  const threshold = Number(config.freeShippingThreshold ?? 0);
   const itemImage = colorPhoto
     ? imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb })
     : gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
@@ -149,6 +145,13 @@ export function GadgetBuyBox({
     document.getElementById("gadget-buy-options")?.scrollIntoView({
       behavior: "smooth",
       block: "center",
+    });
+  }
+
+  function scrollToDetails() {
+    document.getElementById("product-details")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
     });
   }
 
@@ -211,7 +214,10 @@ export function GadgetBuyBox({
           </h1>
 
           {showLiveReviews ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
+            <a
+              href="#reviews"
+              className="mt-3 inline-flex flex-wrap items-center gap-3 rounded-lg transition-opacity hover:opacity-90"
+            >
               <div
                 className="flex items-center gap-1"
                 aria-label={`Rated ${rating.toFixed(1)} of 5`}
@@ -230,51 +236,72 @@ export function GadgetBuyBox({
                   {rating.toFixed(1)}
                 </span>
               </div>
-              <span className="text-sm text-[var(--g-taupe)]">
-                {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
+              <span className="text-sm font-semibold text-[var(--g-forest)] underline-offset-2 hover:underline">
+                {reviewCount} customer {reviewCount === 1 ? "review" : "reviews"}
               </span>
-            </div>
+            </a>
           ) : null}
 
           {product.shortDescription ? (
             <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)]">
               {product.shortDescription}
             </p>
-          ) : null}
+          ) : (
+            <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)]">
+              Order with cash on delivery — pay only when your parcel arrives.
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={scrollToDetails}
+            className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-[var(--g-forest)] hover:underline"
+          >
+            See full specs & details
+            <ChevronDown className="h-4 w-4" aria-hidden />
+          </button>
 
           <GadgetProductWatchLinks product={product} />
 
-          <div className="mt-5 flex flex-wrap items-end gap-3">
-            <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">
-              {formatPrice(displayPrice)}
-            </span>
-            {compareAtPrice && compareAtPrice > price ? (
-              <span className="pb-1 text-lg text-[var(--g-taupe)] dark:text-muted-foreground line-through">
-                {formatPrice(compareAtPrice)}
+          <div className="mt-5 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 shadow-sm">
+            <div className="flex flex-wrap items-end gap-3">
+              <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">
+                {formatPrice(displayPrice)}
               </span>
+              {compareAtPrice && compareAtPrice > price ? (
+                <span className="pb-1 text-lg text-[var(--g-taupe)] dark:text-muted-foreground line-through">
+                  {formatPrice(compareAtPrice)}
+                </span>
+              ) : null}
+              {off ? (
+                <span className="mb-1 rounded-full bg-[var(--g-forest)] dark:bg-primary px-2.5 py-1 text-xs font-bold text-[var(--g-white)] dark:text-primary-foreground">
+                  Save {off}%
+                </span>
+              ) : null}
+            </div>
+            {!outOfStock && config.codEnabled ? (
+              <p className="mt-2 text-sm font-bold text-[var(--g-forest)]">
+                Pay {formatPrice(displayPrice)} on delivery — no card needed
+              </p>
             ) : null}
-            {off ? (
-              <span className="mb-1 rounded-full bg-[var(--g-forest)] dark:bg-primary px-2.5 py-1 text-xs font-bold text-[var(--g-white)] dark:text-primary-foreground">
-                {off}% OFF
-              </span>
-            ) : null}
+            <p
+              className={cn(
+                "mt-1 text-sm font-semibold",
+                outOfStock
+                  ? "text-red-600"
+                  : stock.status === "low-stock"
+                    ? "text-amber-700"
+                    : "text-[var(--g-charcoal)]",
+              )}
+            >
+              {stock.label}
+              {stock.status === "low-stock" && !outOfStock
+                ? " — order soon"
+                : null}
+            </p>
           </div>
 
-          <p
-            className={cn(
-              "mt-2 text-sm font-semibold",
-              outOfStock
-                ? "text-red-600"
-                : stock.status === "low-stock"
-                  ? "text-amber-700"
-                  : "text-[var(--g-forest)]",
-            )}
-          >
-            {stock.label}
-            {stock.status === "low-stock" && !outOfStock
-              ? " — order soon"
-              : null}
-          </p>
+          <GadgetPdpTrustRow config={config} />
 
           <div id="gadget-buy-options">
             {axesOn ? (
@@ -291,7 +318,7 @@ export function GadgetBuyBox({
             ) : hasVariants ? (
               <fieldset className="mt-6">
                 <legend className="mb-2 text-sm font-semibold text-[var(--g-charcoal)]">
-                  Choose option
+                  Pick your option
                 </legend>
                 <div className="flex flex-wrap gap-2">
                   {product.variants!.map((v) => {
@@ -325,7 +352,7 @@ export function GadgetBuyBox({
           {(product.addons ?? []).length > 0 ? (
             <div className="mt-5 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-4">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--g-sage)]">
-                🎁 Upgrade your order
+                Optional add-ons
               </p>
               <div className="flex flex-col gap-3">
                 {(product.addons ?? []).map((addon, idx) => {
@@ -406,6 +433,10 @@ export function GadgetBuyBox({
             </div>
           ) : null}
 
+          {config.codEnabled && !outOfStock ? (
+            <GadgetPdpHowItWorks />
+          ) : null}
+
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             {!outOfStock ? (
               <div className="flex h-12 w-full justify-between sm:w-fit sm:justify-center items-center gap-3 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] px-5 sm:px-4">
@@ -447,8 +478,10 @@ export function GadgetBuyBox({
                   {outOfStock
                     ? "Sold out"
                     : !selectionReady
-                      ? "Choose options"
-                      : "Buy now"}
+                      ? "Choose options above"
+                      : config.codEnabled
+                        ? "Order with COD"
+                        : "Add to cart"}
                 </>
               )}
             </button>
@@ -456,71 +489,9 @@ export function GadgetBuyBox({
 
           {!outOfStock ? (
             <p className="mt-2 text-center text-xs text-[var(--g-taupe)] sm:text-left">
-              {[
-                config.codEnabled ? "Cash on delivery" : null,
-                config.warrantyMonths
-                  ? warrantyLabel(config.warrantyMonths)
-                  : null,
-                threshold > 0
-                  ? `Free shipping over ${formatPrice(threshold)}`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ") || "Secure checkout · Confirmation by SMS"}
+              Opens cart to review — checkout takes under a minute
             </p>
           ) : null}
-
-          <ul className="mt-6 grid gap-2 sm:grid-cols-2">
-            {config.codEnabled ? (
-              <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-                <Banknote
-                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                Cash on delivery
-              </li>
-            ) : null}
-            <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-              <Truck
-                className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
-                strokeWidth={1.75}
-                aria-hidden
-              />
-              {threshold > 0
-                ? `Free shipping over ${formatPrice(threshold)}`
-                : "Nationwide delivery"}
-            </li>
-            {config.warrantyMonths ? (
-              <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-                <ShieldCheck
-                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                {warrantyLabel(config.warrantyMonths)}
-              </li>
-            ) : null}
-            {config.returnWindowDays ? (
-              <li className="flex items-center gap-2.5 rounded-xl bg-[var(--g-cream-deep)] px-3 py-2.5 text-sm text-[var(--g-charcoal)]">
-                <RefreshCw
-                  className="h-4 w-4 shrink-0 text-[var(--g-forest)]"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                {config.returnWindowDays}-day returns
-              </li>
-            ) : null}
-          </ul>
-
-          <p className="mt-4 flex items-start gap-2 text-sm text-[var(--g-taupe)]">
-            <Package
-              className="mt-0.5 h-4 w-4 shrink-0 text-[var(--g-sage)]"
-              strokeWidth={1.75}
-              aria-hidden
-            />
-            Secure checkout · Order confirmation by SMS
-          </p>
         </div>
   );
 
@@ -563,7 +534,11 @@ export function GadgetBuyBox({
               className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full text-base font-bold transition-transform active:scale-95"
             >
               <ShoppingBag className="h-4 w-4" />
-              {selectionReady ? "Buy now" : "Choose options"}
+              {selectionReady
+                ? config.codEnabled
+                  ? "Order with COD"
+                  : "Add to cart"
+                : "Choose options"}
             </button>
           </div>
         </div>

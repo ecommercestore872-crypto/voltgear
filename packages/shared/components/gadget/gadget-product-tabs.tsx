@@ -193,9 +193,15 @@ export function GadgetProductTabs({ product }: { product: Product }) {
       className="mx-auto mt-10 max-w-5xl sm:mt-12"
       aria-label="Product details"
     >
-      <header className="mb-5 px-0.5">
-        <p className="gadget-eyebrow">The piece</p>
-        <h2 className="gadget-h2 mt-1 text-[var(--g-charcoal)]">Look closer</h2>
+      <header className="mb-5 px-0.5" id="product-details">
+        <p className="gadget-eyebrow">Everything included</p>
+        <h2 className="gadget-h2 mt-1 text-[var(--g-charcoal)]">
+          What you&apos;re getting
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--g-taupe)]">
+          Specs, features, and what arrives in the box — so you can buy with
+          confidence.
+        </p>
       </header>
 
       {hasDesc && product.description ? (
