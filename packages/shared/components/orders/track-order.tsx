@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SHOPPER_NOT_FOUND_MESSAGE } from "@/lib/db/order-rules";
+import { validateTrackOrderForm } from "@/lib/track-order-form-fields";
+import { cn } from "@/lib/utils";
 import type { OrderStatus } from "@/lib/types";
 
 interface HistoryEntry {
@@ -131,6 +133,10 @@ export function TrackOrder() {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    orderId?: string;
+    phone?: string;
+  }>({});
 
   async function search(o: string, p: string, e?: string) {
     setLoading(true);
@@ -219,10 +225,16 @@ export function TrackOrder() {
 
   return (
     <div className="space-y-8">
-      <div className="min-w-0 rounded-2xl border border-border/50 bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] sm:p-6 lg:p-8">
+      <div className="premium-royal-surface premium-royal-enter min-w-0 rounded-2xl border-0 p-4 sm:p-6 lg:p-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            const errors = validateTrackOrderForm(orderId, phone);
+            if (Object.keys(errors).length > 0) {
+              setFieldErrors(errors);
+              return;
+            }
+            setFieldErrors({});
             search(orderId, phone, email);
           }}
           className="space-y-5"
@@ -237,12 +249,31 @@ export function TrackOrder() {
             <Input
               id="orderId"
               value={orderId}
-              onChange={(e) => setOrderId(e.target.value)}
+              onChange={(e) => {
+                setOrderId(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, orderId: undefined }));
+              }}
               required
               autoComplete="off"
               placeholder="e.g. BNT-1042"
-              className="h-12 rounded-xl bg-slate-50/50"
+              className={cn(
+                "h-11 rounded-xl bg-slate-50/50 text-base touch-manipulation",
+                fieldErrors.orderId && "border-destructive",
+              )}
+              aria-invalid={fieldErrors.orderId ? true : undefined}
+              aria-describedby={
+                fieldErrors.orderId ? "track-order-id-error" : undefined
+              }
             />
+            {fieldErrors.orderId ? (
+              <p
+                id="track-order-id-error"
+                className="text-xs text-destructive"
+                role="alert"
+              >
+                {fieldErrors.orderId}
+              </p>
+            ) : null}
             <p className="text-[13px] text-muted-foreground/80">
               On your confirmation screen or WhatsApp message from us
             </p>
@@ -256,12 +287,31 @@ export function TrackOrder() {
               type="tel"
               inputMode="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+              }}
               required
               autoComplete="tel"
               placeholder="03XX XXXXXXX"
-              className="h-12 rounded-xl bg-slate-50/50 text-base"
+              className={cn(
+                "h-11 rounded-xl bg-slate-50/50 text-base touch-manipulation",
+                fieldErrors.phone && "border-destructive",
+              )}
+              aria-invalid={fieldErrors.phone ? true : undefined}
+              aria-describedby={
+                fieldErrors.phone ? "track-phone-error" : undefined
+              }
             />
+            {fieldErrors.phone ? (
+              <p
+                id="track-phone-error"
+                className="text-xs text-destructive"
+                role="alert"
+              >
+                {fieldErrors.phone}
+              </p>
+            ) : null}
             <p className="text-[13px] text-muted-foreground/80">
               Same number you entered when you placed the order
             </p>

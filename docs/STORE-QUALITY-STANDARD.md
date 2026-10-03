@@ -70,4 +70,7 @@ Then mobile-spot-check: **checkout** and **order success** after any funnel chan
 | TypeScript strict builds | Storefront + admin: `ignoreBuildErrors: false` ✅ |
 | Cross-platform mobile UX | Cart + checkout + order premium mobile; iOS + Android rules ✅ |
 | Funnel polish | Cart sticky COD bar, checkout order box, order success premium ✅ |
-| Real-device funnel QA | Checklist: `docs/FUNNEL-QA-CHECKLIST.md` — run before major releases ⚠️ |
+| Inline checkout / track validation | Blur + submit validation; city datalist expanded ✅ |
+| Funnel trust strip | COD / delivery / support on cart + checkout ✅ |
+| Production smoke | `npm run smoke:t40` (funnel GETs + admin routing) ✅ |
+| Real-device funnel QA | Optional — `docs/FUNNEL-QA-CHECKLIST.md` (skipped if you rely on smoke + spot checks) |

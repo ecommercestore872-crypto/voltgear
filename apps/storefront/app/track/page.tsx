@@ -31,6 +31,7 @@ export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
 
 export default function TrackPage() {
   return (
+    <div className="premium-royal-page-bg min-h-dvh">
     <GadgetSupportLayout
       eyebrow="Care"
       title="Track your order"
@@ -55,5 +56,6 @@ export default function TrackPage() {
         and we&apos;ll dig in.
       </p>
     </GadgetSupportLayout>
+    </div>
   );
 }

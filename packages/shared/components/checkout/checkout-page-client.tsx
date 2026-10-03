@@ -47,6 +47,7 @@ import {
   readGadgetPreviewSession,
 } from "@/lib/gadget-preview";
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
+import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
 import { CheckoutSummaryPriceRow } from "@/components/checkout/checkout-summary-price-row";
 import { useCheckoutMobileDock } from "@/components/checkout/use-checkout-mobile-dock";
@@ -58,6 +59,12 @@ import {
 } from "@/lib/checkout-clarity";
 import { normalizePhone } from "@/lib/messaging";
 import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel-events";
+import {
+  validateCheckoutFormField,
+  validateCheckoutFormFields,
+  type CheckoutFormField,
+} from "@/lib/checkout-form-fields";
+import { PAKISTAN_CITY_SUGGESTIONS } from "@/lib/pakistan-cities";
 
 const SUMMARY_CARD =
   "min-w-0 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm sm:rounded-2xl sm:p-5";
@@ -130,6 +137,26 @@ export default function CheckoutPageClient() {
   const [placing, setPlacing] = useState(false);
   const orderNavigationRef = useRef(false);
   const [customer, setCustomer] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<CheckoutFormField, string>>
+  >({});
+
+  function touchField(field: CheckoutFormField, value: string) {
+    const msg = validateCheckoutFormField(field, value);
+    setFieldErrors((prev) => ({
+      ...prev,
+      [field]: msg ?? undefined,
+    }));
+  }
+
+  function clearFieldError(field: CheckoutFormField) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
   const [giftWrap, setGiftWrap] = useState(false);
   const [promoInput, setPromoInput] = useState("");
   const [activePromo, setActivePromo] = useState<{
@@ -593,6 +620,8 @@ export default function CheckoutPageClient() {
                   </p>
                 </div>
 
+                <FunnelTrustStrip className="premium-royal-enter premium-royal-enter-delay-1 mb-4" />
+
                 {apiError && (
                   <div className="mb-6 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
                     <div className="flex items-start gap-3">
@@ -615,6 +644,12 @@ export default function CheckoutPageClient() {
                       const customerData = Object.fromEntries(
                         formData,
                       ) as Record<string, string>;
+                      const errors = validateCheckoutFormFields(customerData);
+                      if (Object.keys(errors).length > 0) {
+                        setFieldErrors(errors);
+                        return;
+                      }
+                      setFieldErrors({});
                       setCustomer(customerData);
                       placeOrder({ customer: customerData });
                     }}
@@ -629,9 +664,27 @@ export default function CheckoutPageClient() {
                         required
                         autoComplete="name"
                         placeholder="As on CNIC / for delivery"
-                        className="h-11"
+                        className={cn(
+                          "h-11 text-base",
+                          fieldErrors.name && "border-destructive",
+                        )}
                         defaultValue={customer.name}
+                        aria-invalid={fieldErrors.name ? true : undefined}
+                        aria-describedby={
+                          fieldErrors.name ? "checkout-name-error" : undefined
+                        }
+                        onBlur={(e) => touchField("name", e.target.value)}
+                        onChange={() => clearFieldError("name")}
                       />
+                      {fieldErrors.name ? (
+                        <p
+                          id="checkout-name-error"
+                          className="text-xs text-destructive"
+                          role="alert"
+                        >
+                          {fieldErrors.name}
+                        </p>
+                      ) : null}
                     </div>
                     <div className="min-w-0 space-y-1.5 sm:col-span-2">
                       <Label htmlFor="phone" className="text-xs font-bold sm:text-sm">
@@ -645,9 +698,27 @@ export default function CheckoutPageClient() {
                         required
                         autoComplete="tel"
                         placeholder="03XX XXXXXXX"
-                        className="h-11 text-base"
+                        className={cn(
+                          "h-11 text-base",
+                          fieldErrors.phone && "border-destructive",
+                        )}
                         defaultValue={customer.phone}
+                        aria-invalid={fieldErrors.phone ? true : undefined}
+                        aria-describedby={
+                          fieldErrors.phone ? "checkout-phone-error" : undefined
+                        }
+                        onBlur={(e) => touchField("phone", e.target.value)}
+                        onChange={() => clearFieldError("phone")}
                       />
+                      {fieldErrors.phone ? (
+                        <p
+                          id="checkout-phone-error"
+                          className="text-xs text-destructive"
+                          role="alert"
+                        >
+                          {fieldErrors.phone}
+                        </p>
+                      ) : null}
                     </div>
                     <div className="min-w-0 space-y-1.5 sm:col-span-2">
                       <Label htmlFor="address" className="text-xs font-bold sm:text-sm">
@@ -659,9 +730,29 @@ export default function CheckoutPageClient() {
                         required
                         autoComplete="street-address"
                         placeholder="House no, street, area, landmark"
-                        className="h-11"
+                        className={cn(
+                          "h-11 text-base",
+                          fieldErrors.address && "border-destructive",
+                        )}
                         defaultValue={customer.address}
+                        aria-invalid={fieldErrors.address ? true : undefined}
+                        aria-describedby={
+                          fieldErrors.address
+                            ? "checkout-address-error"
+                            : undefined
+                        }
+                        onBlur={(e) => touchField("address", e.target.value)}
+                        onChange={() => clearFieldError("address")}
                       />
+                      {fieldErrors.address ? (
+                        <p
+                          id="checkout-address-error"
+                          className="text-xs text-destructive"
+                          role="alert"
+                        >
+                          {fieldErrors.address}
+                        </p>
+                      ) : null}
                     </div>
                     <div className="min-w-0 space-y-1.5 hidden sm:block">
                       <Label htmlFor="city" className="text-xs font-bold sm:text-sm">
@@ -677,18 +768,9 @@ export default function CheckoutPageClient() {
                         defaultValue={customer.city}
                       />
                       <datalist id="pakistan-cities">
-                        <option value="Karachi" />
-                        <option value="Lahore" />
-                        <option value="Islamabad" />
-                        <option value="Rawalpindi" />
-                        <option value="Faisalabad" />
-                        <option value="Multan" />
-                        <option value="Peshawar" />
-                        <option value="Quetta" />
-                        <option value="Gujranwala" />
-                        <option value="Sialkot" />
-                        <option value="Abbottabad" />
-                        <option value="Hyderabad" />
+                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
+                          <option key={city} value={city} />
+                        ))}
                       </datalist>
                     </div>
                     <div className="min-w-0 space-y-1.5 hidden sm:block">
@@ -754,18 +836,9 @@ export default function CheckoutPageClient() {
                         defaultValue={customer.city}
                       />
                       <datalist id="pakistan-cities-mobile">
-                        <option value="Karachi" />
-                        <option value="Lahore" />
-                        <option value="Islamabad" />
-                        <option value="Rawalpindi" />
-                        <option value="Faisalabad" />
-                        <option value="Multan" />
-                        <option value="Peshawar" />
-                        <option value="Quetta" />
-                        <option value="Gujranwala" />
-                        <option value="Sialkot" />
-                        <option value="Abbottabad" />
-                        <option value="Hyderabad" />
+                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
+                          <option key={city} value={city} />
+                        ))}
                       </datalist>
                     </div>
                     <div className="space-y-1.5">

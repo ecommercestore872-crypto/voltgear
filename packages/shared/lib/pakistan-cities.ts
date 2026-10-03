@@ -1,0 +1,20 @@
+/** Common delivery cities for checkout datalist (PostEx operational set is wider). */
+export const PAKISTAN_CITY_SUGGESTIONS = [
+  "Karachi",
+  "Lahore",
+  "Islamabad",
+  "Rawalpindi",
+  "Faisalabad",
+  "Multan",
+  "Peshawar",
+  "Quetta",
+  "Gujranwala",
+  "Sialkot",
+  "Abbottabad",
+  "Hyderabad",
+  "Sukkur",
+  "Bahawalpur",
+  "Sargodha",
+  "Mardan",
+  "Gujrat",
+] as const;
