@@ -206,7 +206,7 @@ export function ProductGallery({
 
       {/* Thumbnails */}
       {sources.length > 1 && (
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-3">
           {sources.map((source, i) => (
             <button
               key={`${source.thumb}-${i}`}
