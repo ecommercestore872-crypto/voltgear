@@ -300,10 +300,11 @@ export async function POST(request: Request) {
         orderId = await nextPublicOrderId();
         persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
       }
-    } catch (err: any) {
-      if (err.message && err.message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
         return NextResponse.json(
-          { error: err.message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
+          { error: message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
           { status: 400 }
         );
       }

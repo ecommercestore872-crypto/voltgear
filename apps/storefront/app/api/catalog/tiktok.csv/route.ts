@@ -1,6 +1,7 @@
 import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 import { fetchAllProducts } from "@/lib/db/store";
+import { portableTextToPlain } from "@/lib/product-detail-copy";
 import { resolveTikTokContentId } from "@/lib/tiktok-browser-events";
 
 /** On-demand generation; CDN caches via Cache-Control (no build-time DB). */
@@ -16,23 +17,14 @@ export function escapeCSV(val: string | number | undefined | null): string {
   return str;
 }
 
-export function extractPlainText(blocks: any): string {
-  if (!blocks) return "";
-  if (typeof blocks === "string") return blocks;
-  if (!Array.isArray(blocks)) return "";
-  return blocks
-    .map(block => {
-      // Only extract text from standard portable text blocks
-      if (block._type !== "block" && block._type !== "paragraph") return "";
-      if (!block.children) return "";
-      return block.children.map((child: any) => child.text || "").join("");
-    })
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
+/** @deprecated Prefer `portableTextToPlain`; kept for feed unit tests. */
+export function extractPlainText(blocks: unknown): string {
+  return portableTextToPlain(blocks);
 }
 
-export function generateCSV(products: any[]): string {
+type CatalogProduct = Awaited<ReturnType<typeof fetchAllProducts>>[number];
+
+export function generateCSV(products: CatalogProduct[]): string {
   let csv = `sku_id,title,description,availability,condition,price,link,image_link,brand\n`;
   const seenSkuIds = new Set<string>();
 
@@ -46,7 +38,11 @@ export function generateCSV(products: any[]): string {
       imageLink = `https://buyntryy.com${imageLink}`;
     }
 
-    const rawDesc = extractPlainText(product.description) || product.shortDescription || product.name || "";
+    const rawDesc =
+      portableTextToPlain(product.description) ||
+      product.shortDescription ||
+      product.name ||
+      "";
     const cleanDesc = rawDesc.replace(/\s+/g, " ").trim() || "Amazing product by Buy n Try";
     
     const brand = product.brand ? product.brand.trim() : "Unbranded";

@@ -6,7 +6,7 @@ export const revalidate = 3600;
 
 export async function GET() {
   const baseUrl = indexSiteUrl();
-  let products = await fetchCatalogProducts().catch(() => []);
+  const products = await fetchCatalogProducts().catch(() => []);
   
   // Google Merchant Center XML Format
   let xml = `<?xml version="1.0" encoding="UTF-8"?>

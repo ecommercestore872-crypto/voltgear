@@ -1,5 +1,5 @@
 import { withAdminApiObservability } from "@/lib/admin-api-observability";
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary, type UploadApiOptions } from "cloudinary";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
@@ -69,7 +69,7 @@ async function POSTHandler(request: Request) {
       const fileExt = (file.name || "").split(".").pop()?.toLowerCase();
       const isHeic = fileExt === "heic" || fileExt === "heif" || mimeType.includes("heic") || mimeType.includes("heif");
       
-      const uploadOptions: Record<string, any> = {
+      const uploadOptions: UploadApiOptions = {
         folder,
         resource_type: isVideo ? "video" : "image",
       };
@@ -159,9 +159,11 @@ async function DELETEHandler(request: Request) {
     }
 
     return NextResponse.json({ ok: true, message: "URL not recognized for explicit deletion" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[admin/upload DELETE] failed", error);
-    return NextResponse.json({ error: error.message || "Failed to delete asset" }, { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "Failed to delete asset";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

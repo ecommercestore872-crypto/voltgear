@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  Package,
   Truck,
   CheckCircle2,
   Clock,
@@ -13,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export default function CustomerDeliveryRescuePage({
-  params,
+  params: { token },
 }: {
   params: { token: string };
 }) {
@@ -71,6 +70,7 @@ export default function CustomerDeliveryRescuePage({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <input type="hidden" name="deliveryToken" value={token} readOnly />
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Select your preferred option:
               </label>
@@ -87,7 +87,7 @@ export default function CustomerDeliveryRescuePage({
                 >
                   <Clock className="h-5 w-5 text-[#1F3626]" />
                   <div>
-                    <div>I'm Available for Tomorrow</div>
+                    <div>I&apos;m Available for Tomorrow</div>
                     <div className="text-xs font-normal text-gray-500">
                       Keep my current delivery details
                     </div>

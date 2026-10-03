@@ -74,7 +74,9 @@ describe("TikTok Catalog CSV Feed", () => {
       }
     ];
 
-    const csv = generateCSV(mockProducts);
+    const csv = generateCSV(
+      mockProducts as Parameters<typeof generateCSV>[0],
+    );
     const lines = csv.split("\n").filter(Boolean);
 
     // Header + Variant Row + Tripod Row = 3 lines total. Demo & Dupe are dropped.

@@ -34,13 +34,17 @@ swappable from **Sanity Studio → Site Settings** — no code changes needed:
 
 ## Getting started
 
+This repo is a **monorepo**. Production deploys **`apps/storefront`** (shop) and **`apps/admin`** (dashboard). Shared UI and logic live in **`packages/shared`**. Root `app/`, `lib/`, and `components/` are legacy copies — do not edit them for shop fixes (see `docs/CODEBASE-HYGIENE.md`).
+
 ```bash
 npm install
 cp .env.example .env.local   # fill in your credentials
-npm run dev                  # http://localhost:3000
+npm run dev                  # shop → http://localhost:3000
+npm run dev:admin            # admin → http://localhost:3001
+npm run ci                   # tests + lint + both production builds
 ```
 
-Sanity Studio runs at **`http://localhost:3000/studio`**.
+Sanity Studio (legacy local tree only) was at **`http://localhost:3000/studio`** when using the old root app layout.
 
 ## Content model (Sanity)
 

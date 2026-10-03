@@ -15,10 +15,12 @@ export async function CheckoutStaticShell() {
     <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
       <div className="mx-auto max-w-6xl px-4 py-3 sm:py-5 lg:px-8 lg:py-6">
         <h1 className="text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-2xl lg:text-3xl">
-          Checkout — cash on delivery
+          <span className="sm:hidden">Your delivery details</span>
+          <span className="hidden sm:inline">Checkout — cash on delivery</span>
         </h1>
-        <p className="mt-1 hidden max-w-2xl text-sm text-[var(--g-taupe)] sm:block">
-          Enter your details below. Pay when your order arrives.
+        <p className="mt-1 max-w-2xl text-xs leading-snug text-[var(--g-taupe)] sm:text-sm">
+          <span className="sm:hidden">Name, mobile &amp; address — pay when your order arrives.</span>
+          <span className="hidden sm:inline">Enter your details below. Pay when your order arrives.</span>
         </p>
         <ul className="mt-2 hidden flex-wrap gap-2 text-xs text-[var(--g-charcoal)] sm:flex sm:mt-4 sm:gap-3 sm:text-sm">
           {config.codEnabled !== false ? (

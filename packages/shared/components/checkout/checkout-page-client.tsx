@@ -1,18 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useEffect, useState, useRef, type ReactNode } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowRight,
   Banknote,
   Check,
   ChevronLeft,
   Loader2,
   Lock,
-  Minus,
-  Plus,
   ShieldCheck,
   ShoppingBag,
   AlertTriangle,
@@ -26,7 +22,6 @@ import {
   Home,
   Mail,
   Calendar,
-  Trash2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +47,9 @@ import {
   readGadgetPreviewSession,
 } from "@/lib/gadget-preview";
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
+import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
+import { CheckoutSummaryPriceRow } from "@/components/checkout/checkout-summary-price-row";
+import { useCheckoutMobileDock } from "@/components/checkout/use-checkout-mobile-dock";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
 import {
@@ -61,51 +59,8 @@ import {
 import { normalizePhone } from "@/lib/messaging";
 import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel-events";
 
-// Replaced STEPS structure with 4 linear mock-steps matching Figma design.
-const STEPS = [
-  { label: "Cart" },
-  { label: "Information" },
-  { label: "Review" },
-  { label: "Complete" },
-] as const;
-
 const SUMMARY_CARD =
   "min-w-0 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm sm:rounded-2xl sm:p-5";
-
-function SummaryPriceRow({
-  label,
-  value,
-  tone = "muted",
-}: {
-  label: ReactNode;
-  value: ReactNode;
-  tone?: "muted" | "deal" | "strong";
-}) {
-  return (
-    <div className="flex items-start justify-between gap-x-4 gap-y-1 text-[13px] leading-snug">
-      <span
-        className={cn(
-          "shrink-0",
-          tone === "deal" && "font-semibold text-[var(--g-sage)]",
-          tone === "muted" && "text-muted-foreground",
-          tone === "strong" && "font-semibold text-foreground",
-        )}
-      >
-        {label}
-      </span>
-      <span
-        className={cn(
-          "text-right tabular-nums",
-          tone === "deal" && "font-semibold text-[var(--g-sage)]",
-          tone === "muted" && "font-semibold text-foreground",
-          tone === "strong" && "font-bold text-foreground",
-        )}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
 
 type PaymentMethod = "cod";
 
@@ -131,9 +86,7 @@ export default function CheckoutPageClient() {
   const {
     items,
     subtotal,
-    updateQuantity,
     updateItemPrice,
-    removeItem,
     clearCart,
   } = useCart();
   const dealQuote = useDealQuote(items);
@@ -194,6 +147,9 @@ export default function CheckoutPageClient() {
   } | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const idemRef = useRef<{ fingerprint: string; key: string } | null>(null);
+  const showMobileDock = useCheckoutMobileDock(
+    step === 1 && items.length > 0,
+  );
 
   if (typeof window !== "undefined" && items.length > 0) {
     const cartFingerprint = JSON.stringify(
@@ -514,10 +470,6 @@ export default function CheckoutPageClient() {
 
   const onLeave = () => notifyAbandonedCart();
 
-  function nextStep(next: number) {
-    setStep(next);
-  }
-
   useEffect(() => {
     tagCheckoutClarityStep(step);
   }, [step]);
@@ -619,118 +571,17 @@ export default function CheckoutPageClient() {
 
   return (
     <div className="min-h-screen overflow-x-clip bg-[var(--g-cream)] font-sans">
-      <div className="relative z-20 mx-auto max-w-6xl px-4 py-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:py-6 sm:pb-[calc(8rem+env(safe-area-inset-bottom))] lg:px-8 lg:pb-16">
+      <div
+        className={cn(
+          "relative z-20 mx-auto max-w-6xl px-4 py-4 sm:py-6 lg:px-8 lg:pb-16",
+          showMobileDock
+            ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(8rem+env(safe-area-inset-bottom))]"
+            : "pb-8",
+        )}
+      >
         <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8">
           {/* ── Left Content Column ─────────────────────────────────────────── */}
           <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-none lg:gap-6">
-            {step === 0 && (
-              <section>
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="text-xl font-bold tracking-tight">
-                    Your Cart
-                  </h2>
-                  <Link
-                    href="/products"
-                    className="text-sm font-bold text-primary hover:underline"
-                  >
-                    Continue Shopping
-                  </Link>
-                </div>
-                <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                  <ul className="divide-y divide-border">
-                    {items.map((item) => (
-                      <li key={cartLineKey(item)} className="p-4 sm:p-6">
-                        <div className="flex gap-3 sm:gap-6">
-                          {item.image ? (
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              width={96}
-                              height={96}
-                              className="h-20 w-20 shrink-0 rounded-lg border bg-muted object-cover sm:h-24 sm:w-24"
-                            />
-                          ) : (
-                            <div className="h-20 w-20 shrink-0 rounded-lg border bg-muted sm:h-24 sm:w-24" />
-                          )}
-                          <div className="flex min-w-0 flex-1 flex-col pb-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <Link
-                                  href={`/product/${item.slug}`}
-                                  className="text-base font-bold text-foreground leading-snug hover:text-primary transition-colors"
-                                >
-                                  {item.name}
-                                </Link>
-                                {item.variantName && (
-                                  <p className="text-sm text-muted-foreground mt-0.5">
-                                    {item.variantName}
-                                  </p>
-                                )}
-                              </div>
-                              <p className="font-bold text-foreground">
-                                {formatPrice(item.price)}
-                              </p>
-                            </div>
-                            <div className="mt-auto flex items-center justify-between">
-                              <div className="flex items-center gap-2 rounded-lg border border-border/80 px-2 py-1 bg-white">
-                                <button
-                                  onClick={() =>
-                                    updateQuantity(
-                                      cartLineKey(item),
-                                      item.quantity - 1,
-                                    )
-                                  }
-                                  aria-label="Decrease quantity"
-                                  className="p-1 text-muted-foreground hover:text-foreground focus:ring-2 focus:ring-primary rounded"
-                                >
-                                  <Minus className="h-3.5 w-3.5" />
-                                </button>
-                                <span
-                                  className="w-8 text-center text-sm font-bold text-foreground"
-                                  aria-live="polite"
-                                >
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                    updateQuantity(
-                                      cartLineKey(item),
-                                      item.quantity + 1,
-                                    )
-                                  }
-                                  aria-label="Increase quantity"
-                                  className="p-1 text-muted-foreground hover:text-foreground focus:ring-2 focus:ring-primary rounded"
-                                >
-                                  <Plus className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                              <button
-                                onClick={() => removeItem(cartLineKey(item))}
-                                aria-label={`Remove ${item.name}`}
-                                className="text-sm font-semibold text-destructive hover:underline focus:ring-2 focus:ring-destructive rounded px-1"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto px-8"
-                    onClick={() => nextStep(1)}
-                  >
-                    Checkout <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </section>
-            )}
-
             {step === 1 && (
               <section className="min-w-0">
                 <div className="mb-3">
@@ -975,11 +826,37 @@ export default function CheckoutPageClient() {
 
           {/* ── Order summary sidebar ────────────────────────────────────────── */}
           <aside className="order-2 w-full space-y-3 lg:order-none lg:sticky lg:top-8 lg:self-start lg:space-y-5">
+            {step === 1 ? (
+              <CheckoutMobileOrderBox
+                className="lg:hidden"
+                items={items}
+                productHref={productHref}
+                subtotal={subtotal}
+                dealDiscount={dealDiscount}
+                dealTitle={dealQuote.applied[0]?.title}
+                shippingLabel={shippingLabel}
+                appliedDiscount={appliedDiscount}
+                giftWrap={giftWrap}
+                giftWrapFee={GIFT_WRAP_FEE}
+                total={total}
+                hasPromo={hasPromo}
+                placing={placing}
+                promoInput={promoInput}
+                onPromoInputChange={setPromoInput}
+                onApplyPromo={handleApplyPromo}
+                promoLoading={activePromo?.loading}
+                promoError={activePromo?.error}
+                promoCode={
+                  activePromo && !activePromo.error ? activePromo.code : undefined
+                }
+                onRemovePromo={() => setActivePromo(null)}
+              />
+            ) : null}
+
             <div
               className={cn(
                 SUMMARY_CARD,
-                "p-3 sm:p-4 lg:p-5",
-                step === 1 && "hidden lg:block",
+                "hidden p-3 sm:p-4 lg:block lg:p-5",
               )}
             >
               <h2 className="mb-2 border-b border-[var(--g-line)] pb-2 text-sm font-bold text-foreground sm:mb-3 sm:pb-3 sm:text-base lg:text-[17px]">
@@ -987,12 +864,12 @@ export default function CheckoutPageClient() {
               </h2>
 
               <div className="space-y-2.5 border-b border-[var(--g-line)] pb-3.5 sm:space-y-3 sm:pb-4">
-                <SummaryPriceRow
+                <CheckoutSummaryPriceRow
                   label={`Subtotal (${items.reduce((acc, i) => acc + i.quantity, 0)} items)`}
                   value={formatPrice(subtotal)}
                 />
                 {dealDiscount > 0 ? (
-                  <SummaryPriceRow
+                  <CheckoutSummaryPriceRow
                     tone="deal"
                     label={
                       <>
@@ -1008,19 +885,19 @@ export default function CheckoutPageClient() {
                     value={`− ${formatPrice(dealDiscount)}`}
                   />
                 ) : null}
-                <SummaryPriceRow
+                <CheckoutSummaryPriceRow
                   label="Shipping"
                   value={shippingLabel ?? "—"}
                 />
                 {activePromo ? (
-                  <SummaryPriceRow
+                  <CheckoutSummaryPriceRow
                     tone="deal"
                     label="Promo discount"
                     value={`− ${formatPrice(appliedDiscount)}`}
                   />
                 ) : null}
                 {giftWrap ? (
-                  <SummaryPriceRow
+                  <CheckoutSummaryPriceRow
                     tone="strong"
                     label="Gift wrap"
                     value={formatPrice(GIFT_WRAP_FEE)}
@@ -1053,7 +930,7 @@ export default function CheckoutPageClient() {
             </div>
 
             {step >= 1 && (
-              <div className={cn(SUMMARY_CARD, step === 1 && "hidden lg:block")}>
+              <div className={cn(SUMMARY_CARD, "hidden lg:block")}>
                 <h3 className="mb-3 text-[13px] font-bold text-foreground">
                   Have a promo code?
                 </h3>
@@ -1205,8 +1082,11 @@ export default function CheckoutPageClient() {
         </div>
       </div>
 
-      {step === 1 ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--g-line)] bg-[var(--g-cream)]/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_24px_rgba(0,0,0,0.08)] backdrop-blur-md lg:hidden">
+      {step === 1 && showMobileDock ? (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--g-line)] bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(0,0,0,0.12)] lg:hidden"
+          aria-hidden={false}
+        >
           <div className="mx-auto flex max-w-6xl items-center gap-3">
             <div className="min-w-0 shrink-0">
               <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">

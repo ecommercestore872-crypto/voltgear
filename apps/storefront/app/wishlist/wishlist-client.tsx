@@ -92,7 +92,7 @@ function WishlistTrustFooter() {
           show: true,
         },
       ].filter((t) => t.show),
-    [config],
+    [config, threshold],
   );
 
   return (

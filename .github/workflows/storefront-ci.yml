@@ -24,6 +24,8 @@ jobs:
         run: npm ci
       - name: Unit tests
         run: npm run test
+      - name: Lint storefront and admin
+        run: npm run lint:all
       - name: Build storefront
         run: npm run build:storefront
         env:

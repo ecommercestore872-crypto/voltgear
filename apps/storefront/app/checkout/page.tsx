@@ -7,12 +7,7 @@ const CheckoutPageClient = dynamic(
     ),
   {
     ssr: false,
-    loading: () => (
-      <div
-        className="mx-auto min-h-[50vh] max-w-6xl animate-pulse px-4 py-10 lg:px-8"
-        aria-busy="true"
-      />
-    ),
+    loading: () => null,
   },
 );
 

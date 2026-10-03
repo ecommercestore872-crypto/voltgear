@@ -46,6 +46,11 @@ vercel_inspect*.json
 # typescript
 *.tsbuildinfo
 
+# local design mocks and one-off ops scripts
+/docs/design/preview/
+/scripts/_tmp-*.mjs
+/scripts/bnt1042-*
+
 # local debug / CLI dumps (never commit)
 .lh-*.json
 .lighthouse-*.json
