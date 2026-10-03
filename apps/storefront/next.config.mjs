@@ -10,6 +10,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: [
       "lucide-react",
+      "lucide-react/dist/esm/icons",
       "@phosphor-icons/react",
       "@supabase/supabase-js",
       "@radix-ui/react-accordion",

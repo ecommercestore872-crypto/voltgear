@@ -12,11 +12,12 @@ export const gadgetSans = Manrope({
 
 export const gadgetDisplay = Newsreader({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["600", "700"],
   variable: "--font-gadget-display",
   display: "swap",
   preload: false,
-  adjustFontFallback: true,
+  adjustFontFallback: false,
+  fallback: ["Georgia", "Times New Roman", "serif"],
 });
 
 export const gadgetFontClass = `${gadgetSans.variable} ${gadgetDisplay.variable}`;

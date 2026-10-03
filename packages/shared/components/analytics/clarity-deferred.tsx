@@ -33,9 +33,19 @@ export function ClarityDeferred({
       document.head.appendChild(s);
     }
 
-    window.addEventListener("load", () => window.setTimeout(inject, 2500), {
-      once: true,
-    });
+    function scheduleInject() {
+      const run = () => window.setTimeout(inject, 800);
+      if ("requestIdleCallback" in window) {
+        (
+          window as Window & {
+            requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
+          }
+        ).requestIdleCallback(run, { timeout: 6000 });
+      } else {
+        window.setTimeout(run, 4000);
+      }
+    }
+    window.addEventListener("load", scheduleInject, { once: true });
   }, [projectId, host]);
 
   return null;

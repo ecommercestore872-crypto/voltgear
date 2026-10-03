@@ -44,7 +44,7 @@ const GadgetReviewsSlider = dynamic(
     import("@/components/gadget/gadget-reviews-slider").then(
       (m) => m.GadgetReviewsSlider,
     ),
-  { loading: () => null },
+  { loading: () => null, ssr: false },
 );
 
 const GadgetBlogSection = dynamic(

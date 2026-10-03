@@ -139,7 +139,7 @@ export function GadgetHeroSlider({
                         fill
                         priority={i === 0}
                         fetchPriority={i === 0 ? "high" : "auto"}
-                        quality={i === 0 ? 70 : 75}
+                        quality={i === 0 ? 62 : 70}
                         className="object-cover sm:hidden object-center z-[1]"
                         sizes="100vw"
                       />
@@ -151,7 +151,7 @@ export function GadgetHeroSlider({
                       fill
                       priority={i === 0}
                       fetchPriority={i === 0 ? "high" : "auto"}
-                      quality={i === 0 ? 72 : 78}
+                      quality={i === 0 ? 65 : 72}
                       className={
                         banner.mobileImageUrl
                           ? "hidden sm:block object-cover object-center z-[1]"

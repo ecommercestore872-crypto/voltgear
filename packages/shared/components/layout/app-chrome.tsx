@@ -14,14 +14,26 @@ const TikTokPixel = dynamic(
 import { captureClickAttribution, persistClickAttribution } from "@/lib/click-attribution";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
-import { CookieConsentBar } from "@/components/legal/cookie-consent-bar";
+const CookieConsentBar = dynamic(
+  () =>
+    import("@/components/legal/cookie-consent-bar").then(
+      (m) => m.CookieConsentBar,
+    ),
+  { ssr: false, loading: () => null },
+);
+
+const ShopWhatsAppButton = dynamic(
+  () =>
+    import("@/components/shop/shop-whatsapp-button").then(
+      (m) => m.ShopWhatsAppButton,
+    ),
+  { ssr: false, loading: () => null },
+);
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { GadgetFooter } from "@/components/gadget/gadget-footer";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { GadgetNavbar } from "@/components/gadget/gadget-navbar";
-import { ShopWhatsAppButton } from "@/components/shop/shop-whatsapp-button";
-import { TrustBar } from "@/components/sections/trust-bar";
 import { cleanedPathnameAndSearch } from "@/lib/clean-marketing-url";
 import {
   readGadgetPreviewSession,

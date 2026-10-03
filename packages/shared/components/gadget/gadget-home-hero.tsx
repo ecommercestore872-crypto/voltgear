@@ -1,3 +1,5 @@
+import { preload } from "react-dom";
+
 import { fetchHeroSlides } from "@/lib/db/store";
 import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
 import { heroLcpImageUrl } from "@/lib/gadget-hero-lcp";
@@ -29,14 +31,19 @@ export async function GadgetHomeHero() {
     slides = [];
   }
 
-  const lcpUrl =
+  const lcpMobile =
     slides[0] != null ? heroLcpImageUrl(slides[0], { mobile: true }) : "";
+  const lcpDesktop =
+    slides[0] != null ? heroLcpImageUrl(slides[0], { mobile: false }) : "";
+  if (lcpMobile) {
+    preload(lcpMobile, { as: "image", fetchPriority: "high" });
+  }
+  if (lcpDesktop && lcpDesktop !== lcpMobile) {
+    preload(lcpDesktop, { as: "image", fetchPriority: "low" });
+  }
 
   return (
     <>
-      {lcpUrl ? (
-        <link rel="preload" as="image" href={lcpUrl} fetchPriority="high" />
-      ) : null}
       <GadgetHeroSlider
         slides={slides}
         fallbackBanners={gadgetDemoHeroBanners(products2Href)}

@@ -6,7 +6,7 @@ import type { Product } from "@/lib/types";
 export function pdpLcpImageUrl(
   product: Pick<Product, "images" | "cloudinaryImages" | "slug" | "category">,
 ): string | null {
-  return gadgetImageSrc(product, PRODUCT_IMAGE.gallery) || null;
+  return gadgetImageSrc(product, PRODUCT_IMAGE.pdpLcp) || null;
 }
 
 export function pdpProductCacheTag(slug: string): string {

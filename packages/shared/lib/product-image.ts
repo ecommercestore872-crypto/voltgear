@@ -7,6 +7,8 @@ export const PRODUCT_IMAGE = {
   minEdge: 800,
   /** PDP main — matches Next deviceSizes max for 50vw layout */
   gallery: 1200,
+  /** PDP LCP preload — mobile-first, smaller bytes for first paint */
+  pdpLcp: 828,
   /** PLP / grids — ~25–50vw on typical viewports */
   card: 640,
   /** Hero / full-bleed banners */

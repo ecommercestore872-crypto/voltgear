@@ -5,6 +5,8 @@ export const PRODUCT_IMAGE = {
   minEdge: 800,
   gallery: 2000,
   card: 900,
+  /** PDP LCP — ~2× max CSS width; smaller than gallery for faster first paint. */
+  pdpLcp: 828,
   thumb: 320,
 } as const;
 

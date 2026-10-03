@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import { preload } from "react-dom";
 
 import { GadgetPdpProductGrid } from "@/components/gadget/gadget-pdp-product-grid";
 import { GadgetPdpServerFacts } from "@/components/gadget/gadget-pdp-server-facts";
 import { GadgetPdpServerHero } from "@/components/gadget/gadget-pdp-server-hero";
 import { GadgetPdpDeferred } from "@/components/product/gadget-pdp-deferred";
-import { ProductViewTracker } from "@/components/product/product-view-tracker";
+const ProductViewTracker = dynamic(
+  () =>
+    import("@/components/product/product-view-tracker").then(
+      (m) => m.ProductViewTracker,
+    ),
+  { ssr: false, loading: () => null },
+);
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { loadPdpProductBySlug } from "@/lib/db/product-pdp";
@@ -186,12 +194,12 @@ export default async function Product2Page({
   };
 
   const lcpPreload = pdpLcpImageUrl(product);
+  if (lcpPreload) {
+    preload(lcpPreload, { as: "image", fetchPriority: "high" });
+  }
 
   return (
     <div className="gadget-scroll-pad-cta bg-[var(--g-cream)] text-[var(--g-charcoal)] lg:pb-10">
-      {lcpPreload ? (
-        <link rel="preload" as="image" href={lcpPreload} fetchPriority="high" />
-      ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
