@@ -18,6 +18,7 @@ import { mergeInvoiceTemplate } from "@/lib/invoice-template-rules";
 import { parseVariantOptions } from "@/lib/variant-options-rules";
 import { textToPortableText } from "@/lib/product-detail-copy";
 import { normalizePageSeo } from "@/lib/blog-desk-rules";
+import { shopVisible } from "@/lib/db/publish";
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -42,9 +43,10 @@ function socialVideoUrlFromRow(
 
 export function mapProduct(
   row: Record<string, unknown> | null,
-  opts?: { includeDemoReviews?: boolean }
+  opts?: { includeDemoReviews?: boolean; storefront?: boolean }
 ): Product | null {
   if (!row) return null;
+  if (opts?.storefront && !shopVisible(row.status)) return null;
   const images = Array.isArray(row.product_images)
     ? [...row.product_images]
         .sort(

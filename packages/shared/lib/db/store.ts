@@ -91,6 +91,35 @@ function db() {
   return getServiceClient();
 }
 
+function mapStoreProduct(
+  row: Record<string, unknown>,
+  opts?: { includeDemoReviews?: boolean },
+): Product | null {
+  return mapProduct(row, { ...opts, storefront: true });
+}
+
+/** Active shop categories from CMS; null = no rows (do not filter by category). */
+async function loadActiveCategorySlugSet(): Promise<Set<string> | null> {
+  const { data, error } = await db()
+    .from("categories")
+    .select("slug")
+    .eq("active", true);
+  if (error) throw error;
+  if (!data?.length) return null;
+  const slugs = new Set(
+    data.map((r) => String(r.slug ?? "").trim()).filter(Boolean),
+  );
+  return slugs.size > 0 ? slugs : null;
+}
+
+function filterForActiveCategories(
+  products: Product[],
+  active: Set<string> | null,
+): Product[] {
+  if (!active) return products;
+  return products.filter((p) => active.has(p.category));
+}
+
 export async function allocatePublicOrderId(): Promise<string> {
   const { data, error } = await db().rpc("next_order_public_number");
   if (!error && data != null) {
@@ -110,22 +139,32 @@ export async function fetchAllProducts(includeDemo = false): Promise<Product[]> 
     ).order("created_at", { ascending: false })
   );
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
-    .filter(Boolean) as Product[];
+  return filterForActiveCategories(
+    (data ?? [])
+      .map((row) => mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+      .filter(Boolean) as Product[],
+    await loadActiveCategorySlugSet(),
+  );
 }
 
 async function loadCatalogProducts(): Promise<Product[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(
-      db().from("products").select(CATALOG_PRODUCT_EMBED as "*").eq("status", LIVE),
-      false
-    ).order("created_at", { ascending: false })
-  );
+  const [queryResult, activeCategories] = await Promise.all([
+    execDemoQuery(() =>
+      demoFilter(
+        db().from("products").select(CATALOG_PRODUCT_EMBED as "*").eq("status", LIVE),
+        false,
+      ).order("created_at", { ascending: false }),
+    ),
+    loadActiveCategorySlugSet(),
+  ]);
+  const { data, error } = queryResult;
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>))
-    .filter(Boolean) as Product[];
+  return filterForActiveCategories(
+    (data ?? [])
+      .map((row) => mapStoreProduct(row as Record<string, unknown>))
+      .filter(Boolean) as Product[],
+    activeCategories,
+  );
 }
 
 /** Cached slim catalog for shop grids — safe for ISR (no demo cookie / no fat PDP fields). */
@@ -153,9 +192,14 @@ export const fetchHomepageProducts = unstable_cache(
         .limit(HOMEPAGE_PRODUCT_LIMIT)
     );
     if (error) throw error;
-    return (data ?? [])
-      .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
-      .filter(Boolean) as Product[];
+    return filterForActiveCategories(
+      (data ?? [])
+        .map((row) =>
+          mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }),
+        )
+        .filter(Boolean) as Product[],
+      await loadActiveCategorySlugSet(),
+    );
   },
   ["fetchHomepageProducts"],
   { revalidate: 60, tags: [STOREFRONT_HOMEPAGE_CATALOG_CACHE_TAG] },
@@ -169,7 +213,14 @@ export async function fetchProductBySlug(slug: string, includeDemo = false): Pro
     ).maybeSingle()
   );
   if (error) throw error;
-  return mapProduct(data as Record<string, unknown> | null, { includeDemoReviews: includeDemo });
+  if (!data) return null;
+  const product = mapStoreProduct(data as Record<string, unknown>, {
+    includeDemoReviews: includeDemo,
+  });
+  if (!product) return null;
+  const active = await loadActiveCategorySlugSet();
+  if (active && !active.has(product.category)) return null;
+  return product;
 }
 
 async function loadPdpProductRow(slug: string): Promise<Product | null> {
@@ -186,9 +237,14 @@ async function loadPdpProductRow(slug: string): Promise<Product | null> {
     ).maybeSingle(),
   );
   if (error) throw error;
-  return mapProduct(data as Record<string, unknown> | null, {
+  if (!data) return null;
+  const product = mapStoreProduct(data as Record<string, unknown>, {
     includeDemoReviews: false,
   });
+  if (!product) return null;
+  const active = await loadActiveCategorySlugSet();
+  if (active && !active.has(product.category)) return null;
+  return product;
 }
 
 export async function loadCachedPdpProductBySlug(slug: string): Promise<Product | null> {
@@ -226,28 +282,33 @@ async function loadRelatedCatalogProducts(
   );
   if (error) throw error;
   return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>))
+    .map((row) => mapStoreProduct(row as Record<string, unknown>))
     .filter(Boolean) as Product[];
 }
 
 async function loadCatalogProductsByCategory(category: string): Promise<Product[]> {
   const cat = category.trim();
   if (!cat) return [];
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(
-      db()
-        .from("products")
-        .select(CATALOG_PRODUCT_EMBED as "*")
-        .eq("status", LIVE)
-        .eq("category", cat)
-        .order("featured", { ascending: false })
-        .order("created_at", { ascending: false }),
-      false,
+  const [queryResult, activeCategories] = await Promise.all([
+    execDemoQuery(() =>
+      demoFilter(
+        db()
+          .from("products")
+          .select(CATALOG_PRODUCT_EMBED as "*")
+          .eq("status", LIVE)
+          .eq("category", cat)
+          .order("featured", { ascending: false })
+          .order("created_at", { ascending: false }),
+        false,
+      ),
     ),
-  );
+    loadActiveCategorySlugSet(),
+  ]);
+  if (activeCategories && !activeCategories.has(cat)) return [];
+  const { data, error } = queryResult;
   if (error) throw error;
   return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>))
+    .map((row) => mapStoreProduct(row as Record<string, unknown>))
     .filter(Boolean) as Product[];
 }
 
@@ -295,9 +356,12 @@ export async function fetchCatalogProductsBySlugs(
   );
   if (error) throw error;
   const bySlug = new Map<string, Product>();
+  const active = await loadActiveCategorySlugSet();
   for (const row of data ?? []) {
-    const p = mapProduct(row as Record<string, unknown>);
-    if (p) bySlug.set(p.slug, p);
+    const p = mapStoreProduct(row as Record<string, unknown>);
+    if (!p) continue;
+    if (active && !active.has(p.category)) continue;
+    bySlug.set(p.slug, p);
   }
   return unique.map((slug) => bySlug.get(slug)).filter(Boolean) as Product[];
 }
@@ -358,9 +422,14 @@ export async function fetchCatalogFromDb(f: {
     ).order("created_at", { ascending: false })
   );
   if (error) throw error;
-  let items = (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: f.includeDemo }))
-    .filter(Boolean) as Product[];
+  let items = filterForActiveCategories(
+    (data ?? [])
+      .map((row) =>
+        mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: f.includeDemo }),
+      )
+      .filter(Boolean) as Product[],
+    await loadActiveCategorySlugSet(),
+  );
 
   if (f.category) items = items.filter((p) => p.category === f.category);
   if (f.availability === "in-stock") items = items.filter((p) => p.stockStatus !== "out-of-stock");
@@ -436,9 +505,22 @@ export const fetchShopTypes = unstable_cache(
       mergedMap.set(dt.slug, dt);
     }
 
-    return Array.from(mergedMap.values()).sort((a, b) => a.sortOrder - b.sortOrder);
+    const { data: publishedCats, error: catErr } = await execDemoQuery(() =>
+      demoFilter(
+        db().from("products").select("category").eq("status", LIVE),
+        false,
+      ),
+    );
+    if (catErr) throw catErr;
+    const withLiveProducts = new Set(
+      (publishedCats ?? []).map((r) => String(r.category ?? "").trim()).filter(Boolean),
+    );
+
+    return Array.from(mergedMap.values())
+      .filter((t) => withLiveProducts.has(t.slug))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
   },
-  ["shop-types-v2"],
+  ["shop-types-v3"],
   { revalidate: 60, tags: [STOREFRONT_SHOP_TYPES_CACHE_TAG] },
 );
 
@@ -500,9 +582,9 @@ export async function fetchHero(includeDemo = false): Promise<HeroSection | null
         includeDemo
       ).maybeSingle()
     );
-    featured = mapProduct(prod as Record<string, unknown> | null, {
-      includeDemoReviews: includeDemo,
-    });
+    featured = prod
+      ? mapStoreProduct(prod as Record<string, unknown>, { includeDemoReviews: includeDemo })
+      : null;
   }
   return mapHero(data as Record<string, unknown>, featured);
 }
@@ -534,7 +616,9 @@ export const fetchHeroSlides = unstable_cache(
 
     const byId = new Map<string, Product>();
     for (const row of products ?? []) {
-      const mapped = mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo });
+      const mapped = mapStoreProduct(row as Record<string, unknown>, {
+        includeDemoReviews: includeDemo,
+      });
       if (mapped) byId.set(mapped._id, mapped);
     }
 
@@ -1165,9 +1249,12 @@ export async function fetchFeaturedByCategory(category: string, limit = 4, inclu
       .limit(limit)
   );
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
-    .filter(Boolean) as Product[];
+  return filterForActiveCategories(
+    (data ?? [])
+      .map((row) => mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+      .filter(Boolean) as Product[],
+    await loadActiveCategorySlugSet(),
+  );
 }
 
 function clampStoreLimit(limit: number, max = 8): number {
@@ -1198,9 +1285,14 @@ export async function fetchCatalogFeaturedByCategory(
       .limit(cap),
   );
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
-    .filter(Boolean) as Product[];
+  const active = await loadActiveCategorySlugSet();
+  if (active && !active.has(cat)) return [];
+  return filterForActiveCategories(
+    (data ?? [])
+      .map((row) => mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+      .filter(Boolean) as Product[],
+    active,
+  );
 }
 
 /** Slim storefront cards — site-wide featured (bounded). */
@@ -1222,9 +1314,12 @@ export async function fetchCatalogFeaturedProducts(
       .limit(cap),
   );
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
-    .filter(Boolean) as Product[];
+  return filterForActiveCategories(
+    (data ?? [])
+      .map((row) => mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+      .filter(Boolean) as Product[],
+    await loadActiveCategorySlugSet(),
+  );
 }
 
 /** Slim storefront cards — newest published (bounded). */
@@ -1246,7 +1341,10 @@ export async function fetchCatalogNewestProducts(
       .limit(cap),
   );
   if (error) throw error;
-  return (data ?? [])
-    .map((row) => mapProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
-    .filter(Boolean) as Product[];
+  return filterForActiveCategories(
+    (data ?? [])
+      .map((row) => mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
+      .filter(Boolean) as Product[],
+    await loadActiveCategorySlugSet(),
+  );
 }

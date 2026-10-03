@@ -458,6 +458,7 @@ function mapRowsToProductsById(
   for (const row of rows) {
     const p = mapProduct(row as Record<string, unknown>, {
       includeDemoReviews: includeDemo,
+      storefront: true,
     });
     if (!p) continue;
     if (!includeDemo && p.isDemo) continue;

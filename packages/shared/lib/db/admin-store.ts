@@ -614,6 +614,7 @@ export async function unpublishAdminProduct(id: string) {
   void revalidateShopMerchandising(
     "/",
     "/products",
+    ...extraCategoryPathsToRevalidate(current.category, current.category),
     `/product/${current.slug}`,
     "/api/store/products",
     `/admin/products/${id}`,
