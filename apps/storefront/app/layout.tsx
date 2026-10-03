@@ -3,6 +3,7 @@ import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import dynamic from "next/dynamic";
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
+import { DeferredUntilIdle } from "@/components/ui/deferred-until-idle";
 const MetaPixel = dynamic(
   () =>
     import("@/components/analytics/meta-pixel").then((m) => m.MetaPixel),
@@ -241,6 +242,7 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
         <link rel="dns-prefetch" href="https://zeuhfqevqjkbzwdaxjuv.supabase.co" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -279,19 +281,37 @@ export default async function RootLayout({
         <AppChrome
           settings={settings}
           shopTypes={shopTypes}
-          urgencyTicker={<UrgencyTicker announcement={config.announcement} />}
+          urgencyTicker={
+            <DeferredUntilIdle timeoutMs={3200}>
+              <UrgencyTicker announcement={config.announcement} />
+            </DeferredUntilIdle>
+          }
           cartDrawer={<CartDrawer />}
-          reviewReminder={<ReviewReminderPopup />}
+          reviewReminder={
+            <DeferredUntilIdle>
+              <ReviewReminderPopup />
+            </DeferredUntilIdle>
+          }
           cartEffects={<CartEffects />}
-          compareBar={<CompareBarWrapper />}
+          compareBar={
+            <DeferredUntilIdle>
+              <CompareBarWrapper />
+            </DeferredUntilIdle>
+          }
           demoBanner={<DemoBanner />}
         >
           <StorefrontAnnouncementBar tagline={settings?.tagline} />
-          <StorefrontPromoPopup />
-          <ScrollToTopButton />
+          <DeferredUntilIdle>
+            <StorefrontPromoPopup />
+          </DeferredUntilIdle>
+          <DeferredUntilIdle>
+            <ScrollToTopButton />
+          </DeferredUntilIdle>
           {children}
         </AppChrome>
-        <MetaPixel />
+        <DeferredUntilIdle timeoutMs={5500}>
+          <MetaPixel />
+        </DeferredUntilIdle>
         <ClarityDeferred projectId={CLARITY_ID} host={clarityHost} />
       </body>
     </html>

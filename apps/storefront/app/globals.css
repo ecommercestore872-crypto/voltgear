@@ -1683,3 +1683,11 @@
     transition: none !important;
   }
 }
+
+/* Skip layout/paint for below-fold blocks until near viewport (iOS Safari). */
+@layer utilities {
+  .gadget-below-fold {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
+  }
+}

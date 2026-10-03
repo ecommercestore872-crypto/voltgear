@@ -18,6 +18,11 @@ export function GadgetPdpGalleryClient({
   const [interactive, setInteractive] = useState(false);
 
   useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 767px)").matches;
+    if (mobile) {
+      setInteractive(true);
+      return;
+    }
     const id = window.requestAnimationFrame(() => setInteractive(true));
     return () => window.cancelAnimationFrame(id);
   }, []);

@@ -17,6 +17,7 @@ export function GadgetPdpVariantHero({
         alt={image.alt}
         fill
         priority
+        quality={62}
         sizes="(max-width: 768px) 100vw, 50vw"
         className="object-contain"
       />

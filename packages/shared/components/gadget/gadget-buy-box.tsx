@@ -128,7 +128,7 @@ export function GadgetBuyBox({
     () =>
       colorPhoto
         ? {
-            src: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.gallery }),
+            src: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.pdpMobileMain }),
             thumb: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb }),
             alt: `${product.name}${variant?.name ? ` — ${variant.name}` : ""}`,
           }

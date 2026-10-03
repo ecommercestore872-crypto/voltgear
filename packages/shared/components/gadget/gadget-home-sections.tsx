@@ -337,7 +337,7 @@ export async function GadgetHomeSections() {
   }
 
   return (
-    <>
+    <div className="gadget-below-fold">
       {layout.map((id) => {
         let section: ReactNode = null;
         switch (id) {
@@ -420,6 +420,6 @@ export async function GadgetHomeSections() {
         );
       })}
       {!lastMerchId ? extraCollectionSections() : null}
-    </>
+    </div>
   );
 }

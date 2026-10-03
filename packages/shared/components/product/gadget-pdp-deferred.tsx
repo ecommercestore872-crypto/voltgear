@@ -94,7 +94,7 @@ export async function GadgetPdpDeferred({
   const relatedProducts = applyGadgetStudioImagesList(related);
 
   return (
-    <>
+    <div className="gadget-below-fold">
       {pairBlocks.map((row) => (
         <GadgetDealPair
           key={row.other.slug}
@@ -157,6 +157,6 @@ export async function GadgetPdpDeferred({
           ))}
         </div>
       </section>
-    </>
+    </div>
   );
 }

@@ -29,6 +29,7 @@ const ShopWhatsAppButton = dynamic(
     ),
   { ssr: false, loading: () => null },
 );
+import { DeferredUntilIdle } from "@/components/ui/deferred-until-idle";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { GadgetFooter } from "@/components/gadget/gadget-footer";
@@ -116,7 +117,11 @@ export function AppChrome({
   return (
     <CartProvider>
       <WishlistProvider>
-        {!pathname?.startsWith("/admin") ? <TikTokPixel /> : null}
+        {!pathname?.startsWith("/admin") ? (
+          <DeferredUntilIdle timeoutMs={5000}>
+            <TikTokPixel />
+          </DeferredUntilIdle>
+        ) : null}
         {gadget ? (
           <>
             <div
@@ -130,9 +135,13 @@ export function AppChrome({
               <GadgetFooter settings={settings} shopTypes={shopTypes} />
               {cartDrawer}
               {cartEffects}
-              <CookieConsentBar />
+              <DeferredUntilIdle timeoutMs={3500}>
+                <CookieConsentBar />
+              </DeferredUntilIdle>
             </div>
-            <ShopWhatsAppButton settings={settings} />
+            <DeferredUntilIdle>
+              <ShopWhatsAppButton settings={settings} />
+            </DeferredUntilIdle>
           </>
         ) : (
           <>
@@ -141,12 +150,16 @@ export function AppChrome({
             <Navbar settings={settings} shopTypes={shopTypes} />
             <main className="flex-1 overflow-x-hidden w-full">{children}</main>
             <Footer settings={settings} shopTypes={shopTypes} />
-            <ShopWhatsAppButton settings={settings} />
+            <DeferredUntilIdle>
+              <ShopWhatsAppButton settings={settings} />
+            </DeferredUntilIdle>
             {cartDrawer}
             {reviewReminder}
             {cartEffects}
             {compareBar}
-            <CookieConsentBar />
+            <DeferredUntilIdle timeoutMs={3500}>
+              <CookieConsentBar />
+            </DeferredUntilIdle>
           </>
         )}
       </WishlistProvider>
