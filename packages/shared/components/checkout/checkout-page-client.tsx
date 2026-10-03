@@ -1093,7 +1093,7 @@ export default function CheckoutPageClient() {
 
       {step === 1 && showMobileDock ? (
         <div
-          className="premium-royal-dock fixed inset-x-0 bottom-0 z-40 bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden"
+          className="premium-royal-dock touch-manipulation fixed inset-x-0 bottom-0 z-40 bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden"
           aria-hidden={false}
         >
           <div className="mx-auto flex max-w-6xl items-center gap-2 sm:gap-3">

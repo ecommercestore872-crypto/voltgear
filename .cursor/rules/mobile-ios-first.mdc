@@ -1,24 +1,32 @@
 ---
-description: Mobile-first and iOS Safari — primary UX target for all storefront changes
+description: Mobile-first for iOS and Android — primary UX for all storefront work
 alwaysApply: true
 ---
 
-# Mobile & iOS first (mandatory)
+# Mobile first — iOS & Android (mandatory)
 
-**Primary audience:** shoppers on **phones**, especially **iOS Safari** (and in-app browsers: Instagram, Facebook, WhatsApp). Design, implement, and verify there first; desktop is secondary unless the task is admin-only.
+**Primary audience:** shoppers on **phones** — **iOS Safari**, **Android Chrome** (Samsung, Pixel, etc.), and **in-app browsers** (Instagram, Facebook, WhatsApp). Design, build, and verify on **both** platforms before desktop polish. Admin work is desktop-first unless stated.
 
-## Before shipping UI changes
+## Layout & touch (both platforms)
 
-1. **Layout:** Default mental model is **single column**, narrow width (~390px). Critical actions and totals must be visible **in the main scroll** without hunting in sidebars or hover-only areas.
-2. **Touch:** Interactive targets **≥ 44px** height (`min-h-11`, adequate padding). No hover-only affordances.
-3. **iOS inputs:** Use `type="tel"` / `inputMode="tel"` for phone; **`text-base` (16px) or larger** on focused inputs to avoid Safari auto-zoom.
-4. **Safe areas:** Sticky/fixed bars use `env(safe-area-inset-bottom)` (and top when under notch). Avoid semi-transparent fixed UI over the **dark footer** — use solid `bg-card` and hide or scroll fixed chrome when the footer intersects.
-5. **Safari quirks:** Prefer `min-h-dvh` over `100vh` where full-height matters; test `position: fixed` + keyboard; avoid relying on `:hover` or fragile `backdrop-blur` for readability.
-6. **Performance:** Fewer client-only waterfalls on checkout/cart/PDP; lazy-load below-fold media; don’t block COD flow with heavy modals or extra steps.
-7. **Images in cart/checkout:** Prefer patterns that **cannot crash** the panel on bad URLs (plain `img` or guarded fallbacks) — a broken thumbnail must not hide the order summary on phone.
+1. **Single column** default (~360–430px width). Primary actions, price, and COD path in **main scroll** — not sidebars or hover-only UI.
+2. **Touch targets ≥ 44px** (`min-h-11`, generous padding). Use `touch-manipulation` on sticky CTAs; no hover-only affordances.
+3. **Inputs:** `type="tel"` + `inputMode="tel"` for phone; **16px+ (`text-base`)** on fields to prevent **iOS zoom**; clear labels and autofill attributes for **Android autofill**.
+4. **Safe areas:** Fixed/sticky bars use `env(safe-area-inset-*)` + solid `bg-card` (not heavy blur over footer/content). Works on notched iPhones and gesture-nav Android.
+5. **Height:** Prefer `min-h-dvh` / `h-dvh` over `100vh` (address bar resize on both OSes).
+6. **Performance:** Minimize checkout/cart/PDP client waterfalls; lazy below-fold media; animations use transform/opacity only; honor `prefers-reduced-motion`.
+7. **Resilience:** Cart/checkout line images must not crash panels (plain `img` or fallbacks).
 
-## Verification
+## Verification before “done”
 
-For customer-facing UI, mentally (or in DevTools) check **iPhone width + iOS Safari** before calling work done. If desktop and mobile conflict, **choose mobile/iOS** unless explicitly admin work.
+Check **iPhone Safari** and **Android Chrome** (DevTools device mode minimum; real devices when possible):
 
-**Canonical shop code:** `apps/storefront` + `packages/shared` (not root legacy `app/`).
+- Checkout: delivery form + **order cost box** + place order visible/working
+- PDP: sticky COD CTA readable over page background
+- No obscured CTAs behind home indicator / system nav
+
+If mobile and desktop conflict, **choose mobile** unless the task is admin-only.
+
+**Canonical code:** `apps/storefront`, `apps/admin`, `packages/shared` — not root legacy `app/`.
+
+**Quality bar:** `docs/STORE-QUALITY-STANDARD.md`

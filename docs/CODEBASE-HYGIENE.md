@@ -1,5 +1,7 @@
 # Codebase hygiene (living checklist)
 
+**Product / acquirer quality bar:** [`STORE-QUALITY-STANDARD.md`](./STORE-QUALITY-STANDARD.md)
+
 Production runs **`apps/storefront`**, **`apps/admin`**, and **`packages/shared`**. Root **`app/`**, **`lib/`**, and **`components/`** are legacy duplicates — see `app/DEPRECATED.md`, `lib/DEPRECATED.md`, `components/DEPRECATED.md`.
 
 ## Quality gates (target state)

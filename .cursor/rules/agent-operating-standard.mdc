@@ -1,0 +1,29 @@
+---
+description: How agents work on VoltGear — efficiency, verification, buyer-grade quality
+alwaysApply: true
+---
+
+# Agent operating standard
+
+## Mission
+
+Ship changes a **US acquirer or senior operator** would respect: clear architecture, passing gates, mobile COD funnel that works, admin that runs the business, no silent regressions.
+
+## Every task (efficient loop)
+
+1. **Scope** — One coherent outcome; edit `packages/shared` + correct `apps/*` only.
+2. **Implement** — Smallest diff; match existing patterns; mobile iOS + Android per mobile rule.
+3. **Verify** — `npm run test` → `npm run lint:all` → `npm run build` (or `npm run ci`) before claiming done.
+4. **Funnel sanity** — For storefront UI: home → PLP → PDP → cart → checkout → order success → track (mental or DevTools mobile).
+
+## Non-negotiables
+
+- Do not “fix” production only in root legacy `app/`, `lib/`, `components/`.
+- Do not skip tests/lint because `ignoreBuildErrors` exists on Next builds.
+- Customer-facing copy: trustworthy, plain English, COD/delivery expectations clear (Pakistan market; professional tone for international review).
+
+## Reference docs
+
+- `docs/STORE-QUALITY-STANDARD.md` — acquisition & UX bar
+- `docs/CODEBASE-HYGIENE.md` — repo structure & CI
+- `AGENTS.md` — constitution

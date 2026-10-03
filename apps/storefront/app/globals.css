@@ -381,6 +381,11 @@
     );
   }
 
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   .premium-royal-cod-row {
     border: 1px solid color-mix(in srgb, var(--g-gold, #c9a227) 35%, var(--g-forest));
     background: linear-gradient(
