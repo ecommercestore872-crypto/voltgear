@@ -570,7 +570,7 @@ export default function CheckoutPageClient() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[var(--g-cream)] font-sans">
+    <div className="premium-royal-page-bg min-h-dvh overflow-x-clip font-sans">
       <div
         className={cn(
           "relative z-20 mx-auto max-w-6xl px-4 py-4 sm:py-6 lg:px-8 lg:pb-16",
@@ -584,8 +584,8 @@ export default function CheckoutPageClient() {
           <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-none lg:gap-6">
             {step === 1 && (
               <section className="min-w-0">
-                <div className="mb-3">
-                  <h2 className="text-lg font-bold tracking-tight text-[var(--g-charcoal)] sm:text-xl">
+                <div className="premium-royal-enter premium-royal-enter-delay-1 mb-3">
+                  <h2 className="gadget-display text-lg font-bold tracking-tight text-[var(--g-charcoal)] sm:text-xl">
                     Your delivery details
                   </h2>
                   <p className="mt-1 text-xs leading-snug text-muted-foreground sm:text-sm">
@@ -605,7 +605,7 @@ export default function CheckoutPageClient() {
                   </div>
                 )}
 
-                <div className="min-w-0 rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5">
+                <div className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-2 min-w-0 rounded-xl border-0 p-3 sm:rounded-2xl sm:p-5">
                   <form
                     id="details-form"
                     className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
@@ -720,7 +720,7 @@ export default function CheckoutPageClient() {
                       />
                     </div>
 
-                    <div className="col-span-1 flex items-center gap-2.5 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5 sm:col-span-2">
+                    <div className="premium-royal-cod-row col-span-1 flex items-center gap-2.5 rounded-lg px-3 py-2.5 sm:col-span-2">
                       <Banknote className="h-5 w-5 shrink-0 text-primary" aria-hidden />
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-foreground">
@@ -838,7 +838,7 @@ export default function CheckoutPageClient() {
                 ) : null}
 
                 <CheckoutMobileOrderBox
-                  className="mt-4 lg:hidden"
+                  className="premium-royal-shine premium-royal-enter premium-royal-enter-delay-3 mt-4 lg:hidden"
                   items={items}
                   productHref={productHref}
                   subtotal={subtotal}
@@ -1093,7 +1093,7 @@ export default function CheckoutPageClient() {
 
       {step === 1 && showMobileDock ? (
         <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--g-line)] bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(0,0,0,0.12)] lg:hidden"
+          className="premium-royal-dock fixed inset-x-0 bottom-0 z-40 bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden"
           aria-hidden={false}
         >
           <div className="mx-auto flex max-w-6xl items-center gap-2 sm:gap-3">

@@ -98,13 +98,13 @@ export default async function OrderSuccessPage({
   const cancelled = status === "cancelled";
 
   return (
-    <div className="min-h-screen border-t border-[var(--g-line)] bg-[var(--g-cream)] pb-16 pt-8 text-[var(--g-charcoal)] lg:pb-32 lg:pt-12">
+    <div className="premium-royal-page-bg min-h-dvh border-t border-[var(--g-line)] pb-16 pt-8 text-[var(--g-charcoal)] lg:pb-32 lg:pt-12">
       <ScrollToTop />
       <div className="container mx-auto max-w-6xl space-y-6 px-4 lg:px-8">
         <div className="grid items-stretch gap-6 lg:grid-cols-[1fr_minmax(16rem,28rem)]">
-          <div className="flex flex-col items-center gap-6 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-6 sm:flex-row sm:items-start sm:p-8">
+          <div className="premium-royal-surface premium-royal-shine premium-royal-enter flex flex-col items-center gap-6 rounded-2xl border-0 p-6 sm:flex-row sm:items-start sm:p-8">
             <div
-              className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${
+              className={`premium-royal-check-ring relative z-[2] flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${
                 cancelled
                   ? "bg-[var(--g-danger,#b42318)]"
                   : "bg-[var(--g-forest)]"
@@ -119,9 +119,9 @@ export default async function OrderSuccessPage({
                 />
               )}
             </div>
-            <div className="flex-1 text-center sm:text-left">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)]">
-                {cancelled ? "Order update" : "Thank you"}
+            <div className="relative z-[2] flex-1 text-center sm:text-left">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--g-gold,#c9a227)]">
+                {cancelled ? "Order update" : "Premium store · thank you"}
               </p>
               <h1 className="gadget-display text-3xl tracking-tight text-[var(--g-charcoal)] sm:text-[34px]">
                 {cancelled ? "Order cancelled" : "Order confirmed"}
@@ -140,7 +140,7 @@ export default async function OrderSuccessPage({
             </div>
           </div>
 
-          <div className="flex items-center justify-center rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-6 shadow-sm sm:p-8">
+          <div className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-1 flex items-center justify-center rounded-2xl border-0 p-6 sm:p-8">
             <div
               className={`relative mx-auto grid w-full max-w-[420px] text-center ${
                 progress.length === 2 ? "grid-cols-2" : "grid-cols-4"
@@ -209,13 +209,13 @@ export default async function OrderSuccessPage({
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)]">
-          <div className="flex flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-sm">
+          <div className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-2 flex flex-col overflow-hidden rounded-2xl border-0 shadow-sm">
             <div className="flex items-center gap-3 border-b border-[var(--g-line)] bg-[var(--g-cream)]/50 p-5">
               <ClipboardList
                 className="h-5 w-5 text-[var(--g-forest)]"
                 strokeWidth={2.5}
               />
-              <h3 className="text-[15px] font-bold text-[var(--g-charcoal)]">
+              <h3 className="gadget-display text-[15px] font-bold text-[var(--g-charcoal)]">
                 Order details
               </h3>
             </div>
@@ -281,7 +281,7 @@ export default async function OrderSuccessPage({
           </div>
 
           <div className="flex flex-col gap-4">
-            <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] shadow-sm">
+            <div className="premium-royal-surface premium-royal-shine premium-royal-enter premium-royal-enter-delay-3 flex flex-1 flex-col overflow-hidden rounded-2xl border-0 shadow-sm">
               <div className="flex items-center justify-between border-b border-[var(--g-line)] bg-[var(--g-cream)]/50 p-5">
                 <div className="flex items-center gap-3">
                   <ClipboardList
@@ -329,7 +329,7 @@ export default async function OrderSuccessPage({
                 )}
               </ul>
 
-              <div className="border-t border-[var(--g-line)] bg-[var(--g-sand,#fffaf3)] p-5">
+              <div className="premium-royal-bill border-t border-[var(--g-line)] p-5">
                 <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--g-gold,#c9a227)]">
                   Order bill
                 </p>
@@ -368,7 +368,7 @@ export default async function OrderSuccessPage({
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4 py-8 sm:flex-row">
+        <div className="premium-royal-enter premium-royal-enter-delay-3 flex flex-col items-center justify-center gap-4 py-8 sm:flex-row">
           {isCod &&
           (status === "new" || status === "processing") &&
           config.whatsappConfirmFlow &&
@@ -433,7 +433,7 @@ export default async function OrderSuccessPage({
           </Link>
         </div>
 
-        <div className="mt-12 grid w-full grid-cols-1 gap-6 divide-y divide-[var(--g-line)] rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 shadow-sm sm:p-6 md:mt-20 md:grid-cols-3 md:divide-x md:divide-y-0 lg:mt-20">
+        <div className="premium-royal-surface mt-12 grid w-full grid-cols-1 gap-6 divide-y divide-[var(--g-line)] rounded-2xl border-0 p-4 shadow-sm sm:p-6 md:mt-20 md:grid-cols-3 md:divide-x md:divide-y-0 lg:mt-20">
           <SupportCard
             icon={<Headphones className="h-5 w-5" />}
             title="Need help?"

@@ -2,7 +2,7 @@ import { Check, Loader2 } from "lucide-react";
 
 export default function OrderConfirmationLoading() {
   return (
-    <div className="min-h-screen border-t border-[var(--g-line)] bg-[var(--g-cream)] pb-16 pt-8 text-[var(--g-charcoal)]">
+    <div className="premium-royal-page-bg min-h-dvh border-t border-[var(--g-line)] pb-16 pt-8 text-[var(--g-charcoal)]">
       <div className="container mx-auto max-w-6xl animate-pulse space-y-6 px-4 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1fr_minmax(16rem,28rem)]">
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-8 sm:flex-row sm:items-start">

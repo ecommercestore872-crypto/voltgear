@@ -12,9 +12,12 @@ export async function CheckoutStaticShell() {
   const threshold = Number(config.freeShippingThreshold ?? 0);
 
   return (
-    <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
+    <div className="premium-royal-header-band premium-royal-enter">
       <div className="mx-auto max-w-6xl px-4 py-3 sm:py-5 lg:px-8 lg:py-6">
-        <h1 className="text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-2xl lg:text-3xl">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--g-gold,#c9a227)] sm:text-[11px]">
+          Premium · original · nationwide COD
+        </p>
+        <h1 className="gadget-display mt-1 text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:mt-1.5 sm:text-2xl lg:text-3xl">
           <span className="sm:hidden">Your delivery details</span>
           <span className="hidden sm:inline">Checkout — cash on delivery</span>
         </h1>
@@ -24,18 +27,18 @@ export async function CheckoutStaticShell() {
         </p>
         <ul className="mt-2 hidden flex-wrap gap-2 text-xs text-[var(--g-charcoal)] sm:flex sm:mt-4 sm:gap-3 sm:text-sm">
           {config.codEnabled !== false ? (
-            <li className="inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5 shadow-sm">
+            <li className="premium-royal-pill inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5">
               <Banknote className="h-4 w-4 text-[var(--g-forest)]" aria-hidden />
               Cash on delivery
             </li>
           ) : null}
-          <li className="inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5 shadow-sm">
+          <li className="premium-royal-pill inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5">
             <Truck className="h-4 w-4 text-[var(--g-forest)]" aria-hidden />
             {threshold > 0
               ? `Free shipping over ${formatPrice(threshold)}`
               : "Nationwide delivery"}
           </li>
-          <li className="inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5 shadow-sm">
+          <li className="premium-royal-pill inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5">
             <ShieldCheck className="h-4 w-4 text-[var(--g-forest)]" aria-hidden />
             Secure checkout
           </li>

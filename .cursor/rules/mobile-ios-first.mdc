@@ -1,0 +1,24 @@
+---
+description: Mobile-first and iOS Safari — primary UX target for all storefront changes
+alwaysApply: true
+---
+
+# Mobile & iOS first (mandatory)
+
+**Primary audience:** shoppers on **phones**, especially **iOS Safari** (and in-app browsers: Instagram, Facebook, WhatsApp). Design, implement, and verify there first; desktop is secondary unless the task is admin-only.
+
+## Before shipping UI changes
+
+1. **Layout:** Default mental model is **single column**, narrow width (~390px). Critical actions and totals must be visible **in the main scroll** without hunting in sidebars or hover-only areas.
+2. **Touch:** Interactive targets **≥ 44px** height (`min-h-11`, adequate padding). No hover-only affordances.
+3. **iOS inputs:** Use `type="tel"` / `inputMode="tel"` for phone; **`text-base` (16px) or larger** on focused inputs to avoid Safari auto-zoom.
+4. **Safe areas:** Sticky/fixed bars use `env(safe-area-inset-bottom)` (and top when under notch). Avoid semi-transparent fixed UI over the **dark footer** — use solid `bg-card` and hide or scroll fixed chrome when the footer intersects.
+5. **Safari quirks:** Prefer `min-h-dvh` over `100vh` where full-height matters; test `position: fixed` + keyboard; avoid relying on `:hover` or fragile `backdrop-blur` for readability.
+6. **Performance:** Fewer client-only waterfalls on checkout/cart/PDP; lazy-load below-fold media; don’t block COD flow with heavy modals or extra steps.
+7. **Images in cart/checkout:** Prefer patterns that **cannot crash** the panel on bad URLs (plain `img` or guarded fallbacks) — a broken thumbnail must not hide the order summary on phone.
+
+## Verification
+
+For customer-facing UI, mentally (or in DevTools) check **iPhone width + iOS Safari** before calling work done. If desktop and mobile conflict, **choose mobile/iOS** unless explicitly admin work.
+
+**Canonical shop code:** `apps/storefront` + `packages/shared` (not root legacy `app/`).

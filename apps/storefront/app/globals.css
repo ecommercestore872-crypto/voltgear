@@ -225,6 +225,182 @@
       transform: none;
     }
   }
+
+  /* Checkout + order success — royal premium surfaces (mobile-first, GPU-friendly) */
+  .premium-royal-page-bg {
+    background:
+      radial-gradient(
+        ellipse 100% 55% at 50% -8%,
+        color-mix(in srgb, var(--g-gold, #c9a227) 12%, transparent) 0%,
+        transparent 52%
+      ),
+      radial-gradient(
+        ellipse 70% 45% at 100% 15%,
+        color-mix(in srgb, var(--g-sage) 10%, transparent) 0%,
+        transparent 48%
+      ),
+      var(--g-cream);
+  }
+
+  .premium-royal-header-band {
+    position: relative;
+    background:
+      radial-gradient(
+        ellipse 120% 90% at 50% -30%,
+        color-mix(in srgb, var(--g-gold, #c9a227) 16%, transparent) 0%,
+        transparent 58%
+      ),
+      linear-gradient(
+        180deg,
+        var(--g-cream-deep) 0%,
+        color-mix(in srgb, var(--g-cream) 94%, var(--g-gold, #c9a227)) 100%
+      );
+    border-bottom: 1px solid color-mix(in srgb, var(--g-gold, #c9a227) 22%, var(--g-line));
+  }
+
+  .premium-royal-surface {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--g-white) 94%, var(--g-gold, #c9a227)) 0%,
+      var(--g-white) 42%,
+      color-mix(in srgb, var(--g-cream-deep) 88%, var(--g-white)) 100%
+    );
+    box-shadow:
+      0 18px 44px rgba(14, 36, 25, 0.07),
+      0 0 0 1px color-mix(in srgb, var(--g-gold, #c9a227) 20%, var(--g-line)),
+      inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  }
+
+  .premium-royal-surface > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  .premium-royal-surface::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--g-forest),
+      var(--g-gold, #c9a227),
+      var(--g-sage),
+      var(--g-gold, #c9a227),
+      var(--g-forest)
+    );
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .premium-royal-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 38%,
+      rgba(255, 255, 255, 0.12) 46%,
+      rgba(255, 255, 255, 0.42) 50%,
+      rgba(255, 255, 255, 0.12) 54%,
+      transparent 62%
+    );
+    transform: translateX(-120%) skewX(-12deg);
+    animation: premium-royal-shine 6s ease-in-out infinite;
+  }
+
+  @keyframes premium-royal-shine {
+    0%,
+    70% {
+      transform: translateX(-120%) skewX(-12deg);
+    }
+    88%,
+    100% {
+      transform: translateX(120%) skewX(-12deg);
+    }
+  }
+
+  .premium-royal-enter {
+    animation: premiumSlide 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  .premium-royal-enter-delay-1 {
+    animation-delay: 0.07s;
+  }
+
+  .premium-royal-enter-delay-2 {
+    animation-delay: 0.14s;
+  }
+
+  .premium-royal-enter-delay-3 {
+    animation-delay: 0.21s;
+  }
+
+  .premium-royal-check-ring {
+    animation: premium-royal-check-pop 0.65s cubic-bezier(0.34, 1.45, 0.64, 1) forwards;
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--g-gold, #c9a227) 32%, transparent),
+      0 14px 32px rgba(14, 36, 25, 0.18);
+  }
+
+  @keyframes premium-royal-check-pop {
+    from {
+      transform: scale(0.82);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .premium-royal-pill {
+    border: 1px solid color-mix(in srgb, var(--g-gold, #c9a227) 28%, var(--g-line));
+    box-shadow:
+      0 4px 14px rgba(14, 36, 25, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+
+  .premium-royal-dock {
+    border-top: 1px solid color-mix(in srgb, var(--g-gold, #c9a227) 30%, var(--g-line));
+    box-shadow: 0 -14px 40px rgba(14, 36, 25, 0.1);
+  }
+
+  .premium-royal-bill {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--g-sand, #fffaf3) 85%, var(--g-gold, #c9a227)) 0%,
+      var(--g-sand, #fffaf3) 100%
+    );
+  }
+
+  .premium-royal-cod-row {
+    border: 1px solid color-mix(in srgb, var(--g-gold, #c9a227) 35%, var(--g-forest));
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--g-forest) 6%, var(--g-white)) 0%,
+      color-mix(in srgb, var(--g-gold, #c9a227) 8%, var(--g-cream)) 100%
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .premium-royal-shine::after,
+    .premium-royal-enter,
+    .premium-royal-check-ring {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   .gadget-custom-scroll {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--g-taupe) 30%, transparent) transparent;

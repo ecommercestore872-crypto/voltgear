@@ -4,6 +4,8 @@
 
 Build VoltGear into a trustworthy, fast, secure, conversion-focused and operationally efficient electronics ecommerce platform for Pakistan.
 
+**Device priority:** Treat **mobile phones (iOS Safari first)** as the primary storefront UX. See `.cursor/rules/mobile-ios-first.mdc` — layout, touch, inputs, safe areas, and checkout must be optimized for phone before desktop polish.
+
 Every implementation decision should materially improve one or more of:
 
 1. customer trust;

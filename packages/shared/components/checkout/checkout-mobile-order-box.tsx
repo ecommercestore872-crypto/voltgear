@@ -76,12 +76,14 @@ export const CheckoutMobileOrderBox = forwardRef<
       ref={ref}
       id="checkout-order-box"
       className={cn(
-        "scroll-mt-4 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm",
+        "premium-royal-surface scroll-mt-4 rounded-xl border-0 p-4",
         className,
       )}
     >
       <div className="mb-3 flex items-center justify-between gap-2 border-b border-[var(--g-line)] pb-3">
-        <h2 className="text-base font-bold text-foreground">Your order</h2>
+        <h2 className="gadget-display relative z-[2] text-base font-bold text-foreground">
+          Your order
+        </h2>
         <Link
           href="/cart"
           className="shrink-0 text-xs font-bold text-primary underline-offset-2 hover:underline"
@@ -230,7 +232,7 @@ export const CheckoutMobileOrderBox = forwardRef<
         form="details-form"
         type="submit"
         disabled={placing}
-        className="mt-4 h-12 w-full gap-2 text-base font-bold shadow-md"
+        className="relative z-[2] mt-4 h-12 w-full gap-2 border border-[var(--g-gold,#c9a227)]/30 text-base font-bold shadow-md"
       >
         {placing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
