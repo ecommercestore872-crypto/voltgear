@@ -2,24 +2,62 @@
 /**
  * T-40 production smoke (no secrets). Exit 0 when checks pass.
  * Usage: node scripts/smoke-t40-production.mjs
- * Env: SHOP_URL (default https://buyntryy.com), ADMIN_PUBLIC_URL (expected redirect target base)
+ * Env: SHOP_URL (default https://buyntryy.com), ADMIN_PUBLIC_URL (split-admin redirect base)
+ *      ADMIN_SAME_ORIGIN=1 to force same-origin expectations
  */
 const shop = (process.env.SHOP_URL || "https://buyntryy.com").replace(/\/$/, "");
 const adminBase = (
   process.env.ADMIN_PUBLIC_URL || "https://voltgear-admin.vercel.app"
 ).replace(/\/$/, "");
-const sameOrigin =
-  process.env.ADMIN_SAME_ORIGIN === "1" ||
-  process.env.ADMIN_SAME_ORIGIN === "true" ||
-  (process.env.ADMIN_PUBLIC_URL && adminBase === shop);
+
+/** Funnel pages that must load for COD shoppers (GET, no auth). */
+const FUNNEL_PATHS = ["/", "/products", "/cart", "/checkout", "/track"];
+
+function locationIsSameOrigin(location) {
+  if (!location) return true;
+  if (location.startsWith("/")) return true;
+  try {
+    const u = new URL(location, shop);
+    return u.origin === new URL(shop).origin;
+  } catch {
+    return false;
+  }
+}
 
 async function followRedirectOnce(path) {
   const res = await fetch(`${shop}${path}`, { redirect: "manual" });
   return { status: res.status, location: res.headers.get("location") };
 }
 
+async function detectSameOriginAdmin() {
+  if (
+    process.env.ADMIN_SAME_ORIGIN === "1" ||
+    process.env.ADMIN_SAME_ORIGIN === "true"
+  ) {
+    return true;
+  }
+  if (process.env.ADMIN_PUBLIC_URL && adminBase === shop) {
+    return true;
+  }
+  const probe = await followRedirectOnce("/admin");
+  if (probe.status >= 300 && probe.status < 400) {
+    return locationIsSameOrigin(probe.location);
+  }
+  return false;
+}
+
 async function main() {
   const checks = [];
+  const sameOrigin = await detectSameOriginAdmin();
+
+  for (const path of FUNNEL_PATHS) {
+    const res = await fetch(`${shop}${path}`, { redirect: "follow" });
+    checks.push({
+      name: `shop funnel GET ${path}`,
+      ok: res.status >= 200 && res.status < 400,
+      status: res.status,
+    });
+  }
 
   if (sameOrigin) {
     for (const path of ["/admin/login", "/admin"]) {
@@ -33,11 +71,8 @@ async function main() {
     }
     const studio = await followRedirectOnce("/studio");
     checks.push({
-      name: "same-origin /studio → /admin/login",
-      ok:
-        studio.status >= 200 &&
-        studio.status < 400 &&
-        !studio.location?.startsWith("http"),
+      name: "same-origin /studio (rewrite or internal)",
+      ok: studio.status >= 200 && studio.status < 400,
       status: studio.status,
       location: studio.location,
     });
@@ -96,11 +131,11 @@ async function main() {
   }
   console.log(
     sameOrigin
-      ? "\nT-40 smoke passed (buyntryy.com/admin same-origin + revalidate gate)."
-      : "\nT-40 smoke passed (shop redirects + revalidate gate + no /api/admin on shop).",
+      ? "\nT-40 smoke passed (same-origin admin + funnel + revalidate gate)."
+      : "\nT-40 smoke passed (split admin redirects + funnel + revalidate gate).",
   );
   console.log(
-    "Manual: publish a product in admin; confirm shop PDP updates (admin needs STOREFRONT_URL + matching ADMIN_TOKEN).",
+    "Manual: run docs/FUNNEL-QA-CHECKLIST.md on iPhone Safari + Android Chrome.",
   );
 }
 

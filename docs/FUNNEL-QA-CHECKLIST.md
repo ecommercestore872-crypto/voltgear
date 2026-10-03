@@ -27,6 +27,14 @@ Run after checkout/cart/PDP changes. Production: **buyntryy.com** (VoltGear stor
 - Fixed bars respect **safe-area**; no content hidden under dock/footer
 - `prefers-reduced-motion`: no blocking animations
 
+## Automated pre-check (from repo)
+
+```bash
+npm run smoke:t40
+```
+
+Confirms live funnel routes return 200, revalidate is gated, and admin routing matches production (same-origin or split).
+
 ## Sign-off
 
 Record date, device, and tester initials in your release notes when this checklist is green.

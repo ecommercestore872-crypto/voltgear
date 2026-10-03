@@ -31,12 +31,13 @@ Production runs **`apps/storefront`**, **`apps/admin`**, and **`packages/shared`
 | Admin | `apps/admin/app/` |
 | Shared business logic | `packages/shared/lib/` |
 
-Never fix production bugs only in root `app/` or `lib/`.
-
 ## Agent verification before “done”
 
 ```bash
 npm run test
 npm run lint:all
 npm run build
+npm run smoke:t40
 ```
+
+`smoke:t40` hits production (default buyntryy.com); run after deploy or routing changes.
