@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { readSupabaseEnv } from "@/lib/db/migration-rules";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
 let cached: SupabaseClient | null = null;
 let cachedAdmin: SupabaseClient | null = null;
@@ -64,7 +65,10 @@ export function getServiceClient(options?: { admin?: boolean }): SupabaseClient 
         const run =
           method !== "GET" && method !== "HEAD"
             ? fetch(input, { ...init, cache: "no-store" })
-            : fetch(input, { ...init, next: { revalidate: 60 } });
+            : fetch(input, {
+                ...init,
+                next: { revalidate: STOREFRONT_CATALOG_REVALIDATE },
+              });
         return run.then((res) => {
           const ms = Math.round(performance.now() - t0);
           const slow = Number(process.env.SHOP_SUPABASE_SLOW_MS ?? 700);

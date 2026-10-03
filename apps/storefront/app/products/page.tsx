@@ -6,7 +6,7 @@ import { GadgetShopCatalogClient } from "@/components/gadget/gadget-shop-catalog
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchCatalogProducts, fetchShopTypes } from "@/lib/db/store";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
-import { getSettings } from "@/lib/sanity/settings";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import {
   shopCatalogSearchMeta,
   storeAlternatesLanguages,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 export default async function Products2Page() {
   let products: Product[] = [];
   let shopTypes = FALLBACK_SHOP_TYPES;
-  const settings = await getSettings().catch(() => null);
+  const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
 
   try {

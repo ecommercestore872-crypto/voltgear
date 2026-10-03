@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { unstable_cache } from "next/cache";
 
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
@@ -98,18 +99,35 @@ function mapStoreProduct(
   return mapProduct(row, { ...opts, storefront: true });
 }
 
-/** Active shop categories from CMS; null = no rows (do not filter by category). */
-async function loadActiveCategorySlugSet(): Promise<Set<string> | null> {
+async function queryActiveCategorySlugs(): Promise<string[] | null> {
   const { data, error } = await db()
     .from("categories")
     .select("slug")
     .eq("active", true);
   if (error) throw error;
   if (!data?.length) return null;
-  const slugs = new Set(
-    data.map((r) => String(r.slug ?? "").trim()).filter(Boolean),
-  );
-  return slugs.size > 0 ? slugs : null;
+  const slugs = data.map((r) => String(r.slug ?? "").trim()).filter(Boolean);
+  return slugs.length > 0 ? slugs : null;
+}
+
+const getActiveCategorySlugsCached = unstable_cache(
+  queryActiveCategorySlugs,
+  ["storefront-active-category-slugs-v1"],
+  {
+    revalidate: STOREFRONT_CATALOG_REVALIDATE,
+    tags: [STOREFRONT_SHOP_TYPES_CACHE_TAG],
+  },
+);
+
+/** Active shop categories from CMS; null = no rows (do not filter by category). */
+const loadActiveCategorySlugSet = cache(async (): Promise<Set<string> | null> => {
+  const slugs = await getActiveCategorySlugsCached();
+  if (!slugs) return null;
+  return new Set(slugs);
+});
+
+function sanitizeCatalogSearchQuery(raw: string): string {
+  return raw.replace(/[%_,]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
 }
 
 function filterForActiveCategories(
@@ -171,7 +189,7 @@ async function loadCatalogProducts(): Promise<Product[]> {
 export const fetchCatalogProducts = unstable_cache(
   loadCatalogProducts,
   ["catalog-products-slim"],
-  { revalidate: 60, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
 );
 
 const HOMEPAGE_PRODUCT_LIMIT = 36;
@@ -202,7 +220,7 @@ export const fetchHomepageProducts = unstable_cache(
     );
   },
   ["fetchHomepageProducts"],
-  { revalidate: 60, tags: [STOREFRONT_HOMEPAGE_CATALOG_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_HOMEPAGE_CATALOG_CACHE_TAG] },
 );
 
 export async function fetchProductBySlug(slug: string, includeDemo = false): Promise<Product | null> {
@@ -318,7 +336,7 @@ export function fetchCatalogProductsByCategory(category: string): Promise<Produc
   return unstable_cache(
     async () => loadCatalogProductsByCategory(cat),
     ["fetchCatalogProductsByCategory", cat],
-    { revalidate: 60, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
+    { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
   )();
 }
 
@@ -334,7 +352,7 @@ export async function fetchRelatedProducts(
   return unstable_cache(
     async () => loadRelatedCatalogProducts(id, cat, lim),
     ["fetchRelatedProducts-v2", id, cat, String(lim)],
-    { revalidate: 60, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
+    { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
   )();
 }
 
@@ -415,59 +433,73 @@ export async function fetchCatalogFromDb(f: {
   pageSize: number;
   totalPages: number;
 }> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(
-      db().from("products").select(PRODUCT_EMBED).eq("status", LIVE),
-      f.includeDemo
-    ).order("created_at", { ascending: false })
-  );
-  if (error) throw error;
-  let items = filterForActiveCategories(
-    (data ?? [])
-      .map((row) =>
-        mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: f.includeDemo }),
-      )
-      .filter(Boolean) as Product[],
-    await loadActiveCategorySlugSet(),
+  const active = await loadActiveCategorySlugSet();
+  const page = Math.max(1, f.page);
+
+  let query = demoFilter(
+    db()
+      .from("products")
+      .select(CATALOG_PRODUCT_EMBED as "*", { count: "exact" })
+      .eq("status", LIVE),
+    f.includeDemo,
   );
 
-  if (f.category) items = items.filter((p) => p.category === f.category);
-  if (f.availability === "in-stock") items = items.filter((p) => p.stockStatus !== "out-of-stock");
-  if (f.minPrice != null) items = items.filter((p) => p.price >= f.minPrice!);
-  if (f.maxPrice != null) items = items.filter((p) => p.price <= f.maxPrice!);
-  if (f.query) {
-    const q = f.query.toLowerCase();
-    items = items.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        (p.badge ?? "").toLowerCase().includes(q)
+  if (f.category) {
+    query = query.eq("category", f.category);
+  } else if (active && active.size > 0) {
+    query = query.in("category", [...active]);
+  }
+  if (f.availability === "in-stock") {
+    query = query.neq("stock_status", "out-of-stock");
+  }
+  if (f.minPrice != null) query = query.gte("price", f.minPrice);
+  if (f.maxPrice != null) query = query.lte("price", f.maxPrice);
+
+  const q = f.query ? sanitizeCatalogSearchQuery(f.query) : "";
+  if (q) {
+    query = query.or(
+      `name.ilike.%${q}%,badge.ilike.%${q}%,category.ilike.%${q}%,short_description.ilike.%${q}%`,
     );
   }
 
-  items.sort((a, b) => {
-    switch (f.sort) {
-      case "newest":
-        return 0;
-      case "price-asc":
-        return a.price - b.price;
-      case "price-desc":
-        return b.price - a.price;
-      case "name-asc":
-        return a.name.localeCompare(b.name);
-      default:
-        return Number(b.featured) - Number(a.featured);
-    }
-  });
+  switch (f.sort) {
+    case "price-asc":
+      query = query.order("price", { ascending: true });
+      break;
+    case "price-desc":
+      query = query.order("price", { ascending: false });
+      break;
+    case "name-asc":
+      query = query.order("name", { ascending: true });
+      break;
+    case "newest":
+      query = query.order("created_at", { ascending: false });
+      break;
+    default:
+      query = query
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false });
+  }
 
-  const total = items.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const page = Math.min(f.page, totalPages);
   const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  const { data, error, count } = await execDemoQuery(() => query.range(from, to));
+  if (error) throw error;
+
+  const items = (data ?? [])
+    .map((row) =>
+      mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: f.includeDemo }),
+    )
+    .filter(Boolean) as Product[];
+
+  const total = count ?? items.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+
   return {
-    items: items.slice(from, from + PAGE_SIZE),
+    items,
     total,
-    page,
+    page: safePage,
     pageSize: PAGE_SIZE,
     totalPages,
   };
@@ -521,7 +553,7 @@ export const fetchShopTypes = unstable_cache(
       .sort((a, b) => a.sortOrder - b.sortOrder);
   },
   ["shop-types-v3"],
-  { revalidate: 60, tags: [STOREFRONT_SHOP_TYPES_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_SHOP_TYPES_CACHE_TAG] },
 );
 
 export async function fetchCategoryCounts(includeDemo = false): Promise<Record<string, number>> {
@@ -562,7 +594,7 @@ export const fetchSiteSettings = unstable_cache(
     return mapSettings(data as Record<string, unknown> | null);
   },
   ["fetchSiteSettings"],
-  { revalidate: 60, tags: [STOREFRONT_SITE_SETTINGS_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_SITE_SETTINGS_CACHE_TAG] },
 );
 
 export async function fetchHero(includeDemo = false): Promise<HeroSection | null> {
@@ -631,7 +663,7 @@ export const fetchHeroSlides = unstable_cache(
     return slides.slice(0, MAX_HERO_SLIDES);
   },
   ["fetchHeroSlides"],
-  { revalidate: 60, tags: [STOREFRONT_HERO_SLIDES_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_HERO_SLIDES_CACHE_TAG] },
 );
 
 async function fetchOrderCountsByProductId(products: Product[]): Promise<Record<string, number>> {
@@ -678,7 +710,7 @@ export const fetchTestimonials = unstable_cache(
     return (data ?? []).map((row) => mapTestimonial(row as Record<string, unknown>));
   },
   ["fetchTestimonials"],
-  { revalidate: 60, tags: [STOREFRONT_TESTIMONIALS_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_TESTIMONIALS_CACHE_TAG] },
 );
 
 export const fetchBlogPosts = unstable_cache(
@@ -693,7 +725,7 @@ export const fetchBlogPosts = unstable_cache(
     return (data ?? []).map((row) => mapPage(row as Record<string, unknown>)).filter(Boolean) as Page[];
   },
   ["fetchBlogPosts"],
-  { revalidate: 60 }
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE },
 );
 
 export async function fetchPageBySlug(slug: string, includeDemo = false): Promise<Page | null> {

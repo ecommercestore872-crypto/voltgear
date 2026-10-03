@@ -1,6 +1,5 @@
 import dynamic from "next/dynamic";
 import { Fragment, type ReactNode } from "react";
-import { GadgetFeaturedProduct } from "@/components/gadget/gadget-featured-product";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
 import { GadgetTrustStrip } from "@/components/gadget/gadget-trust-strip";
@@ -59,6 +58,14 @@ const GadgetLifestyleShop = dynamic(
   () =>
     import("@/components/gadget/gadget-lifestyle-shop").then(
       (m) => m.GadgetLifestyleShop,
+    ),
+  { loading: () => null },
+);
+
+const GadgetFeaturedProduct = dynamic(
+  () =>
+    import("@/components/gadget/gadget-featured-product").then(
+      (m) => m.GadgetFeaturedProduct,
     ),
   { loading: () => null },
 );

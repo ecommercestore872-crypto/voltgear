@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 
 import {
+  STOREFRONT_CATALOG_REVALIDATE,
   STOREFRONT_EXTRA_RAILS_CACHE_TAG,
   STOREFRONT_HOME_SLOTS_CACHE_TAG,
 } from "@/lib/storefront-cache";
@@ -563,7 +564,7 @@ const loadHomeSlotProductsBundle = unstable_cache(
     return result;
   },
   ["fetchProductsForHomeSlots"],
-  { revalidate: 60, tags: [STOREFRONT_HOME_SLOTS_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_HOME_SLOTS_CACHE_TAG] },
 );
 
 /** All reserved home-slot rails in one cached bundle (one product IN query). */
@@ -635,7 +636,7 @@ export const fetchExtraCollectionRails = unstable_cache(
     return rails;
   },
   ["fetchExtraCollectionRails"],
-  { revalidate: 60, tags: [STOREFRONT_EXTRA_RAILS_CACHE_TAG] },
+  { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_EXTRA_RAILS_CACHE_TAG] },
 );
 
 export async function getStorefrontCollectionBySlug(
