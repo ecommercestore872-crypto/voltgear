@@ -22,6 +22,10 @@ export function GadgetPdpGalleryClient({
     return () => window.cancelAnimationFrame(id);
   }, []);
 
+  useEffect(() => {
+    if (variantImage?.src) setInteractive(true);
+  }, [variantImage?.src]);
+
   if (!interactive) return null;
 
   return (

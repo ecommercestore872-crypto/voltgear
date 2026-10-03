@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Banknote,
   Check,
@@ -124,13 +124,17 @@ export function GadgetBuyBox({
   const itemImage = colorPhoto
     ? imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb })
     : gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
-  const variantImage = colorPhoto
-    ? {
-        src: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.gallery }),
-        thumb: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb }),
-        alt: `${product.name}${variant?.name ? ` — ${variant.name}` : ""}`,
-      }
-    : null;
+  const variantImage = useMemo(
+    () =>
+      colorPhoto
+        ? {
+            src: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.gallery }),
+            thumb: imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb }),
+            alt: `${product.name}${variant?.name ? ` — ${variant.name}` : ""}`,
+          }
+        : null,
+    [colorPhoto, product.name, variant?.name],
+  );
 
   useEffect(() => {
     if (!syncGalleryVariant || !galleryVariant) return;
