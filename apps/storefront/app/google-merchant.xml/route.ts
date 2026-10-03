@@ -21,11 +21,11 @@ export async function GET() {
     const productUrl = absoluteUrl(`/product/${product.slug}`);
     const image = product.images?.[0] || product.cloudinaryImages?.[0] || "";
     // Ensure accurate availability mapping
-    const isOutOfStock = product.stockStatus === 'out_of_stock' || product.stockStatus === 'discontinued';
+    const isOutOfStock =
+      product.stockStatus === "out-of-stock" || (product.quantity ?? 1) === 0;
     const availability = isOutOfStock ? "out of stock" : "in stock";
 
-    // Google Merchant Center strict 50 character limit for g:id
-    const rawId = product._id || product.id || product.sku || product.slug;
+    const rawId = product._id || product.sku || product.slug;
     const safeId = String(rawId).slice(0, 50);
 
     xml += `    <item>

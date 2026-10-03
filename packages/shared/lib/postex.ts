@@ -42,23 +42,28 @@ const POSTEX_INTEGRATION_API_SUFFIX = "/services/integration/api";
 const POSTEX_BASE_URL =
   process.env.POSTEX_API_BASE_URL || "https://api.postex.pk/services/integration/api";
 
-function resolvePostExHostBase(
-  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
-): string {
+export type PostExBaseEnv = {
+  POSTEX_API_BASE_URL?: string;
+  POSTEX_API_TOKEN?: string;
+  POSTEX_PICKUP_ADDRESS_CODE?: string;
+  NEXT_PUBLIC_POSTEX_PICKUP_ADDRESS_CODE?: string;
+};
+
+const postExEnv = (): PostExBaseEnv => process.env as PostExBaseEnv;
+
+function resolvePostExHostBase(env: PostExBaseEnv = postExEnv()): string {
   return (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
 }
 
 /** PostEx create-order URL (host base + integration path). */
-export function resolvePostExCreateOrderUrl(
-  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
-): string {
+export function resolvePostExCreateOrderUrl(env: PostExBaseEnv = postExEnv()): string {
   return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v3/create-order`;
 }
 
 /** PostEx track-order URL (host base + integration path). */
 export function resolvePostExTrackOrderUrl(
   trackingNumber: string,
-  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
+  env: PostExBaseEnv = postExEnv(),
 ): string {
   const tn = encodeURIComponent(trackingNumber.trim());
   return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v1/track-order/${tn}`;
@@ -67,7 +72,7 @@ export function resolvePostExTrackOrderUrl(
 /** PostEx get-invoice / airway bill URL (host base + integration path). */
 export function resolvePostExGetInvoiceUrl(
   trackingNumbers: string | string[],
-  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
+  env: PostExBaseEnv = postExEnv(),
 ): string {
   const list = (Array.isArray(trackingNumbers) ? trackingNumbers : [trackingNumbers])
     .map((t) => t.trim())
@@ -169,13 +174,10 @@ export async function createPostExOrder(
   payload: PostExOrderPayload,
   options: {
     fetchImpl?: typeof fetch;
-    env?: Pick<
-      NodeJS.ProcessEnv,
-      "POSTEX_API_TOKEN" | "POSTEX_API_BASE_URL" | "POSTEX_PICKUP_ADDRESS_CODE" | "NEXT_PUBLIC_POSTEX_PICKUP_ADDRESS_CODE"
-    >;
+    env?: PostExBaseEnv;
   } = {},
 ): Promise<PostExCreateOrderResult> {
-  const env = options.env ?? process.env;
+  const env = options.env ?? postExEnv();
   const fetchImpl = options.fetchImpl ?? fetch;
   const token = env.POSTEX_API_TOKEN?.trim() ?? "";
   if (!token) {

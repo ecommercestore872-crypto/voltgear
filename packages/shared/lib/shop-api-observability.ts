@@ -16,13 +16,16 @@ export function shopApiSlowThresholdMs(): number {
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_SHOP_API_SLOW_MS;
 }
 
-type RouteHandler = (request: Request, context?: unknown) => Response | Promise<Response>;
+export type ShopApiRouteHandler<C = unknown> = (
+  request: Request,
+  context?: C,
+) => Response | Promise<Response>;
 
-export function withShopApiObservability(
+export function withShopApiObservability<C = unknown>(
   routeName: string,
-  handler: RouteHandler,
-): RouteHandler {
-  return async (request, context) => {
+  handler: ShopApiRouteHandler<C>,
+): ShopApiRouteHandler<C> {
+  return async (request, context?) => {
     const t0 = performance.now();
     let status = 500;
     try {

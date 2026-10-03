@@ -55,9 +55,10 @@ export async function fetchStoreProductsBySlugs(
 }
 
 export async function fetchStoreProductBySlug(slug: string): Promise<Product | null> {
-  const res = await fetch(`/api/store/products?slug=${encodeURIComponent(slug)}`, {
+  const res = await fetch(
+    `/api/store/products?slug=${encodeURIComponent(slug)}`,
     storeReadInit,
-  });
+  );
   if (!res.ok) return null;
   const data = await res.json();
   if (Array.isArray(data)) return data[0] ?? null;

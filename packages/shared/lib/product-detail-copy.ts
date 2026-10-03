@@ -357,6 +357,15 @@ export function textToPortableText(text: string) {
       });
       return;
     }
+    if (block.type === "image") {
+      blocks.push({
+        _type: "image",
+        _key: key,
+        asset: { _type: "reference", _ref: block.url },
+        alt: block.alt,
+      });
+      return;
+    }
     const prefix = block.type === "callout" ? "> " : "";
     const spans =
       block.type === "callout" && prefix

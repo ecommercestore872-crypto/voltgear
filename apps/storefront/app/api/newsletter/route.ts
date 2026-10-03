@@ -1,5 +1,5 @@
 import { withShopApiObservability } from "@/lib/shop-api-observability";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { subscribeNewsletter } from "@/lib/db/newsletter-store";
@@ -15,7 +15,7 @@ function clientIp(req: Request): string {
   return forwarded.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
 }
 
-async function POSTHandler(req: NextRequest) {
+async function POSTHandler(req: Request) {
   const ip = clientIp(req);
   if (ip && !rateLimiter.take({ ip })) {
     return NextResponse.json(

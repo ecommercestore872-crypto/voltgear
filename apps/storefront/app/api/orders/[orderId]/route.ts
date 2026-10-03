@@ -22,9 +22,9 @@ export const dynamic = "force-dynamic";
  */
 async function GETHandler(
   request: Request,
-  { params }: { params: { orderId: string } },
+  context?: { params?: { orderId?: string } },
 ) {
-  const orderId = params.orderId;
+  const orderId = context?.params?.orderId;
   if (!orderId) {
     return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
   }

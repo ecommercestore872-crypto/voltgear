@@ -1,9 +1,9 @@
-import { readPostExJsonResponse } from "@/lib/postex";
+import { readPostExJsonResponse, type PostExBaseEnv } from "@/lib/postex";
 
 import type { Order } from "@/lib/types";
 
 export function resolvePostExCancelOrderUrl(
-  env: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL"> = process.env,
+  env: PostExBaseEnv = process.env as PostExBaseEnv,
 ): string {
   const base = (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
   return `${base}/services/integration/api/order/v1/cancel-order`;
@@ -22,13 +22,13 @@ export async function cancelPostExShipment(
   trackingNumber: string,
   options: {
     fetchImpl?: typeof fetch;
-    env?: Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL" | "POSTEX_API_TOKEN">;
+    env?: PostExBaseEnv;
   } = {},
 ): Promise<
   | { ok: true; upstreamHttpStatus: number }
   | { ok: false; error: string; httpStatus: number }
 > {
-  const env = options.env ?? process.env;
+  const env = options.env ?? (process.env as PostExBaseEnv);
   const fetchImpl = options.fetchImpl ?? fetch;
   const token = env.POSTEX_API_TOKEN?.trim() ?? "";
   if (!token) {

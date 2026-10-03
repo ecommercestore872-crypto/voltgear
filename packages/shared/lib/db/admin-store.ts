@@ -12,6 +12,7 @@ const ADMIN_SETTINGS_CACHE_TAG = "admin-settings";
 const ADMIN_SHOP_TYPES_CACHE_TAG = "admin-shop-types";
 
 import type { AdminProduct } from "@/lib/db/admin-types";
+import type { ContentBlock } from "@/lib/types";
 import { fetchApprovedReviewStats } from "@/lib/db/review-stats-store";
 import { STOREFRONT_CATALOG_GRID_CACHE_TAG } from "@/lib/storefront-cache";
 import { mapProduct } from "@/lib/db/map";
@@ -763,7 +764,9 @@ export async function publishAdminPage(id: string, doc: PageDoc) {
       cover_image_url: doc.coverImage ?? null,
       published_at: doc.publishedAt || new Date().toISOString(),
       author: doc.author ?? null,
-      sections: doc.sections ? sanitizeBlogSections(doc.sections) : [],
+      sections: doc.sections
+        ? sanitizeBlogSections(doc.sections as ContentBlock[])
+        : [],
       keywords: doc.keywords ?? [],
       seo: doc.seo ?? null,
       is_demo: Boolean(doc.isDemo),

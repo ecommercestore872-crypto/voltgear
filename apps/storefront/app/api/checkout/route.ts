@@ -77,7 +77,12 @@ export async function POST(request: Request) {
   const slo = (
     outcome: CheckoutOutcome,
     status: number,
-    extra?: { itemCount?: number; replayed?: boolean; code?: string },
+    extra?: {
+      itemCount?: number;
+      replayed?: boolean;
+      code?: string;
+      emailOutcome?: string;
+    },
   ) => {
     checkoutSloLog({
       outcome,

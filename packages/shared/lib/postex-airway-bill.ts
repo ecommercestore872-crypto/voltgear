@@ -1,6 +1,7 @@
 import {
   readPostExJsonResponse,
   resolvePostExGetInvoiceUrl,
+  type PostExBaseEnv,
 } from "@/lib/postex";
 
 import type { Order } from "@/lib/types";
@@ -20,10 +21,7 @@ export type PostExAirwayBillFailure = {
 
 export type PostExAirwayBillFetchResult = PostExAirwayBillSuccess | PostExAirwayBillFailure;
 
-type PostExAirwayBillEnv = Pick<
-  NodeJS.ProcessEnv,
-  "POSTEX_API_BASE_URL" | "POSTEX_API_TOKEN"
->;
+type PostExAirwayBillEnv = Pick<PostExBaseEnv, "POSTEX_API_BASE_URL" | "POSTEX_API_TOKEN">;
 
 function isPdfBytes(bytes: Uint8Array): boolean {
   return (
@@ -51,7 +49,7 @@ export async function fetchPostExAirwayBillPdf(
     env?: PostExAirwayBillEnv;
   } = {},
 ): Promise<PostExAirwayBillFetchResult> {
-  const env = options.env ?? process.env;
+  const env: PostExAirwayBillEnv = options.env ?? (process.env as PostExAirwayBillEnv);
   const fetchImpl = options.fetchImpl ?? fetch;
   const token = env.POSTEX_API_TOKEN?.trim() ?? "";
   if (!token) {

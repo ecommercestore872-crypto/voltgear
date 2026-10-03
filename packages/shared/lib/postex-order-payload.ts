@@ -1,6 +1,6 @@
 import { normalizePhoneForCheckout } from "@/lib/checkout-customer-rules";
 import { normalizePhone } from "@/lib/messaging";
-import type { PostExOrderPayload } from "@/lib/postex";
+import type { PostExBaseEnv, PostExOrderPayload } from "@/lib/postex";
 import type { Order, OrderItem } from "@/lib/types";
 
 /** Shape required by PostEx Create Order API (dry-run / future booking). */
@@ -64,7 +64,7 @@ export function buildPostExOrderDetail(items: OrderItem[] | undefined): string {
 }
 
 function readPickupAddressCode(
-  env: Pick<NodeJS.ProcessEnv, "POSTEX_PICKUP_ADDRESS_CODE"> = process.env,
+  env: PostExBaseEnv = process.env as PostExBaseEnv,
 ): string | null {
   const code = env.POSTEX_PICKUP_ADDRESS_CODE?.trim();
   return code || null;
@@ -97,7 +97,7 @@ export function resolvePostExOperationalCityName(
 export function buildPostExOrderPayloadFromOrder(
   order: Order,
   operationalCities: string[],
-  env: Pick<NodeJS.ProcessEnv, "POSTEX_PICKUP_ADDRESS_CODE"> = process.env,
+  env: PostExBaseEnv = process.env as PostExBaseEnv,
 ): BuildPostExOrderPayloadResult {
   const missingOrInvalid: string[] = [];
   const customer = order.customer ?? {};

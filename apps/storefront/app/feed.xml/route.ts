@@ -29,7 +29,7 @@ export async function GET() {
       <guid isPermaLink="true">${productUrl}</guid>
       <description><![CDATA[${product.shortDescription || product.name}. ${image ? `<img src="${image}" />` : ''}]]></description>
       ${product.category ? `<category><![CDATA[${product.category}]]></category>` : ''}
-      <pubDate>${new Date(product.createdAt || Date.now()).toUTCString()}</pubDate>
+      <pubDate>${new Date().toUTCString()}</pubDate>
     </item>\n`;
   });
 

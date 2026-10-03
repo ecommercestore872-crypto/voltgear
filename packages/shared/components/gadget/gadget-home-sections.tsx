@@ -200,10 +200,7 @@ export async function GadgetHomeSections() {
       if (!rep && !cat.imageUrl) return null;
       return { ...cat, product: rep };
     })
-    .filter(
-      (c): c is { label: string; href: string; slug: string; imageUrl?: string; product?: Product } =>
-        Boolean(c),
-    );
+    .filter((c): c is NonNullable<typeof c> => c != null);
 
   const trust = [
     {

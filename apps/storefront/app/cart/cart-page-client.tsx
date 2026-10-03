@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { useMemo } from "react";
+import { ChevronLeft, Minus, Plus, Trash2, ShoppingBag, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -100,6 +101,13 @@ export default function CartPageClient() {
   const productHref = (slug: string) =>
     gadget ? product2Href(slug) : `/product/${slug}`;
 
+  const shippingFee = Number(config.shippingFee ?? 0);
+  const threshold = Number(config.freeShippingThreshold ?? 0);
+  const shipping =
+    subtotal === 0 || subtotal >= threshold ? 0 : shippingFee;
+  const orderTotal = subtotal + shipping;
+  const checkoutLink = useMemo(() => checkoutHref(gadget), [gadget]);
+
   if (items.length === 0) {
     return (
       <div
@@ -149,11 +157,12 @@ export default function CartPageClient() {
   return (
     <div
       className={cn(
-        "container mx-auto max-w-5xl px-4 py-8 lg:px-8",
+        "premium-royal-page-bg min-h-dvh pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-8",
         gadget &&
-          `gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`,
+          `gadget-theme ${gadgetFontClass} text-[var(--g-charcoal)]`,
       )}
     >
+      <div className="container mx-auto max-w-5xl px-4 py-6 lg:px-8 lg:py-8">
       <Link
         href={shopHref}
         className={cn(
@@ -166,9 +175,12 @@ export default function CartPageClient() {
         <ChevronLeft className="h-4 w-4" /> Continue Shopping
       </Link>
 
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--g-gold,#c9a227)]">
+        Premium checkout next
+      </p>
       <h1
         className={cn(
-          "text-2xl font-bold tracking-tight sm:text-3xl",
+          "mt-1 text-2xl font-bold tracking-tight sm:text-3xl",
           gadget && "gadget-display font-semibold tracking-[-0.03em]",
         )}
       >
@@ -188,12 +200,7 @@ export default function CartPageClient() {
           {items.map((item) => (
             <div
               key={cartLineKey(item)}
-              className={cn(
-                "flex gap-4 rounded-xl border p-4",
-                gadget
-                  ? "border-[var(--g-line)] bg-[var(--g-white)]"
-                  : "bg-card",
-              )}
+              className="premium-royal-surface flex gap-4 rounded-xl border-0 p-4"
             >
               {item.image ? (
                 <Image
@@ -255,36 +262,30 @@ export default function CartPageClient() {
                     )}
                   >
                     <button
+                      type="button"
                       onClick={() =>
                         updateQuantity(
                           cartLineKey(item),
                           Math.max(1, item.quantity - 1),
                         )
                       }
-                      className={
-                        gadget
-                          ? "text-[var(--g-taupe)]"
-                          : "text-muted-foreground hover:text-foreground"
-                      }
+                      className="touch-manipulation flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
                       aria-label="Decrease"
                     >
-                      <Minus className="h-3.5 w-3.5" />
+                      <Minus className="h-4 w-4" />
                     </button>
                     <span className="w-8 text-center text-sm font-medium">
                       {item.quantity}
                     </span>
                     <button
+                      type="button"
                       onClick={() =>
                         updateQuantity(cartLineKey(item), item.quantity + 1)
                       }
-                      className={
-                        gadget
-                          ? "text-[var(--g-taupe)]"
-                          : "text-muted-foreground hover:text-foreground"
-                      }
+                      className="touch-manipulation flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
                       aria-label="Increase"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
                   <button
@@ -301,16 +302,14 @@ export default function CartPageClient() {
         </div>
 
         <aside
-          className={cn(
-            "h-fit min-w-0 rounded-2xl border p-4 sm:p-6 lg:sticky lg:top-24",
-            gadget ? "border-[var(--g-line)] bg-[var(--g-white)]" : "bg-card",
-          )}
+          id="cart-order-summary"
+          className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-2 h-fit min-w-0 rounded-2xl border-0 p-4 sm:p-6 lg:sticky lg:top-24"
         >
           <h2 className="font-semibold">Order summary</h2>
           <div className="mt-3">
             <FreeShippingBar
               subtotal={subtotal}
-              threshold={config.freeShippingThreshold}
+              threshold={threshold}
               gadget={gadget}
             />
           </div>
@@ -334,37 +333,51 @@ export default function CartPageClient() {
               >
                 Shipping
               </span>
-              <span>
-                {subtotal >= config.freeShippingThreshold
-                  ? "Free"
-                  : formatPrice(config.shippingFee)}
-              </span>
+              <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
             </div>
           </div>
           <Separator className="my-4" />
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>
-            <span>
-              {formatPrice(
-                subtotal >= config.freeShippingThreshold
-                  ? subtotal
-                  : subtotal + config.shippingFee,
-              )}
-            </span>
+            <span>{formatPrice(orderTotal)}</span>
           </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Pay on delivery · secure checkout
+          </p>
           {gadget ? (
             <Link
-              href={checkoutHref(true)}
-              className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--g-forest)] text-sm font-semibold text-[var(--g-white)] hover:bg-[var(--g-forest-mid)]"
+              href={checkoutLink}
+              className="mt-6 hidden min-h-12 w-full items-center justify-center rounded-full bg-[var(--g-forest)] text-sm font-semibold text-[var(--g-white)] hover:bg-[var(--g-forest-mid)] lg:flex"
             >
               Proceed to checkout
             </Link>
           ) : (
-            <Button asChild size="lg" className="mt-6 w-full">
-              <Link href={checkoutHref(false)}>Proceed to Checkout</Link>
+            <Button asChild size="lg" className="mt-6 hidden w-full lg:flex">
+              <Link href={checkoutLink}>Proceed to Checkout</Link>
             </Button>
           )}
         </aside>
+      </div>
+
+      <div className="premium-royal-dock touch-manipulation fixed inset-x-0 bottom-0 z-40 bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+        <div className="mx-auto flex max-w-5xl items-center gap-3">
+          <div className="min-w-0 shrink-0">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              Total · COD
+            </p>
+            <p className="text-xl font-black tabular-nums text-primary">
+              {formatPrice(orderTotal)}
+            </p>
+          </div>
+          <Link
+            href={checkoutLink}
+            className="flex h-12 min-h-11 flex-1 items-center justify-center gap-2 rounded-md bg-[var(--g-forest)] text-base font-bold text-[var(--g-white)] shadow-md"
+          >
+            <Lock className="h-4 w-4 shrink-0" aria-hidden />
+            Checkout
+          </Link>
+        </div>
+      </div>
       </div>
     </div>
   );

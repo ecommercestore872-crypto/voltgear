@@ -42,7 +42,7 @@ export function ClarityDeferred({
           }
         ).requestIdleCallback(run, { timeout: 6000 });
       } else {
-        window.setTimeout(run, 4000);
+        globalThis.setTimeout(run, 4000);
       }
     }
     window.addEventListener("load", scheduleInject, { once: true });

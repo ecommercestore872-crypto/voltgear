@@ -1062,7 +1062,7 @@ export async function cancelOrderRestoreInventoryRow(orderId: string, note: stri
       at: now,
     });
 
-    for (const item of current.items) {
+    for (const item of current.items ?? []) {
       if (!item.slug || !item.quantity) continue;
       const { data: prod } = await db().from("products").select("quantity").eq("slug", item.slug).maybeSingle();
       if (prod && prod.quantity != null) {
@@ -1227,7 +1227,7 @@ export async function getLightweightOrders(): Promise<Order[]> {
   return (data ?? []).map((row) => ({
     orderId: row.order_id,
     createdAt: row.created_at,
-    status: row.status as typeof import("../types").OrderStatus,
+    status: row.status as OrderStatus,
     statusUpdatedAt: row.status_updated_at,
     total: row.total,
     isDemo: row.is_demo,

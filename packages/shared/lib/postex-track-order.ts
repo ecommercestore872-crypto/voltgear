@@ -1,6 +1,7 @@
 import {
   readPostExJsonResponse,
   resolvePostExTrackOrderUrl,
+  type PostExBaseEnv,
 } from "@/lib/postex";
 
 import type { Order } from "@/lib/types";
@@ -26,7 +27,7 @@ export type PostExTrackOrderHttpResult = {
   body: Record<string, unknown>;
 };
 
-type PostExTrackEnv = Pick<NodeJS.ProcessEnv, "POSTEX_API_BASE_URL" | "POSTEX_API_TOKEN">;
+type PostExTrackEnv = Pick<PostExBaseEnv, "POSTEX_API_BASE_URL" | "POSTEX_API_TOKEN">;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -88,7 +89,7 @@ export async function fetchPostExTrackOrderFromApi(
   | { ok: true; data: Record<string, unknown>; upstreamHttpStatus: number }
   | { ok: false; error: string; httpStatus: number }
 > {
-  const env = options.env ?? process.env;
+  const env: PostExTrackEnv = options.env ?? (process.env as PostExTrackEnv);
   const fetchImpl = options.fetchImpl ?? fetch;
   const token = env.POSTEX_API_TOKEN?.trim() ?? "";
   if (!token) {

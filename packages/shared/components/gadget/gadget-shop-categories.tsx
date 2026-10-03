@@ -41,7 +41,7 @@ function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
       if (path) return categoryImageUrl(path, 256);
       if (t.product) return gadgetImageSrc(t.product, PRODUCT_IMAGE.card);
       return undefined;
-    })(),
+    })() ?? undefined,
   }));
 
   return fromProducts;

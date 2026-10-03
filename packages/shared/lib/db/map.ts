@@ -99,7 +99,7 @@ export function mapProduct(
     description: Array.isArray(row.description)
       ? (row.description as Product["description"])
       : typeof row.description === "string" && row.description.trim()
-        ? (textToPortableText(row.description) as Product["description"])
+        ? (textToPortableText(row.description) as unknown as Product["description"])
         : undefined,
     features: Array.isArray(row.features) ? (row.features as string[]) : undefined,
     specifications: Array.isArray(row.specifications)
@@ -161,7 +161,7 @@ export function mapPdpDetailFields(
     description: Array.isArray(row.description)
       ? (row.description as Product["description"])
       : typeof row.description === "string" && row.description.trim()
-        ? (textToPortableText(row.description) as Product["description"])
+        ? (textToPortableText(row.description) as unknown as Product["description"])
         : undefined,
     features: Array.isArray(row.features) ? (row.features as string[]) : undefined,
     specifications: Array.isArray(row.specifications)

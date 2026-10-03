@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { escapeCSV, extractPlainText, generateCSV } from "./route";
+import {
+  escapeCSV,
+  extractPlainText,
+  generateTikTokCatalogCSV as generateCSV,
+} from "@/lib/catalog/tiktok-csv";
 
 describe("TikTok Catalog CSV Feed", () => {
   it("escapes CSV values correctly protecting commas and quotes", () => {

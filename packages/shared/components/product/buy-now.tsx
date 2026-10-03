@@ -46,7 +46,6 @@ export function BuyNow({
           image: itemImage,
           productId: product._id,
         freeShipping: Boolean(product.freeShipping),
-        freeShipping: Boolean(product.freeShipping),
           ...(product.sku ? { sku: product.sku } : {}),
           ...(variant && (product.variants?.length ?? 0) > 0
             ? {
