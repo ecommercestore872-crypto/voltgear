@@ -14,8 +14,16 @@ export default function CheckoutLoading() {
               <div className="h-11 animate-pulse rounded-lg bg-[var(--g-line)]/35" />
             </div>
           ))}
-          <div className="h-12 animate-pulse rounded-lg bg-[var(--g-forest)]/20" />
         </div>
+      </div>
+      <div className="mt-4 rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm lg:hidden">
+        <div className="mb-3 h-5 w-28 animate-pulse rounded bg-[var(--g-line)]/50" />
+        <div className="space-y-3">
+          <div className="h-14 animate-pulse rounded-lg bg-[var(--g-line)]/35" />
+          <div className="h-8 animate-pulse rounded bg-[var(--g-line)]/30" />
+          <div className="h-10 animate-pulse rounded bg-[var(--g-line)]/30" />
+        </div>
+        <div className="mt-4 h-12 animate-pulse rounded-lg bg-[var(--g-forest)]/20" />
       </div>
     </div>
   );

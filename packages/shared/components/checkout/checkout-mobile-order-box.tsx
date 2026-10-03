@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { forwardRef } from "react";
 import { Banknote, Loader2, Lock } from "lucide-react";
@@ -33,6 +32,14 @@ export type CheckoutMobileOrderBoxProps = {
   onRemovePromo: () => void;
   className?: string;
 };
+
+function lineItemImageSrc(src: string): string {
+  if (src.startsWith("http://") || src.startsWith("https://")) return src;
+  if (typeof window !== "undefined" && src.startsWith("/")) {
+    return `${window.location.origin}${src}`;
+  }
+  return src;
+}
 
 export const CheckoutMobileOrderBox = forwardRef<
   HTMLDivElement,
@@ -87,11 +94,15 @@ export const CheckoutMobileOrderBox = forwardRef<
         {items.map((item) => (
           <li key={cartLineKey(item)} className="flex gap-3">
             {item.image ? (
-              <Image
-                src={item.image}
+              // Plain img — cart URLs may be relative or off CDN patterns; must not break checkout.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={lineItemImageSrc(item.image)}
                 alt=""
                 width={56}
                 height={56}
+                loading="lazy"
+                decoding="async"
                 className="h-14 w-14 shrink-0 rounded-lg border border-[var(--g-line)] bg-muted object-cover"
               />
             ) : (

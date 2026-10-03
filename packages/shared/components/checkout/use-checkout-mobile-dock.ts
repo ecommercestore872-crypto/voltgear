@@ -41,7 +41,18 @@ export function useCheckoutMobileDock(enabled: boolean) {
     observer.observe(orderBox);
     sync();
 
-    return () => observer.disconnect();
+    const retry = window.setTimeout(() => {
+      const box = document.getElementById("checkout-order-box");
+      if (box && box !== orderBox) {
+        observer.observe(box);
+      }
+      sync();
+    }, 100);
+
+    return () => {
+      window.clearTimeout(retry);
+      observer.disconnect();
+    };
   }, [enabled]);
 
   return showDock;

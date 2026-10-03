@@ -820,45 +820,54 @@ export default function CheckoutPageClient() {
                     Secure checkout
                   </span>
                 </p>
+
+                {priceChanged ? (
+                  <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-sm text-amber-800 lg:hidden">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">
+                          Prices updated while processing.
+                        </p>
+                        <p className="mt-1 text-xs leading-snug">
+                          Review the summary below before placing your order again.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                <CheckoutMobileOrderBox
+                  className="mt-4 lg:hidden"
+                  items={items}
+                  productHref={productHref}
+                  subtotal={subtotal}
+                  dealDiscount={dealDiscount}
+                  dealTitle={dealQuote.applied[0]?.title}
+                  shippingLabel={shippingLabel}
+                  appliedDiscount={appliedDiscount}
+                  giftWrap={giftWrap}
+                  giftWrapFee={GIFT_WRAP_FEE}
+                  total={total}
+                  hasPromo={hasPromo}
+                  placing={placing}
+                  promoInput={promoInput}
+                  onPromoInputChange={setPromoInput}
+                  onApplyPromo={handleApplyPromo}
+                  promoLoading={activePromo?.loading}
+                  promoError={activePromo?.error}
+                  promoCode={
+                    activePromo && !activePromo.error ? activePromo.code : undefined
+                  }
+                  onRemovePromo={() => setActivePromo(null)}
+                />
               </section>
             )}
           </div>
 
-          {/* ── Order summary sidebar ────────────────────────────────────────── */}
-          <aside className="order-2 w-full space-y-3 lg:order-none lg:sticky lg:top-8 lg:self-start lg:space-y-5">
-            {step === 1 ? (
-              <CheckoutMobileOrderBox
-                className="lg:hidden"
-                items={items}
-                productHref={productHref}
-                subtotal={subtotal}
-                dealDiscount={dealDiscount}
-                dealTitle={dealQuote.applied[0]?.title}
-                shippingLabel={shippingLabel}
-                appliedDiscount={appliedDiscount}
-                giftWrap={giftWrap}
-                giftWrapFee={GIFT_WRAP_FEE}
-                total={total}
-                hasPromo={hasPromo}
-                placing={placing}
-                promoInput={promoInput}
-                onPromoInputChange={setPromoInput}
-                onApplyPromo={handleApplyPromo}
-                promoLoading={activePromo?.loading}
-                promoError={activePromo?.error}
-                promoCode={
-                  activePromo && !activePromo.error ? activePromo.code : undefined
-                }
-                onRemovePromo={() => setActivePromo(null)}
-              />
-            ) : null}
-
-            <div
-              className={cn(
-                SUMMARY_CARD,
-                "hidden p-3 sm:p-4 lg:block lg:p-5",
-              )}
-            >
+          {/* ── Order summary sidebar (desktop) ─────────────────────────────── */}
+          <aside className="order-2 hidden w-full space-y-3 lg:block lg:order-none lg:sticky lg:top-8 lg:self-start lg:space-y-5">
+            <div className={cn(SUMMARY_CARD, "p-3 sm:p-4 lg:p-5")}>
               <h2 className="mb-2 border-b border-[var(--g-line)] pb-2 text-sm font-bold text-foreground sm:mb-3 sm:pb-3 sm:text-base lg:text-[17px]">
                 Order summary
               </h2>
@@ -930,7 +939,7 @@ export default function CheckoutPageClient() {
             </div>
 
             {step >= 1 && (
-              <div className={cn(SUMMARY_CARD, "hidden lg:block")}>
+              <div className={SUMMARY_CARD}>
                 <h3 className="mb-3 text-[13px] font-bold text-foreground">
                   Have a promo code?
                 </h3>
@@ -975,7 +984,7 @@ export default function CheckoutPageClient() {
             )}
 
             {priceChanged ? (
-              <div className="rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-sm text-amber-800">
+              <div className="hidden rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-sm text-amber-800 lg:block">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                   <div className="min-w-0">
@@ -991,7 +1000,7 @@ export default function CheckoutPageClient() {
             ) : null}
 
             {step >= 1 && (
-              <div className={cn(SUMMARY_CARD, "hidden lg:block")}>
+              <div className={SUMMARY_CARD}>
                 <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
                   {[
                     {
@@ -1087,7 +1096,7 @@ export default function CheckoutPageClient() {
           className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--g-line)] bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(0,0,0,0.12)] lg:hidden"
           aria-hidden={false}
         >
-          <div className="mx-auto flex max-w-6xl items-center gap-3">
+          <div className="mx-auto flex max-w-6xl items-center gap-2 sm:gap-3">
             <div className="min-w-0 shrink-0">
               <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                 Total · COD
@@ -1095,6 +1104,17 @@ export default function CheckoutPageClient() {
               <p className="text-xl font-black tabular-nums text-primary">
                 {formatPrice(total)}
               </p>
+              <button
+                type="button"
+                className="mt-0.5 text-[11px] font-bold text-primary underline underline-offset-2"
+                onClick={() =>
+                  document
+                    .getElementById("checkout-order-box")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
+                View order &amp; delivery cost
+              </button>
             </div>
             <Button
               form="details-form"
