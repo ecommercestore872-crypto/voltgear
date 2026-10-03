@@ -9,7 +9,7 @@ import {
   loadCmsPage,
 } from "@/components/gadget/gadget-article-shell";
 import { SHOPPER_BRAND } from "@/lib/brand";
-import { getSettings } from "@/lib/sanity/settings";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 
 export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
   const page = await loadCmsPage("about");
-  const settings = await getSettings().catch(() => null);
+  const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
   const brand = config.storeName;
   const address = settings?.address?.trim();

@@ -8,7 +8,7 @@ import { FALLBACK_SHOP_TYPES, findShopType } from "@/lib/categories";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { fetchCatalogProductsByCategory, fetchShopTypes } from "@/lib/db/store";
-import { getSettings } from "@/lib/sanity/settings";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import type { Product } from "@/lib/types";
 import {
@@ -69,7 +69,7 @@ export default async function Products2CategoryPage({
 }) {
   let products: Product[] = [];
   let shopTypes = FALLBACK_SHOP_TYPES;
-  const settings = await getSettings().catch(() => null);
+  const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
 
   try {

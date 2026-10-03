@@ -7,7 +7,7 @@ import {
   GadgetSupportCard,
   GadgetSupportLayout,
 } from "@/components/gadget/gadget-support-layout";
-import { getSettings } from "@/lib/sanity/settings";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -49,7 +49,7 @@ const FAQ_JSON_LD = {
 };
 
 export default async function FaqPage() {
-  const settings = await getSettings().catch(() => null);
+  const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
 
   return (

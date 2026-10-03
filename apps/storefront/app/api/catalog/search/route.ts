@@ -23,9 +23,6 @@ async function GETHandler(request: Request) {
     const filters = parseCatalogFilters(
       Object.fromEntries(searchParams.entries()),
     );
-    if (!filters.query?.trim()) {
-      return json({ error: "Query required" }, 400, false);
-    }
     const demo = isDemoRequest(request);
     const result = await fetchCatalog(filters, { includeDemo: demo });
     return json({ result, filters }, 200, !demo);

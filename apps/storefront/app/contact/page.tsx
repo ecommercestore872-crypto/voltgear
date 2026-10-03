@@ -14,7 +14,7 @@ import {
 import { GadgetContactForm } from "@/components/gadget/gadget-contact-form";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { telHref, whatsappHref } from "@/lib/contact-links";
-import { getSettings } from "@/lib/sanity/settings";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 
 export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-  const settings = await getSettings().catch(() => null);
+  const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
   const wa = whatsappHref(config.whatsappNumber || config.supportPhone);
   const call = telHref(config.supportPhone);

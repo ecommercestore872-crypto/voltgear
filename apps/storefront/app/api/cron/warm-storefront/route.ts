@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { fetchCatalogProducts } from "@/lib/db/store";
+import { fetchCatalogNewestProducts, fetchShopTypes } from "@/lib/db/store";
 import { isCronAuthorized, publicSiteUrl } from "@/lib/deploy-rules";
 import {
   rankProductSlugsForWarm,
   storefrontWarmPaths,
+  WARM_PDP_SLUG_LIMIT,
   warmProductPaths,
 } from "@/lib/storefront-warm-rules";
 import { withShopApiObservability } from "@/lib/shop-api-observability";
@@ -24,11 +25,15 @@ async function GETHandler(request: Request) {
   }
 
   const base = publicSiteUrl().replace(/\/+$/, "");
+  const [newest, shopTypes] = await Promise.all([
+    fetchCatalogNewestProducts(WARM_PDP_SLUG_LIMIT, false).catch(() => []),
+    fetchShopTypes().catch(() => []),
+  ]);
+  const categoryPaths = shopTypes.map((t) => `/products/${t.slug}`);
   const paths = [
     ...storefrontWarmPaths(),
-    ...warmProductPaths(
-      rankProductSlugsForWarm(await fetchCatalogProducts().catch(() => [])),
-    ),
+    ...categoryPaths,
+    ...warmProductPaths(rankProductSlugsForWarm(newest)),
   ];
 
   const results = await Promise.allSettled(

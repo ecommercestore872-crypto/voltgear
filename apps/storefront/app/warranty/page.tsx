@@ -7,7 +7,7 @@ import {
   GadgetSupportCard,
   GadgetSupportLayout,
 } from "@/components/gadget/gadget-support-layout";
-import { getSettings } from "@/lib/sanity/settings";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import {
   normalizeSettings,
   returnsLabel,
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WarrantyPage() {
-  const settings = await getSettings().catch(() => null);
+  const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
   const email = config.supportEmail;
 

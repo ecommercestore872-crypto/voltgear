@@ -4,7 +4,10 @@ import { Suspense } from "react";
 
 import { GadgetShopCatalogClient } from "@/components/gadget/gadget-shop-catalog-client";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
-import { fetchCatalogProducts, fetchShopTypes } from "@/lib/db/store";
+import {
+  fetchCatalogProductsShopOverview,
+  fetchShopTypes,
+} from "@/lib/db/store";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import {
@@ -41,7 +44,7 @@ export default async function Products2Page() {
 
   try {
     const [p, types] = await Promise.all([
-      fetchCatalogProducts(),
+      fetchCatalogProductsShopOverview(16),
       fetchShopTypes(),
     ]);
     products = applyGadgetStudioImagesList(p);

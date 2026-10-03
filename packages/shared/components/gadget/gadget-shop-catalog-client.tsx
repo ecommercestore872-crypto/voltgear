@@ -58,6 +58,7 @@ export function GadgetShopCatalogClient({
 }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("featured");
+  const [remoteProducts, setRemoteProducts] = useState<Product[] | null>(null);
 
   const pathname = usePathname();
 
@@ -71,13 +72,39 @@ export function GadgetShopCatalogClient({
     setSort(params.get("sort") || "featured");
   }, [pathname]);
 
+  useEffect(() => {
+    const q = query.trim();
+    if (activeCategory || !q) {
+      setRemoteProducts(null);
+      return;
+    }
+    let cancelled = false;
+    const params = new URLSearchParams({ q, sort, page: "1" });
+    fetch(`/api/catalog/search?${params.toString()}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        const items = data?.result?.items;
+        setRemoteProducts(Array.isArray(items) ? items : []);
+      })
+      .catch(() => {
+        if (!cancelled) setRemoteProducts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCategory, query, sort]);
+
   const filtered = useMemo(() => {
     const qLower = query.toLowerCase();
-    let list = products.filter((p) => hasImage(p));
+    const useRemote = !activeCategory && qLower && remoteProducts !== null;
+    let list = (useRemote ? remoteProducts : products).filter((p) =>
+      hasImage(p),
+    );
     if (activeCategory) {
       list = list.filter((p) => p.category === activeCategory);
     }
-    if (qLower) {
+    if (qLower && !useRemote) {
       list = list.filter(
         (p) =>
           p.name.toLowerCase().includes(qLower) ||
@@ -86,7 +113,9 @@ export function GadgetShopCatalogClient({
       );
     }
     return sortProducts(list, sort);
-  }, [products, activeCategory, query, sort]);
+  }, [products, remoteProducts, activeCategory, query, sort]);
+
+  const hubSearchActive = !activeCategory && Boolean(query.trim());
 
   return (
     <GadgetShopCatalog
@@ -100,7 +129,7 @@ export function GadgetShopCatalogClient({
       config={config}
       breadcrumbs={breadcrumbs}
       basePath={basePath}
-      flattenGrid={flattenGrid}
+      flattenGrid={flattenGrid || hubSearchActive}
       guideLink={guideLink}
       maxPerCategory={maxPerCategory}
     />

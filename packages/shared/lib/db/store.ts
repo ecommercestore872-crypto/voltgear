@@ -192,6 +192,56 @@ export const fetchCatalogProducts = unstable_cache(
   { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
 );
 
+const SHOP_HUB_PER_CATEGORY_DEFAULT = 16;
+
+/** Bounded per-category queries for `/products` hub — avoids loading the full catalog on ISR. */
+async function loadCatalogProductsShopOverview(perCategory: number): Promise<Product[]> {
+  const cap = Math.max(4, Math.min(perCategory, 32));
+  const [types, activeCategories] = await Promise.all([
+    fetchShopTypes(),
+    loadActiveCategorySlugSet(),
+  ]);
+  const slugs = (types.length ? types : FALLBACK_SHOP_TYPES)
+    .map((t) => t.slug.trim())
+    .filter(Boolean)
+    .filter((slug) => !activeCategories || activeCategories.has(slug));
+  if (!slugs.length) return [];
+
+  const chunks = await Promise.all(
+    slugs.map(async (cat) => {
+      const { data, error } = await execDemoQuery(() =>
+        demoFilter(
+          db()
+            .from("products")
+            .select(CATALOG_PRODUCT_EMBED as "*")
+            .eq("status", LIVE)
+            .eq("category", cat)
+            .order("featured", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(cap),
+          false,
+        ),
+      );
+      if (error) throw error;
+      return (data ?? [])
+        .map((row) => mapStoreProduct(row as Record<string, unknown>))
+        .filter(Boolean) as Product[];
+    }),
+  );
+  return chunks.flat();
+}
+
+export function fetchCatalogProductsShopOverview(
+  perCategory = SHOP_HUB_PER_CATEGORY_DEFAULT,
+): Promise<Product[]> {
+  const cap = Math.max(4, Math.min(perCategory, 32));
+  return unstable_cache(
+    () => loadCatalogProductsShopOverview(cap),
+    ["fetchCatalogProductsShopOverview-v2", String(cap)],
+    { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
+  )();
+}
+
 const HOMEPAGE_PRODUCT_LIMIT = 36;
 
 /** Slim catalog for the homepage — avoids a second full-catalog + analytics pass. */
