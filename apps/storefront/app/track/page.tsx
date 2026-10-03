@@ -34,7 +34,7 @@ export default function TrackPage() {
     <GadgetSupportLayout
       eyebrow="Care"
       title="Track your order"
-      description="Enter the order number from your confirmation email and the email you used at checkout."
+      description="Enter your order number and mobile number from checkout. Status updates from PostEx when your parcel is booked with them."
       related={[
         { href: "/contact", label: "Need help? Contact us" },
         { href: "/shipping-returns", label: "Shipping policy" },

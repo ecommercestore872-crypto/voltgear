@@ -1,3 +1,6 @@
+import { normalizePhoneForCheckout } from "@/lib/checkout-customer-rules";
+import { normalizePhone } from "@/lib/messaging";
+
 import { EMAIL_SEND_ISSUE_PREFIX } from "../email-rules";
 import type {
   Order,
@@ -16,7 +19,12 @@ export const ORDER_STATUS_VALUES: OrderStatus[] = [
 ];
 
 export const SHOPPER_NOT_FOUND_MESSAGE =
-  "We couldn't find an order for those details. Check the order number and email.";
+  "We couldn't find an order for those details. Check the order number and mobile number.";
+
+export type ShopperOrderProof = {
+  email?: string;
+  phone?: string;
+};
 
 export const SHOPPER_CANCEL_WINDOW_MS = 24 * 60 * 60 * 1000;
 export const SHOPPER_CANCEL_NOTE = "Cancelled by customer";
@@ -48,6 +56,7 @@ export type ShopperTrackPayload = {
   payment: string;
   cancellable: boolean;
   cancelUntil: string | null;
+  postexTrackingNumber?: string | null;
 };
 
 export type AdminListRow = {
@@ -67,12 +76,45 @@ export function emailsMatch(a?: string | null, b?: string | null): boolean {
   return (a ?? "").toLowerCase().trim() === (b ?? "").toLowerCase().trim();
 }
 
+function normalizeShopperPhone(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  return (
+    normalizePhone(trimmed) ??
+    normalizePhoneForCheckout(trimmed) ??
+    null
+  );
+}
+
+export function phonesMatch(a?: string | null, b?: string | null): boolean {
+  const na = normalizeShopperPhone(a ?? "");
+  const nb = normalizeShopperPhone(b ?? "");
+  if (!na || !nb) return false;
+  return na === nb;
+}
+
+function resolveShopperProof(
+  proof: string | ShopperOrderProof,
+): ShopperOrderProof {
+  if (typeof proof === "string") {
+    return { email: proof.trim().toLowerCase() };
+  }
+  return {
+    email: proof.email?.trim().toLowerCase(),
+    phone: proof.phone?.trim(),
+  };
+}
+
 export function shopperLookupNotFound(
   order: Order | null,
-  email: string
+  proof: string | ShopperOrderProof,
 ): boolean {
   if (!order) return true;
-  return !emailsMatch(order.customer?.email, email);
+  const { email, phone } = resolveShopperProof(proof);
+  if (!email && !phone) return true;
+  if (email && emailsMatch(order.customer?.email, email)) return false;
+  if (phone && phonesMatch(order.customer?.phone, phone)) return false;
+  return true;
 }
 
 export function canShopperCancel(order: Order, now: Date = new Date()): boolean {
@@ -129,6 +171,7 @@ export function toShopperTrackPayload(order: Order): ShopperTrackPayload {
     payment: order.payment ?? "cod",
     cancellable: canShopperCancel(order),
     cancelUntil: shopperCancelUntil(order),
+    postexTrackingNumber: order.postexTrackingNumber?.trim() || null,
   };
 }
 

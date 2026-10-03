@@ -7,17 +7,18 @@ import {
   shopperLookupNotFound,
   toShopperTrackPayload,
 } from "@/lib/db/order-rules";
+import { refreshOrderStatusFromPostExIfDue } from "@/lib/postex-shopper-sync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Customer order lookup. Requires the email used at checkout so only the
- * customer can see the order:
+ * Customer order lookup. Requires order number + mobile (or email):
  *
- *   curl "http://localhost:3000/api/orders/VG-XXXXXXXX?email=customer@example.com"
+ *   /api/orders/BNT-1042?phone=03001234567
  *
- * Returns a summary (status, timeline, items, totals) — no phone/address.
+ * When booked on PostEx, status is refreshed from the courier (throttled).
+ * Returns status, timeline, items, totals — no full address.
  */
 async function GETHandler(
   request: Request,
@@ -28,23 +29,30 @@ async function GETHandler(
     return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
   }
 
-  const email = new URL(request.url).searchParams
-    .get("email")
-    ?.toLowerCase()
-    .trim();
-  if (!email) {
+  const paramsUrl = new URL(request.url);
+  const email = paramsUrl.searchParams.get("email")?.toLowerCase().trim() ?? "";
+  const phone = paramsUrl.searchParams.get("phone")?.trim() ?? "";
+  if (!email && !phone) {
     return NextResponse.json(
-      { error: "Provide the email used at checkout: ?email=you@example.com" },
+      {
+        error:
+          "Enter your mobile number from checkout (or email if you added one).",
+      },
       { status: 400 },
     );
   }
 
-  const order = await getOrderById(orderId);
-  if (shopperLookupNotFound(order, email)) {
+  let order = await getOrderById(orderId);
+  if (shopperLookupNotFound(order, { email, phone })) {
     return NextResponse.json(
       { error: SHOPPER_NOT_FOUND_MESSAGE },
       { status: 404 },
     );
+  }
+
+  if (order?.postexTrackingNumber?.trim()) {
+    await refreshOrderStatusFromPostExIfDue(orderId).catch(() => undefined);
+    order = (await getOrderById(orderId)) ?? order;
   }
 
   return NextResponse.json(toShopperTrackPayload(order!));

@@ -1109,6 +1109,24 @@ export async function updateOrderAttributionRow(
   }
 }
 
+/** In-flight PostEx shipments — status synced by cron / track lookup. */
+export async function listOrderIdsForPostExSync(limit = 40): Promise<string[]> {
+  const { data, error } = await db()
+    .from("orders")
+    .select("order_id")
+    .not("postex_tracking_number", "is", null)
+    .in("status", ["processing", "shipped"])
+    .order("status_updated_at", { ascending: true })
+    .limit(limit);
+  if (error) {
+    console.error("[orders] postex sync list failed:", error);
+    return [];
+  }
+  return (data ?? [])
+    .map((row) => String((row as { order_id?: string }).order_id ?? "").trim())
+    .filter(Boolean);
+}
+
 export async function getOrderByPublicId(orderId: string): Promise<Order | null> {
   const { data, error } = await db()
     .from("orders")

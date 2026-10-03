@@ -13,15 +13,14 @@ export async function CheckoutStaticShell() {
 
   return (
     <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
-      <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-3xl">
-          Secure checkout
+      <div className="mx-auto max-w-6xl px-4 py-3 sm:py-5 lg:px-8 lg:py-6">
+        <h1 className="text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-2xl lg:text-3xl">
+          Checkout — cash on delivery
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-[var(--g-taupe)]">
-          Complete your order with cash on delivery across Pakistan. Order
-          confirmation by SMS.
+        <p className="mt-1 hidden max-w-2xl text-sm text-[var(--g-taupe)] sm:block">
+          Enter your details below. Pay when your order arrives.
         </p>
-        <ul className="mt-4 flex flex-wrap gap-3 text-sm text-[var(--g-charcoal)]">
+        <ul className="mt-2 hidden flex-wrap gap-2 text-xs text-[var(--g-charcoal)] sm:flex sm:mt-4 sm:gap-3 sm:text-sm">
           {config.codEnabled !== false ? (
             <li className="inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5 shadow-sm">
               <Banknote className="h-4 w-4 text-[var(--g-forest)]" aria-hidden />
@@ -39,7 +38,7 @@ export async function CheckoutStaticShell() {
             Secure checkout
           </li>
         </ul>
-        <p className="mt-3 text-xs text-[var(--g-taupe)]">
+        <p className="mt-2 hidden text-xs text-[var(--g-taupe)] sm:block">
           <Link href="/shipping-returns" className="underline hover:text-[var(--g-forest)]">
             Shipping &amp; returns
           </Link>

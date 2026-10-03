@@ -34,6 +34,7 @@ interface TrackResponse {
   payment: string;
   cancellable: boolean;
   cancelUntil: string | null;
+  postexTrackingNumber?: string | null;
 }
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -122,6 +123,7 @@ function formatDate(iso?: string | null): string {
 
 export function TrackOrder() {
   const [orderId, setOrderId] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,15 +132,18 @@ export function TrackOrder() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  async function search(o: string, e: string) {
+  async function search(o: string, p: string, e?: string) {
     setLoading(true);
     setError(null);
     setResult(null);
     setConfirmCancel(false);
     setCancelError(null);
     try {
+      const qs = new URLSearchParams();
+      if (p.trim()) qs.set("phone", p.trim());
+      if (e?.trim()) qs.set("email", e.trim());
       const res = await fetch(
-        `/api/orders/${encodeURIComponent(o.trim())}?email=${encodeURIComponent(e.trim())}`,
+        `/api/orders/${encodeURIComponent(o.trim())}?${qs.toString()}`,
       );
       if (res.status === 404) {
         setError(SHOPPER_NOT_FOUND_MESSAGE);
@@ -167,7 +172,10 @@ export function TrackOrder() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim() }),
+          body: JSON.stringify({
+            phone: phone.trim(),
+            ...(email.trim() ? { email: email.trim() } : {}),
+          }),
         },
       );
       const body = await res.json().catch(() => null);
@@ -196,11 +204,13 @@ export function TrackOrder() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const o = params.get("orderId") ?? "";
+    const p = params.get("phone") ?? "";
     const e = params.get("email") ?? "";
-    if (o && e) {
+    if (o && (p || e)) {
       setOrderId(o);
-      setEmail(e);
-      search(o, e);
+      if (p) setPhone(p);
+      if (e) setEmail(e);
+      search(o, p, e);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -213,7 +223,7 @@ export function TrackOrder() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            search(orderId, email);
+            search(orderId, phone, email);
           }}
           className="space-y-5"
         >
@@ -234,24 +244,47 @@ export function TrackOrder() {
               className="h-12 rounded-xl bg-slate-50/50"
             />
             <p className="text-[13px] text-muted-foreground/80">
-              Enter the order number from your confirmation email
+              On your confirmation screen or WhatsApp message from us
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-bold text-slate-800">
-              Email used at checkout
+            <Label htmlFor="phone" className="text-sm font-bold text-slate-800">
+              Mobile number *
             </Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="h-12 rounded-xl bg-slate-50/50"
+              autoComplete="tel"
+              placeholder="03XX XXXXXXX"
+              className="h-12 rounded-xl bg-slate-50/50 text-base"
             />
+            <p className="text-[13px] text-muted-foreground/80">
+              Same number you entered when you placed the order
+            </p>
           </div>
+          <details className="text-sm">
+            <summary className="cursor-pointer font-semibold text-primary">
+              Used an email at checkout? (optional)
+            </summary>
+            <div className="mt-2 space-y-2">
+              <Label htmlFor="email" className="text-xs font-bold text-slate-800">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                placeholder="Only if you added one"
+                className="h-11 rounded-xl bg-slate-50/50"
+              />
+            </div>
+          </details>
           <Button
             type="submit"
             disabled={loading}
@@ -287,6 +320,14 @@ export function TrackOrder() {
                 <h2 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
                   {STATUS_LABEL[result.status]}
                 </h2>
+                {result.postexTrackingNumber ? (
+                  <p className="mt-2 text-[13px] text-muted-foreground">
+                    PostEx tracking:{" "}
+                    <span className="font-semibold text-slate-800">
+                      {result.postexTrackingNumber}
+                    </span>
+                  </p>
+                ) : null}
               </div>
               <div className="sm:text-right">
                 <p className="text-[13px] text-muted-foreground">Updated</p>

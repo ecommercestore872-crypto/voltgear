@@ -18,11 +18,16 @@ export function OrderEmailGate({
   const router = useRouter();
   const [email, setEmail] = useState("");
 
+  const [phone, setPhone] = useState("");
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) return;
-    const q = new URLSearchParams({ email: trimmed });
+    const q = new URLSearchParams();
+    const p = phone.trim();
+    const em = email.trim().toLowerCase();
+    if (p) q.set("phone", p);
+    if (em) q.set("email", em);
+    if (!q.toString()) return;
     router.replace(`/order/${encodeURIComponent(orderId)}${pathSuffix}?${q}`);
   }
 
@@ -34,15 +39,29 @@ export function OrderEmailGate({
             Confirm your order
           </h1>
           <p className="text-sm text-muted-foreground">
-            Enter the email you used at checkout if you added one. If you skipped
-            email, use the confirmation link from your order screen or contact
-            support with order {orderId}.
+            Enter the mobile number from checkout for order {orderId}. Email is
+            only needed if you added one and prefer that instead.
           </p>
         </div>
         <form onSubmit={submit} className="space-y-6">
           <div className="space-y-2">
+            <Label htmlFor="order-access-phone" className="font-medium">
+              Mobile number
+            </Label>
+            <Input
+              id="order-access-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="03XX XXXXXXX"
+              className="h-11 text-base"
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="order-access-email" className="font-medium">
-              Email <span className="font-normal text-muted-foreground">(optional at checkout)</span>
+              Email <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
             <Input
               id="order-access-email"
@@ -56,7 +75,7 @@ export function OrderEmailGate({
             />
           </div>
           <Button type="submit" className="w-full h-11 text-base font-semibold">
-            View Order Invoice
+            View order
           </Button>
         </form>
       </div>

@@ -6,6 +6,7 @@ import {
   publicSiteUrl,
   resolveAdminSecret,
   resolveAdminSecretForMiddleware,
+  resolveAdminUpstreamBaseUrl,
 } from "./deploy-rules";
 
 describe("publicSiteUrl", () => {
@@ -43,6 +44,24 @@ describe("resolveAdminSecretForMiddleware", () => {
       resolveAdminSecretForMiddleware({ ADMIN_TOKEN: " x ", VERCEL_ENV: "production" }),
       "x",
     );
+  });
+});
+
+describe("resolveAdminUpstreamBaseUrl", () => {
+  it("prefers ADMIN_PROXY_UPSTREAM then POSTEX_SYNC_ADMIN_URL", () => {
+    assert.equal(
+      resolveAdminUpstreamBaseUrl({
+        ADMIN_PROXY_UPSTREAM: "https://admin.example.com/",
+      }),
+      "https://admin.example.com",
+    );
+    assert.equal(
+      resolveAdminUpstreamBaseUrl({
+        POSTEX_SYNC_ADMIN_URL: "https://postex-admin.example.com",
+      }),
+      "https://postex-admin.example.com",
+    );
+    assert.equal(resolveAdminUpstreamBaseUrl({}), null);
   });
 });
 

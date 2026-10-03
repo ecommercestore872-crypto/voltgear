@@ -64,6 +64,14 @@ describe("shopperLookupNotFound", () => {
   it("allows the checkout email", () => {
     assert.equal(shopperLookupNotFound(sample, "Ali@example.com"), false);
   });
+
+  it("allows the checkout mobile number", () => {
+    assert.equal(shopperLookupNotFound(sample, { phone: "0300 1234567" }), false);
+  });
+
+  it("rejects a wrong mobile number", () => {
+    assert.equal(shopperLookupNotFound(sample, { phone: "03009999999" }), true);
+  });
 });
 
 describe("toAdminListRow", () => {

@@ -23,7 +23,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { OrderEmailGate } from "@/components/order/order-email-gate";
 import { ScrollToTop } from "@/components/utils/scroll-to-top";
-import { getOrderByPublicId, fetchSiteSettings } from "@/lib/db/store";
+import { getOrderByPublicId } from "@/lib/db/store";
+import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { shopperLookupNotFound } from "@/lib/db/order-rules";
 import {
@@ -47,27 +48,34 @@ export default async function OrderSuccessPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams?: { email?: string };
+  searchParams?: { email?: string; phone?: string };
 }) {
-  const order = await getOrderByPublicId(params.id);
-  if (!order) notFound();
-
-  const fromQuery =
+  const fromEmailQuery =
     typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+  const fromPhoneQuery =
+    typeof searchParams?.phone === "string" ? searchParams.phone.trim() : "";
   const fromCookie =
     cookies().get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
-  const email = (fromQuery || decodeURIComponent(fromCookie)).trim();
-  if (!email) {
+  const emailHint = (fromEmailQuery || decodeURIComponent(fromCookie)).trim();
+  const phoneHint = fromPhoneQuery;
+
+  const [order, rawSettings] = await Promise.all([
+    getOrderByPublicId(params.id),
+    loadStorefrontSettings().catch(() => null),
+  ]);
+  if (!order) notFound();
+
+  if (!emailHint && !phoneHint) {
     return <OrderEmailGate orderId={params.id} />;
   }
-  if (shopperLookupNotFound(order, email)) {
+  if (shopperLookupNotFound(order, { email: emailHint, phone: phoneHint })) {
     notFound();
   }
+  const email = emailHint || order.customer?.email || "";
 
   const { customer, items = [], orderId, createdAt } = order;
   const status = (order.status ?? "new") as OrderStatus;
   const isCod = order.payment === "cod";
-  const rawSettings = await fetchSiteSettings().catch(() => null);
   const config = normalizeSettings(rawSettings);
   const progress = buildOrderProgressSteps(status);
   const billLines = buildOrderBillLines({
@@ -389,7 +397,9 @@ export default async function OrderSuccessPage({
             size="lg"
             className="h-12 w-full rounded border border-[var(--g-forest)] bg-[var(--g-forest)] px-10 text-[14px] font-bold tracking-wide text-[var(--g-white)] shadow-sm hover:bg-[var(--g-forest)]/90 sm:w-auto"
           >
-            <Link href="/track">
+            <Link
+              href={`/track?orderId=${encodeURIComponent(orderId)}&phone=${encodeURIComponent(customer?.phone ?? "")}`}
+            >
               <Package className="mr-2 h-4 w-4" /> Track your order
             </Link>
           </Button>

@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Shopper: cancel own order within 24h while new/processing.
- * Body: { "email": "checkout@email.com" }
+ * Body: { "phone": "03001234567" } or { "email": "..." }
  */
 async function POSTHandler(
   request: Request,
@@ -37,15 +37,16 @@ async function POSTHandler(
   const body = await request.json().catch(() => null);
   const email =
     typeof body?.email === "string" ? body.email.toLowerCase().trim() : "";
-  if (!email) {
+  const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
+  if (!email && !phone) {
     return NextResponse.json(
-      { error: "Provide the email used at checkout." },
+      { error: "Provide the mobile number you used at checkout." },
       { status: 400 },
     );
   }
 
   const order = await getOrderById(orderId);
-  if (shopperLookupNotFound(order, email)) {
+  if (shopperLookupNotFound(order, { email, phone })) {
     return NextResponse.json(
       { error: SHOPPER_NOT_FOUND_MESSAGE },
       { status: 404 },

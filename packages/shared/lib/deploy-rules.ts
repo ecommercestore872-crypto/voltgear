@@ -26,6 +26,15 @@ export function resolveAdminSecretForMiddleware(
   return (env.ADMIN_TOKEN || env.REVALIDATION_TOKEN || "").trim();
 }
 
+/** Admin host for server-side calls (PostEx token lives on admin Vercel). */
+export function resolveAdminUpstreamBaseUrl(env: Env = process.env): string | null {
+  const upstream = env.ADMIN_PROXY_UPSTREAM?.trim().replace(/\/+$/, "");
+  if (upstream) return upstream;
+  const explicit = env.POSTEX_SYNC_ADMIN_URL?.trim().replace(/\/+$/, "");
+  if (explicit) return explicit;
+  return null;
+}
+
 export function isCronAuthorized(
   authorization: string | null | undefined,
   env: Env = process.env

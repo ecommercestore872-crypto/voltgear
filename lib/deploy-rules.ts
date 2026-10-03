@@ -19,6 +19,14 @@ export function resolveAdminSecret(env: Env = process.env): string {
   return "voltgear-demo-revalidate";
 }
 
+export function resolveAdminUpstreamBaseUrl(env: Env = process.env): string | null {
+  const upstream = env.ADMIN_PROXY_UPSTREAM?.trim().replace(/\/+$/, "");
+  if (upstream) return upstream;
+  const explicit = env.POSTEX_SYNC_ADMIN_URL?.trim().replace(/\/+$/, "");
+  if (explicit) return explicit;
+  return null;
+}
+
 export function isCronAuthorized(
   authorization: string | null | undefined,
   env: Env = process.env

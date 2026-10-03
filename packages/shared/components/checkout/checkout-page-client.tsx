@@ -175,9 +175,7 @@ export default function CheckoutPageClient() {
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [orderNotes, setOrderNotes] = useState("");
   const [placing, setPlacing] = useState(false);
-  const [placedOrder, setPlacedOrder] = useState<string | null>(null);
-  const [placedTotal, setPlacedTotal] = useState<number | null>(null);
-  const [placedItems, setPlacedItems] = useState<typeof items>([]);
+  const orderNavigationRef = useRef(false);
   const [customer, setCustomer] = useState<Record<string, string>>({});
   const [giftWrap, setGiftWrap] = useState(false);
   const [promoInput, setPromoInput] = useState("");
@@ -346,7 +344,7 @@ export default function CheckoutPageClient() {
       }
     }
 
-    if (placing || placedOrder) return;
+    if (placing || orderNavigationRef.current) return;
     tagCheckoutClarityEvent("place_order_click");
     setPlacing(true);
     setPriceChanged(null);
@@ -407,22 +405,20 @@ export default function CheckoutPageClient() {
           shipping: Number(data.shipping) || 0,
           total: Number(data.total) || 0,
         });
+        setPlacing(false);
         return;
       }
 
       if (!res.ok) {
         throw new Error(data.error ?? "Failed");
       }
-      setPlacedOrder(data.orderId);
       tagCheckoutClarityEvent("order_success");
-      
-      // CLEAR IDEMPOTENCY KEY ON SUCCESS ONLY
+
       if (typeof window !== "undefined") {
         window.sessionStorage.removeItem("buy_n_try_checkout_idem");
       }
       idemRef.current = null;
 
-      // Wait for navigation
       const lookupEmail =
         typeof data.lookupEmail === "string" && data.lookupEmail.trim()
           ? data.lookupEmail.trim().toLowerCase()
@@ -431,47 +427,14 @@ export default function CheckoutPageClient() {
         const maxAge = 60 * 60 * 24;
         document.cookie = `bnt_order_${encodeURIComponent(data.orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(data.orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
       }
-      const orderQs = lookupEmail
-        ? `?email=${encodeURIComponent(lookupEmail)}`
-        : "";
+      const orderQuery = new URLSearchParams();
+      const phoneForTrack = currentCustomer.phone?.trim() ?? "";
+      if (phoneForTrack) orderQuery.set("phone", phoneForTrack);
+      else if (lookupEmail) orderQuery.set("email", lookupEmail);
+      const orderQs = orderQuery.toString() ? `?${orderQuery.toString()}` : "";
       const serverTotal = Number(data.total);
       const purchaseTotal = Number.isFinite(serverTotal) ? serverTotal : total;
       const serverLines = Array.isArray(data.lines) ? data.lines : [];
-      void identifyTikTokCustomer({
-        email: lookupEmail || currentCustomer.email,
-        phone: currentCustomer.phone,
-      });
-
-      if (!data.replayed) {
-        try {
-          trackTikTokPurchase({
-            orderId: data.orderId,
-            total: purchaseTotal,
-            lines: serverLines,
-          });
-        } catch {
-          // fail-open
-        }
-        try {
-          // This browser Purchase represents successful order placement for COD.
-          trackMetaPurchase({
-            orderId: data.orderId,
-            items: items.map((i) => ({
-              productId: i.productId,
-              name: i.name,
-              price: i.price,
-              quantity: i.quantity,
-            })),
-            value: purchaseTotal,
-          });
-        } catch {
-          // fail-open
-        }
-      }
-      // Scroll to top BEFORE navigation so Next.js doesn't restore checkout's scroll position
-      window.scrollTo({ top: 0, behavior: "instant" });
-      router.push(`/order/${data.orderId}${orderQs}`);
-      clearCart();
       const first = items[0];
       if (first) {
         saveLastOrder({
@@ -482,19 +445,56 @@ export default function CheckoutPageClient() {
           product: { slug: first.slug, name: first.name },
         });
       }
+
+      orderNavigationRef.current = true;
+      window.scrollTo({ top: 0, behavior: "instant" });
+      router.replace(`/order/${data.orderId}${orderQs}`);
+
+      window.setTimeout(() => {
+        clearCart();
+        void identifyTikTokCustomer({
+          email: lookupEmail || currentCustomer.email,
+          phone: currentCustomer.phone,
+        });
+        if (!data.replayed) {
+          try {
+            trackTikTokPurchase({
+              orderId: data.orderId,
+              total: purchaseTotal,
+              lines: serverLines,
+            });
+          } catch {
+            // fail-open
+          }
+          try {
+            trackMetaPurchase({
+              orderId: data.orderId,
+              items: items.map((i) => ({
+                productId: i.productId,
+                name: i.name,
+                price: i.price,
+                quantity: i.quantity,
+              })),
+              value: purchaseTotal,
+            });
+          } catch {
+            // fail-open
+          }
+        }
+      }, 0);
+      return;
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
           : "Something went wrong placing your order. Please try again.";
       setApiError(message);
-    } finally {
       setPlacing(false);
     }
   }
 
   function notifyAbandonedCart() {
-    if (placedOrder || step < 1) return;
+    if (orderNavigationRef.current || step < 1) return;
     const emailEl = document.querySelector("#email") as HTMLInputElement | null;
     const email = emailEl?.value || customer.email;
     if (!email) return;
@@ -595,19 +595,7 @@ export default function CheckoutPageClient() {
       document.removeEventListener("visibilitychange", onVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, items, placedOrder, subtotal]);
-
-  /* ── Success screen ─────────────────────────────────────────────── */
-  if (placedOrder) {
-    return (
-      <div className="min-h-screen bg-[var(--g-cream)] pt-16 flex flex-col items-center justify-start text-[var(--g-charcoal)]">
-        <Loader2 className="w-10 h-10 animate-spin text-[var(--g-forest)] mb-4" />
-        <p className="text-sm font-semibold animate-pulse">
-          Taking you to your order...
-        </p>
-      </div>
-    );
-  }
+  }, [step, items, subtotal]);
 
   /* ── Empty cart ─────────────────────────────────────────────────── */
   if (items.length === 0) {
@@ -631,23 +619,10 @@ export default function CheckoutPageClient() {
 
   return (
     <div className="min-h-screen overflow-x-clip bg-[var(--g-cream)] font-sans">
-      <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)] py-6 sm:py-10">
-        <div className="mx-auto max-w-6xl px-4 lg:px-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--g-sage)] mb-2">
-            Checkout
-          </p>
-          <h1 className="gadget-display text-2xl tracking-tight text-[var(--g-charcoal)] sm:text-3xl lg:text-4xl">
-            Complete your order
-          </h1>
-        </div>
-      </div>
-
-
-
-      <div className="relative z-20 mx-auto max-w-6xl px-4 py-6 pb-[calc(8rem+env(safe-area-inset-bottom))] sm:py-8 sm:pb-16 lg:pb-16 lg:px-8">
-        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8">
+      <div className="relative z-20 mx-auto max-w-6xl px-4 py-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:py-6 sm:pb-[calc(8rem+env(safe-area-inset-bottom))] lg:px-8 lg:pb-16">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8">
           {/* ── Left Content Column ─────────────────────────────────────────── */}
-          <div className="flex flex-col gap-6">
+          <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-none lg:gap-6">
             {step === 0 && (
               <section>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -757,40 +732,14 @@ export default function CheckoutPageClient() {
             )}
 
             {step === 1 && (
-              <section>
-                <CheckoutCodAssist
-                  freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
-                  shippingFee={Number(config.shippingFee ?? 0)}
-                  whatsappNumber={config.whatsappNumber}
-                  supportPhone={config.supportPhone}
-                />
-                {/* Immediate Trust Badges */}
-                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                  {[
-                    { icon: ShieldCheck, title: `${config.warrantyMonths || 12}-Month`, desc: "Warranty" },
-                    { icon: RotateCcw, title: `${config.returnWindowDays || 7} Days`, desc: "Returns" },
-                    { icon: Banknote, title: "COD", desc: "Available" },
-                    { icon: Lock, title: "Secure", desc: "Checkout" },
-                  ].map((t) => (
-                    <div
-                      key={t.title}
-                      className="flex flex-col items-center justify-center p-3 text-center border rounded-xl bg-white shadow-sm"
-                    >
-                      <t.icon className="h-5 w-5 text-primary mb-1.5" />
-                      <p className="text-[11px] font-bold uppercase">
-                        {t.title}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {t.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold tracking-tight">
-                    Delivery Details
+              <section className="min-w-0">
+                <div className="mb-3">
+                  <h2 className="text-lg font-bold tracking-tight text-[var(--g-charcoal)] sm:text-xl">
+                    Your delivery details
                   </h2>
+                  <p className="mt-1 text-xs leading-snug text-muted-foreground sm:text-sm">
+                    Only 3 required fields — name, mobile number, and address.
+                  </p>
                 </div>
 
                 {apiError && (
@@ -805,10 +754,10 @@ export default function CheckoutPageClient() {
                   </div>
                 )}
 
-                <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6 lg:p-8">
+                <div className="min-w-0 rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5">
                   <form
                     id="details-form"
-                    className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6"
+                    className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
                     onSubmit={(e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
@@ -819,36 +768,23 @@ export default function CheckoutPageClient() {
                       placeOrder({ customer: customerData });
                     }}
                   >
-                    <div className="min-w-0 space-y-2">
-                      <Label htmlFor="name" className="text-sm font-bold">
-                        Full Name *
+                    <div className="min-w-0 space-y-1.5 sm:col-span-2">
+                      <Label htmlFor="name" className="text-xs font-bold sm:text-sm">
+                        Full name *
                       </Label>
                       <Input
                         id="name"
                         name="name"
                         required
                         autoComplete="name"
-                        placeholder="John Doe"
+                        placeholder="As on CNIC / for delivery"
+                        className="h-11"
                         defaultValue={customer.name}
                       />
                     </div>
-                    <div className="min-w-0 space-y-2">
-                      <Label htmlFor="email" className="text-sm font-bold">
-                        Email <span className="font-normal text-muted-foreground">(optional)</span>
-                      </Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="text"
-                        inputMode="email"
-                        autoComplete="email"
-                        placeholder="For order updates (optional)"
-                        defaultValue={customer.email}
-                      />
-                    </div>
-                    <div className="min-w-0 space-y-2 sm:col-span-2">
-                      <Label htmlFor="phone" className="text-sm font-bold">
-                        Phone Number *
+                    <div className="min-w-0 space-y-1.5 sm:col-span-2">
+                      <Label htmlFor="phone" className="text-xs font-bold sm:text-sm">
+                        Mobile / WhatsApp *
                       </Label>
                       <Input
                         id="phone"
@@ -857,25 +793,27 @@ export default function CheckoutPageClient() {
                         inputMode="tel"
                         required
                         autoComplete="tel"
-                        placeholder="03XX XXXXXXX (WhatsApp ok)"
+                        placeholder="03XX XXXXXXX"
+                        className="h-11 text-base"
                         defaultValue={customer.phone}
                       />
                     </div>
-                    <div className="min-w-0 space-y-2 sm:col-span-2">
-                      <Label htmlFor="address" className="text-sm font-bold">
-                        Street Address *
+                    <div className="min-w-0 space-y-1.5 sm:col-span-2">
+                      <Label htmlFor="address" className="text-xs font-bold sm:text-sm">
+                        Complete address *
                       </Label>
                       <Input
                         id="address"
                         name="address"
                         required
                         autoComplete="street-address"
-                        placeholder="House / Building / Street details"
+                        placeholder="House no, street, area, landmark"
+                        className="h-11"
                         defaultValue={customer.address}
                       />
                     </div>
-                    <div className="min-w-0 space-y-2">
-                      <Label htmlFor="city" className="text-sm font-bold">
+                    <div className="min-w-0 space-y-1.5 hidden sm:block">
+                      <Label htmlFor="city" className="text-xs font-bold sm:text-sm">
                         City <span className="font-normal text-muted-foreground">(optional)</span>
                       </Label>
                       <Input
@@ -883,6 +821,8 @@ export default function CheckoutPageClient() {
                         name="city"
                         list="pakistan-cities"
                         autoComplete="address-level2"
+                        placeholder="Karachi, Lahore…"
+                        className="h-11"
                         defaultValue={customer.city}
                       />
                       <datalist id="pakistan-cities">
@@ -900,65 +840,150 @@ export default function CheckoutPageClient() {
                         <option value="Hyderabad" />
                       </datalist>
                     </div>
-                    <div className="min-w-0 space-y-2">
-                      <Label htmlFor="postal" className="text-sm font-bold">
-                        Postal Code
+                    <div className="min-w-0 space-y-1.5 hidden sm:block">
+                      <Label htmlFor="email" className="text-xs font-bold sm:text-sm">
+                        Email <span className="font-normal text-muted-foreground">(optional)</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="text"
+                        inputMode="email"
+                        autoComplete="email"
+                        placeholder="Order updates"
+                        className="h-11"
+                        defaultValue={customer.email}
+                      />
+                    </div>
+                    <div className="min-w-0 space-y-1.5 hidden sm:block">
+                      <Label htmlFor="postal" className="text-xs font-bold sm:text-sm">
+                        Postal code <span className="font-normal text-muted-foreground">(optional)</span>
                       </Label>
                       <Input
                         id="postal"
                         name="postal"
                         autoComplete="postal-code"
-                        placeholder="Zip/Postal (Optional)"
+                        placeholder="Optional"
+                        className="h-11"
                         defaultValue={customer.postal}
                       />
                     </div>
 
-                    <div className="col-span-1 sm:col-span-2 pt-4 mt-2 border-t text-left">
-                      <Label className="text-sm font-bold mb-3 block">
-                        Payment Method *
-                      </Label>
-                      <div className="space-y-3">
-                        {PAYMENT_METHODS.map((method) => {
-                          const selected = payment === method.id;
-                          return (
-                            <label
-                              key={method.id}
-                              className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-colors ${selected ? "border-primary bg-primary/5" : "bg-white hover:bg-secondary/50"}`}
-                            >
-                              <div
-                                className={`shrink-0 flex items-center justify-center h-5 w-5 rounded-full border-2 ${selected ? "border-primary bg-primary text-white" : "border-border"}`}
-                              >
-                                {selected && (
-                                  <Check className="h-3 w-3" strokeWidth={3} />
-                                )}
-                              </div>
-                              <method.icon
-                                className={`h-5 w-5 ${selected ? "text-primary" : "text-muted-foreground"}`}
-                              />
-                              <div className="flex-1">
-                                <p className="text-[13px] font-bold tracking-wide">
-                                  {method.label}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                                  {method.description}
-                                </p>
-                              </div>
-                            </label>
-                          );
-                        })}
+                    <div className="col-span-1 flex items-center gap-2.5 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5 sm:col-span-2">
+                      <Banknote className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground">
+                          Cash on delivery
+                        </p>
+                        <p className="text-[11px] text-muted-foreground leading-snug">
+                          Pay when the parcel reaches you
+                        </p>
                       </div>
                     </div>
                   </form>
                 </div>
+
+                <details className="mt-3 text-sm sm:hidden">
+                  <summary className="cursor-pointer font-semibold text-primary">
+                    City or email (optional)
+                  </summary>
+                  <div className="mt-2 grid gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="city-mobile" className="text-xs font-bold">
+                        City
+                      </Label>
+                      <Input
+                        id="city-mobile"
+                        form="details-form"
+                        name="city"
+                        list="pakistan-cities-mobile"
+                        autoComplete="address-level2"
+                        placeholder="Karachi, Lahore…"
+                        className="h-11"
+                        defaultValue={customer.city}
+                      />
+                      <datalist id="pakistan-cities-mobile">
+                        <option value="Karachi" />
+                        <option value="Lahore" />
+                        <option value="Islamabad" />
+                        <option value="Rawalpindi" />
+                        <option value="Faisalabad" />
+                        <option value="Multan" />
+                        <option value="Peshawar" />
+                        <option value="Quetta" />
+                        <option value="Gujranwala" />
+                        <option value="Sialkot" />
+                        <option value="Abbottabad" />
+                        <option value="Hyderabad" />
+                      </datalist>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email-mobile" className="text-xs font-bold">
+                        Email
+                      </Label>
+                      <Input
+                        id="email-mobile"
+                        form="details-form"
+                        name="email"
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        placeholder="For order confirmation"
+                        className="h-11"
+                        defaultValue={customer.email}
+                      />
+                    </div>
+                  </div>
+                </details>
+
+                <div className="mt-3 lg:hidden">
+                  <CheckoutCodAssist
+                    compact
+                    freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
+                    shippingFee={Number(config.shippingFee ?? 0)}
+                    whatsappNumber={config.whatsappNumber}
+                    supportPhone={config.supportPhone}
+                  />
+                </div>
+
+                <div className="mt-4 hidden lg:block">
+                  <CheckoutCodAssist
+                    freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
+                    shippingFee={Number(config.shippingFee ?? 0)}
+                    whatsappNumber={config.whatsappNumber}
+                    supportPhone={config.supportPhone}
+                  />
+                </div>
+
+                <p className="mt-3 hidden items-center gap-3 text-[10px] text-muted-foreground sm:flex sm:flex-wrap sm:text-xs">
+                  <span className="inline-flex items-center gap-1">
+                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                    {config.warrantyMonths || 12}mo warranty
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <RotateCcw className="h-3.5 w-3.5 text-primary" />
+                    {config.returnWindowDays || 7}-day returns
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Lock className="h-3.5 w-3.5 text-primary" />
+                    Secure checkout
+                  </span>
+                </p>
               </section>
             )}
           </div>
 
           {/* ── Order summary sidebar ────────────────────────────────────────── */}
-          <aside className="w-full space-y-4 lg:sticky lg:top-8 lg:self-start sm:space-y-5">
-            <div className={SUMMARY_CARD}>
-              <h2 className="mb-3 border-b border-[var(--g-line)] pb-3 text-base font-bold text-foreground sm:mb-4 sm:pb-4 sm:text-[17px]">
-                Order Summary
+          <aside className="order-2 w-full space-y-3 lg:order-none lg:sticky lg:top-8 lg:self-start lg:space-y-5">
+            <div
+              className={cn(
+                SUMMARY_CARD,
+                "p-3 sm:p-4 lg:p-5",
+                step === 1 && "hidden lg:block",
+              )}
+            >
+              <h2 className="mb-2 border-b border-[var(--g-line)] pb-2 text-sm font-bold text-foreground sm:mb-3 sm:pb-3 sm:text-base lg:text-[17px]">
+                Order summary
               </h2>
 
               <div className="space-y-2.5 border-b border-[var(--g-line)] pb-3.5 sm:space-y-3 sm:pb-4">
@@ -1028,7 +1053,7 @@ export default function CheckoutPageClient() {
             </div>
 
             {step >= 1 && (
-              <div className={SUMMARY_CARD}>
+              <div className={cn(SUMMARY_CARD, step === 1 && "hidden lg:block")}>
                 <h3 className="mb-3 text-[13px] font-bold text-foreground">
                   Have a promo code?
                 </h3>
@@ -1089,7 +1114,7 @@ export default function CheckoutPageClient() {
             ) : null}
 
             {step >= 1 && (
-              <div className={SUMMARY_CARD}>
+              <div className={cn(SUMMARY_CARD, "hidden lg:block")}>
                 <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
                   {[
                     {
@@ -1135,7 +1160,7 @@ export default function CheckoutPageClient() {
                 <Button
                   form="details-form"
                   type="submit"
-                  disabled={placing || Boolean(placedOrder)}
+                  disabled={placing}
                   className="h-12 w-full gap-2 text-[15px] font-bold shadow-md"
                 >
                   {placing ? (
@@ -1179,6 +1204,34 @@ export default function CheckoutPageClient() {
           </aside>
         </div>
       </div>
+
+      {step === 1 ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--g-line)] bg-[var(--g-cream)]/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_24px_rgba(0,0,0,0.08)] backdrop-blur-md lg:hidden">
+          <div className="mx-auto flex max-w-6xl items-center gap-3">
+            <div className="min-w-0 shrink-0">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Total · COD
+              </p>
+              <p className="text-xl font-black tabular-nums text-primary">
+                {formatPrice(total)}
+              </p>
+            </div>
+            <Button
+              form="details-form"
+              type="submit"
+              disabled={placing}
+              className="h-12 min-h-11 flex-1 gap-2 text-base font-bold shadow-md"
+            >
+              {placing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Lock className="h-4 w-4 shrink-0" />
+              )}
+              {placing ? "Processing…" : "Place order"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -60,6 +60,7 @@ Or run SQL for:
 5. **Validate for PostEx** (dry run) → **Book with PostEx** → tracking saved, status → `processing`.
 6. **Print PostEx Airway Bill** (PDF from PostEx).
 7. After dispatch updates in PostEx, **Sync status from PostEx** maps courier status to shop status.
+8. **Automatic sync:** admin cron `GET /api/cron/postex-sync` (every 30 minutes) updates in-flight orders. When a customer uses **Track order**, the shop calls admin `POST /api/internal/postex/sync/{orderId}` (uses **`POSTEX_API_TOKEN` on admin** + shared **`CRON_SECRET`** + shop env **`ADMIN_PROXY_UPSTREAM`**). You do **not** need to copy PostEx secrets to the storefront project.
 
 If book fails after a timeout, use **Reconcile with PostEx** before retrying (DB claim prevents duplicate bookings).
 

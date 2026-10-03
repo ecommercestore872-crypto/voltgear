@@ -29,7 +29,7 @@ export default async function InvoicePage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams?: { email?: string };
+  searchParams?: { email?: string; phone?: string };
 }) {
   const [order, settings] = await Promise.all([
     getOrderByPublicId(params.id),
@@ -40,17 +40,20 @@ export default async function InvoicePage({
   const cookieStore = cookies();
   const isAdmin = cookieStore.get(ADMIN_COOKIE)?.value === getAdminSecret();
 
-  const fromQuery =
+  const fromEmailQuery =
     typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+  const fromPhoneQuery =
+    typeof searchParams?.phone === "string" ? searchParams.phone.trim() : "";
   const fromCookie =
     cookieStore.get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
-  const email = (fromQuery || decodeURIComponent(fromCookie)).trim();
+  const emailHint = (fromEmailQuery || decodeURIComponent(fromCookie)).trim();
+  const phoneHint = fromPhoneQuery;
 
   if (!isAdmin) {
-    if (!email) {
+    if (!emailHint && !phoneHint) {
       return <OrderEmailGate orderId={params.id} pathSuffix="/invoice" />;
     }
-    if (shopperLookupNotFound(order, email)) {
+    if (shopperLookupNotFound(order, { email: emailHint, phone: phoneHint })) {
       return notFound();
     }
   }

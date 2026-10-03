@@ -1,14 +1,8 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 
-import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
-import {
-  appendOrderNote,
-  createOrder,
-  enqueueEmailEvent,
-  nextPublicOrderId,
-} from "@/lib/order-store";
-import { fetchSiteSettings, getOrderByPublicId } from "@/lib/db/store";
+import { createOrder, nextPublicOrderId } from "@/lib/order-store";
+import { getOrderByPublicId } from "@/lib/db/store";
 import {
   resolveCheckout,
   resolveShippingAndTotal,
@@ -16,16 +10,13 @@ import {
   GIFT_WRAP_FEE,
 } from "@/lib/checkout-server";
 import { isDemoRequest } from "@/lib/demo";
-import { attachOrderAttribution } from "@/lib/db/order-attribution";
 import { orderIsDemo } from "@/lib/db/demo-rules";
 import { applyPromoToTotals, normalizePromoCode } from "@/lib/db/promo-rules";
 import { applyDealsToCart, promoBlockedByDeal } from "@/lib/db/deal-rules";
 import { listProductDeals } from "@/lib/db/deal-store";
-import {
-  countPriorOrdersForEmail,
-  getPromoByCode,
-  incrementPromoUsage,
-} from "@/lib/db/promo-store";
+import { countPriorOrdersForEmail, getPromoByCode } from "@/lib/db/promo-store";
+import { deferAfterResponse } from "@/lib/defer-after-response";
+import { runCheckoutPostPersist } from "@/lib/checkout-post-persist";
 import {
   cacheCheckoutOrder,
   checkoutClientIp,
@@ -37,13 +28,8 @@ import {
   checkoutSloLog,
   type CheckoutOutcome,
 } from "@/lib/checkout-observability";
-import {
-  checkoutHttpStatusAfterOrderPersisted,
-  summarizeNewOrderEmailOutcome,
-} from "@/lib/email-checkout-rules";
+import { checkoutHttpStatusAfterOrderPersisted } from "@/lib/email-checkout-rules";
 import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
-import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
-import { trackMetaServerPurchase } from "@/lib/meta-events-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -166,11 +152,10 @@ export async function POST(request: Request) {
     }
 
     const demoSession = isDemoRequest(request);
-    const resolution = await resolveCheckout(
-      items,
-      giftWrap === true,
-      demoSession,
-    );
+    const [resolution, dealsList] = await Promise.all([
+      resolveCheckout(items, giftWrap === true, demoSession),
+      listProductDeals().catch(() => []),
+    ]);
 
     // Stock / availability errors and invalid quantities are blocking 400s.
     // A price change is a 409: no order is created and no email is sent.
@@ -198,14 +183,13 @@ export async function POST(request: Request) {
     const gift = giftWrap === true;
     let dealDiscount = 0;
     try {
-      const deals = await listProductDeals();
       dealDiscount = applyDealsToCart(
         lines.map((line) => ({
           slug: line.slug,
           quantity: line.quantity,
           price: line.price,
         })),
-        deals,
+        dealsList,
       ).discount;
     } catch (error) {
       console.error("[checkout] deals", error);
@@ -365,140 +349,33 @@ export async function POST(request: Request) {
       });
     }
 
-    if (appliedPromo) {
-      try {
-        await incrementPromoUsage(appliedPromo);
-      } catch {
-        console.error("[checkout] promo usage increment failed");
-      }
-    }
-
-    let sessionTtclid: string | null = null;
-    try {
-      const snapshot = await attachOrderAttribution(orderId, request, body);
-      sessionTtclid = snapshot?.attrib_ttclid || null;
-    } catch {
-      console.error("[order-attribution]", "attach failed");
-    }
-
-    // TikTok Server Events API (Purchase)
-    try {
-      if (typeof trackTikTokServerPurchase === "function" && !baseOrder.isDemo) {
-        await trackTikTokServerPurchase({
-          orderId,
-          total: baseOrder.total,
+    deferAfterResponse(() =>
+      runCheckoutPostPersist({
+        orderId,
+        request,
+        body: body as Record<string, unknown>,
+        consent,
+        appliedPromo,
+        gift,
+        isDemo: baseOrder.isDemo,
+        lines,
+        subtotal,
+        finalShipping,
+        finalTotal,
+        discount,
+        customer: {
+          name: baseOrder.customer.name,
           email: baseOrder.customer.email,
           phone: baseOrder.customer.phone,
-          ip: checkoutClientIp(request),
-          userAgent: request.headers.get("user-agent") || undefined,
-          url: request.headers.get("referer") || "https://buyntryy.com/checkout",
-          lines: baseOrder.items,
-          consent,
-          ttclid: sessionTtclid,
-        });
-      }
-    } catch (err) {
-      console.error("[tiktok-server] root error", err);
-    }
-
-    // Meta Conversions API (Purchase)
-    try {
-      if (!baseOrder.isDemo) {
-        const cookies = request.headers.get("cookie") || "";
-        const fbpMatch = cookies.match(/(?:^|;\s*)_fbp=([^;]+)/);
-        const fbcMatch = cookies.match(/(?:^|;\s*)_fbc=([^;]+)/);
-        
-        await trackMetaServerPurchase({
-          orderId,
-          value: baseOrder.total,
-          items: lines.map((line) => ({
-            productId: line.productId, // Sanity canonical product ID
-            name: line.name,
-            price: line.price,
-            quantity: line.quantity,
-          })),
-          email: baseOrder.customer.email,
-          phone: baseOrder.customer.phone,
-          fullName: baseOrder.customer.name,
+          address: baseOrder.customer.address,
           city: baseOrder.customer.city,
-          postalCode: baseOrder.customer.postal,
-          country: "pk",
-          clientIp: checkoutClientIp(request),
-          userAgent: request.headers.get("user-agent") || undefined,
-          eventSourceUrl: request.headers.get("referer") || undefined,
-          fbp: fbpMatch ? fbpMatch[1] : undefined,
-          fbc: fbcMatch ? fbcMatch[1] : undefined,
-        });
-      }
-    } catch (err) {
-      console.error("[meta-server] root error", err);
-    }
-
-    const emailPayload = {
-      orderId,
-      name: baseOrder.customer.name ?? "there",
-      items: lines.map((i) => ({
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-        ...(i.slug ? { slug: i.slug } : {}),
-        ...(i.variantName ? { variantName: i.variantName } : {}),
-      })),
-      subtotal,
-      shipping: finalShipping,
-      discount,
-      promoCode: appliedPromo,
-      giftWrapFee: gift ? GIFT_WRAP_FEE : 0,
-      total: baseOrder.total,
-      phone: baseOrder.customer.phone,
-      address: baseOrder.customer.address,
-      city: baseOrder.customer.city,
-      postal: baseOrder.customer.postal,
-    };
-    const settings = await fetchSiteSettings().catch(() => null);
-    let emailThrew = false;
-    let emailResult = {
-      customerSent: false,
-      adminSent: false,
-      adminTo: "",
-    };
-    try {
-      emailResult = await notifyNewOrderEmails(
-        baseOrder.customer.email,
-        {
-          ...emailPayload,
-          email: baseOrder.customer.email,
+          postal: baseOrder.customer.postal,
         },
-        { settingsEmail: settings?.email },
-      );
-    } catch (err) {
-      emailThrew = true;
-      console.error("[checkout] email send threw:", err);
-    }
-    const emailOutcome = summarizeNewOrderEmailOutcome(emailResult, emailThrew);
-    const emailNote = emailThrew
-      ? "Email send issue: exception during send."
-      : orderEmailFailureNote(emailResult);
-    if (emailNote) {
-      try {
-        await appendOrderNote(orderId, emailNote);
-      } catch {
-        console.error("[checkout] email failure note");
-      }
-    }
-    try {
-      await enqueueEmailEvent(
-        "post-purchase",
-        baseOrder.customer.email,
-        emailPayload,
-        5 * 24 * 60 * 60 * 1000,
-      );
-    } catch (err) {
-      console.error("[checkout] enqueue post-purchase email failed:", err);
-    }
+      }),
+    );
 
     const status = checkoutHttpStatusAfterOrderPersisted(true);
-    slo("success", status, { itemCount: lines.length, emailOutcome });
+    slo("success", status, { itemCount: lines.length, emailOutcome: "deferred" });
     return NextResponse.json({
       ok: true,
       orderId,

@@ -145,8 +145,29 @@ export async function resolveCheckout(
     ) {
       return { ok: false, error: CHECKOUT_ERRORS.invalidQuantity };
     }
+  }
 
-    const product = await fetchProductForCheckout(slug, includeDemo);
+  const uniqueSlugs = [
+    ...new Set(
+      items
+        .map((line) =>
+          typeof line.slug === "string" ? line.slug.trim() : "",
+        )
+        .filter(Boolean),
+    ),
+  ];
+  const productPairs = await Promise.all(
+    uniqueSlugs.map(async (slug) => {
+      const product = await fetchProductForCheckout(slug, includeDemo);
+      return [slug, product] as const;
+    }),
+  );
+  const productBySlug = new Map(productPairs);
+
+  for (const line of items) {
+    const slug = typeof line.slug === "string" ? line.slug.trim() : "";
+    const quantity = line.quantity!;
+    const product = productBySlug.get(slug) ?? null;
     if (!product) {
       return { ok: false, error: CHECKOUT_ERRORS.unavailable };
     }
