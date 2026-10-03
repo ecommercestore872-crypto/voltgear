@@ -113,6 +113,30 @@ describe("portableTextToCopyBlocks", () => {
     assert.equal(blocks[0].type === "lead" && blocks[0].spans[0]?.text, "Multi-functional 4-in-1 charger.");
   });
 
+  it("preserves inline and block images in document order", () => {
+    const url = "https://res.cloudinary.com/demo/image/upload/sample.jpg";
+    const blocks = portableTextToCopyBlocks([
+      {
+        _type: "block",
+        style: "normal",
+        children: [{ _type: "span", text: "See the detail.", marks: [] }],
+      },
+      { _type: "image", url, dimensions: { width: 800, height: 600 } },
+      {
+        _type: "inlineImage",
+        image: "https://res.cloudinary.com/demo/image/upload/other.jpg",
+      },
+    ]);
+    assert.deepEqual(
+      blocks.map((b) => b.type),
+      ["lead", "image", "image"],
+    );
+    const firstImage = blocks.find((b) => b.type === "image");
+    assert.ok(firstImage && firstImage.type === "image");
+    assert.equal(firstImage.url, url);
+    assert.equal(firstImage.width, 800);
+  });
+
   it("recovers structure from a single dumped portable-text block", () => {
     const blocks = portableTextToCopyBlocks([
       {

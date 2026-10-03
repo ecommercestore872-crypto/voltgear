@@ -10,7 +10,14 @@ export type ProductCopyBlock =
   | { type: "lead"; spans: CopySpan[] }
   | { type: "paragraph"; spans: CopySpan[] }
   | { type: "list"; ordered: boolean; items: CopySpan[][] }
-  | { type: "callout"; spans: CopySpan[] };
+  | { type: "callout"; spans: CopySpan[] }
+  | {
+      type: "image";
+      url: string;
+      alt?: string;
+      width?: number;
+      height?: number;
+    };
 
 const INLINE_RE = /(\*\*([^*]+)\*\*|\*([^*]+)\*|_([^_]+)_)/g;
 
@@ -211,8 +218,102 @@ export function portableTextToPlain(value: unknown): string {
   return parts.join("\n\n");
 }
 
+function imageDimensions(block: Record<string, unknown>): {
+  width?: number;
+  height?: number;
+} {
+  const d = block.dimensions;
+  if (!d || typeof d !== "object") return {};
+  const row = d as Record<string, unknown>;
+  const width = typeof row.width === "number" ? row.width : undefined;
+  const height = typeof row.height === "number" ? row.height : undefined;
+  return { width, height };
+}
+
+function copyBlockFromPortableImage(raw: unknown): ProductCopyBlock | null {
+  if (!raw || typeof raw !== "object") return null;
+  const block = raw as Record<string, unknown>;
+  const type = block._type;
+  const payload =
+    type === "inlineImage" && block.image != null ? block.image : block;
+  const url =
+    typeof payload === "string"
+      ? payload.trim()
+      : typeof payload === "object" && payload
+        ? (() => {
+            const row = payload as Record<string, unknown>;
+            if (typeof row.url === "string" && row.url.trim()) return row.url.trim();
+            if (typeof row.src === "string" && row.src.trim()) return row.src.trim();
+            const asset = row.asset;
+            if (asset && typeof asset === "object") {
+              const u = (asset as Record<string, unknown>).url;
+              if (typeof u === "string" && u.trim()) return u.trim();
+            }
+            return "";
+          })()
+        : "";
+  if (!url) return null;
+  const alt =
+    typeof block.alt === "string"
+      ? block.alt
+      : typeof (payload as Record<string, unknown>)?.alt === "string"
+        ? String((payload as Record<string, unknown>).alt)
+        : undefined;
+  return {
+    type: "image",
+    url,
+    alt,
+    ...imageDimensions(block),
+  };
+}
+
+function portableTextChunkToPlain(raw: unknown): string {
+  if (typeof raw === "string") return raw.trim() ? raw : "";
+  if (!raw || typeof raw !== "object") return "";
+  const block = raw as {
+    _type?: string;
+    text?: unknown;
+    children?: unknown[];
+  };
+  if (block._type === "image" || block._type === "inlineImage") return "";
+  if (block._type === "paragraph" && typeof block.text === "string") {
+    return block.text;
+  }
+  return portableTextToPlain([raw]);
+}
+
 export function portableTextToCopyBlocks(value: unknown): ProductCopyBlock[] {
-  return parseProductDetailCopy(portableTextToPlain(value));
+  if (typeof value === "string") return parseProductDetailCopy(value);
+  if (!Array.isArray(value)) return [];
+
+  const blocks: ProductCopyBlock[] = [];
+  const textChunks: string[] = [];
+
+  const flushText = () => {
+    if (textChunks.length === 0) return;
+    blocks.push(...parseProductDetailCopy(textChunks.join("\n\n")));
+    textChunks.length = 0;
+  };
+
+  for (const raw of value) {
+    if (typeof raw === "string") {
+      if (raw.trim()) textChunks.push(raw);
+      continue;
+    }
+    if (!raw || typeof raw !== "object") continue;
+    const type = (raw as { _type?: string })._type;
+    if (type === "image" || type === "inlineImage") {
+      flushText();
+      const imageBlock = copyBlockFromPortableImage(raw);
+      if (imageBlock) blocks.push(imageBlock);
+      continue;
+    }
+    const plain = portableTextChunkToPlain(raw);
+    if (plain) textChunks.push(plain);
+  }
+
+  flushText();
+  return blocks;
 }
 
 function spansToChildren(spans: CopySpan[], key: string) {
@@ -314,6 +415,10 @@ export function previewProductCopy(blocks: ProductCopyBlock[]): {
 
   const first = blocks[0];
   const hasLater = blocks.length > 1;
+
+  if (first.type === "image") {
+    return { blocks: [first], hasMore: blocks.length > 1 };
+  }
 
   if (first.type === "lead" || first.type === "paragraph" || first.type === "callout") {
     if (spansLength(first.spans) > PREVIEW_CHARS) {

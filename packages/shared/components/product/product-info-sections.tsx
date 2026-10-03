@@ -291,24 +291,24 @@ export function ReviewsSection({
                     <p className="text-sm text-foreground/80 leading-relaxed">{review.reply}</p>
                   </div>
                 )}
-                {review.image && (
+                {review.image ? (
                   <div className="mt-4">
                     <a
-                      href={review.image}
+                      href={imageUrl(review.image, { w: 1200 })}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={review.image}
+                        src={imageUrl(review.image, { w: 400 })}
                         alt={`Photo from ${review.name ?? "customer"}`}
                         className="h-20 w-20 cursor-zoom-in rounded-lg border border-border/70 object-cover shadow-sm bg-muted/20 hover:opacity-80 transition-opacity"
                         loading="lazy"
                       />
                     </a>
                   </div>
-                )}
+                ) : null}
               </li>
             ))}
           </ul>
