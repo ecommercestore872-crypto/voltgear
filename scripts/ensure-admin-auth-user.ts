@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { adminAuthEmailAllowlist } from "../lib/admin-auth-email";
-import { ensureAuthUserForEmail, findAuthUserByEmail } from "../lib/admin-auth-supabase";
-import { getServiceClient } from "../lib/supabase/server";
+import { adminAuthEmailAllowlist } from "../packages/shared/lib/admin-auth-email";
+import { ensureAuthUserForEmail, findAuthUserByEmail } from "../packages/shared/lib/admin-auth-supabase";
+import { getServiceClient } from "../packages/shared/lib/supabase/server";
 
 function loadEnv(file: string) {
   const path = resolve(process.cwd(), file);

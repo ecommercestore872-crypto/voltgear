@@ -31,14 +31,19 @@ export function logAdminApiEvent(event: AdminApiLogEvent): void {
   }
 }
 
-type RouteHandler = (request: Request, context?: unknown) => Response | Promise<Response>;
+/** Next route handlers may be `(req)` or `(req, { params })`. */
+export type AdminApiRouteHandler = (
+  request: Request,
+  context?: unknown,
+) => Response | Promise<Response>;
 
 /** Wrap a Route Handler export to record duration and status. */
 export function withAdminApiObservability(
   routeName: string,
-  handler: RouteHandler,
-): RouteHandler {
-  return async (request, context) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Next route arity varies
+  handler: any,
+): AdminApiRouteHandler {
+  const wrapped: AdminApiRouteHandler = async (request, context) => {
     const t0 = performance.now();
     let status = 500;
     try {
@@ -59,4 +64,5 @@ export function withAdminApiObservability(
       }
     }
   };
+  return wrapped;
 }

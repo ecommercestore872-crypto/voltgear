@@ -66,7 +66,8 @@ Then mobile-spot-check: **checkout** and **order success** after any funnel chan
 |------|--------|
 | Production deploy path | Storefront + admin split ✅ |
 | CI lint + test + build | ✅ |
-| Legacy duplicate trees | Documented removal — `docs/LEGACY-TREE-REMOVAL.md` ⚠️ |
-| TypeScript strict builds | TS2020 + downlevelIteration; ~20 errors remain; `ignoreBuildErrors` ⚠️ |
+| Legacy duplicate trees | Removed from git (production uses monorepo apps only) ✅ |
+| TypeScript strict builds | Storefront + admin: `ignoreBuildErrors: false` ✅ |
 | Cross-platform mobile UX | Cart + checkout + order premium mobile; iOS + Android rules ✅ |
 | Funnel polish | Cart sticky COD bar, checkout order box, order success premium ✅ |
+| Real-device funnel QA | Checklist: `docs/FUNNEL-QA-CHECKLIST.md` — run before major releases ⚠️ |

@@ -1,6 +1,6 @@
 import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
-import { adminDb } from "../lib/supabase/admin";
+import { adminDb } from "../packages/shared/lib/supabase/admin";
 
 async function run() {
   const { data: products, error } = await adminDb

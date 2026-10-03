@@ -128,7 +128,7 @@ export async function fetchPostExAirwayBillPdf(
     text.trimStart().startsWith("[");
   if (looksJson) {
     const parsed = await readPostExJsonResponse(
-      new Response(bodyBytes, {
+      new Response(bodyBytes as unknown as BodyInit, {
         status: upstreamHttpStatus,
         headers: { "content-type": contentTypeHeader || "application/json" },
       }),

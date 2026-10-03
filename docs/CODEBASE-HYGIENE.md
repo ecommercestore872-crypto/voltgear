@@ -2,7 +2,7 @@
 
 **Product / acquirer quality bar:** [`STORE-QUALITY-STANDARD.md`](./STORE-QUALITY-STANDARD.md)
 
-Production runs **`apps/storefront`**, **`apps/admin`**, and **`packages/shared`**. Root **`app/`**, **`lib/`**, and **`components/`** are legacy duplicates — see `app/DEPRECATED.md`, `lib/DEPRECATED.md`, `components/DEPRECATED.md`.
+Production runs **`apps/storefront`**, **`apps/admin`**, and **`packages/shared`** only. Root legacy trees were removed; do not reintroduce duplicate `app/` / `lib/` / `components/` at repo root.
 
 ## Quality gates (target state)
 
@@ -16,8 +16,8 @@ Production runs **`apps/storefront`**, **`apps/admin`**, and **`packages/shared`
 
 ## Known debt (prioritized)
 
-1. **Remove legacy root trees** — ~570 duplicate files under `app/`, `lib/`, `components/` after confirming no deploy/scripts depend on them (T-40 plan).
-2. **`ignoreBuildErrors: true`** on both Next apps — TypeScript errors do not fail builds; tighten incrementally per app.
+1. ~~**Remove legacy root trees**~~ — Done. Scripts import from `packages/shared/lib/`.
+2. ~~**`ignoreBuildErrors`**~~ — Both Next apps fail builds on TypeScript errors.
 3. **Root repo clutter** — tracked diagnostics (`lint-output.txt`, `build_error.txt`, STEP reports); prefer deleting or gitignoring.
 4. **Untracked one-off scripts** — `scripts/_tmp-*`, `scripts/bnt1042-*` should stay local or move to `scripts/archive/` with README.
 5. **Design previews** — `docs/design/preview/` is mock HTML; keep untracked or commit only if team uses them.

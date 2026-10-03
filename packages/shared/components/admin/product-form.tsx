@@ -173,7 +173,12 @@ export function ProductForm({
 
   function commitSavedBaseline(latest: ProductDocument) {
     resetSaved({
-      payload: latest,
+      payload: {
+        ...latest,
+        description: textToPortableText(
+          portableTextToPlain(latest.description),
+        ),
+      },
       collectionIds: [...selectedCollectionIds].sort(),
     });
   }

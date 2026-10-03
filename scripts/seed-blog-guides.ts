@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { FALLBACK_BLOG_POSTS } from "../lib/blog-data";
-import { sanitizeBlogSections } from "../lib/blog-safety-rules";
-import { getServiceClient } from "../lib/supabase/server";
+import { FALLBACK_BLOG_POSTS } from "../packages/shared/lib/blog-data";
+import { sanitizeBlogSections } from "../packages/shared/lib/blog-safety-rules";
+import { getServiceClient } from "../packages/shared/lib/supabase/server";
 
 function loadEnv(file: string) {
   const path = resolve(process.cwd(), file);

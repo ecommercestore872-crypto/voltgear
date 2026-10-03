@@ -1,13 +1,13 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { FALLBACK_BLOG_POSTS } from "../lib/blog-data";
-import { FALLBACK_SHOP_TYPES } from "../lib/categories";
+import { FALLBACK_BLOG_POSTS } from "../packages/shared/lib/blog-data";
+import { FALLBACK_SHOP_TYPES } from "../packages/shared/lib/categories";
 import {
   priorityIndexNowPaths,
   submitIndexNow,
-} from "../lib/indexnow-rules";
-import { CANONICAL_PUBLIC_ORIGIN } from "../lib/seo-rules";
+} from "../packages/shared/lib/indexnow-rules";
+import { CANONICAL_PUBLIC_ORIGIN } from "../packages/shared/lib/seo-rules";
 
 function loadEnv(file: string) {
   const path = resolve(process.cwd(), file);

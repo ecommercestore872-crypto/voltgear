@@ -154,6 +154,9 @@ export function OrderDetail({
         message?: string;
         error?: string;
         applied?: boolean;
+        transactionDate?: string | null;
+        orderPickupDate?: string | null;
+        orderDeliveryDate?: string | null;
       };
       if (data.success) {
         const dates = [

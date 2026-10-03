@@ -19,6 +19,7 @@ import {
   DEFAULT_FOOTER_COMPANY_LINKS,
   DEFAULT_HELP_LINKS,
   DEFAULT_NAV_LINKS,
+  type ChromeLink,
 } from "@/lib/chrome-nav-rules";
 import { adminDraftBag, chromeLinksField } from "@/lib/admin-draft";
 import { SHOPPER_BRAND, shouldReplaceBrandName } from "@/lib/brand";

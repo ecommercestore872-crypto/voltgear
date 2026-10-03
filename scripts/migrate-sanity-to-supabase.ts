@@ -15,7 +15,7 @@ import {
   chooseImageBackend,
   isCloudinaryConfigured,
   readSupabaseEnv,
-} from "../lib/db/migration-rules";
+} from "../packages/shared/lib/db/migration-rules";
 
 function loadEnvLocal() {
   const file = path.join(process.cwd(), ".env.local");

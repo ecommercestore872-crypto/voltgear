@@ -1,6 +1,6 @@
 import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
-import { adminDb } from "../lib/db/admin-client";
+import { adminDb } from "../packages/shared/lib/db/admin-client";
 
 async function run() {
   const { data: products, error } = await adminDb

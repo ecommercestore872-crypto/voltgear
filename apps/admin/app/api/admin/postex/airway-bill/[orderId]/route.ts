@@ -26,7 +26,7 @@ async function GETHandler(
     return NextResponse.json(result.body, { status: result.status });
   }
 
-  return new NextResponse(result.pdfBytes, {
+  return new NextResponse(result.pdfBytes as unknown as BodyInit, {
     status: result.status,
     headers: result.headers,
   });

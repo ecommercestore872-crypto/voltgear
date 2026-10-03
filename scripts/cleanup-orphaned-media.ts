@@ -2,7 +2,7 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 import { v2 as cloudinary } from "cloudinary";
-import { getServiceClient } from "../lib/supabase/server";
+import { getServiceClient } from "../packages/shared/lib/supabase/server";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,

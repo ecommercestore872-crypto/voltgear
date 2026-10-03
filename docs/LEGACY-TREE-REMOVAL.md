@@ -17,7 +17,6 @@ git push origin main
 
 Vercel is **not** configured to deploy from root `app/` — shop is **`apps/storefront`**.
 
-## Until removed
+## Status
 
-- Do **not** edit legacy files for shop fixes.
-- Run dev with `npm run dev` (storefront workspace only).
+Legacy root trees were removed after scripts were repointed to `packages/shared/lib/`. If you restore from an old branch, do not merge root `app/` / `lib/` / `components/` back without a deliberate migration plan.

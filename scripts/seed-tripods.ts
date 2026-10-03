@@ -2,8 +2,8 @@ import { createClient as createSupabase } from "@supabase/supabase-js";
 import fs from "node:fs";
 import path from "node:path";
 
-import { readSupabaseEnv } from "../lib/db/migration-rules";
-import { textToPortableText } from "../lib/product-detail-copy";
+import { readSupabaseEnv } from "../packages/shared/lib/db/migration-rules";
+import { textToPortableText } from "../packages/shared/lib/product-detail-copy";
 import { TRIPODS_DATA, TRIPODS_KEEP_SLUGS } from "./data/tripods-catalog";
 
 function loadEnvLocal() {
