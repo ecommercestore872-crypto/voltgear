@@ -17,6 +17,7 @@ import {
   mapHero,
   mapHeroSlide,
   mapPage,
+  mapPdpDetailFields,
   mapProduct,
   mapSettings,
   mapTestimonial,
@@ -81,12 +82,17 @@ const PRODUCT_EMBED = `
 export const CATALOG_PRODUCT_EMBED =
   "id, name, slug, category, price, compare_at_price, cloudinary_images, short_description, sku, brand, stock_status, quantity, rating, review_count, featured, badge, is_demo, status, created_at, product_images ( url, sort_order, source ), product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )";
 
-/** PDP: full product row + media/variants; reviews load below the fold separately. */
-const PDP_PRODUCT_EMBED = `
-  *,
+/** PDP above-the-fold: buy box + gallery — excludes long JSON copy (loaded in deferred chunk). */
+const PDP_SHELL_EMBED = `
+  id, name, slug, category, price, compare_at_price, cloudinary_images, short_description, sku, brand,
+  stock_status, quantity, rating, review_count, featured, badge, is_demo, status, free_shipping,
+  color_enabled, size_enabled, color_options, size_options, product_video,
   product_images ( url, sort_order, source ),
   product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )
 `;
+
+const PDP_DETAILS_EMBED =
+  "id, description, features, specifications, compatibility, in_the_box, product_faq, product_video, addons";
 
 function db() {
   return getServiceClient();
@@ -298,7 +304,7 @@ async function loadPdpProductRow(slug: string): Promise<Product | null> {
     demoFilter(
       db()
         .from("products")
-        .select(PDP_PRODUCT_EMBED)
+        .select(PDP_SHELL_EMBED)
         .eq("slug", trimmed)
         .eq("status", LIVE),
       false,
@@ -315,12 +321,46 @@ async function loadPdpProductRow(slug: string): Promise<Product | null> {
   return product;
 }
 
+async function loadPdpProductDetailsRow(
+  slug: string,
+): Promise<ReturnType<typeof mapPdpDetailFields>> {
+  const trimmed = slug.trim();
+  if (!trimmed) return null;
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(PDP_DETAILS_EMBED)
+        .eq("slug", trimmed)
+        .eq("status", LIVE),
+      false,
+    ).maybeSingle(),
+  );
+  if (error) throw error;
+  return mapPdpDetailFields(data as Record<string, unknown> | null);
+}
+
 export async function loadCachedPdpProductBySlug(slug: string): Promise<Product | null> {
   const trimmed = slug.trim();
   if (!trimmed) return null;
   return unstable_cache(
     async () => loadPdpProductRow(trimmed),
-    ["pdp-product-v1", trimmed],
+    ["pdp-product-v2", trimmed],
+    {
+      revalidate: STOREFRONT_CATALOG_REVALIDATE,
+      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, pdpProductCacheTag(trimmed)],
+    },
+  )();
+}
+
+export async function loadCachedPdpDetailsBySlug(
+  slug: string,
+): Promise<ReturnType<typeof mapPdpDetailFields>> {
+  const trimmed = slug.trim();
+  if (!trimmed) return null;
+  return unstable_cache(
+    async () => loadPdpProductDetailsRow(trimmed),
+    ["pdp-details-v1", trimmed],
     {
       revalidate: STOREFRONT_CATALOG_REVALIDATE,
       tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, pdpProductCacheTag(trimmed)],

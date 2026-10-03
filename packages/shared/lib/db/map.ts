@@ -142,6 +142,50 @@ export function mapProduct(
   };
 }
 
+/** Long-form PDP fields — loaded below the fold, not in the shell query. */
+export function mapPdpDetailFields(
+  row: Record<string, unknown> | null,
+): Pick<
+  Product,
+  | "description"
+  | "features"
+  | "specifications"
+  | "compatibility"
+  | "inTheBox"
+  | "productFaq"
+  | "productVideo"
+  | "addons"
+> | null {
+  if (!row) return null;
+  return {
+    description: Array.isArray(row.description)
+      ? (row.description as Product["description"])
+      : typeof row.description === "string" && row.description.trim()
+        ? (textToPortableText(row.description) as Product["description"])
+        : undefined,
+    features: Array.isArray(row.features) ? (row.features as string[]) : undefined,
+    specifications: Array.isArray(row.specifications)
+      ? (row.specifications as Product["specifications"])
+      : undefined,
+    compatibility: Array.isArray(row.compatibility)
+      ? (row.compatibility as string[])
+      : undefined,
+    inTheBox: Array.isArray(row.in_the_box) ? (row.in_the_box as string[]) : undefined,
+    productFaq: Array.isArray(row.product_faq)
+      ? (row.product_faq as Product["productFaq"])
+      : undefined,
+    productVideo: row.product_video
+      ? {
+          url: (row.product_video as { url?: string }).url,
+          cloudinaryPublicId: (row.product_video as { cloudinaryPublicId?: string })
+            .cloudinaryPublicId,
+          poster: (row.product_video as { poster?: string }).poster,
+        }
+      : undefined,
+    addons: Array.isArray(row.addons) ? (row.addons as Product["addons"]) : undefined,
+  };
+}
+
 export function mapSettings(row: Record<string, unknown> | null): SiteSettings | null {
   if (!row) return null;
   return {

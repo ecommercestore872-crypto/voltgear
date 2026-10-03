@@ -20,6 +20,8 @@ const ProductViewTracker = dynamic(
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { loadPdpProductBySlug } from "@/lib/db/product-pdp";
+import { fetchProductSlugs } from "@/lib/db/store";
+import { stripProductForPdpClient } from "@/lib/pdp-client-payload";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { pdpLcpImageUrl } from "@/lib/gadget-pdp-lcp";
 import { normalizeSettings } from "@/lib/site-config";
@@ -29,6 +31,17 @@ import { indexSiteUrl, productStructuredData } from "@/lib/seo-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 
 export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+
+const PDP_STATIC_BUILD_LIMIT = 160;
+
+export async function generateStaticParams() {
+  try {
+    const rows = await fetchProductSlugs();
+    return rows.slice(0, PDP_STATIC_BUILD_LIMIT).map(({ slug }) => ({ slug }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -248,7 +261,7 @@ export default async function Product2Page({
 
         <div className="mt-6">
           <GadgetPdpProductGrid
-            product={product}
+            product={stripProductForPdpClient(product)}
             config={config}
             lcpHero={<GadgetPdpServerHero product={product} />}
           />

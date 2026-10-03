@@ -14,6 +14,7 @@ import {
   fetchDealCatalogForSlugs,
   listCachedDealsForProductSlug,
 } from "@/lib/db/deal-store";
+import { loadPdpProductDetailsBySlug } from "@/lib/db/product-pdp";
 import {
   fetchCachedApprovedReviews,
   fetchCatalogProductsBySlugs,
@@ -31,9 +32,10 @@ export async function GadgetPdpDeferred({
 }) {
   const slugKey = normalizeDealSlug(productIn.slug);
 
-  const [approvedReviews, deals] = await Promise.all([
+  const [approvedReviews, deals, detailFields] = await Promise.all([
     fetchCachedApprovedReviews(productIn._id).catch(() => []),
     listCachedDealsForProductSlug(productIn.slug).catch(() => []),
+    loadPdpProductDetailsBySlug(productIn.slug).catch(() => null),
   ]);
 
   const slugsForDeals = new Set<string>([productIn.slug]);
@@ -76,17 +78,19 @@ export async function GadgetPdpDeferred({
     },
   );
 
-  let product = applyGadgetStudioImages(
-    mergedReviews.length
+  const enriched: Product = {
+    ...productIn,
+    ...(detailFields ?? {}),
+    ...(mergedReviews.length
       ? {
-          ...productIn,
           reviews: mergedReviews,
           reviewCount:
             (productIn.reviewCount ?? 0) +
             (approvedReviews.length ? approvedReviews.length : 0),
         }
-      : productIn,
-  );
+      : {}),
+  };
+  let product = applyGadgetStudioImages(enriched);
   const relatedProducts = applyGadgetStudioImagesList(related);
 
   return (

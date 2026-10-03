@@ -6,15 +6,15 @@ import { GadgetBuyBox } from "@/components/gadget/gadget-buy-box";
 import { GadgetPdpGalleryClient } from "@/components/gadget/gadget-pdp-gallery-client";
 import { GadgetPdpVariantProvider } from "@/components/gadget/gadget-pdp-variant-context";
 import { useGadgetPdpVariantImage } from "@/components/gadget/gadget-pdp-variant-context";
+import type { PdpClientProduct } from "@/lib/pdp-client-payload";
 import type { PublicSiteConfig } from "@/lib/site-config";
-import type { Product } from "@/lib/types";
 
 function GadgetPdpProductGridInner({
   product,
   config,
   lcpHero,
 }: {
-  product: Product;
+  product: PdpClientProduct;
   config: PublicSiteConfig;
   lcpHero: ReactNode;
 }) {
@@ -38,7 +38,7 @@ export function GadgetPdpProductGrid({
   config,
   lcpHero,
 }: {
-  product: Product;
+  product: PdpClientProduct;
   config: PublicSiteConfig;
   lcpHero: ReactNode;
 }) {
