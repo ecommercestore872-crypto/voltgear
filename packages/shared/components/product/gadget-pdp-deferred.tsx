@@ -20,6 +20,7 @@ import {
   fetchCatalogProductsBySlugs,
   fetchRelatedProducts,
 } from "@/lib/db/store";
+import type { ApprovedReviewStats } from "@/lib/product-review-stats";
 import type { Product } from "@/lib/types";
 
 const RELATED_LIMIT = 4;
@@ -27,8 +28,10 @@ const RELATED_LIMIT = 4;
 /** Below-fold PDP content — streams after buy box for faster mobile LCP. */
 export async function GadgetPdpDeferred({
   product: productIn,
+  reviewStats,
 }: {
   product: Product;
+  reviewStats: ApprovedReviewStats;
 }) {
   const slugKey = normalizeDealSlug(productIn.slug);
 
@@ -81,14 +84,9 @@ export async function GadgetPdpDeferred({
   const enriched: Product = {
     ...productIn,
     ...(detailFields ?? {}),
-    ...(mergedReviews.length
-      ? {
-          reviews: mergedReviews,
-          reviewCount:
-            (productIn.reviewCount ?? 0) +
-            (approvedReviews.length ? approvedReviews.length : 0),
-        }
-      : {}),
+    reviews: mergedReviews.length ? mergedReviews : productIn.reviews,
+    reviewCount: reviewStats.count,
+    rating: reviewStats.count > 0 ? reviewStats.averageRating : undefined,
   };
   let product = applyGadgetStudioImages(enriched);
   const relatedProducts = applyGadgetStudioImagesList(related);
@@ -109,7 +107,7 @@ export async function GadgetPdpDeferred({
         <ReviewsSection
           product={product}
           reviews={product.reviews ?? []}
-          rating={product.rating}
+          rating={reviewStats.count > 0 ? reviewStats.averageRating : undefined}
           includeDemo={false}
         />
       </div>

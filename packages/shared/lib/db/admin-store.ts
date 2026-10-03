@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 
 import {
   revalidateAdminCacheTag,
@@ -12,6 +12,8 @@ const ADMIN_SETTINGS_CACHE_TAG = "admin-settings";
 const ADMIN_SHOP_TYPES_CACHE_TAG = "admin-shop-types";
 
 import type { AdminProduct } from "@/lib/db/admin-types";
+import { fetchApprovedReviewStats } from "@/lib/db/review-stats-store";
+import { STOREFRONT_CATALOG_GRID_CACHE_TAG } from "@/lib/storefront-cache";
 import { mapProduct } from "@/lib/db/map";
 import {
   canPublish,
@@ -1704,16 +1706,20 @@ export async function moderateReview(id: string, action: "approve" | "reject", r
     image: approved.image ?? null,
     is_demo: Boolean(submission.is_demo),
   });
+  await db().from("review_submissions").update({ status: "approved", reply: reply ?? null }).eq("id", id);
+  const stats = await fetchApprovedReviewStats(productId);
   await db()
     .from("products")
     .update({
       draft: merged.draft,
-      review_count: (product.reviewCount ?? 0) + 1,
+      review_count: stats.count,
+      rating: stats.count > 0 ? stats.averageRating : null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", productId);
-  await db().from("review_submissions").update({ status: "approved", reply: reply ?? null }).eq("id", id);
-  void revalidateAfterPublish(`/product/${product.slug}`);
+  revalidateTag(`product-reviews-${productId}`);
+  revalidateTag(STOREFRONT_CATALOG_GRID_CACHE_TAG);
+  void revalidateAfterPublish(`/product/${product.slug}`, "/products");
   return { ok: true as const };
 }
 

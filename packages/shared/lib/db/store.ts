@@ -23,6 +23,9 @@ import {
   mapTestimonial,
 } from "@/lib/db/map";
 import { pdpProductCacheTag } from "@/lib/gadget-pdp-lcp";
+import { fetchApprovedReviewStats } from "@/lib/db/review-stats-store";
+import type { ApprovedReviewStats } from "@/lib/product-review-stats";
+import { EMPTY_APPROVED_REVIEW_STATS } from "@/lib/product-review-stats";
 import { pickBestsellers } from "@/lib/db/bestsellers-rules";
 import { MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import { formatOrderId, nextSequentialNumber } from "@/lib/db/order-id";
@@ -847,6 +850,23 @@ export async function fetchReviewProducts(includeDemo = false): Promise<
       category: p.category,
       image: typeof p.images?.[0] === "string" ? p.images[0] : null,
     }));
+}
+
+export { fetchApprovedReviewStats } from "@/lib/db/review-stats-store";
+
+export async function fetchCachedApprovedReviewStats(
+  productId: string,
+): Promise<ApprovedReviewStats> {
+  const id = productId.trim();
+  if (!id) return EMPTY_APPROVED_REVIEW_STATS;
+  return unstable_cache(
+    async () => fetchApprovedReviewStats(id),
+    ["approved-review-stats-v1", id],
+    {
+      revalidate: STOREFRONT_CATALOG_REVALIDATE,
+      tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, `product-reviews-${id}`],
+    },
+  )();
 }
 
 export async function fetchCachedApprovedReviews(

@@ -19,7 +19,8 @@ const ProductViewTracker = dynamic(
 );
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
-import { loadPdpProductBySlug } from "@/lib/db/product-pdp";
+import { loadPdpProductBySlug, loadPdpReviewStats } from "@/lib/db/product-pdp";
+import { EMPTY_APPROVED_REVIEW_STATS } from "@/lib/product-review-stats";
 import { fetchProductSlugs } from "@/lib/db/store";
 import { stripProductForPdpClient } from "@/lib/pdp-client-payload";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
@@ -128,6 +129,10 @@ export default async function Product2Page({
 
   if (!product) notFound();
 
+  const reviewStats =
+    (await loadPdpReviewStats(product._id).catch(() => null)) ??
+    EMPTY_APPROVED_REVIEW_STATS;
+
   const settings = await loadStorefrontSettings().catch(() => null);
 
   product = applyGadgetStudioImages(product);
@@ -152,8 +157,9 @@ export default async function Product2Page({
     inStock: product.stockStatus !== "out-of-stock",
     sku: product.sku,
     brandName: SHOPPER_BRAND.spokenName,
-    rating: product.rating,
-    reviewCount: product.reviewCount,
+    rating:
+      reviewStats.count > 0 ? reviewStats.averageRating : undefined,
+    reviewCount: reviewStats.count > 0 ? reviewStats.count : undefined,
     shippingFee: config.shippingFee,
     returnDays: config.returnWindowDays ?? undefined,
   });
@@ -263,12 +269,13 @@ export default async function Product2Page({
           <GadgetPdpProductGrid
             product={stripProductForPdpClient(product)}
             config={config}
+            reviewStats={reviewStats}
             lcpHero={<GadgetPdpServerHero product={product} />}
           />
         </div>
 
         <Suspense fallback={<PdpDeferredFallback />}>
-          <GadgetPdpDeferred product={product} />
+          <GadgetPdpDeferred product={product} reviewStats={reviewStats} />
         </Suspense>
       </div>
     </div>

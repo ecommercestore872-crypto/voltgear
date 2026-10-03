@@ -23,6 +23,7 @@ import { GadgetProductWatchLinks } from "@/components/gadget/gadget-product-watc
 import { ProductGallery } from "@/components/product/product-gallery";
 import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
 import { getVariantStockState } from "@/lib/stock";
+import type { ApprovedReviewStats } from "@/lib/product-review-stats";
 import type { PublicSiteConfig } from "@/lib/site-config";
 import { warrantyLabel } from "@/lib/site-config";
 import type { Product, ProductVariant } from "@/lib/types";
@@ -46,11 +47,14 @@ function defaultVariant(product: Product): ProductVariant | null {
 export function GadgetBuyBox({
   product,
   config,
+  reviewStats,
   infoOnly = false,
   syncGalleryVariant = false,
 }: {
   product: Product;
   config: PublicSiteConfig;
+  /** Admin-approved customer reviews (live count + average). */
+  reviewStats?: ApprovedReviewStats | null;
   /** When true, omit gallery column (use `GadgetPdpGalleryShell` in the page grid). */
   infoOnly?: boolean;
   /** Push selected variant image to `GadgetPdpVariantProvider` gallery column. */
@@ -117,9 +121,9 @@ export function GadgetBuyBox({
     return () => observer.disconnect();
   }, [outOfStock, selectionReady]);
 
-  const rating =
-    product.rating != null && product.rating > 0 ? product.rating : 4.8;
-  const reviewCount = product.reviewCount ?? 0;
+  const reviewCount = reviewStats?.count ?? 0;
+  const rating = reviewStats?.averageRating ?? 0;
+  const showLiveReviews = reviewCount > 0 && rating > 0;
   const threshold = Number(config.freeShippingThreshold ?? 0);
   const itemImage = colorPhoto
     ? imageUrl(colorPhoto, { w: PRODUCT_IMAGE.thumb })
@@ -206,35 +210,31 @@ export function GadgetBuyBox({
             {product.name}
           </h1>
 
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <div
-              className="flex items-center gap-1"
-              aria-label={`Rated ${rating.toFixed(1)} of 5`}
-            >
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${
-                    i < Math.round(rating)
-                      ? "fill-amber-400 text-amber-400"
-                      : "fill-transparent text-amber-400/30"
-                  }`}
-                />
-              ))}
-              <span className="ml-1 text-sm font-semibold tabular-nums text-[var(--g-charcoal)]">
-                {rating.toFixed(1)}
+          {showLiveReviews ? (
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <div
+                className="flex items-center gap-1"
+                aria-label={`Rated ${rating.toFixed(1)} of 5`}
+              >
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < Math.round(rating)
+                        ? "fill-amber-400 text-amber-400"
+                        : "fill-transparent text-amber-400/30"
+                    }`}
+                  />
+                ))}
+                <span className="ml-1 text-sm font-semibold tabular-nums text-[var(--g-charcoal)]">
+                  {rating.toFixed(1)}
+                </span>
+              </div>
+              <span className="text-sm text-[var(--g-taupe)]">
+                {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
               </span>
             </div>
-            {reviewCount > 0 ? (
-              <span className="text-sm text-[var(--g-taupe)]">
-                {reviewCount} reviews
-              </span>
-            ) : (
-              <span className="text-sm text-[var(--g-taupe)]">
-                Trusted by buyers
-              </span>
-            )}
-          </div>
+          ) : null}
 
           {product.shortDescription ? (
             <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)]">
