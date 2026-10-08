@@ -35,3 +35,20 @@ jobs:
         run: npm run build:admin
         env:
           ADMIN_TOKEN: ci-placeholder-not-for-production
+
+  supabase-db:
+    name: Supabase database regression suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase
+        run: supabase start
+      - name: Run pgTAP and behavioral SQL tests
+        run: supabase test db
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop

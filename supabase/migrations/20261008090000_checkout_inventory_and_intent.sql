@@ -1,8 +1,9 @@
 -- Final checkout RPC override.
 --
 -- This migration intentionally comes after every historical checkout RPC
--- migration. Older migrations selected a variant row for validation but then
--- decremented products.quantity, while cancellation restored the variant row.
+-- migration. Color/Size variants are sellable labels, not inventory buckets:
+-- checkout validates the selected row but always locks and decrements the
+-- parent product quantity.
 -- Keep this definition last whenever checkout_place_order is changed.
 
 CREATE OR REPLACE FUNCTION public.checkout_place_order(
@@ -22,7 +23,6 @@ CREATE OR REPLACE FUNCTION public.checkout_place_order(
 DECLARE
     item record;
     v_product_id uuid;
-    v_variant_id uuid;
     v_qty integer;
     v_current_stock integer;
     v_order_pk uuid;
@@ -67,68 +67,52 @@ BEGIN
             END IF;
 
             IF NULLIF(item.value->>'variantKey', '') IS NOT NULL THEN
-                -- Lock and mutate only the selected variant. The parent
-                -- product is not an alternate inventory bucket.
-                SELECT pv.id, pv.quantity
-                  INTO v_variant_id, v_current_stock
+                -- Validate the selected sellable label, then lock the parent
+                -- product because Color/Size rows do not own inventory.
+                SELECT p.id, p.quantity
+                  INTO v_product_id, v_current_stock
                 FROM public.products p
                 JOIN public.product_variants pv ON pv.product_id = p.id
                 WHERE p.slug = item.value->>'slug'
                   AND pv.key = item.value->>'variantKey'
-                FOR UPDATE OF pv;
+                FOR UPDATE OF p;
 
                 IF NOT FOUND THEN
                     RAISE EXCEPTION 'BUSINESS_ERROR: Variant not found for % %',
                         item.value->>'slug', item.value->>'variantKey';
                 END IF;
 
-                -- NULL quantity is the established unlimited/unconfigured
-                -- inventory convention. It is deliberately left untouched.
-                IF v_current_stock IS NOT NULL THEN
-                    IF v_current_stock < v_qty THEN
-                        RAISE EXCEPTION 'BUSINESS_ERROR: Insufficient stock for % %',
-                            item.value->>'slug', item.value->>'variantKey';
-                    END IF;
-
-                    v_remaining := v_current_stock - v_qty;
-                    UPDATE public.product_variants
-                    SET quantity = v_remaining,
-                        stock_status = CASE
-                            WHEN v_remaining = 0 THEN 'out-of-stock'
-                            WHEN v_remaining <= v_low_stock THEN 'low-stock'
-                            ELSE 'in-stock'
-                        END
-                    WHERE id = v_variant_id;
-                END IF;
             ELSE
-                -- Non-variant products use the parent inventory row only.
                 SELECT id, quantity
                   INTO v_product_id, v_current_stock
                 FROM public.products
                 WHERE slug = item.value->>'slug'
                 FOR UPDATE;
 
-                IF NOT FOUND THEN
-                    RAISE EXCEPTION 'BUSINESS_ERROR: Product not found for %',
+            END IF;
+
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'BUSINESS_ERROR: Product not found for %',
+                    item.value->>'slug';
+            END IF;
+
+            -- NULL quantity is the established unlimited/unconfigured
+            -- inventory convention. It is deliberately left untouched.
+            IF v_current_stock IS NOT NULL THEN
+                IF v_current_stock < v_qty THEN
+                    RAISE EXCEPTION 'BUSINESS_ERROR: Insufficient stock for %',
                         item.value->>'slug';
                 END IF;
 
-                IF v_current_stock IS NOT NULL THEN
-                    IF v_current_stock < v_qty THEN
-                        RAISE EXCEPTION 'BUSINESS_ERROR: Insufficient stock for %',
-                            item.value->>'slug';
-                    END IF;
-
-                    v_remaining := v_current_stock - v_qty;
-                    UPDATE public.products
-                    SET quantity = v_remaining,
-                        stock_status = CASE
-                            WHEN v_remaining = 0 THEN 'out-of-stock'
-                            WHEN v_remaining <= v_low_stock THEN 'low-stock'
-                            ELSE 'in-stock'
-                        END
-                    WHERE id = v_product_id;
-                END IF;
+                v_remaining := v_current_stock - v_qty;
+                UPDATE public.products
+                SET quantity = v_remaining,
+                    stock_status = CASE
+                        WHEN v_remaining = 0 THEN 'out-of-stock'
+                        WHEN v_remaining <= v_low_stock THEN 'low-stock'
+                        ELSE 'in-stock'
+                    END
+                WHERE id = v_product_id;
             END IF;
         END LOOP;
 
@@ -212,7 +196,6 @@ DECLARE
     v_order record;
     item record;
     v_product_id uuid;
-    v_variant_id uuid;
     v_current_stock integer;
     v_low_stock integer := 5;
     v_remaining integer;
@@ -243,30 +226,19 @@ BEGIN
 
     FOR item IN SELECT * FROM public.order_items WHERE order_id = v_order.id LOOP
         IF NULLIF(item.variant_key, '') IS NOT NULL THEN
-            SELECT pv.id, pv.quantity
-              INTO v_variant_id, v_current_stock
+            SELECT p.id, p.quantity
+              INTO v_product_id, v_current_stock
             FROM public.products p
             JOIN public.product_variants pv ON pv.product_id = p.id
             WHERE p.slug = item.slug
               AND pv.key = item.variant_key
-            FOR UPDATE OF pv;
+            FOR UPDATE OF p;
 
             IF NOT FOUND THEN
                 RAISE EXCEPTION 'BUSINESS_ERROR: Variant not found for % %',
                     item.slug, item.variant_key;
             END IF;
 
-            IF v_current_stock IS NOT NULL THEN
-                v_remaining := v_current_stock + item.quantity;
-                UPDATE public.product_variants
-                SET quantity = v_remaining,
-                    stock_status = CASE
-                        WHEN v_remaining = 0 THEN 'out-of-stock'
-                        WHEN v_remaining <= v_low_stock THEN 'low-stock'
-                        ELSE 'in-stock'
-                    END
-                WHERE id = v_variant_id;
-            END IF;
         ELSE
             SELECT id, quantity
               INTO v_product_id, v_current_stock
@@ -274,21 +246,22 @@ BEGIN
             WHERE slug = item.slug
             FOR UPDATE;
 
-            IF NOT FOUND THEN
-                RAISE EXCEPTION 'BUSINESS_ERROR: Product not found for %', item.slug;
-            END IF;
+        END IF;
 
-            IF v_current_stock IS NOT NULL THEN
-                v_remaining := v_current_stock + item.quantity;
-                UPDATE public.products
-                SET quantity = v_remaining,
-                    stock_status = CASE
-                        WHEN v_remaining = 0 THEN 'out-of-stock'
-                        WHEN v_remaining <= v_low_stock THEN 'low-stock'
-                        ELSE 'in-stock'
-                    END
-                WHERE id = v_product_id;
-            END IF;
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'BUSINESS_ERROR: Product not found for %', item.slug;
+        END IF;
+
+        IF v_current_stock IS NOT NULL THEN
+            v_remaining := v_current_stock + item.quantity;
+            UPDATE public.products
+            SET quantity = v_remaining,
+                stock_status = CASE
+                    WHEN v_remaining = 0 THEN 'out-of-stock'
+                    WHEN v_remaining <= v_low_stock THEN 'low-stock'
+                    ELSE 'in-stock'
+                END
+            WHERE id = v_product_id;
         END IF;
     END LOOP;
 

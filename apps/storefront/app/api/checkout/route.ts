@@ -294,8 +294,18 @@ export async function POST(request: Request) {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "";
       if (message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
+        const businessMessage = message.split("ATOMIC_BUSINESS_ERROR:")[1].trim();
+        if (businessMessage === "IDEMPOTENCY_CONFLICT") {
+          return NextResponse.json(
+            {
+              code: "IDEMPOTENCY_CONFLICT",
+              error: "This checkout attempt is already associated with different checkout details. Start a new checkout attempt to continue safely.",
+            },
+            { status: 409 },
+          );
+        }
         return NextResponse.json(
-          { error: message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
+          { error: businessMessage },
           { status: 400 }
         );
       }
@@ -385,6 +395,16 @@ export async function POST(request: Request) {
       const msg =
         error.message.split("ATOMIC_BUSINESS_ERROR:")[1]?.trim() ||
         "Inventory no longer available.";
+      if (msg === "IDEMPOTENCY_CONFLICT") {
+        slo("validation", 409);
+        return NextResponse.json(
+          {
+            code: "IDEMPOTENCY_CONFLICT",
+            error: "This checkout attempt is already associated with different checkout details. Start a new checkout attempt to continue safely.",
+          },
+          { status: 409 },
+        );
+      }
       slo("validation", 400);
       return NextResponse.json({ error: msg }, { status: 400 });
     }
