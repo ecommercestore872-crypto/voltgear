@@ -389,14 +389,18 @@ async function loadRelatedCatalogProducts(
         .eq("category", cat)
         .neq("id", excludeProductId)
         .order("created_at", { ascending: false })
-        .limit(limit),
+        // Some legacy catalog rows have a missing/zero price. Never render those
+        // as purchasable recommendations ("Rs 0"); fetch a small cushion and
+        // filter them before applying the visible card limit.
+        .limit(Math.min(limit * 2, 24)),
       false,
     ),
   );
   if (error) throw error;
   return (data ?? [])
     .map((row) => mapStoreProduct(row as Record<string, unknown>))
-    .filter(Boolean) as Product[];
+    .filter((product): product is Product => product !== null && product.price > 0)
+    .slice(0, limit);
 }
 
 async function loadCatalogProductsByCategory(category: string): Promise<Product[]> {
