@@ -12,8 +12,8 @@ VALUES ('00000000-0000-0000-0000-000000000301', 'Concurrent fixture', 'test-inve
 INSERT INTO public.product_variants (id, product_id, key, name, quantity, stock_status)
 VALUES ('00000000-0000-0000-0000-000000000302', '00000000-0000-0000-0000-000000000301', 'black|m', 'Black / M', NULL, 'in-stock');
 
-SELECT dblink_connect('checkout_a', 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres');
-SELECT dblink_connect('checkout_b', 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres');
+SELECT dblink_connect_u('checkout_a', 'dbname=postgres');
+SELECT dblink_connect_u('checkout_b', 'dbname=postgres');
 
 SELECT dblink_send_query('checkout_a', $query$
   SELECT public.checkout_place_order(
