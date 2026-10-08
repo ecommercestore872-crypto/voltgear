@@ -49,6 +49,26 @@ jobs:
         run: supabase start
       - name: Run pgTAP and behavioral SQL tests
         run: supabase test db
+      - name: Run concurrent checkout SQL test
+        shell: bash
+        run: |
+          db_url="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+          psql "$db_url" -f supabase/concurrency-tests/checkout_setup.sql
+
+          checkout_sql="SELECT public.checkout_place_order('TEST-CONCURRENT-A', '{}'::jsonb, 'cod', 100, 0, 100, 0, NULL, false, '[{\"slug\":\"test-inventory-concurrent\",\"quantity\":1,\"variantKey\":\"black|m\"}]'::jsonb, 'test-idem-concurrent', 'fingerprint-concurrent')"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "$checkout_sql" & first_checkout=$!
+          checkout_sql="SELECT public.checkout_place_order('TEST-CONCURRENT-B', '{}'::jsonb, 'cod', 100, 0, 100, 0, NULL, false, '[{\"slug\":\"test-inventory-concurrent\",\"quantity\":1,\"variantKey\":\"black|m\"}]'::jsonb, 'test-idem-concurrent', 'fingerprint-concurrent')"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "$checkout_sql" & second_checkout=$!
+          wait "$first_checkout"
+          wait "$second_checkout"
+          psql "$db_url" -f supabase/concurrency-tests/checkout_assert_and_cleanup.sql
+
+          cancel_sql="SELECT public.cancel_order_restore_inventory((SELECT order_id FROM public.orders WHERE idempotency_key = 'test-idem-concurrent'), 'concurrent cancellation')"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "$cancel_sql" & first_cancel=$!
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "$cancel_sql" & second_cancel=$!
+          wait "$first_cancel"
+          wait "$second_cancel"
+          psql "$db_url" -f supabase/concurrency-tests/cancel_assert_and_cleanup.sql
       - name: Stop local Supabase
         if: always()
         run: supabase stop
