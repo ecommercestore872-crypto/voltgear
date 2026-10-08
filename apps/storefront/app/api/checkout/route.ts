@@ -28,6 +28,7 @@ import {
 } from "@/lib/checkout-observability";
 import { checkoutHttpStatusAfterOrderPersisted } from "@/lib/email-checkout-rules";
 import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
+import { stableCheckoutIntentString } from "@/lib/checkout-intent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -263,11 +264,20 @@ export async function POST(request: Request) {
 
     let idempotencyFingerprint: string | undefined;
     if (idemKey) {
-      const fgData = JSON.stringify({
-        email: baseOrder.customer.email,
-        phone: baseOrder.customer.phone,
-        items: baseOrder.items.map(i => ({ s: i.slug, q: i.quantity, v: i.variantKey })),
-        total: baseOrder.total
+      const fgData = stableCheckoutIntentString({
+        customer: {
+          ...baseOrder.customer,
+          postal: baseOrder.customer.postal ?? "",
+        },
+        items: baseOrder.items,
+        paymentMethod: baseOrder.payment,
+        giftWrap: gift,
+        promoCode: baseOrder.promoCode,
+        subtotal: baseOrder.subtotal,
+        shipping: baseOrder.shipping,
+        discount: baseOrder.discount,
+        total: baseOrder.total,
+        isDemo: baseOrder.isDemo,
       });
       idempotencyFingerprint = crypto.createHash("sha256").update(fgData).digest("hex");
     }
