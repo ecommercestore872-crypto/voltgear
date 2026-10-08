@@ -79,30 +79,27 @@ async function POSTHandler(
     );
   }
 
-  let emailSent = false;
-  let emailError: string | undefined;
+  let emailStatus: "not-applicable" | "sent" | "failed" = "not-applicable";
   if (order!.customer?.email) {
     try {
-      emailSent = await sendOrderStatusUpdateEmail(order!.customer.email, {
+      const sent = await sendOrderStatusUpdateEmail(order!.customer.email, {
         orderId,
         name: order!.customer.name || "there",
         status: "cancelled",
         note: SHOPPER_CANCEL_NOTE,
         total: order!.total,
       });
+      emailStatus = sent ? "sent" : "failed";
     } catch (err) {
-      emailError = err instanceof Error ? err.message : "send failed";
+      console.error("[orders/cancel] status email failed:", err);
+      emailStatus = "failed";
     }
   }
 
   return NextResponse.json({
     ok: true,
     order: toShopperTrackPayload(updated),
-    email: emailSent
-      ? "sent"
-      : emailError
-        ? `failed: ${emailError}`
-        : "not sent (no email on order)",
+    email: emailStatus,
   });
 }
 

@@ -5,20 +5,10 @@ import { getOrdersByEmail } from "@/lib/order-store";
 import { submitReview } from "@/lib/db/store";
 import { isDemoRequest } from "@/lib/demo";
 import { takePublicPostLimit } from "@/lib/public-api-guard";
+import { normalizePublicReview } from "@/lib/review-submission-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-interface ReviewBody {
-  slug?: string;
-  rating?: number;
-  name?: string;
-  email?: string;
-  comment?: string;
-  image?: string;
-  category?: string;
-  productName?: string;
-}
 
 async function POSTHandler(request: Request) {
   try {
@@ -30,27 +20,20 @@ async function POSTHandler(request: Request) {
       );
     }
 
-    const body: ReviewBody = await request.json();
-    const { slug, rating, name, email, comment, image, category, productName } =
-      body;
-
-    if (!slug) {
-      return NextResponse.json({ error: "Missing product." }, { status: 400 });
-    }
-    if (!rating || rating < 1 || rating > 5) {
+    const body = await request.json();
+    const parsed = normalizePublicReview(
+      body,
+      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    );
+    if (!parsed.ok) {
       return NextResponse.json(
-        { error: "Please choose a rating between 1 and 5." },
+        { error: parsed.error },
         { status: 400 },
       );
     }
-    if (!name?.trim() || !email?.trim() || !comment?.trim()) {
-      return NextResponse.json(
-        { error: "Name, email and review are required." },
-        { status: 400 },
-      );
-    }
+    const { slug, rating, name, email, comment, image } = parsed.value;
 
-    const orders = await getOrdersByEmail(email.toLowerCase().trim());
+    const orders = await getOrdersByEmail(email);
     const verified = orders.some((o) =>
       (o.items ?? []).some((i) => i.slug === slug),
     );
@@ -58,12 +41,10 @@ async function POSTHandler(request: Request) {
     const result = await submitReview({
       slug,
       rating,
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      comment: comment.trim(),
-      image: image?.trim(),
-      category: category?.trim(),
-      productName: productName?.trim(),
+      name,
+      email,
+      comment,
+      image,
       verified,
       isDemo: isDemoRequest(request),
     });

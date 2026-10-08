@@ -18,9 +18,7 @@ import { countPriorOrdersForEmail, getPromoByCode } from "@/lib/db/promo-store";
 import { deferAfterResponse } from "@/lib/defer-after-response";
 import { runCheckoutPostPersist } from "@/lib/checkout-post-persist";
 import {
-  cacheCheckoutOrder,
   checkoutClientIp,
-  getCachedCheckoutOrder,
   readIdempotencyKey,
   takeCheckoutRateLimit,
 } from "@/lib/checkout-guard";
@@ -127,28 +125,6 @@ export async function POST(request: Request) {
     }
 
     const idemKey = readIdempotencyKey(request, body.idempotencyKey);
-    if (idemKey) {
-      const cached = getCachedCheckoutOrder(idemKey);
-      if (cached) {
-        const existing = await getOrderByPublicId(cached);
-        if (existing) {
-          slo("replayed", 200, { itemCount: items.length, replayed: true });
-          return NextResponse.json({
-            ok: true,
-            orderId: cached,
-            lookupEmail: existing.customer?.email ?? "",
-            subtotal: existing.subtotal,
-            shipping: existing.shipping,
-            total: existing.total,
-            discount: existing.discount ?? 0,
-            promoCode: existing.promoCode ?? null,
-            lines: existing.items ?? [],
-            replayed: true,
-          });
-        }
-      }
-    }
-
     if (payment?.method && payment.method !== "cod") {
       return NextResponse.json(
         { error: "Only Cash on Delivery is available right now." },
@@ -330,10 +306,6 @@ export async function POST(request: Request) {
     }
     
     orderId = persisted.orderId;
-
-    if (idemKey) {
-      cacheCheckoutOrder(idemKey, orderId);
-    }
 
     if (persisted.replayed) {
       const existing = await getOrderByPublicId(orderId);

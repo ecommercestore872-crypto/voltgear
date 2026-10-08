@@ -65,19 +65,21 @@ async function POSTHandler(
     );
   }
 
-  let emailSent = false;
-  let emailError: string | undefined;
+  let emailStatus: "not-applicable" | "skipped" | "sent" | "failed" =
+    status === "new" ? "skipped" : "not-applicable";
   if (status !== "new" && order.customer?.email) {
     try {
-      emailSent = await sendOrderStatusUpdateEmail(order.customer.email, {
+      const sent = await sendOrderStatusUpdateEmail(order.customer.email, {
         orderId,
         name: order.customer.name || "there",
         status,
         note,
         total: order.total,
       });
+      emailStatus = sent ? "sent" : "failed";
     } catch (err) {
-      emailError = err instanceof Error ? err.message : "send failed";
+      console.error("[orders/status] notification email failed:", err);
+      emailStatus = "failed";
     }
   }
 
@@ -89,13 +91,7 @@ async function POSTHandler(
       statusUpdatedAt: updated.statusUpdatedAt,
       statusHistory: updated.statusHistory,
     },
-    email: emailSent
-      ? "sent"
-      : status === "new"
-        ? "skipped (new)"
-        : emailError
-          ? `failed: ${emailError}`
-          : "not sent (no email on order)",
+    email: emailStatus,
   });
 }
 

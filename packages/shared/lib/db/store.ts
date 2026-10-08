@@ -29,6 +29,7 @@ import { EMPTY_APPROVED_REVIEW_STATS } from "@/lib/product-review-stats";
 import { pickBestsellers } from "@/lib/db/bestsellers-rules";
 import { MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import { formatOrderId, nextSequentialNumber } from "@/lib/db/order-id";
+import { safeCheckoutBusinessError } from "@/lib/db/checkout-rpc-rules";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { OrderAttributionSnapshot } from "@/lib/db/order-attribution-rules";
 import type {
@@ -45,6 +46,7 @@ import type {
   SiteSettings,
   Testimonial,
 } from "@/lib/types";
+import { interpretCancelOrderRpcResult } from "@/lib/db/inventory-rpc-rules";
 
 const PAGE_SIZE = 12;
 const LIVE = "published";
@@ -1013,16 +1015,10 @@ export async function createOrderRow(input: {
     p_idempotency_fingerprint: input.idempotencyFingerprint || null,
   };
 
-  let { data: rpcData, error: rpcError } = await db().rpc("checkout_place_order", rpcArgs);
-
-  if (rpcError && rpcError.message && rpcError.message.includes("Could not find the function")) {
-    const fallbackArgs = { ...rpcArgs };
-    delete (fallbackArgs as any).p_idempotency_key;
-    delete (fallbackArgs as any).p_idempotency_fingerprint;
-    const fallbackRes = await db().rpc("checkout_place_order", fallbackArgs);
-    rpcData = fallbackRes.data;
-    rpcError = fallbackRes.error;
-  }
+  const { data: rpcData, error: rpcError } = await db().rpc(
+    "checkout_place_order",
+    rpcArgs,
+  );
 
   if (!rpcError && rpcData?.ok) {
     return {
@@ -1032,8 +1028,9 @@ export async function createOrderRow(input: {
   }
 
   if (rpcError?.message?.includes("BUSINESS_ERROR:")) {
+    const databaseMessage = rpcError.message.split("BUSINESS_ERROR:")[1] ?? "";
     throw new Error(
-      `ATOMIC_BUSINESS_ERROR:${rpcError.message.split("BUSINESS_ERROR:")[1].trim()}`
+      `ATOMIC_BUSINESS_ERROR:${safeCheckoutBusinessError(databaseMessage)}`,
     );
   }
 
@@ -1042,46 +1039,15 @@ export async function createOrderRow(input: {
 }
 
 export async function cancelOrderRestoreInventoryRow(orderId: string, note: string): Promise<{ ok: boolean, error?: string }> {
-  try {
-    const current = await getOrderByPublicId(orderId);
-    if (!current) return { ok: false, error: 'Order not found' };
-    if (current.status === 'cancelled') return { ok: true };
-    if (current.status === 'delivered') return { ok: false, error: 'Cannot cancel a delivered order' };
-
-    const now = new Date().toISOString();
-    const { error: updErr } = await db()
-      .from("orders")
-      .update({ status: 'cancelled', status_updated_at: now })
-      .eq("id", current._id);
-    if (updErr) throw updErr;
-
-    await db().from("order_status_history").insert({
-      order_id: current._id,
-      status: 'cancelled',
-      note: note,
-      at: now,
-    });
-
-    for (const item of current.items ?? []) {
-      if (!item.slug || !item.quantity) continue;
-      const { data: prod } = await db().from("products").select("quantity").eq("slug", item.slug).maybeSingle();
-      if (prod && prod.quantity != null) {
-        const remaining = prod.quantity + item.quantity;
-        let stockStatus = 'in-stock';
-        if (remaining <= 0) stockStatus = 'out-of-stock';
-        else if (remaining <= 5) stockStatus = 'low-stock';
-
-        await db().from("products").update({
-          quantity: remaining,
-          stock_status: stockStatus
-        }).eq("slug", item.slug);
-      }
-    }
-    return { ok: true };
-  } catch (err: any) {
-    console.error("[order] atomic cancellation infra failed:", err);
-    return { ok: false, error: 'Cancellation failed due to a system error.' };
+  const { data, error } = await db().rpc("cancel_order_restore_inventory", {
+    p_order_id: orderId,
+    p_note: note,
+  });
+  const outcome = interpretCancelOrderRpcResult(data, error?.message);
+  if (!outcome.ok && outcome.infrastructure) {
+    console.error("[order] atomic cancellation RPC failed:", error);
   }
+  return outcome.ok ? outcome : { ok: false, error: outcome.error };
 }
 
 export async function updateOrderAttributionRow(
@@ -1353,8 +1319,6 @@ export async function submitReview(input: {
   email: string;
   comment: string;
   image?: string;
-  category?: string;
-  productName?: string;
   verified: boolean;
   isDemo?: boolean;
 }): Promise<{ ok: true; duplicate?: boolean; verified?: boolean } | { ok: false; error: string; status: number }> {
@@ -1377,8 +1341,8 @@ export async function submitReview(input: {
     rating: input.rating,
     comment: input.comment,
     image: input.image || null,
-    category: input.category || null,
-    product_name: input.productName || null,
+    category: product.category || null,
+    product_name: product.name || null,
     verified: input.verified,
     status: "pending",
     is_demo: Boolean(input.isDemo),

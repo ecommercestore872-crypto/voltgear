@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert";
 
+import { interpretCancelOrderRpcResult } from "./inventory-rpc-rules";
+
 test("Inventory RPC Application Adapter: fallback and error mapping", async (t) => {
   // NOTE: Real database concurrency verification is BLOCKED locally unless 
   // the pending SQL is applied to a test database. This test suite verifies 
@@ -14,8 +16,38 @@ test("Inventory RPC Application Adapter: fallback and error mapping", async (t) 
     assert.ok(true, "Verified by code inspection: throws ATOMIC_INFRA_ERROR when RPC missing or infra fails");
   });
 
-  await t.test("cancelOrderRestoreInventoryRow refuses status-only cancel without RPC", async () => {
-    assert.ok(true, "Verified by code inspection: missing RPC returns ok:false without status update");
+  await t.test("maps a successful atomic cancellation", async () => {
+    assert.deepEqual(interpretCancelOrderRpcResult({ ok: true }), { ok: true });
+  });
+
+  await t.test("returns only allow-listed cancellation business errors", async () => {
+    assert.deepEqual(
+      interpretCancelOrderRpcResult(null, "BUSINESS_ERROR: Cannot cancel a delivered order"),
+      {
+        ok: false,
+        error: "Cannot cancel a delivered order",
+        infrastructure: false,
+      },
+    );
+    assert.deepEqual(
+      interpretCancelOrderRpcResult(null, "BUSINESS_ERROR: internal row details"),
+      {
+        ok: false,
+        error: "This order cannot be cancelled.",
+        infrastructure: false,
+      },
+    );
+  });
+
+  await t.test("does not expose infrastructure errors", async () => {
+    assert.deepEqual(
+      interpretCancelOrderRpcResult(null, "connection string or database detail"),
+      {
+        ok: false,
+        error: "Cancellation failed due to a system error.",
+        infrastructure: true,
+      },
+    );
   });
   
   await t.test("side effects are ordered after success", async () => {

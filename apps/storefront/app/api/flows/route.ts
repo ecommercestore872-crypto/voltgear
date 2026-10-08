@@ -91,10 +91,11 @@ async function GETHandler(request: Request) {
         await markEmailSent(event._id);
         results[event.kind] = (results[event.kind] ?? 0) + 1;
       } else {
-        errors.push(`${event.kind} -> ${event.email}: send failed`);
+        errors.push(`${event.kind}: send failed`);
       }
     } catch (err) {
-      errors.push(`${event.kind} -> ${event.email}: ${String(err)}`);
+      console.error(`[flows] ${event.kind} event failed:`, err);
+      errors.push(`${event.kind}: processing failed`);
     }
   }
 

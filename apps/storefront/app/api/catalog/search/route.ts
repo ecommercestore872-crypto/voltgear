@@ -27,8 +27,9 @@ async function GETHandler(request: Request) {
     const result = await fetchCatalog(filters, { includeDemo: demo });
     return json({ result, filters }, 200, !demo);
   } catch (err) {
+    console.error("[catalog/search] request failed:", err);
     return json(
-      { error: err instanceof Error ? err.message : "Search failed" },
+      { error: "Search is temporarily unavailable. Please try again." },
       500,
       false,
     );

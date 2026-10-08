@@ -91,7 +91,8 @@ export function GadgetHeroSlider({
     const velocity = Math.abs(dx) / dt; // px/ms
     const isSwipe = Math.abs(dx) > 40 || velocity > 0.3;
     if (isSwipe) {
-      dx < 0 ? next() : prev();
+      if (dx < 0) next();
+      else prev();
     } else {
       setPaused(false);
     }
@@ -165,9 +166,9 @@ export function GadgetHeroSlider({
             );
           })}
 
-          {/* Vignette Overlay: only if there's text */}
+          {/* Keep controls readable without covering campaign artwork. */}
           {(active.title || active.subtitle || active.ctaLabel) ? (
-            <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/80 sm:from-black/60 via-transparent to-black/10" />
+            <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/65 via-transparent to-transparent" />
           ) : null}
 
           {/* Left / Right Arrow Navigation (Visible on Hover / Focus) */}
@@ -195,12 +196,12 @@ export function GadgetHeroSlider({
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-wrap items-end justify-between gap-3 p-4 sm:p-6">
             <div className="pointer-events-auto flex flex-col gap-2 max-w-[min(100%,32rem)]">
               {active.title ? (
-                <p className="gadget-display text-left text-lg font-bold leading-tight tracking-[-0.02em] text-white drop-shadow-md sm:text-xl lg:text-2xl">
+                <p className="sr-only">
                   {active.title}
                 </p>
               ) : null}
               {active.subtitle ? (
-                <p className="max-w-[40ch] text-left text-sm text-white/90 drop-shadow sm:text-base">
+                <p className="sr-only">
                   {active.subtitle}
                 </p>
               ) : null}
@@ -248,7 +249,7 @@ export function GadgetHeroSlider({
                   className="gadget-hero-cta pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-5 py-2 text-xs font-black uppercase tracking-wider sm:px-6 sm:text-sm"
                 >
                   <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
-                  <span className="max-w-[16ch] truncate sm:max-w-none">
+                  <span className="max-w-[22ch] text-center leading-tight sm:max-w-none">
                     {active.ctaLabel}
                   </span>
                 </Link>
