@@ -400,7 +400,9 @@ export async function GadgetHomeSections() {
             );
             break;
           case "reviews":
-            section = <GadgetReviewsSlider key={id} reviews={testimonials} />;
+            section = testimonials.length ? (
+              <GadgetReviewsSlider key={id} reviews={testimonials} />
+            ) : null;
             break;
           case "blog":
             section = <GadgetBlogSection key={id} posts={blogPosts} />;

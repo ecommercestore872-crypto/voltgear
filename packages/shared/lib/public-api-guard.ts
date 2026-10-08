@@ -13,6 +13,12 @@ const abandonedLimiter = createMemoryRateLimiter({
   maxKeys: 8_000,
 });
 
+const abandonedEmailLimiter = createMemoryRateLimiter({
+  limit: 2,
+  windowMs: 6 * 60 * 60_000,
+  maxKeys: 8_000,
+});
+
 const reviewLimiter = createMemoryRateLimiter({
   limit: 6,
   windowMs: 60_000,
@@ -79,6 +85,19 @@ export function takeOrderCancelLimit(
   request: Request,
 ): { ok: true } | { ok: false; error: string; status: 429 } {
   return takeIpLimit(request, orderCancelLimiter);
+}
+
+export function takeAbandonedEmailLimit(
+  email: string,
+): { ok: true } | { ok: false; error: string; status: 429 } {
+  if (!abandonedEmailLimiter.take({ ip: email.toLowerCase() })) {
+    return {
+      ok: false,
+      status: 429,
+      error: "A reminder was already scheduled for this email.",
+    };
+  }
+  return { ok: true };
 }
 
 export function takeDealQuoteLimit(

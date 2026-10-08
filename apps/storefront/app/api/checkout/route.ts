@@ -18,9 +18,7 @@ import { countPriorOrdersForEmail, getPromoByCode } from "@/lib/db/promo-store";
 import { deferAfterResponse } from "@/lib/defer-after-response";
 import { runCheckoutPostPersist } from "@/lib/checkout-post-persist";
 import {
-  cacheCheckoutOrder,
   checkoutClientIp,
-  getCachedCheckoutOrder,
   readIdempotencyKey,
   takeCheckoutRateLimit,
 } from "@/lib/checkout-guard";
@@ -30,6 +28,7 @@ import {
 } from "@/lib/checkout-observability";
 import { checkoutHttpStatusAfterOrderPersisted } from "@/lib/email-checkout-rules";
 import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
+import { stableCheckoutIntentString } from "@/lib/checkout-intent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -127,28 +126,6 @@ export async function POST(request: Request) {
     }
 
     const idemKey = readIdempotencyKey(request, body.idempotencyKey);
-    if (idemKey) {
-      const cached = getCachedCheckoutOrder(idemKey);
-      if (cached) {
-        const existing = await getOrderByPublicId(cached);
-        if (existing) {
-          slo("replayed", 200, { itemCount: items.length, replayed: true });
-          return NextResponse.json({
-            ok: true,
-            orderId: cached,
-            lookupEmail: existing.customer?.email ?? "",
-            subtotal: existing.subtotal,
-            shipping: existing.shipping,
-            total: existing.total,
-            discount: existing.discount ?? 0,
-            promoCode: existing.promoCode ?? null,
-            lines: existing.items ?? [],
-            replayed: true,
-          });
-        }
-      }
-    }
-
     if (payment?.method && payment.method !== "cod") {
       return NextResponse.json(
         { error: "Only Cash on Delivery is available right now." },
@@ -287,11 +264,20 @@ export async function POST(request: Request) {
 
     let idempotencyFingerprint: string | undefined;
     if (idemKey) {
-      const fgData = JSON.stringify({
-        email: baseOrder.customer.email,
-        phone: baseOrder.customer.phone,
-        items: baseOrder.items.map(i => ({ s: i.slug, q: i.quantity, v: i.variantKey })),
-        total: baseOrder.total
+      const fgData = stableCheckoutIntentString({
+        customer: {
+          ...baseOrder.customer,
+          postal: baseOrder.customer.postal ?? "",
+        },
+        items: baseOrder.items,
+        paymentMethod: baseOrder.payment,
+        giftWrap: gift,
+        promoCode: baseOrder.promoCode,
+        subtotal: baseOrder.subtotal,
+        shipping: baseOrder.shipping,
+        discount: baseOrder.discount,
+        total: baseOrder.total,
+        isDemo: baseOrder.isDemo,
       });
       idempotencyFingerprint = crypto.createHash("sha256").update(fgData).digest("hex");
     }
@@ -308,8 +294,18 @@ export async function POST(request: Request) {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "";
       if (message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
+        const businessMessage = message.split("ATOMIC_BUSINESS_ERROR:")[1].trim();
+        if (businessMessage === "IDEMPOTENCY_CONFLICT") {
+          return NextResponse.json(
+            {
+              code: "IDEMPOTENCY_CONFLICT",
+              error: "This checkout attempt is already associated with different checkout details. Start a new checkout attempt to continue safely.",
+            },
+            { status: 409 },
+          );
+        }
         return NextResponse.json(
-          { error: message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
+          { error: businessMessage },
           { status: 400 }
         );
       }
@@ -330,10 +326,6 @@ export async function POST(request: Request) {
     }
     
     orderId = persisted.orderId;
-
-    if (idemKey) {
-      cacheCheckoutOrder(idemKey, orderId);
-    }
 
     if (persisted.replayed) {
       const existing = await getOrderByPublicId(orderId);
@@ -403,6 +395,16 @@ export async function POST(request: Request) {
       const msg =
         error.message.split("ATOMIC_BUSINESS_ERROR:")[1]?.trim() ||
         "Inventory no longer available.";
+      if (msg === "IDEMPOTENCY_CONFLICT") {
+        slo("validation", 409);
+        return NextResponse.json(
+          {
+            code: "IDEMPOTENCY_CONFLICT",
+            error: "This checkout attempt is already associated with different checkout details. Start a new checkout attempt to continue safely.",
+          },
+          { status: 409 },
+        );
+      }
       slo("validation", 400);
       return NextResponse.json({ error: msg }, { status: 400 });
     }

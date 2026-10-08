@@ -1,12 +1,12 @@
 import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 
 import {
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
   CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_FOLDER,
 } from "@/lib/cloudinary";
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 
@@ -24,6 +24,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_PIXELS = 20_000_000;
+const REVIEW_UPLOAD_FOLDER = "ecommerce-store/reviews";
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -66,7 +68,6 @@ async function POSTHandler(request: Request) {
 
     const formData = await request.formData();
     const file = formData.get("file");
-    const folder = (formData.get("folder") as string) || CLOUDINARY_FOLDER;
     const removeBackground = formData.get("removeBackground") === "true";
 
     if (!(file instanceof File)) {
@@ -91,23 +92,54 @@ async function POSTHandler(request: Request) {
       );
     }
 
-    // Public uploads are for reviews only — never accept arbitrary folders.
-    const safeFolder =
-      typeof folder === "string" && folder.startsWith("reviews")
-        ? folder.slice(0, 64)
-        : "reviews";
+    if (removeBackground) {
+      return NextResponse.json(
+        { error: "Background removal is not available for review photos." },
+        { status: 400 },
+      );
+    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    let metadata: Awaited<ReturnType<ReturnType<typeof sharp>["metadata"]>>;
+    try {
+      metadata = await sharp(buffer, {
+        failOn: "error",
+        limitInputPixels: MAX_PIXELS,
+      }).metadata();
+    } catch {
+      return NextResponse.json(
+        { error: "The uploaded file is not a valid supported image." },
+        { status: 400 },
+      );
+    }
+    const expectedMime =
+      metadata.format === "jpeg"
+        ? "image/jpeg"
+        : metadata.format === "png"
+          ? "image/png"
+          : metadata.format === "webp"
+            ? "image/webp"
+            : metadata.format === "gif"
+              ? "image/gif"
+              : null;
+    if (
+      !expectedMime ||
+      expectedMime !== mimeType ||
+      !metadata.width ||
+      !metadata.height ||
+      metadata.width * metadata.height > MAX_PIXELS ||
+      (metadata.pages ?? 1) > 60
+    ) {
+      return NextResponse.json(
+        { error: "The uploaded image format or dimensions are not supported." },
+        { status: 400 },
+      );
+    }
     const base64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
     const result = await cloudinary.uploader.upload(base64, {
-      folder: safeFolder,
+      folder: REVIEW_UPLOAD_FOLDER,
       resource_type: "image",
-      ...(removeBackground
-        ? {
-            background_removal: "cloudinary_ai",
-          }
-        : {}),
       transformation: {
         quality: "auto",
         fetch_format: "auto",
@@ -119,7 +151,6 @@ async function POSTHandler(request: Request) {
       secureUrl: result.secure_url,
       width: result.width,
       height: result.height,
-      backgroundRemoved: removeBackground,
     });
   } catch (error) {
     console.error("Cloudinary upload failed:", error);

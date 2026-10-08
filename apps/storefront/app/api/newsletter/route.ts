@@ -28,7 +28,12 @@ async function POSTHandler(req: Request) {
     const body = await req.json();
     const result = await subscribeNewsletter({
       email: body?.email,
-      source: typeof body?.source === "string" ? body.source : "footer",
+      source:
+        typeof body?.source === "string"
+          ? body.source
+          : body?.type === "back-in-stock"
+            ? "back-in-stock"
+            : "footer",
     });
     if (!result.ok) {
       return NextResponse.json(

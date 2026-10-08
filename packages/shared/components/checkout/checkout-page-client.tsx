@@ -51,6 +51,10 @@ import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
 import { CheckoutSummaryPriceRow } from "@/components/checkout/checkout-summary-price-row";
 import { useCheckoutMobileDock } from "@/components/checkout/use-checkout-mobile-dock";
+import {
+  checkoutCartFingerprint,
+  createCheckoutIdempotencyKey,
+} from "@/lib/checkout-idempotency-client";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
 import {
@@ -173,15 +177,14 @@ export default function CheckoutPageClient() {
     total: number;
   } | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [idempotencyConflict, setIdempotencyConflict] = useState(false);
   const idemRef = useRef<{ fingerprint: string; key: string } | null>(null);
   const showMobileDock = useCheckoutMobileDock(
     step === 1 && items.length > 0,
   );
 
   if (typeof window !== "undefined" && items.length > 0) {
-    const cartFingerprint = JSON.stringify(
-      items.map((i) => ({ slug: i.slug, q: i.quantity, v: i.variantKey }))
-    );
+    const cartFingerprint = checkoutCartFingerprint(items);
     
     if (!idemRef.current || idemRef.current.fingerprint !== cartFingerprint) {
       const storedStr = window.sessionStorage.getItem("buy_n_try_checkout_idem");
@@ -197,10 +200,7 @@ export default function CheckoutPageClient() {
       }
 
       if (!activeKey) {
-        activeKey =
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        activeKey = createCheckoutIdempotencyKey();
         
         window.sessionStorage.setItem(
           "buy_n_try_checkout_idem",
@@ -392,6 +392,15 @@ export default function CheckoutPageClient() {
         return;
       }
 
+      if (res.status === 409 && data.code === "IDEMPOTENCY_CONFLICT") {
+        setIdempotencyConflict(true);
+        setApiError(
+          "These checkout details differ from the earlier attempt. Review them, then start a new checkout attempt below.",
+        );
+        setPlacing(false);
+        return;
+      }
+
       if (!res.ok) {
         throw new Error(data.error ?? "Failed");
       }
@@ -474,6 +483,19 @@ export default function CheckoutPageClient() {
       setApiError(message);
       setPlacing(false);
     }
+  }
+
+  function startFreshCheckoutAttempt() {
+    if (typeof window === "undefined") return;
+    const cartFingerprint = checkoutCartFingerprint(items);
+    const key = createCheckoutIdempotencyKey();
+    window.sessionStorage.setItem(
+      "buy_n_try_checkout_idem",
+      JSON.stringify({ key, cartFingerprint, createdAt: Date.now() }),
+    );
+    idemRef.current = { fingerprint: cartFingerprint, key };
+    setIdempotencyConflict(false);
+    setApiError(null);
   }
 
   function notifyAbandonedCart() {
@@ -627,8 +649,23 @@ export default function CheckoutPageClient() {
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                       <div className="min-w-0">
-                        <p className="font-bold">Couldn't place order</p>
+                        <p className="font-bold">Could not place order</p>
                         <p className="mt-1 leading-snug">{apiError}</p>
+                        {idempotencyConflict && (
+                          <>
+                            <p className="mt-2 leading-snug">
+                              Your previous order was not changed. Review your delivery details, then choose the button below.
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="mt-3 border-destructive/30 bg-background text-destructive hover:bg-destructive/10"
+                              onClick={startFreshCheckoutAttempt}
+                            >
+                              Start a new checkout attempt
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

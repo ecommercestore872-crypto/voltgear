@@ -27,6 +27,10 @@ export async function subscribeNewsletter(input: {
 }): Promise<{ ok: true; created: boolean } | { ok: false; error: string; status: number }> {
   const parsed = normalizeNewsletterEmail(input.email);
   if (!parsed.ok) return { ok: false, error: parsed.error, status: 400 };
+  const allowedSources = new Set(["footer", "popup", "block", "back-in-stock"]);
+  const source = allowedSources.has(input.source ?? "")
+    ? input.source
+    : "footer";
 
   const { data, error } = await db()
     .from("newsletter_subscribers")
@@ -34,7 +38,7 @@ export async function subscribeNewsletter(input: {
       {
         email: parsed.email,
         email_normalized: parsed.email,
-        source: input.source || "footer",
+        source,
       },
       { onConflict: "email_normalized", ignoreDuplicates: true }
     )

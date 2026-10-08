@@ -12,7 +12,6 @@ export interface UploadResult {
 export async function uploadImage(file: File): Promise<UploadResult> {
   const form = new FormData();
   form.append("file", file);
-  form.append("folder", "reviews");
 
   const res = await fetch("/api/upload", { method: "POST", body: form });
   const json = await res.json();

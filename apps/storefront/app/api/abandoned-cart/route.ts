@@ -2,8 +2,11 @@ import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { enqueueEmailEvent } from "@/lib/order-store";
-import { takePublicPostLimit } from "@/lib/public-api-guard";
-import type { OrderItem } from "@/lib/types";
+import { normalizeAbandonedCart } from "@/lib/abandoned-cart-rules";
+import {
+  takeAbandonedEmailLimit,
+  takePublicPostLimit,
+} from "@/lib/public-api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,29 +25,25 @@ async function POSTHandler(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const { email, name, items, subtotal } = body as {
-      email?: string;
-      name?: string;
-      items?: OrderItem[];
-      subtotal?: number;
-    };
-
-    if (!email || !items?.length) {
-      return NextResponse.json({ error: "Nothing to track." }, { status: 400 });
+    const parsed = normalizeAbandonedCart(await request.json());
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+    const emailLimit = takeAbandonedEmailLimit(parsed.value.email);
+    if (!emailLimit.ok) {
+      return NextResponse.json(
+        { error: emailLimit.error },
+        { status: emailLimit.status },
+      );
     }
 
     await enqueueEmailEvent(
       "abandoned-cart",
-      email.toLowerCase().trim(),
+      parsed.value.email,
       {
-        name: name ?? "",
-        items: items.map((i) => ({
-          name: i.name ?? "",
-          price: Number(i.price ?? 0),
-          quantity: Number(i.quantity ?? 1),
-        })),
-        subtotal: Number(subtotal ?? 0),
+        name: parsed.value.name,
+        items: parsed.value.items,
+        subtotal: parsed.value.subtotal,
       },
       3 * 60 * 60 * 1000,
     );

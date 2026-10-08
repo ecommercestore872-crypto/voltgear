@@ -12,22 +12,6 @@ const checkoutEmailLimiter = createMemoryRateLimiter({
   maxKeys: 8_000,
 });
 
-/** 
- * Short-lived fast-path idempotency cache (per serverless instance).
- * Note: POSTGRES UNIQUE IDEMPOTENCY CONSTRAINT IS THE AUTHORITY.
- * This map is strictly a fast local optimization for rapid-fire clicks
- * and does NOT represent strict distributed idempotency.
- */
-const idempotencyCache = new Map<string, { orderId: string; at: number }>();
-const IDEMPOTENCY_TTL_MS = 15 * 60_000;
-
-function pruneIdempotency(now: number) {
-  if (idempotencyCache.size < 200) return;
-  for (const [key, value] of idempotencyCache) {
-    if (now - value.at > IDEMPOTENCY_TTL_MS) idempotencyCache.delete(key);
-  }
-}
-
 export function checkoutClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
@@ -55,28 +39,11 @@ export function takeCheckoutRateLimit(input: {
 
 export function readIdempotencyKey(
   request: Request,
-  bodyKey?: string
+  bodyKey?: string,
 ): string | null {
   const header = request.headers.get("idempotency-key")?.trim();
   if (header && header.length >= 8 && header.length <= 128) return header;
   const raw = typeof bodyKey === "string" ? bodyKey.trim() : "";
   if (raw && raw.length >= 8 && raw.length <= 128) return raw;
   return null;
-}
-
-export function getCachedCheckoutOrder(key: string): string | null {
-  const now = Date.now();
-  pruneIdempotency(now);
-  const hit = idempotencyCache.get(key);
-  if (!hit) return null;
-  if (now - hit.at > IDEMPOTENCY_TTL_MS) {
-    idempotencyCache.delete(key);
-    return null;
-  }
-  return hit.orderId;
-}
-
-export function cacheCheckoutOrder(key: string, orderId: string) {
-  pruneIdempotency(Date.now());
-  idempotencyCache.set(key, { orderId, at: Date.now() });
 }

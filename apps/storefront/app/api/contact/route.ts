@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { createContactSubmission } from "@/lib/db/inbox-store";
 import { takePublicPostLimit } from "@/lib/public-api-guard";
+import { isDemoRequest } from "@/lib/demo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ async function POSTHandler(request: Request) {
       subject: body?.subject,
       message: body?.message,
       kind: body?.kind,
-      isDemo: Boolean(body?.isDemo),
+      isDemo: isDemoRequest(request),
     });
 
     if (!result.ok) {

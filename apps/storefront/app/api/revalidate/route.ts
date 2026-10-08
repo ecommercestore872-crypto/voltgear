@@ -83,10 +83,11 @@ async function POSTHandler(request: Request) {
       now: Date.now(),
     });
   } catch (err) {
+    console.error("[revalidate] request failed:", err);
     return Response.json(
       {
         revalidated: false,
-        error: err instanceof Error ? err.message : "Failed to revalidate",
+        error: "Failed to revalidate.",
       },
       { status: 500 },
     );
