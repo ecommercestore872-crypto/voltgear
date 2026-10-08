@@ -27,7 +27,7 @@ SELECT ok(pg_get_functiondef(to_regprocedure('public.cancel_order_restore_invent
 SELECT ok(pg_get_functiondef(to_regprocedure('public.cancel_order_restore_inventory(text,text)')) ~ '(?s)SELECT \* INTO v_order.*FOR UPDATE', 'cancellation serializes concurrent requests');
 SELECT ok(pg_get_functiondef(to_regprocedure('public.checkout_place_order(text,jsonb,text,numeric,numeric,numeric,numeric,text,boolean,jsonb,text,text)')) ~ '(?s)EXCEPTION.*WHEN unique_violation', 'concurrent duplicate checkout rolls back the losing inventory decrement');
 SELECT ok(pg_get_functiondef(to_regprocedure('public.checkout_place_order(text,jsonb,text,numeric,numeric,numeric,numeric,text,boolean,jsonb,text,text)')) ~ 'BUSINESS_ERROR: IDEMPOTENCY_CONFLICT', 'changed checkout intent is rejected for a reused key');
-SELECT ok(has_index('public', 'orders', 'idx_orders_idempotency_key'), 'idempotency key remains uniquely indexed');
+SELECT has_index('public', 'orders', 'idx_orders_idempotency_key', 'idempotency key remains uniquely indexed');
 
 SELECT * FROM finish();
 ROLLBACK;

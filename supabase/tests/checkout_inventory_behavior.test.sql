@@ -4,7 +4,7 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 SET LOCAL search_path = public, extensions;
 
-SELECT plan(15);
+SELECT plan(14);
 
 INSERT INTO public.products (id, name, slug, category, price, quantity, stock_status)
 VALUES
