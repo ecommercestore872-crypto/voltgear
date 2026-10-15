@@ -200,6 +200,22 @@ export function isAllowedOrderStatus(value: unknown): value is OrderStatus {
   );
 }
 
+const ORDER_STATUS_RANK: Partial<Record<OrderStatus, number>> = {
+  new: 1,
+  processing: 2,
+  shipped: 3,
+  delivered: 4,
+};
+
+export function allowedNextOrderStatuses(current: OrderStatus): OrderStatus[] {
+  if (current === "cancelled") return ["cancelled"];
+  if (current === "delivered") return ["delivered"];
+  const rank = ORDER_STATUS_RANK[current] ?? 1;
+  return ORDER_STATUS_VALUES.filter(
+    (status) => status === "cancelled" || (ORDER_STATUS_RANK[status] ?? 0) >= rank,
+  );
+}
+
 export function withStatusNote(
   status: OrderStatus,
   note?: string

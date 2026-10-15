@@ -65,6 +65,9 @@ export async function updateEmailTemplate(
 ): Promise<
   { ok: true; template: EmailTemplate } | { ok: false; error: string; status: number }
 > {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return { ok: false, error: "Invalid template id.", status: 400 };
+  }
   const parsed = validateEmailTemplate(input);
   if (!parsed.ok) return { ok: false, error: parsed.error, status: 400 };
   const { data, error } = await db()
@@ -89,6 +92,9 @@ export async function updateEmailTemplate(
 export async function deleteEmailTemplate(
   id: string
 ): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return { ok: false, error: "Invalid template id.", status: 400 };
+  }
   const { data, error } = await db()
     .from("email_templates")
     .delete()

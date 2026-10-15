@@ -16,8 +16,7 @@ export default async function AdminInboxPage() {
   try {
     items = await listContactSubmissions();
   } catch {
-    loadError =
-      "Inbox table is missing. Push migration 20260901030000_contact_submissions.sql to Supabase.";
+    loadError = "Inbox data is temporarily unavailable. Please retry shortly.";
   }
 
   return (

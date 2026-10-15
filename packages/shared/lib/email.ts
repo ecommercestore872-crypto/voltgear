@@ -8,35 +8,30 @@
 
 import { fetchSiteSettings } from "@/lib/db/store";
 import { publicSiteUrl } from "@/lib/deploy-rules";
-import { Resend } from "resend";
 
 import {
   buildAdminNewOrderEmail,
   buildOrderConfirmationEmail,
   buildOrderStatusEmail,
   orderEmailFailureNote,
-  resendSendInput,
-  envFromAddress,
-  resolveNotifyAddress,
-  resolveEmailBrandName,
   type NewOrderEmailResult,
   type OrderEmailPayload,
   type OrderStatusEmailPayload,
 } from "@/lib/email-rules";
-import {
-  resolvePurposeFromAddress,
-  type EmailSendPurpose,
-  type EmailSenderConfig,
-} from "@/lib/email-sender-rules";
 import { resolveCustomerDisplayName } from "@/lib/brand";
 import { applyPremiumEmailChrome, EMAIL_PALETTE, emailButtonHtml } from "@/lib/email-layout";
 import { escapeEmailHtml, type OrderEmailConfig } from "@/lib/order-email-cms-rules";
-import { isEmailSuppressed } from "@/lib/db/email-suppression-store";
+import {
+  deliverEmail,
+  EMAIL_BRAND_NAME,
+  resolveNotificationEmail,
+  type EmailMessage,
+} from "@/lib/email-delivery";
 
 export type { OrderEmailPayload, OrderStatusEmailPayload };
 export { buildOrderConfirmationEmail, buildOrderStatusEmail, buildAdminNewOrderEmail };
 
-const BRAND_NAME = resolveEmailBrandName(process.env.BRAND_NAME);
+const BRAND_NAME = EMAIL_BRAND_NAME;
 
 function shopperFirstName(raw?: string | null): string {
   const display = resolveCustomerDisplayName(raw);
@@ -47,23 +42,6 @@ function pkr(n: number): string {
   return `Rs ${n.toLocaleString("en-PK")}`;
 }
 
-interface EmailMessage {
-  to: string;
-  subject: string;
-  text: string;
-  html: string;
-  bcc?: string[];
-  replyTo?: string;
-}
-
-function notifyEmail(settingsEmail?: string | null, customerEmail?: string | null): string {
-  return resolveNotifyAddress({
-    envNotify: process.env.ORDER_NOTIFY_EMAIL,
-    settingsEmail,
-    customerEmail,
-  });
-}
-
 async function loadOrderEmailConfig(): Promise<OrderEmailConfig | undefined> {
   try {
     const settings = await fetchSiteSettings();
@@ -72,83 +50,6 @@ async function loadOrderEmailConfig(): Promise<OrderEmailConfig | undefined> {
     return cfg;
   } catch {
     return undefined;
-  }
-}
-
-async function loadEmailSenders(): Promise<EmailSenderConfig | undefined> {
-  try {
-    const settings = await fetchSiteSettings();
-    const cfg = settings?.emailSenders;
-    if (!cfg || Object.keys(cfg).length === 0) return undefined;
-    return cfg;
-  } catch {
-    return undefined;
-  }
-}
-
-async function deliver(message: EmailMessage, purpose: EmailSendPurpose): Promise<boolean> {
-  if (await isEmailSuppressed(message.to)) {
-    console.info(
-      "[email]",
-      JSON.stringify({ outcome: "skipped_suppressed", purpose, ts: new Date().toISOString() }),
-    );
-    return false;
-  }
-
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  const replyTo = notifyEmail() || message.replyTo;
-  const senders = await loadEmailSenders();
-  const payload = resendSendInput({
-    from: resolvePurposeFromAddress({
-      purpose,
-      senders,
-      envFrom: envFromAddress(),
-      brand: BRAND_NAME,
-    }),
-    to: message.to,
-    subject: message.subject,
-    text: message.text,
-    html: message.html,
-    bcc: message.bcc,
-    replyTo,
-    headers: {
-      "X-Entity-Ref-ID": `${Date.now()}-${Math.random().toString(36).substring(2)}`,
-      "List-Unsubscribe": `<mailto:unsubscribe@${BRAND_NAME.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}.com?subject=unsubscribe>`,
-    },
-  });
-
-  if (!apiKey) {
-    console.info("[email][dev] would send:", JSON.stringify({ ...message, replyTo, from: payload.from }, null, 2));
-    return true;
-  }
-
-  // Resend Node.js SDK: emails.send returns { data, error } (camelCase params).
-  // Source: https://resend.com/docs/send-with-nextjs
-  const resend = new Resend(apiKey);
-  try {
-    const { error } = await resend.emails.send(payload);
-    if (error) {
-      console.error(
-        "[email]",
-        JSON.stringify({
-          outcome: "send_failed",
-          purpose,
-          message: typeof error.message === "string" ? error.message : "unknown",
-          ts: new Date().toISOString(),
-        }),
-      );
-      const detail = typeof error.message === "string" ? error.message : "";
-      if (/domain is not verified/i.test(detail)) {
-        console.error(
-          "[email] Verify the From domain at https://resend.com/domains then set FROM_EMAIL to an address on that domain."
-        );
-      }
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error("[email] send failed:", err);
-    return false;
   }
 }
 
@@ -240,7 +141,7 @@ export async function sendOrderStatusUpdateEmail(
   payload: OrderStatusEmailPayload
 ): Promise<boolean> {
   const config = await loadOrderEmailConfig();
-  return deliver({ to, ...buildOrderStatusEmail({ ...payload, email: to }, config) }, "orderStatus");
+  return deliverEmail({ to, ...buildOrderStatusEmail({ ...payload, email: to }, config) }, "orderStatus");
 }
 
 export async function sendOrderConfirmationEmail(
@@ -249,7 +150,7 @@ export async function sendOrderConfirmationEmail(
   replyTo?: string
 ): Promise<boolean> {
   const config = await loadOrderEmailConfig();
-  return deliver(
+  return deliverEmail(
     {
       to,
       replyTo,
@@ -266,7 +167,7 @@ export async function sendAdminNewOrderEmail(
   const dest = to.trim();
   if (!dest) return false;
   const config = await loadOrderEmailConfig();
-  return deliver(
+  return deliverEmail(
     {
       to: dest,
       ...buildAdminNewOrderEmail({ ...payload, email: payload.email }, config),
@@ -280,7 +181,7 @@ export async function notifyNewOrderEmails(
   payload: OrderEmailPayload,
   opts?: { settingsEmail?: string | null }
 ): Promise<NewOrderEmailResult> {
-  const adminTo = notifyEmail(opts?.settingsEmail, customerEmail);
+  const adminTo = resolveNotificationEmail(opts?.settingsEmail, customerEmail);
   const customerSent = await sendOrderConfirmationEmail(
     customerEmail,
     payload,
@@ -299,21 +200,21 @@ export async function sendPostPurchaseEmail(
   to: string,
   payload: OrderEmailPayload
 ): Promise<boolean> {
-  return deliver({ to, ...emailTemplates.postPurchase(payload) }, "reviewRequest");
+  return deliverEmail({ to, ...emailTemplates.postPurchase(payload) }, "reviewRequest");
 }
 
 export async function sendAbandonedCartEmail(
   to: string,
   payload: { name?: string; items: OrderEmailPayload["items"]; subtotal: number }
 ): Promise<boolean> {
-  return deliver({ to, ...emailTemplates.abandonedCart(payload) }, "abandonedCart");
+  return deliverEmail({ to, ...emailTemplates.abandonedCart(payload) }, "abandonedCart");
 }
 
 export async function sendWinbackEmail(
   to: string,
   payload: { name?: string }
 ): Promise<boolean> {
-  return deliver({ to, ...emailTemplates.winback(payload) }, "winback");
+  return deliverEmail({ to, ...emailTemplates.winback(payload) }, "winback");
 }
 
 /** Admin marketing send — one or many recipients (batched). */
@@ -341,9 +242,9 @@ export async function sendMarketingEmail(input: {
   const batchSize = 10;
   for (let i = 0; i < input.recipients.length; i += batchSize) {
     const batch = input.recipients.slice(i, i + batchSize);
-    await Promise.all(
+    const outcomes = await Promise.all(
       batch.map(async (to) => {
-        const ok = await deliver(
+        const ok = await deliverEmail(
           {
             to,
             subject: input.subject,
@@ -352,10 +253,13 @@ export async function sendMarketingEmail(input: {
           },
           "marketing"
         );
-        if (ok) sent += 1;
-        else failed.push({ email: to });
+        return { to, ok };
       })
     );
+    for (const outcome of outcomes) {
+      if (outcome.ok) sent += 1;
+      else failed.push({ email: outcome.to });
+    }
   }
   return { sent, failed };
 }

@@ -64,11 +64,14 @@ async function POSTHandler(request: Request) {
   }
 
   const results = await sendBulk(recipients, text);
+  const namesByPhone = new Map(
+    recipients.map((recipient) => [recipient.phone, recipient.name]),
+  );
 
   const stored: MessageRecipient[] = results.map((r) => ({
     phone: r.phone,
-    ...(recipients.find((x) => x.phone === r.phone)?.name
-      ? { name: recipients.find((x) => x.phone === r.phone)!.name }
+    ...(namesByPhone.get(r.phone)
+      ? { name: namesByPhone.get(r.phone) }
       : {}),
     status: r.status,
     ...(r.messageId ? { messageId: r.messageId } : {}),
@@ -79,6 +82,18 @@ async function POSTHandler(request: Request) {
 
   const sent = stored.filter((r) => r.status === "sent").length;
   const failed = stored.filter((r) => r.status === "failed").length;
+
+  if (!campaignId) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Messages were processed, but the campaign report could not be saved.",
+        totals: { total: stored.length, sent, failed },
+        results: stored,
+      },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json({
     ok: true,

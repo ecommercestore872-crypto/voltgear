@@ -35,7 +35,9 @@ async function PATCHHandler(request: Request, { params }: Ctx) {
   const action = String(body?.action ?? "save");
   const doc = body?.doc;
   let result;
-  if (action === "publish") result = await publishAdminProduct(params.id, doc);
+  if (action === "publish") {
+    result = await publishAdminProduct(params.id, doc, body?.collectionIds);
+  }
   else if (action === "unpublish")
     result = await unpublishAdminProduct(params.id);
   else if (action === "discard")
@@ -46,8 +48,11 @@ async function PATCHHandler(request: Request, { params }: Ctx) {
       { error: result.error },
       { status: result.status },
     );
-  if (action === "save" || action === "publish") {
-    await setProductCollections(params.id, body?.collectionIds);
+  if (action === "save") {
+    const membership = await setProductCollections(params.id, body?.collectionIds);
+    if (!membership.ok) {
+      return NextResponse.json({ error: membership.error }, { status: membership.status });
+    }
   }
   return NextResponse.json(result);
 }

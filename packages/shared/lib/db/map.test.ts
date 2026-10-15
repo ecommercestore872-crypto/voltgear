@@ -44,4 +44,21 @@ describe("mapProduct", () => {
     assert.equal(product?.colorOptions?.[0].image, "https://img/b.jpg");
     assert.equal(product?.sizeOptions?.[0].name, "M");
   });
+
+  it("never exposes zero configured units as purchasable stock", () => {
+    const product = mapProduct({
+      id: "1",
+      name: "Sold out item",
+      slug: "sold-out-item",
+      category: "accessories",
+      price: 1000,
+      quantity: 0,
+      stock_status: "in-stock",
+      product_images: [],
+      product_variants: [],
+      product_reviews: [],
+    });
+    assert.equal(product?.quantity, 0);
+    assert.equal(product?.stockStatus, "out-of-stock");
+  });
 });

@@ -4,6 +4,7 @@
  *   npm run verify:dr -- --month=2026-09
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 
 import {
@@ -58,6 +59,10 @@ function main() {
 
   let failed = false;
   for (const table of DR_EXPORT_TABLES) {
+    if (manifest.unavailableTables.includes(table)) {
+      console.log(`skip ${table} (not present when exported)`);
+      continue;
+    }
     const file = path.join(dir, `${table}.json`);
     if (!existsSync(file)) {
       console.error("missing file:", `${table}.json`);
@@ -65,8 +70,10 @@ function main() {
       continue;
     }
     let rows: unknown;
+    let raw: string;
     try {
-      rows = JSON.parse(readFileSync(file, "utf8"));
+      raw = readFileSync(file, "utf8");
+      rows = JSON.parse(raw);
     } catch {
       console.error("invalid JSON:", table);
       failed = true;
@@ -81,6 +88,12 @@ function main() {
       console.error(
         `row count mismatch ${table}: file=${rows.length} manifest=${manifest.tables[table]}`,
       );
+      failed = true;
+      continue;
+    }
+    const digest = createHash("sha256").update(raw).digest("hex");
+    if (digest !== manifest.sha256[table]) {
+      console.error(`checksum mismatch ${table}`);
       failed = true;
       continue;
     }

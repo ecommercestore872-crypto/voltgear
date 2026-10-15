@@ -56,10 +56,23 @@ async function POSTHandler(request: Request) {
     };
   });
 
-  await updateCampaignResults(campaignId, updated);
+  const reportSaved = await updateCampaignResults(campaignId, updated);
 
   const resent = results.filter((r) => r.status === "sent").length;
   const stillFailed = results.filter((r) => r.status === "failed").length;
+
+  if (!reportSaved) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Messages were retried, but the campaign report could not be updated.",
+        resent,
+        stillFailed,
+        results,
+      },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json({
     ok: true,

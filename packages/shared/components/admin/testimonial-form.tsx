@@ -128,6 +128,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
         <div className="space-y-1.5">
           <Label>Customer name</Label>
           <Input
+            maxLength={120}
             value={form.customerName}
             onChange={(e) =>
               setForm((f) => ({ ...f, customerName: e.target.value }))
@@ -137,6 +138,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
         <div className="space-y-1.5">
           <Label>Review</Label>
           <Textarea
+            maxLength={2000}
             value={form.reviewText}
             onChange={(e) =>
               setForm((f) => ({ ...f, reviewText: e.target.value }))
@@ -158,6 +160,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
         <div className="space-y-1.5">
           <Label>Product</Label>
           <Input
+            maxLength={160}
             value={form.product}
             onChange={(e) =>
               setForm((f) => ({ ...f, product: e.target.value }))

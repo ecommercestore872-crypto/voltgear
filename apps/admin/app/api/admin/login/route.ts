@@ -2,6 +2,8 @@ import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { adminCookieOptions, getAdminSecret } from "@/lib/admin";
+import { isAllowedAdminAuthEmail, normalizeAdminEmail } from "@/lib/admin-auth-email";
+import { deriveAdminSessionToken, sessionTokensEqual } from "@/lib/admin-session";
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { ADMIN_COOKIE } from "@/lib/db/publish";
 
@@ -30,16 +32,16 @@ async function POSTHandler(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const email = body?.email ? String(body.email).trim() : "";
+  const email = body?.email ? normalizeAdminEmail(String(body.email)) : "";
   const password = body?.password ? String(body.password) : "";
   const secret = getAdminSecret();
 
   // Try legacy password-only fallback first (if no email is provided)
   let isValid = false;
   
-  if (!email && password === secret) {
+  if (!email && password && sessionTokensEqual(password, secret)) {
     isValid = true;
-  } else if (email && password) {
+  } else if (email && password && isAllowedAdminAuthEmail(email)) {
     // Authenticate against database Identity via Supabase Auth
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(
@@ -48,7 +50,8 @@ async function POSTHandler(request: Request) {
       { auth: { persistSession: false } }
     );
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (!error && data?.session) {
+    const authenticatedEmail = normalizeAdminEmail(data.user?.email ?? "");
+    if (!error && data?.session && authenticatedEmail === email && isAllowedAdminAuthEmail(authenticatedEmail)) {
       isValid = true;
     }
   }
@@ -59,7 +62,7 @@ async function POSTHandler(request: Request) {
 
   // Cookie-only session — do not return the raw secret to the browser.
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ADMIN_COOKIE, secret, adminCookieOptions());
+  res.cookies.set(ADMIN_COOKIE, await deriveAdminSessionToken(secret), adminCookieOptions());
   return res;
 }
 

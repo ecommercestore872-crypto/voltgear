@@ -28,7 +28,7 @@ export function GadgetSearchInput({
   return (
     <div
       className={cn(
-        "group relative flex items-center rounded-full border bg-white transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        "group relative flex items-center rounded-full border bg-white transition duration-300 ease-out",
         tall ? "h-12 sm:h-[3.15rem]" : "h-10 sm:h-11",
         focused
           ? "border-[var(--g-forest)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--g-sage)_28%,transparent)]"

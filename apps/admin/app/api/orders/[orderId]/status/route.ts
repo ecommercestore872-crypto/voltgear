@@ -50,7 +50,7 @@ async function POSTHandler(
     if (!cancelRes.ok) {
       return NextResponse.json(
         { error: cancelRes.error || "Could not cancel the order." },
-        { status: 500 },
+        { status: cancelRes.status },
       );
     }
     updated = await getOrderById(orderId);

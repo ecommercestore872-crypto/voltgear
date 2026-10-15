@@ -1,3 +1,5 @@
+import { normalizeNewsletterEmail } from "@/lib/newsletter-rules";
+
 export type InboxKind = "contact" | "complaint";
 export type InboxStatus = "new" | "read" | "closed";
 
@@ -29,19 +31,19 @@ export function validateContactSubmission(input: {
     }
   | { ok: false; error: string } {
   const name = String(input.name ?? "").trim();
-  const email = String(input.email ?? "").trim();
+  const emailResult = normalizeNewsletterEmail(input.email);
   const subject = String(input.subject ?? "").trim();
   const message = String(input.message ?? "").trim();
   const kind = parseInboxKind(input.kind);
 
   if (!name) return { ok: false, error: "Name is required." };
-  if (!email || !email.includes("@")) {
+  if (!emailResult.ok) {
     return { ok: false, error: "A valid email is required." };
   }
   if (!message) return { ok: false, error: "Message is required." };
-  if (name.length > 200 || email.length > 320 || subject.length > 300 || message.length > 5000) {
+  if (name.length > 120 || subject.length > 200 || message.length > 5000) {
     return { ok: false, error: "One or more fields are too long." };
   }
 
-  return { ok: true, data: { name, email, subject, message, kind } };
+  return { ok: true, data: { name, email: emailResult.email, subject, message, kind } };
 }

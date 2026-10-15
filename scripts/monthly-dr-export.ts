@@ -5,6 +5,7 @@
  *   npm run export:dr
  */
 import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 
 import {
@@ -36,6 +37,8 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
 
   const counts: Partial<Record<DrExportTable, number>> = {};
+  const sha256: Partial<Record<DrExportTable, string>> = {};
+  const unavailableTables: DrExportTable[] = [];
   for (const table of DR_EXPORT_TABLES) {
     const db = getServiceClient({ admin: true });
     const rows: Record<string, unknown>[] = [];
@@ -45,18 +48,24 @@ async function main() {
         .from(table)
         .select("*")
         .range(from, from + PAGE - 1);
-      if (error) throw new Error(`${table}: ${error.message}`);
+      if (error) {
+        if (error.code === "PGRST205") {
+          unavailableTables.push(table);
+          console.warn(`skipped ${table} (not present in this schema)`);
+          break;
+        }
+        throw new Error(`${table}: ${error.message}`);
+      }
       const batch = (data ?? []) as Record<string, unknown>[];
       rows.push(...batch);
       if (batch.length < PAGE) break;
       from += PAGE;
     }
+    if (unavailableTables.includes(table)) continue;
     counts[table] = rows.length;
-    writeFileSync(
-      path.join(outDir, `${table}.json`),
-      JSON.stringify(rows, null, 0),
-      "utf8",
-    );
+    const json = JSON.stringify(rows);
+    writeFileSync(path.join(outDir, `${table}.json`), json, { encoding: "utf8", mode: 0o600 });
+    sha256[table] = createHash("sha256").update(json).digest("hex");
     console.log(`wrote ${table}.json (${rows.length} rows)`);
   }
 
@@ -64,11 +73,13 @@ async function main() {
     exportedAt: new Date().toISOString(),
     supabaseProjectRef: projectRefFromUrl(process.env.NEXT_PUBLIC_SUPABASE_URL),
     counts,
+    sha256,
+    unavailableTables,
   });
   writeFileSync(
     path.join(outDir, "manifest.json"),
     JSON.stringify(manifest, null, 2),
-    "utf8",
+    { encoding: "utf8", mode: 0o600 },
   );
 
   console.log(`\nDR export complete → ${outDir}`);

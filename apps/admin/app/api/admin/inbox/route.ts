@@ -15,6 +15,12 @@ async function GETHandler(request: Request) {
   const url = new URL(request.url);
   const kindParam = url.searchParams.get("kind");
   const statusParam = url.searchParams.get("status");
+  if (kindParam && kindParam !== "contact" && kindParam !== "complaint") {
+    return NextResponse.json({ error: "Invalid inbox kind." }, { status: 400 });
+  }
+  if (statusParam && !parseInboxStatus(statusParam)) {
+    return NextResponse.json({ error: "Invalid inbox status." }, { status: 400 });
+  }
   const kind =
     kindParam === "contact" || kindParam === "complaint"
       ? parseInboxKind(kindParam)
@@ -29,7 +35,7 @@ async function GETHandler(request: Request) {
   } catch (error) {
     console.error("[inbox] list failed", error);
     return NextResponse.json(
-      { error: "Inbox is not ready. Push the contact_submissions migration." },
+      { error: "Inbox is temporarily unavailable." },
       { status: 503 },
     );
   }

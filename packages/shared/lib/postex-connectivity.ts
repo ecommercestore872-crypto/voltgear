@@ -1,4 +1,7 @@
-import type { PostExBaseEnv } from "@/lib/postex";
+import {
+  resolvePostExIntegrationBaseUrl,
+  type PostExBaseEnv,
+} from "@/lib/postex";
 
 /** Server-only PostEx API connectivity probe (no order/checkout side effects). */
 
@@ -19,8 +22,7 @@ type PostExConnectivityInternal = PostExConnectivitySafeResponse & {
 export function resolvePostExOperationalCityUrl(
   env: PostExBaseEnv = process.env as PostExBaseEnv,
 ): string {
-  const base = (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
-  return `${base}/services/integration/api/order/v2/get-operational-city`;
+  return `${resolvePostExIntegrationBaseUrl(env)}/order/v2/get-operational-city`;
 }
 
 function readPostExToken(): string {

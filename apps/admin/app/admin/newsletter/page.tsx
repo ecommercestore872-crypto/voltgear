@@ -16,8 +16,7 @@ export default async function AdminNewsletterPage() {
   try {
     subscribers = await listNewsletterSubscribers();
   } catch {
-    loadError =
-      "Newsletter table is missing. Push migration 20260905010000_newsletter_subscribers.sql to Supabase.";
+    loadError = "Newsletter data is temporarily unavailable. Please retry shortly.";
   }
 
   return (

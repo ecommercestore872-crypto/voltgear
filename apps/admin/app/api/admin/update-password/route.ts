@@ -15,8 +15,8 @@ async function POSTHandler(request: Request) {
   const body = await request.json().catch(() => null);
   const password = body?.password?.trim();
   
-  if (!password || password.length < 6) {
-    return NextResponse.json({ error: "Password must be at least 6 characters." }, { status: 400 });
+  if (!password || password.length < 12) {
+    return NextResponse.json({ error: "Password must be at least 12 characters." }, { status: 400 });
   }
 
   const supabase = getServiceClient({ admin: true });
@@ -29,20 +29,13 @@ async function POSTHandler(request: Request) {
     }
   }
   if (!userId) {
-    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1,
-    });
-    if (listError || !users?.[0]) {
-      return NextResponse.json(
-        {
-          error:
-            "No Supabase admin user found. Use forgot password or ask your developer to run ensure:admin-auth.",
-        },
-        { status: 400 },
-      );
-    }
-    userId = users[0].id;
+    return NextResponse.json(
+      {
+        error:
+          "No allowlisted Supabase admin user found. Use forgot password or run ensure:admin-auth.",
+      },
+      { status: 400 },
+    );
   }
 
   const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {

@@ -25,11 +25,11 @@ async function DELETEHandler(
     return NextResponse.json({ error: "Order not found." }, { status: 404 });
   }
 
-  const success = await deleteOrder(orderId);
-  if (!success) {
+  const result = await deleteOrder(orderId);
+  if (!result.ok) {
     return NextResponse.json(
-      { error: "Could not delete the order. Please try again." },
-      { status: 500 },
+      { error: result.error },
+      { status: result.status },
     );
   }
 

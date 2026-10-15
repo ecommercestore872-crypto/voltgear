@@ -39,9 +39,6 @@ export type PostExCreateOrderResult = PostExCreateOrderSuccess | PostExCreateOrd
 
 const POSTEX_INTEGRATION_API_SUFFIX = "/services/integration/api";
 
-const POSTEX_BASE_URL =
-  process.env.POSTEX_API_BASE_URL || "https://api.postex.pk/services/integration/api";
-
 export type PostExBaseEnv = {
   POSTEX_API_BASE_URL?: string;
   POSTEX_API_TOKEN?: string;
@@ -52,12 +49,24 @@ export type PostExBaseEnv = {
 const postExEnv = (): PostExBaseEnv => process.env as PostExBaseEnv;
 
 function resolvePostExHostBase(env: PostExBaseEnv = postExEnv()): string {
-  return (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
+  const configured = (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(
+    /\/+$/,
+    "",
+  );
+  return configured.endsWith(POSTEX_INTEGRATION_API_SUFFIX)
+    ? configured.slice(0, -POSTEX_INTEGRATION_API_SUFFIX.length)
+    : configured;
+}
+
+export function resolvePostExIntegrationBaseUrl(
+  env: PostExBaseEnv = postExEnv(),
+): string {
+  return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}`;
 }
 
 /** PostEx create-order URL (host base + integration path). */
 export function resolvePostExCreateOrderUrl(env: PostExBaseEnv = postExEnv()): string {
-  return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v3/create-order`;
+  return `${resolvePostExIntegrationBaseUrl(env)}/order/v3/create-order`;
 }
 
 /** PostEx track-order URL (host base + integration path). */
@@ -66,7 +75,7 @@ export function resolvePostExTrackOrderUrl(
   env: PostExBaseEnv = postExEnv(),
 ): string {
   const tn = encodeURIComponent(trackingNumber.trim());
-  return `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v1/track-order/${tn}`;
+  return `${resolvePostExIntegrationBaseUrl(env)}/order/v1/track-order/${tn}`;
 }
 
 /** PostEx get-invoice / airway bill URL (host base + integration path). */
@@ -78,7 +87,7 @@ export function resolvePostExGetInvoiceUrl(
     .map((t) => t.trim())
     .filter(Boolean);
   const url = new URL(
-    `${resolvePostExHostBase(env)}${POSTEX_INTEGRATION_API_SUFFIX}/order/v1/get-invoice`,
+    `${resolvePostExIntegrationBaseUrl(env)}/order/v1/get-invoice`,
   );
   url.searchParams.set("trackingNumbers", list.join(","));
   return url.toString();
@@ -270,21 +279,23 @@ export function postExConfigured(): boolean {
 
 /** Official path: GET /v1/track-order/{trackingNumber} with `token` header. */
 export async function trackPostExOrder(
-  trackingNumber: string
+  trackingNumber: string,
+  options: { fetchImpl?: typeof fetch; env?: PostExBaseEnv } = {},
 ): Promise<{ ok: true; rawStatus: string; data: unknown } | { ok: false; error: string }> {
-  const token = getPostExToken();
+  const env = options.env ?? postExEnv();
+  const token = env.POSTEX_API_TOKEN?.trim() ?? "";
   if (!token) return { ok: false, error: "PostEx API Token is missing." };
   const tn = trackingNumber.trim();
   if (!tn) return { ok: false, error: "Missing tracking number." };
   try {
-    const res = await fetch(`${POSTEX_BASE_URL}/v1/track-order/${encodeURIComponent(tn)}`, {
+    const res = await (options.fetchImpl ?? fetch)(resolvePostExTrackOrderUrl(tn, env), {
       method: "GET",
       headers: { token },
     });
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-      return { ok: false, error: `PostEx track failed (${res.status})` };
-    }
+    const parsed = await readPostExJsonResponse(res);
+    if (!parsed.ok) return { ok: false, error: parsed.error };
+    const data = parsed.data;
+    if (!res.ok) return { ok: false, error: `PostEx track failed (${res.status})` };
     return { ok: true, rawStatus: JSON.stringify(data ?? {}), data };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "PostEx track request failed.";
@@ -293,25 +304,35 @@ export async function trackPostExOrder(
 }
 
 export async function getPostExInvoice(
-  trackingNumbers: string[]
+  trackingNumbers: string[],
+  options: { fetchImpl?: typeof fetch; env?: PostExBaseEnv } = {},
 ): Promise<{ ok: true; pdfBase64: string } | { ok: false; error: string }> {
-  const token = getPostExToken();
+  const env = options.env ?? postExEnv();
+  const token = env.POSTEX_API_TOKEN?.trim() ?? "";
   if (!token) return { ok: false, error: "PostEx API Token missing." };
 
   try {
-    const res = await fetch(
-      `${POSTEX_BASE_URL}/v1/get-invoice?trackingNumbers=${trackingNumbers.join(",")}`,
+    const res = await (options.fetchImpl ?? fetch)(
+      resolvePostExGetInvoiceUrl(trackingNumbers, env),
       {
         method: "GET",
-        headers: { token: token },
-      }
+        headers: { token },
+      },
     );
-    const data = await res.json();
-    if (!res.ok || (data.statusCode && data.statusCode !== "200")) {
-      return { ok: false, error: data.statusMessage || "Failed to fetch PostEx invoice." };
+    const parsed = await readPostExJsonResponse(res);
+    if (!parsed.ok) return { ok: false, error: parsed.error };
+    const data = parsed.data;
+    if (!res.ok || (data.statusCode != null && !postExStatusOk(data.statusCode))) {
+      return {
+        ok: false,
+        error:
+          (typeof data.statusMessage === "string" && data.statusMessage) ||
+          "Failed to fetch PostEx invoice.",
+      };
     }
 
-    return { ok: true, pdfBase64: data.dist || data.invoice || "" };
+    const pdf = data.dist ?? data.invoice ?? "";
+    return { ok: true, pdfBase64: typeof pdf === "string" ? pdf : "" };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "PostEx invoice request failed.";
     return { ok: false, error: message };

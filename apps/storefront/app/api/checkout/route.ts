@@ -1,22 +1,18 @@
 import { NextResponse } from "next/server";
-import crypto from "node:crypto";
 
-import { createOrder, nextPublicOrderId } from "@/lib/order-store";
 import { getOrderByPublicId } from "@/lib/db/store";
 import {
   resolveCheckout,
-  resolveShippingAndTotal,
   CHECKOUT_PRICE_CHANGED_ERROR,
-  GIFT_WRAP_FEE,
 } from "@/lib/checkout-server";
 import { isDemoRequest } from "@/lib/demo";
 import { orderIsDemo } from "@/lib/db/demo-rules";
-import { applyPromoToTotals, normalizePromoCode } from "@/lib/db/promo-rules";
-import { applyDealsToCart, promoBlockedByDeal } from "@/lib/db/deal-rules";
 import { listProductDeals } from "@/lib/db/deal-store";
-import { countPriorOrdersForEmail, getPromoByCode } from "@/lib/db/promo-store";
 import { deferAfterResponse } from "@/lib/defer-after-response";
 import { runCheckoutPostPersist } from "@/lib/checkout-post-persist";
+import type { CheckoutBody } from "@/lib/checkout-contract";
+import { resolveCheckoutPricing } from "@/lib/checkout-pricing";
+import { persistCheckoutOrder } from "@/lib/checkout-persistence";
 import {
   cacheCheckoutOrder,
   checkoutClientIp,
@@ -30,33 +26,10 @@ import {
 } from "@/lib/checkout-observability";
 import { checkoutHttpStatusAfterOrderPersisted } from "@/lib/email-checkout-rules";
 import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
+import { scopeCheckoutIdempotencyKey } from "@/lib/checkout-idempotency";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-interface CheckoutCustomer {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  postal?: string;
-  note?: string;
-}
-
-interface CheckoutBody {
-  items?: { slug?: string; quantity?: number; variantKey?: string }[];
-  customer?: CheckoutCustomer;
-  payment?: { method?: string };
-  giftWrap?: boolean;
-  promoCode?: string;
-  idempotencyKey?: string;
-  consent?: string | null;
-  // Present only for backwards-compatible clients; never trusted.
-  subtotal?: number;
-  shipping?: number;
-  total?: number;
-}
 
 /**
  * Order endpoint. Cash on Delivery is the only supported payment method;
@@ -126,7 +99,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: rate.error }, { status: 429 });
     }
 
-    const idemKey = readIdempotencyKey(request, body.idempotencyKey);
+    const demoSession = isDemoRequest(request);
+    const rawIdemKey = readIdempotencyKey(request, body.idempotencyKey);
+    // Keep practice retries in a separate namespace so a browser switching
+    // between demo and live checkout can never replay the other environment.
+    const idemKey = scopeCheckoutIdempotencyKey(rawIdemKey, demoSession);
     if (idemKey) {
       const cached = getCachedCheckoutOrder(idemKey);
       if (cached) {
@@ -156,7 +133,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const demoSession = isDemoRequest(request);
     const [resolution, dealsList] = await Promise.all([
       resolveCheckout(items, giftWrap === true, demoSession),
       listProductDeals().catch(() => []),
@@ -186,77 +162,25 @@ export async function POST(request: Request) {
 
     const { lines, subtotal } = resolution.checkout;
     const gift = giftWrap === true;
-    let dealDiscount = 0;
-    try {
-      dealDiscount = applyDealsToCart(
-        lines.map((line) => ({
-          slug: line.slug,
-          quantity: line.quantity,
-          price: line.price,
-        })),
-        dealsList,
-      ).discount;
-    } catch (error) {
-      console.error("[checkout] deals", error);
-      dealDiscount = 0;
-    }
-    const merchandise = Math.max(
-      0,
-      Math.round((subtotal - dealDiscount) * 100) / 100,
-    );
-    const shipped = await resolveShippingAndTotal(merchandise, gift);
-    let finalShipping = shipped.shipping;
-    let finalTotal = shipped.total;
-    let discount = dealDiscount;
-    let appliedPromo: string | null = null;
-
-    const promoRaw = normalizePromoCode(body.promoCode);
-    if (promoRaw) {
-      try {
-        const promo = await getPromoByCode(promoRaw);
-        if (!promo) {
-          return NextResponse.json(
-            { error: "That promo code is not valid." },
-            { status: 400 },
-          );
-        }
-        if (promoBlockedByDeal(dealDiscount, promo.type)) {
-          return NextResponse.json(
-            {
-              error:
-                "A pair deal is already applied. Percent and rupee codes cannot stack on the same order.",
-            },
-            { status: 400 },
-          );
-        }
-        const prior = await countPriorOrdersForEmail(email);
-        const applied = applyPromoToTotals(promo, {
-          subtotal: merchandise,
-          shipping: finalShipping,
-          giftWrapFee: gift ? GIFT_WRAP_FEE : 0,
-          isFirstOrder: prior === 0,
-        });
-        if (!applied.ok) {
-          return NextResponse.json({ error: applied.error }, { status: 400 });
-        }
-        finalShipping = applied.shipping;
-        finalTotal = applied.total;
-        discount =
-          Math.round(
-            (dealDiscount +
-              (promo.type === "free_shipping" ? 0 : applied.discount)) *
-              100,
-          ) / 100;
-        appliedPromo = applied.code;
-      } catch (error) {
-        console.error("[checkout] promo", error);
-        slo("promo_error", 503, { itemCount: items.length });
-        return NextResponse.json(
-          { error: "Could not apply promo code. Try again without it." },
-          { status: 503 },
-        );
+    const pricingResult = await resolveCheckoutPricing({
+      lines,
+      subtotal,
+      gift,
+      promoCode: body.promoCode,
+      email,
+      deals: dealsList,
+    });
+    if (!pricingResult.ok) {
+      if (pricingResult.code === "promo_error") {
+        slo("promo_error", pricingResult.status, { itemCount: items.length });
       }
+      return NextResponse.json(
+        { error: pricingResult.error },
+        { status: pricingResult.status },
+      );
     }
+    const { finalShipping, finalTotal, discount, appliedPromo } =
+      pricingResult.pricing;
 
     const customerNote = [
       gift ? "Gift wrap requested." : null,
@@ -285,26 +209,9 @@ export async function POST(request: Request) {
       isDemo: orderIsDemo(demoSession, false),
     };
 
-    let idempotencyFingerprint: string | undefined;
-    if (idemKey) {
-      const fgData = JSON.stringify({
-        email: baseOrder.customer.email,
-        phone: baseOrder.customer.phone,
-        items: baseOrder.items.map(i => ({ s: i.slug, q: i.quantity, v: i.variantKey })),
-        total: baseOrder.total
-      });
-      idempotencyFingerprint = crypto.createHash("sha256").update(fgData).digest("hex");
-    }
-
-    let orderId = await nextPublicOrderId();
-    let persisted: { orderId: string, replayed: boolean } | null = null;
-    
+    let persisted: { orderId: string; replayed: boolean } | null = null;
     try {
-      persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
-      for (let i = 0; i < 4 && !persisted; i++) {
-        orderId = await nextPublicOrderId();
-        persisted = await createOrder({ ...baseOrder, orderId, idempotencyKey: idemKey, idempotencyFingerprint });
-      }
+      persisted = await persistCheckoutOrder(baseOrder, idemKey);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "";
       if (message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
@@ -329,7 +236,7 @@ export async function POST(request: Request) {
       );
     }
     
-    orderId = persisted.orderId;
+    const orderId = persisted.orderId;
 
     if (idemKey) {
       cacheCheckoutOrder(idemKey, orderId);

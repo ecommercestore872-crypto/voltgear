@@ -1,92 +1,91 @@
 import { withAdminApiObservability } from "@/lib/admin-api-observability";
-import { NextResponse, type NextRequest } from "next/server";
-import { verifyAction } from "@/lib/crypto-actions";
-import { updateOrderStatus, getOrderById } from "@/lib/order-store";
-import type { OrderStatus } from "@/lib/types";
+import { NextResponse } from "next/server";
+
+import { isQuickActionStatus, verifyAction } from "@/lib/crypto-actions";
 import { publicSiteUrl } from "@/lib/deploy-rules";
+import { cancelOrder, getOrderById, updateOrderStatus } from "@/lib/order-store";
 
-export const dynamic = "force-dynamic"; // Prevents static caching of GET query parameters
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-async function GETHandler(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const orderId = searchParams.get("orderId");
-  const action = searchParams.get("action");
-  const exp = searchParams.get("exp");
-  const sig = searchParams.get("sig");
+type ActionParameters = {
+  orderId: string;
+  action: "shipped" | "cancelled";
+  exp: string;
+  sig: string;
+};
 
-  if (!orderId || !action || !exp || !sig) {
-    return new NextResponse("Missing cryptographic parameters", { status: 400 });
-  }
+const htmlHeaders = {
+  "Cache-Control": "no-store",
+  "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+  "Content-Type": "text/html; charset=utf-8",
+  "Referrer-Policy": "no-referrer",
+  "X-Content-Type-Options": "nosniff",
+};
 
-  // Verify the military-grade HMAC token to guarantee the action was authorized
-  const isValid = verifyAction(sig, orderId, action, exp);
-  if (!isValid) {
-    return new NextResponse(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <style>body{font-family:system-ui;background:#fef2f2;color:#991b1b;padding:40px;text-align:center;}</style>
-        </head>
-        <body>
-          <h2>Security Error 🚨</h2>
-          <p>This action link is expired or cryptographically invalid.</p>
-        </body>
-      </html>
-    `, { status: 403, headers: { "Content-Type": "text/html" } });
-  }
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character] ?? character);
+}
 
-  // Ensure order actually exists in DB
-  const order = await getOrderById(orderId);
-  if (!order) {
-    return new NextResponse("Order not found.", { status: 404 });
-  }
+function readActionParameters(values: URLSearchParams | FormData): ActionParameters | null {
+  const orderId = values.get("orderId");
+  const action = values.get("action");
+  const exp = values.get("exp");
+  const sig = values.get("sig");
+  if (
+    typeof orderId !== "string" || typeof action !== "string" ||
+    typeof exp !== "string" || typeof sig !== "string" || !orderId ||
+    !isQuickActionStatus(action) || !verifyAction(sig, orderId, action, exp)
+  ) return null;
+  return { orderId, action, exp, sig };
+}
 
-  const baseUrl = publicSiteUrl();
-  const targetUrl = `${baseUrl}/admin/orders/${encodeURIComponent(orderId)}`;
+function actionPage(parameters: ActionParameters): string {
+  const orderId = escapeHtml(parameters.orderId);
+  const action = escapeHtml(parameters.action);
+  const exp = escapeHtml(parameters.exp);
+  const sig = escapeHtml(parameters.sig);
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Confirm order action</title><style>body{font-family:system-ui;background:#eef2ff;display:grid;place-items:center;min-height:100vh;margin:0}.card{background:#fff;padding:32px;border-radius:20px;box-shadow:0 10px 40px #0001;text-align:center;max-width:360px}button{border:0;border-radius:12px;padding:14px 20px;background:#1e293b;color:#fff;font-weight:700;cursor:pointer}p{color:#64748b;line-height:1.5}</style></head><body><main class="card"><h1>Confirm order update</h1><p>Mark order <strong>${orderId}</strong> as <strong>${action}</strong>?</p><form method="post"><input type="hidden" name="orderId" value="${orderId}"><input type="hidden" name="action" value="${action}"><input type="hidden" name="exp" value="${exp}"><input type="hidden" name="sig" value="${sig}"><button type="submit">Confirm ${action}</button></form></main></body></html>`;
+}
 
+async function GETHandler(request: Request) {
+  const parameters = readActionParameters(new URL(request.url).searchParams);
+  if (!parameters) return new NextResponse("Invalid or expired action link", { status: 403 });
+  if (!await getOrderById(parameters.orderId)) return new NextResponse("Order not found", { status: 404 });
+  return new NextResponse(actionPage(parameters), { headers: htmlHeaders });
+}
+
+async function POSTHandler(request: Request) {
+  const parameters = readActionParameters(await request.formData());
+  if (!parameters) return new NextResponse("Invalid or expired action link", { status: 403 });
+  if (!await getOrderById(parameters.orderId)) return new NextResponse("Order not found", { status: 404 });
   try {
-    const statusNote = `Automated via 1-Tap Mobile fulfillment email at ${new Date().toLocaleTimeString()}`;
-    await updateOrderStatus(orderId, action as OrderStatus, statusNote);
-    
-    // Render a hyper-optimized premium success card
-    return new NextResponse(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Order Updated | Buy n Try</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-          <style>
-            body { font-family: -apple-system, system-ui, sans-serif; background: #eef2ff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-            .card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); text-align: center; max-width: 90%; width: 340px; }
-            h1 { color: #166534; font-size: 24px; margin: 0 0 12px; tracking: -0.5px; }
-            p { color: #64748b; font-size: 15px; margin: 0 0 28px; line-height: 1.5; }
-            a { display: block; background: #1e293b; color: white; text-decoration: none; padding: 16px; border-radius: 14px; font-weight: 600; font-size: 16px; transition: transform 0.1s; }
-            a:active { transform: scale(0.97); }
-            @media(prefers-color-scheme: dark) {
-              body { background: #020617; }
-              .card { background: #0f172a; border: 1px solid #1e293b; }
-              h1 { color: #4ade80; }
-              p { color: #cbd5e1; }
-              a { background: #f8fafc; color: #0f172a; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <h1>Action Successful</h1>
-            <p>Order <strong>${orderId}</strong> has been instantly updated to state <strong>${action.toUpperCase()}</strong>.</p>
-            <a href="${targetUrl}">Close & View Dashboard</a>
-          </div>
-        </body>
-      </html>
-    `, {
-      headers: { "Content-Type": "text/html" }
-    });
+    const note = `Confirmed via signed fulfillment email at ${new Date().toISOString()}`;
+    if (parameters.action === "cancelled") {
+      const cancelled = await cancelOrder(parameters.orderId, note);
+      if (!cancelled.ok) {
+        return new NextResponse(cancelled.error || "Could not cancel order", {
+          status: cancelled.status,
+        });
+      }
+    } else {
+      const updated = await updateOrderStatus(
+        parameters.orderId,
+        parameters.action,
+        note,
+      );
+      if (!updated) {
+        return new NextResponse("Could not update order", { status: 409 });
+      }
+    }
+    const target = escapeHtml(`${publicSiteUrl()}/admin/orders/${encodeURIComponent(parameters.orderId)}`);
+    return new NextResponse(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Order updated</title><style>body{font-family:system-ui;background:#eef2ff;display:grid;place-items:center;min-height:100vh;margin:0}.card{background:#fff;padding:32px;border-radius:20px;text-align:center}a{display:block;padding:14px;background:#1e293b;color:#fff;border-radius:12px;text-decoration:none}</style></head><body><main class="card"><h1>Order updated</h1><p>The signed action was applied successfully.</p><a href="${target}">View order</a></main></body></html>`, { headers: htmlHeaders });
   } catch {
-    return new NextResponse("Server mutation error", { status: 500 });
+    return new NextResponse("Could not update order", { status: 500 });
   }
 }
 
 export const GET = withAdminApiObservability("GET /api/admin/quick-action", GETHandler);
+export const POST = withAdminApiObservability("POST /api/admin/quick-action", POSTHandler);

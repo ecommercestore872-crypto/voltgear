@@ -6,9 +6,14 @@ import {
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
   CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_FOLDER,
 } from "@/lib/cloudinary";
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
+import { isDemoRequest } from "@/lib/demo";
+import {
+  hasExpectedImageSignature,
+  REVIEW_UPLOAD_MAX_BYTES,
+  REVIEW_UPLOAD_TYPES,
+} from "@/lib/upload-rules";
 
 function isConfigured(value: string | undefined): boolean {
   return !!value && !value.startsWith("your-");
@@ -22,14 +27,6 @@ cloudinary.config({
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
 
 const uploadLimiter = createMemoryRateLimiter({
   limit: 8,
@@ -53,6 +50,13 @@ async function POSTHandler(request: Request) {
       );
     }
 
+    if (isDemoRequest(request)) {
+      return NextResponse.json(
+        { error: "Image uploads are disabled in practice mode." },
+        { status: 403 },
+      );
+    }
+
     if (
       !isConfigured(CLOUDINARY_CLOUD_NAME) ||
       !isConfigured(CLOUDINARY_API_KEY) ||
@@ -66,8 +70,6 @@ async function POSTHandler(request: Request) {
 
     const formData = await request.formData();
     const file = formData.get("file");
-    const folder = (formData.get("folder") as string) || CLOUDINARY_FOLDER;
-    const removeBackground = formData.get("removeBackground") === "true";
 
     if (!(file instanceof File)) {
       return NextResponse.json(
@@ -77,37 +79,34 @@ async function POSTHandler(request: Request) {
     }
 
     const mimeType = file.type || "";
-    if (!ALLOWED_TYPES.has(mimeType)) {
+    if (!REVIEW_UPLOAD_TYPES.has(mimeType)) {
       return NextResponse.json(
-        { error: "Only JPEG, PNG, WebP, or GIF images are allowed." },
+        { error: "Only JPEG, PNG, or WebP images are allowed." },
         { status: 400 },
       );
     }
 
-    if (file.size > MAX_BYTES) {
+    if (file.size <= 0 || file.size > REVIEW_UPLOAD_MAX_BYTES) {
       return NextResponse.json(
         { error: "Image must be 5 MB or smaller." },
         { status: 400 },
       );
     }
 
-    // Public uploads are for reviews only — never accept arbitrary folders.
-    const safeFolder =
-      typeof folder === "string" && folder.startsWith("reviews")
-        ? folder.slice(0, 64)
-        : "reviews";
-
     const buffer = Buffer.from(await file.arrayBuffer());
+    if (!hasExpectedImageSignature(buffer, mimeType)) {
+      return NextResponse.json(
+        { error: "The file content does not match its image type." },
+        { status: 400 },
+      );
+    }
     const base64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
     const result = await cloudinary.uploader.upload(base64, {
-      folder: safeFolder,
+      // The public endpoint is dedicated to review evidence. Client input can
+      // never select a different Cloudinary folder or paid transformation.
+      folder: "reviews",
       resource_type: "image",
-      ...(removeBackground
-        ? {
-            background_removal: "cloudinary_ai",
-          }
-        : {}),
       transformation: {
         quality: "auto",
         fetch_format: "auto",
@@ -119,7 +118,7 @@ async function POSTHandler(request: Request) {
       secureUrl: result.secure_url,
       width: result.width,
       height: result.height,
-      backgroundRemoved: removeBackground,
+      backgroundRemoved: false,
     });
   } catch (error) {
     console.error("Cloudinary upload failed:", error);

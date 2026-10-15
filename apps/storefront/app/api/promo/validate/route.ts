@@ -26,6 +26,22 @@ async function POSTHandler(request: Request) {
       );
     }
 
+    const numericSubtotal = Number(subtotal);
+    const numericShipping = Number(shipping);
+    if (
+      !Number.isFinite(numericSubtotal) ||
+      !Number.isFinite(numericShipping) ||
+      numericSubtotal < 0 ||
+      numericShipping < 0 ||
+      numericSubtotal > 1_000_000_000 ||
+      numericShipping > 1_000_000_000
+    ) {
+      return NextResponse.json(
+        { ok: false, error: "Cart totals are invalid." },
+        { status: 400 },
+      );
+    }
+
     const promo = await getPromoByCode(code);
     if (!promo) {
       return NextResponse.json({
@@ -48,8 +64,8 @@ async function POSTHandler(request: Request) {
     }
 
     const result = applyPromoToTotals(promo, {
-      subtotal: Number(subtotal ?? 0),
-      shipping: Number(shipping ?? 0),
+      subtotal: numericSubtotal,
+      shipping: numericShipping,
       isFirstOrder,
     });
 

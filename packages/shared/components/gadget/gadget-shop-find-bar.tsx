@@ -75,7 +75,7 @@ export function GadgetShopFindBar({
             </label>
             <div
               className={cn(
-                "group relative flex h-12 items-center rounded-full border bg-[var(--g-white)]/90 transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-[3.15rem]",
+                "group relative flex h-12 items-center rounded-full border bg-[var(--g-white)]/90 transition duration-300 ease-out sm:h-[3.15rem]",
                 focused
                   ? "border-[var(--g-forest)]/35 shadow-[0_0_0_4px_rgba(31,54,38,0.08),0_10px_28px_rgba(31,54,38,0.08)]"
                   : "border-[var(--g-line)] shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] hover:border-[var(--g-forest)]/20",

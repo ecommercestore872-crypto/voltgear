@@ -1,10 +1,34 @@
+"use client";
+
+import { useState } from "react";
 import type { NewsletterSubscriber } from "@/lib/db/newsletter-store";
+import { adminFetch } from "@/components/admin/admin-fetch";
+import { Button } from "@/components/ui/button";
 
 export function NewsletterList({
   subscribers,
 }: {
   subscribers: NewsletterSubscriber[];
 }) {
+  const [rows, setRows] = useState(subscribers);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function unsubscribe(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const result = (await adminFetch("/api/admin/newsletter", {
+        method: "PATCH",
+        body: JSON.stringify({ id, action: "unsubscribe" }),
+      })) as { subscriber: NewsletterSubscriber };
+      setRows((current) => current.map((row) => row.id === id ? result.subscriber : row));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unsubscribe failed.");
+    } finally {
+      setBusyId(null);
+    }
+  }
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -15,7 +39,7 @@ export function NewsletterList({
             automatically.
           </p>
         </div>
-        {subscribers.length > 0 ? (
+        {rows.some((row) => row.status === "subscribed") ? (
           <a
             href="/api/admin/newsletter?format=csv"
             className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"
@@ -24,7 +48,8 @@ export function NewsletterList({
           </a>
         ) : null}
       </div>
-      {subscribers.length === 0 ? (
+      {error ? <p className="rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-900">{error}</p> : null}
+      {rows.length === 0 ? (
         <p className="rounded-md border bg-white px-4 py-8 text-sm text-muted-foreground">
           No subscribers yet. A signup only appears here after the newsletter
           table exists and someone submits the footer form.
@@ -37,10 +62,11 @@ export function NewsletterList({
                 <th className="px-3 py-2 font-medium">Email</th>
                 <th className="px-3 py-2 font-medium">Source</th>
                 <th className="px-3 py-2 font-medium">Joined</th>
+                <th className="px-3 py-2 font-medium">Consent</th>
               </tr>
             </thead>
             <tbody>
-              {subscribers.map((row) => (
+              {rows.map((row) => (
                 <tr key={row.id} className="border-b last:border-0">
                   <td className="px-3 py-2">{row.email}</td>
                   <td className="px-3 py-2 text-muted-foreground">
@@ -50,6 +76,13 @@ export function NewsletterList({
                     {row.createdAt
                       ? new Date(row.createdAt).toLocaleString("en-PK")
                       : "—"}
+                  </td>
+                  <td className="px-3 py-2">
+                    {row.status === "subscribed" ? (
+                      <Button type="button" size="sm" variant="outline" disabled={busyId === row.id} onClick={() => unsubscribe(row.id)}>
+                        Unsubscribe
+                      </Button>
+                    ) : <span className="text-xs text-muted-foreground">Unsubscribed</span>}
                   </td>
                 </tr>
               ))}

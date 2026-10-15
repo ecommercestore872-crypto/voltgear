@@ -1,9 +1,8 @@
-import { listContactSubmissions, type InboxItem } from "@/lib/db/inbox-store";
+import { listContactSubmissionsForEmail, type InboxItem } from "@/lib/db/inbox-store";
 import {
   buildCustomerRowsFromOrders,
   type CustomerRow,
 } from "@/lib/db/customer-list";
-import { inboxMatchesCustomer } from "@/lib/db/customer-profile-rules";
 import {
   getOrderById,
   getOrdersByEmail,
@@ -47,14 +46,8 @@ export async function getCustomerProfile(
     ) ??
     rows[0];
 
-  const inboxAll = await listContactSubmissions({ includeDemo: false }).catch(
+  const inbox = await listContactSubmissionsForEmail(customer.email).catch(
     () => [] as InboxItem[],
-  );
-  const inbox = inboxAll.filter((item) =>
-    inboxMatchesCustomer(item, {
-      email: customer.email,
-      phone: customer.phone,
-    }),
   );
 
   return { customer, orders: matchedOrders, inbox };

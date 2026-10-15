@@ -1,14 +1,25 @@
 #!/usr/bin/env node
 /**
- * Run only git-tracked unit tests (CI-safe — no missing local-only files).
+ * Discover unit tests from the working tree so new regression tests run before
+ * they are staged. CI still sees the same deterministic repository directory.
  */
 import { spawnSync } from "node:child_process";
-import { execSync } from "node:child_process";
+import { readdirSync } from "node:fs";
+import { join, relative } from "node:path";
 
-const files = execSync('git ls-files "packages/shared/lib/"', { encoding: "utf8" })
-  .trim()
-  .split(/\r?\n/)
-  .filter((f) => f.endsWith(".test.ts") || f.endsWith(".test.mjs"));
+function findTests(directory) {
+  const found = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const absolute = join(directory, entry.name);
+    if (entry.isDirectory()) found.push(...findTests(absolute));
+    else if (entry.name.endsWith(".test.ts") || entry.name.endsWith(".test.mjs")) {
+      found.push(relative(process.cwd(), absolute));
+    }
+  }
+  return found;
+}
+
+const files = findTests(join(process.cwd(), "packages", "shared", "lib")).sort();
 
 if (!files.length) {
   console.error("No test files found.");
@@ -17,7 +28,7 @@ if (!files.length) {
 
 const result = spawnSync(
   process.platform === "win32" ? "npx.cmd" : "npx",
-  ["tsx", "--test", ...files],
+  ["tsx", "--test", "--test-isolation=none", "--test-concurrency=1", ...files],
   { stdio: "inherit", shell: process.platform === "win32" },
 );
 

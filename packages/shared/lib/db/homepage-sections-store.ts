@@ -168,23 +168,17 @@ export async function createAdminHomepageSection(doc: HomepageSectionDoc) {
 
   const sortOrder = doc.sortOrder ?? Number(maxSort?.sort_order ?? 0) + 1;
 
-  const { data, error } = await db()
-    .from("homepage_sections")
-    .insert({
+  const { data, error } = await db().rpc("admin_save_homepage_section", {
+    p_id: null,
+    p_doc: {
+      ...doc,
       title: validation.title,
-      subtitle: doc.subtitle?.trim() || null,
       slug,
-      source_type: doc.sourceType,
-      category_id: doc.categoryId?.trim() || null,
-      product_limit: validation.limit,
-      layout: doc.layout,
-      show_view_all: doc.showViewAll ?? true,
-      view_all_href: doc.viewAllHref?.trim() || null,
-      is_active: doc.isActive ?? true,
-      sort_order: sortOrder,
-    })
-    .select("id")
-    .single();
+      productLimit: validation.limit,
+      sortOrder,
+      manualProductIds: Array.from(new Set(doc.manualProductIds ?? [])),
+    },
+  });
 
   if (error) {
     if (error.code === "23505") {
@@ -193,16 +187,7 @@ export async function createAdminHomepageSection(doc: HomepageSectionDoc) {
     return { ok: false as const, error: error.message, status: 500 };
   }
 
-  const sectionId = String(data.id);
-
-  if (doc.sourceType === "manual" && doc.manualProductIds?.length) {
-    const rows = doc.manualProductIds.map((pid, idx) => ({
-      section_id: sectionId,
-      product_id: pid,
-      sort_order: idx + 1,
-    }));
-    await db().from("homepage_section_products").insert(rows);
-  }
+  const sectionId = String(data);
 
   void revalidateShopMerchandising("/");
   return { ok: true as const, id: sectionId };
@@ -219,37 +204,19 @@ export async function saveAdminHomepageSection(id: string, doc: HomepageSectionD
 
   const slug = doc.slug?.trim() ? slugify(doc.slug) : current.slug;
 
-  const { error } = await db()
-    .from("homepage_sections")
-    .update({
+  const { error } = await db().rpc("admin_save_homepage_section", {
+    p_id: id,
+    p_doc: {
+      ...doc,
       title: validation.title,
-      subtitle: doc.subtitle?.trim() || null,
       slug,
-      source_type: doc.sourceType,
-      category_id: doc.categoryId?.trim() || null,
-      product_limit: validation.limit,
-      layout: doc.layout,
-      show_view_all: doc.showViewAll ?? true,
-      view_all_href: doc.viewAllHref?.trim() || null,
-      is_active: doc.isActive ?? true,
-      sort_order: doc.sortOrder ?? current.sortOrder,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
+      productLimit: validation.limit,
+      sortOrder: doc.sortOrder ?? current.sortOrder,
+      manualProductIds: Array.from(new Set(doc.manualProductIds ?? [])),
+    },
+  });
 
   if (error) return { ok: false as const, error: error.message, status: 500 };
-
-  // Replace manual products
-  await db().from("homepage_section_products").delete().eq("section_id", id);
-
-  if (doc.sourceType === "manual" && doc.manualProductIds?.length) {
-    const rows = doc.manualProductIds.map((pid, idx) => ({
-      section_id: id,
-      product_id: pid,
-      sort_order: idx + 1,
-    }));
-    await db().from("homepage_section_products").insert(rows);
-  }
 
   void revalidateShopMerchandising("/");
   return { ok: true as const };
@@ -267,12 +234,11 @@ export async function reorderAdminHomepageSections(orderedIds: string[]) {
     return { ok: false as const, error: "Invalid section list.", status: 400 };
   }
 
-  for (let i = 0; i < orderedIds.length; i++) {
-    await db()
-      .from("homepage_sections")
-      .update({ sort_order: i + 1 })
-      .eq("id", orderedIds[i]);
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { ok: false as const, error: "Section ids must be unique.", status: 400 };
   }
+  const { error } = await db().rpc("admin_reorder_homepage_sections", { p_ids: orderedIds });
+  if (error) return { ok: false as const, error: error.message, status: 400 };
 
   void revalidateShopMerchandising("/");
   return { ok: true as const };

@@ -91,6 +91,9 @@ export async function createPromoCode(input: Record<string, unknown>): Promise<
       value: parsed.data.value,
       first_order_only: parsed.data.firstOrderOnly,
       active: parsed.data.active,
+      starts_at: parsed.data.startsAt,
+      ends_at: parsed.data.endsAt,
+      max_usage: parsed.data.maxUsage,
       updated_at: new Date().toISOString(),
     })
     .select("*")
@@ -123,6 +126,9 @@ export async function updatePromoCode(
       value: parsed.data.value,
       first_order_only: parsed.data.firstOrderOnly,
       active: parsed.data.active,
+      starts_at: parsed.data.startsAt,
+      ends_at: parsed.data.endsAt,
+      max_usage: parsed.data.maxUsage,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
@@ -141,32 +147,18 @@ export async function updatePromoCode(
   return { ok: true, promo: mapRow(data as Record<string, unknown>) };
 }
 
-export async function incrementPromoUsage(code: string): Promise<void> {
-  const row = await getPromoByCode(code);
-  if (!row) return;
-  await db()
-    .from("promo_codes")
-    .update({ usage_count: row.usageCount + 1, updated_at: new Date().toISOString() })
-    .eq("id", row.id);
-}
-
 /** Live non-cancelled orders for this email (first-order check). */
 export async function countPriorOrdersForEmail(email: string): Promise<number> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return 0;
-  const { data, error } = await db()
+  const { count, error } = await db()
     .from("orders")
-    .select("id, customer, status, is_demo")
-    .limit(500);
+    .select("id", { count: "exact", head: true })
+    .eq("customer->>email", normalized)
+    .eq("is_demo", false)
+    .neq("status", "cancelled");
   if (error) throw error;
-  return (data ?? []).filter((row) => {
-    const c = row.customer as { email?: string } | null;
-    const e = (c?.email ?? "").trim().toLowerCase();
-    if (e !== normalized) return false;
-    if (row.is_demo) return false;
-    if (row.status === "cancelled") return false;
-    return true;
-  }).length;
+  return count ?? 0;
 }
 
 export async function deletePromoCode(

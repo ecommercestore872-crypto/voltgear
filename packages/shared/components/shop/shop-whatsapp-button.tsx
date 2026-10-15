@@ -85,7 +85,7 @@ export function ShopWhatsAppButton({
           onBlur={() => setPinnedOpen(false)}
           className={cn(
             "shop-wa-launcher pointer-events-auto relative z-[1] inline-flex h-14 items-center rounded-full bg-[#25D366] text-white",
-            "shadow-[0_10px_28px_rgba(37,211,102,0.38)] transition-[width,background-color,box-shadow,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            "shadow-[0_10px_28px_rgba(37,211,102,0.38)] transition-[width,background-color,box-shadow,transform] duration-300 ease-out",
             "hover:bg-[#20bd5a] hover:shadow-[0_14px_32px_rgba(37,211,102,0.45)] hover:-translate-y-0.5",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest,#1b3d29)]",
             showLabel ? "w-[min(100vw-2.5rem,15.75rem)]" : "w-14",

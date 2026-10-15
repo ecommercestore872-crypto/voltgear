@@ -1,4 +1,7 @@
-import type { PostExBaseEnv } from "@/lib/postex";
+import {
+  resolvePostExIntegrationBaseUrl,
+  type PostExBaseEnv,
+} from "@/lib/postex";
 
 /** Read-only PostEx list-orders lookup for locked booking reconciliation. */
 
@@ -27,8 +30,7 @@ export type PostExListOrdersParams = {
 export function resolvePostExGetAllOrdersUrl(
   env: PostExBaseEnv = process.env as PostExBaseEnv,
 ): string {
-  const base = (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
-  return `${base}/services/integration/api/order/v1/get-all-order`;
+  return `${resolvePostExIntegrationBaseUrl(env)}/order/v1/get-all-order`;
 }
 
 export function buildPostExListOrdersUrl(

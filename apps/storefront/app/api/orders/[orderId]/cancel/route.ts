@@ -68,7 +68,7 @@ async function POSTHandler(
         error:
           cancelRes.error || "Could not cancel the order. Please try again.",
       },
-      { status: 500 },
+      { status: cancelRes.status },
     );
   }
   const updated = await getOrderById(orderId);

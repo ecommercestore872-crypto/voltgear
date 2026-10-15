@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { isAdminRequest } from "@/lib/admin";
-import { resolvePostExGetInvoiceUrl } from "@/lib/postex";
+import { getPostExInvoice, resolvePostExGetInvoiceUrl } from "@/lib/postex";
 
 import type { Order } from "@/lib/types";
 
@@ -32,6 +32,40 @@ describe("resolvePostExGetInvoiceUrl", () => {
       }),
       "https://api.postex.pk/services/integration/api/order/v1/get-invoice?trackingNumbers=23736240000001",
     );
+  });
+
+  it("accepts a legacy integration base without duplicating the path", () => {
+    assert.equal(
+      resolvePostExGetInvoiceUrl("23736240000001", {
+        POSTEX_API_BASE_URL: "https://api.postex.pk/services/integration/api/",
+      }),
+      "https://api.postex.pk/services/integration/api/order/v1/get-invoice?trackingNumbers=23736240000001",
+    );
+  });
+});
+
+describe("getPostExInvoice", () => {
+  it("uses the normalized resolver and safely parses a JSON invoice", async () => {
+    let requestedUrl = "";
+    const result = await getPostExInvoice(["23736240000001"], {
+      env: {
+        POSTEX_API_BASE_URL: "https://api.postex.pk/services/integration/api/",
+        POSTEX_API_TOKEN: "secret-token",
+      },
+      fetchImpl: async (input) => {
+        requestedUrl = String(input);
+        return new Response(
+          JSON.stringify({ statusCode: "200", dist: "base64-pdf" }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      },
+    });
+
+    assert.equal(
+      requestedUrl,
+      "https://api.postex.pk/services/integration/api/order/v1/get-invoice?trackingNumbers=23736240000001",
+    );
+    assert.deepEqual(result, { ok: true, pdfBase64: "base64-pdf" });
   });
 });
 

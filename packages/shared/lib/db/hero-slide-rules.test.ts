@@ -12,6 +12,8 @@ describe("hero-slide-rules", () => {
     assert.equal(canPublishSlide({ imageUrl: "", productId: "p1" }).ok, false);
     assert.equal(canPublishSlide({ imageUrl: "https://x", productId: "" }).ok, false);
     assert.equal(canPublishSlide({ imageUrl: "https://x", productId: "p1" }).ok, true);
+    assert.equal(canPublishSlide({ imageUrl: "javascript:alert(1)", productId: "p1" }).ok, false);
+    assert.equal(canPublishSlide({ imageUrl: "/hero/banner.webp", productId: "p1" }).ok, true);
   });
 
   it("blocks home publish without slides or testimonials", () => {

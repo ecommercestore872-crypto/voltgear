@@ -1,4 +1,7 @@
-import type { PostExBaseEnv } from "@/lib/postex";
+import {
+  resolvePostExIntegrationBaseUrl,
+  type PostExBaseEnv,
+} from "@/lib/postex";
 
 /** Server-only PostEx merchant pickup address lookup (read-only). */
 
@@ -28,8 +31,7 @@ type PostExPickupAddressInternal = PostExPickupAddressResponse & {
 export function resolvePostExMerchantAddressUrl(
   env: PostExBaseEnv = process.env as PostExBaseEnv,
 ): string {
-  const base = (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
-  return `${base}/services/integration/api/order/v1/get-merchant-address`;
+  return `${resolvePostExIntegrationBaseUrl(env)}/order/v1/get-merchant-address`;
 }
 
 function readPostExToken(): string {

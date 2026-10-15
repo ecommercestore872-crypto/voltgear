@@ -1,4 +1,5 @@
 import { ADMIN_COOKIE } from "@/lib/admin-cookie";
+import { deriveAdminSessionToken, sessionTokensEqual } from "@/lib/admin-session";
 import { resolveAdminSecret } from "@/lib/deploy-rules";
 
 /**
@@ -22,7 +23,12 @@ export function adminCookieOptions() {
 function cookieValue(request: Request, name: string): string {
   const header = request.headers.get("cookie") || "";
   const match = header.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : "";
+  if (!match) return "";
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return "";
+  }
 }
 
 /**
@@ -32,7 +38,8 @@ export function isAdminRequest(request: Request): boolean {
   const token = getAdminSecret();
   const auth = request.headers.get("authorization") || "";
   const provided = auth.replace(/^Bearer\s+/i, "");
-  if (provided && provided === token) return true;
+  if (provided && sessionTokensEqual(provided, token)) return true;
   const cookie = cookieValue(request, ADMIN_COOKIE);
-  return Boolean(cookie) && cookie === token;
+  const expectedSession = deriveAdminSessionToken(token);
+  return Boolean(cookie) && sessionTokensEqual(cookie, expectedSession);
 }

@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { newsletterCsv, normalizeNewsletterEmail } from "./newsletter-rules";
+import {
+  newsletterCsv,
+  normalizeNewsletterEmail,
+  normalizeNewsletterSource,
+} from "./newsletter-rules";
 
 describe("normalizeNewsletterEmail", () => {
   it("rejects empty and malformed addresses", () => {
@@ -14,6 +18,11 @@ describe("normalizeNewsletterEmail", () => {
     const r = normalizeNewsletterEmail("  Ali@Shop.PK  ");
     assert.equal(r.ok, true);
     if (r.ok) assert.equal(r.email, "ali@shop.pk");
+  });
+
+  it("normalizes a bounded signup source", () => {
+    assert.equal(normalizeNewsletterSource(" Back_In-Stock "), "back_in-stock");
+    assert.equal(normalizeNewsletterSource("../../etc"), "other");
   });
 });
 

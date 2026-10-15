@@ -15,6 +15,9 @@ type Promo = {
   firstOrderOnly: boolean;
   active: boolean;
   usageCount: number;
+  maxUsage: number | null;
+  startsAt: string | null;
+  endsAt: string | null;
 };
 
 export function PromosManager() {
@@ -23,12 +26,16 @@ export function PromosManager() {
   const [type, setType] = useState<Promo["type"]>("percent");
   const [value, setValue] = useState("10");
   const [firstOrderOnly, setFirstOrderOnly] = useState(false);
+  const [maxUsage, setMaxUsage] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const createDraftDirty = useMemo(
-    () => Boolean(code.trim()) || firstOrderOnly,
-    [code, firstOrderOnly],
+    () =>
+      Boolean(code.trim()) || firstOrderOnly || Boolean(maxUsage || startsAt || endsAt),
+    [code, firstOrderOnly, maxUsage, startsAt, endsAt],
   );
   useUnsavedChangesGuard(createDraftDirty);
 
@@ -59,9 +66,15 @@ export function PromosManager() {
           value: type === "free_shipping" ? 0 : Number(value),
           firstOrderOnly,
           active: true,
+          maxUsage: maxUsage ? Number(maxUsage) : null,
+          startsAt: startsAt ? new Date(startsAt).toISOString() : null,
+          endsAt: endsAt ? new Date(endsAt).toISOString() : null,
         }),
       });
       setCode("");
+      setMaxUsage("");
+      setStartsAt("");
+      setEndsAt("");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Create failed");
@@ -82,6 +95,9 @@ export function PromosManager() {
           value: p.value,
           firstOrderOnly: p.firstOrderOnly,
           active: !p.active,
+          maxUsage: p.maxUsage,
+          startsAt: p.startsAt,
+          endsAt: p.endsAt,
         }),
       });
       await load();
@@ -179,6 +195,38 @@ export function PromosManager() {
                 <span className="font-medium text-foreground">Valid for first-time orders only</span>
               </label>
 
+              <label className="block space-y-1.5 text-sm">
+                <span className="font-semibold text-foreground">Usage limit (optional)</span>
+                <Input
+                  value={maxUsage}
+                  onChange={(e) => setMaxUsage(e.target.value)}
+                  type="number"
+                  min={1}
+                  max={1_000_000}
+                  step={1}
+                  placeholder="Unlimited"
+                />
+              </label>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="block space-y-1.5 text-sm">
+                  <span className="font-semibold text-foreground">Starts (optional)</span>
+                  <Input
+                    value={startsAt}
+                    onChange={(e) => setStartsAt(e.target.value)}
+                    type="datetime-local"
+                  />
+                </label>
+                <label className="block space-y-1.5 text-sm">
+                  <span className="font-semibold text-foreground">Ends (optional)</span>
+                  <Input
+                    value={endsAt}
+                    onChange={(e) => setEndsAt(e.target.value)}
+                    type="datetime-local"
+                  />
+                </label>
+              </div>
+
               {error && <p className="text-sm p-3 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-medium">{error}</p>}
               
               <Button
@@ -246,7 +294,7 @@ export function PromosManager() {
                            )}
                         </td>
                         <td className="px-5 py-4 text-center font-mono font-medium text-muted-foreground">
-                          {p.usageCount}
+                          {p.usageCount}{p.maxUsage ? ` / ${p.maxUsage}` : ""}
                         </td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">

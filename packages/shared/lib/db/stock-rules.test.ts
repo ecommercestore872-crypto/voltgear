@@ -40,4 +40,9 @@ describe("syncStockStatusWithQuantity", () => {
   it("forces out of stock when units are zero", () => {
     assert.equal(syncStockStatusWithQuantity("in-stock", 0), "out-of-stock");
   });
+
+  it("derives low stock from configured units and preserves manual status when unlimited", () => {
+    assert.equal(syncStockStatusWithQuantity("in-stock", 3), "low-stock");
+    assert.equal(syncStockStatusWithQuantity("low-stock", null), "low-stock");
+  });
 });

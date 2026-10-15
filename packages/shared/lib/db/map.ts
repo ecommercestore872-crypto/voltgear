@@ -19,6 +19,7 @@ import { parseVariantOptions } from "@/lib/variant-options-rules";
 import { textToPortableText } from "@/lib/product-detail-copy";
 import { normalizePageSeo } from "@/lib/blog-desk-rules";
 import { shopVisible } from "@/lib/db/publish";
+import { syncStockStatusWithQuantity } from "@/lib/db/stock-rules";
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -86,6 +87,10 @@ export function mapProduct(
         }))
     : [];
 
+  const quantity = row.quantity != null && Number.isFinite(Number(row.quantity))
+    ? Number(row.quantity)
+    : null;
+
   return {
     _id: String(row.id),
     name: String(row.name ?? ""),
@@ -127,8 +132,8 @@ export function mapProduct(
       : undefined,
     sku: row.sku ? String(row.sku) : undefined,
     brand: row.brand ? String(row.brand) : undefined,
-    stockStatus: stock(row.stock_status),
-    quantity: row.quantity != null && Number.isFinite(Number(row.quantity)) ? Number(row.quantity) : null,
+    stockStatus: syncStockStatusWithQuantity(stock(row.stock_status), quantity),
+    quantity,
     rating: row.rating != null ? num(row.rating) : undefined,
     reviewCount: row.review_count != null ? num(row.review_count) : undefined,
     reviews,

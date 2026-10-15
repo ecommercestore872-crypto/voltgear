@@ -42,6 +42,9 @@ export function validatePromoAdminInput(input: {
   value?: unknown;
   firstOrderOnly?: unknown;
   active?: unknown;
+  startsAt?: unknown;
+  endsAt?: unknown;
+  maxUsage?: unknown;
 }):
   | {
       ok: true;
@@ -51,6 +54,9 @@ export function validatePromoAdminInput(input: {
         value: number;
         firstOrderOnly: boolean;
         active: boolean;
+        startsAt: string | null;
+        endsAt: string | null;
+        maxUsage: number | null;
       };
     }
   | { ok: false; error: string } {
@@ -69,6 +75,30 @@ export function validatePromoAdminInput(input: {
   if (type === "free_shipping") {
     // value unused
   }
+  const parseDate = (raw: unknown): string | null | "invalid" => {
+    if (raw == null || String(raw).trim() === "") return null;
+    const timestamp = Date.parse(String(raw));
+    return Number.isNaN(timestamp) ? "invalid" : new Date(timestamp).toISOString();
+  };
+  const startsAt = parseDate(input.startsAt);
+  const endsAt = parseDate(input.endsAt);
+  if (startsAt === "invalid" || endsAt === "invalid") {
+    return { ok: false, error: "Start and end dates must be valid." };
+  }
+  if (startsAt && endsAt && Date.parse(startsAt) >= Date.parse(endsAt)) {
+    return { ok: false, error: "End date must be after start date." };
+  }
+  const maxUsageRaw = input.maxUsage;
+  const maxUsage =
+    maxUsageRaw == null || String(maxUsageRaw).trim() === ""
+      ? null
+      : Number(maxUsageRaw);
+  if (
+    maxUsage != null &&
+    (!Number.isInteger(maxUsage) || maxUsage < 1 || maxUsage > 1_000_000)
+  ) {
+    return { ok: false, error: "Usage limit must be a whole number from 1 to 1,000,000." };
+  }
   return {
     ok: true,
     data: {
@@ -77,6 +107,9 @@ export function validatePromoAdminInput(input: {
       value: type === "free_shipping" ? 0 : value,
       firstOrderOnly: Boolean(input.firstOrderOnly),
       active: input.active === undefined ? true : Boolean(input.active),
+      startsAt,
+      endsAt,
+      maxUsage,
     },
   };
 }

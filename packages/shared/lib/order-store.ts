@@ -49,12 +49,18 @@ export async function nextPublicOrderId(): Promise<string> {
   return allocatePublicOrderId();
 }
 
-export async function getOrdersByEmail(email: string): Promise<Order[]> {
-  return getOrdersByEmailFromDb(email);
+export async function getOrdersByEmail(
+  email: string,
+  options?: { demo?: boolean },
+): Promise<Order[]> {
+  return getOrdersByEmailFromDb(email, options);
 }
 
-export async function getOrdersByPhone(phone: string): Promise<Order[]> {
-  return getOrdersByPhoneFromDb(phone);
+export async function getOrdersByPhone(
+  phone: string,
+  options?: { demo?: boolean },
+): Promise<Order[]> {
+  return getOrdersByPhoneFromDb(phone, options);
 }
 
 export async function getDeliveredOrdersWithItemsForDeals(): Promise<Order[]> {
@@ -94,11 +100,13 @@ export async function updateOrderStatus(
 export async function cancelOrder(
   orderId: string,
   note: string = "Cancelled by user"
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<
+  { ok: true } | { ok: false; error: string; status: 404 | 409 | 503 }
+> {
   return cancelOrderRestoreInventoryRow(orderId, note);
 }
 
-export async function deleteOrder(orderId: string): Promise<boolean> {
+export async function deleteOrder(orderId: string) {
   return deleteOrderRow(orderId);
 }
 

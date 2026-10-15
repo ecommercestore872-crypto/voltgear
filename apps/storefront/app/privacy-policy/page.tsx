@@ -66,7 +66,9 @@ export default async function PrivacyPolicyPage() {
           </p>
           <p>
             If you subscribe to restock or newsletter updates, we keep the email
-            you typed until you ask us to remove it.
+            you typed and a record of your consent. You can ask us to unsubscribe
+            it at any time; we retain a minimal suppression record so it is not
+            accidentally added to future marketing exports again.
           </p>
 
           <h2>How we use information</h2>

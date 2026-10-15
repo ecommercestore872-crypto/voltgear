@@ -239,6 +239,7 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
                     Internal Note (Not visible to customer)
                   </label>
                   <textarea
+                    maxLength={2000}
                     className="w-full min-h-[120px] rounded-xl border bg-card px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm transition-all focus:border-primary resize-y"
                     placeholder="Leave a note about how this was handled..."
                     value={note}

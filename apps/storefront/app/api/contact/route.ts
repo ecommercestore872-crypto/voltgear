@@ -2,7 +2,9 @@ import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { NextResponse } from "next/server";
 
 import { createContactSubmission } from "@/lib/db/inbox-store";
+import { isDemoRequest } from "@/lib/demo";
 import { takePublicPostLimit } from "@/lib/public-api-guard";
+import { safeWebhookText } from "@/lib/newsletter-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,13 +20,15 @@ async function POSTHandler(request: Request) {
     }
 
     const body = await request.json().catch(() => null);
+    const isDemo = isDemoRequest(request);
     const result = await createContactSubmission({
       name: body?.name,
       email: body?.email,
       subject: body?.subject,
       message: body?.message,
       kind: body?.kind,
-      isDemo: Boolean(body?.isDemo),
+      // Never trust a client-supplied sandbox flag.
+      isDemo,
     });
 
     if (!result.ok) {
@@ -35,12 +39,13 @@ async function POSTHandler(request: Request) {
     }
 
     const webhookUrl = process.env.SLACK_WEBHOOK_URL || process.env.WEBHOOK_URL;
-    if (webhookUrl) {
+    if (webhookUrl && !isDemo) {
       await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(3_000),
         body: JSON.stringify({
-          text: `New inbox message (${body?.kind === "complaint" ? "complaint" : "contact"})\nName: ${body?.name}\nEmail: ${body?.email}\nSubject: ${body?.subject ?? "-"}\nMessage: ${body?.message}`,
+          text: `New inbox message (${body?.kind === "complaint" ? "complaint" : "contact"})\nName: ${safeWebhookText(body?.name, 120)}\nEmail: ${safeWebhookText(body?.email, 254)}\nSubject: ${safeWebhookText(body?.subject ?? "-", 200)}\nMessage: ${safeWebhookText(body?.message, 5000)}`,
         }),
       }).catch(() => null);
     }

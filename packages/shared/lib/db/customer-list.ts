@@ -1,4 +1,5 @@
 import { getServiceClient } from "@/lib/supabase/server";
+import { normalizePhone } from "@/lib/messaging";
 
 import { mapLightweightOrderRow } from "./admin-orders-store";
 
@@ -25,8 +26,9 @@ export function buildCustomerRowsFromOrders(
   for (const o of orders) {
     if (o.isDemo) continue;
     const email = (o.customer?.email ?? "").trim().toLowerCase();
-    const phone = (o.customer?.phone ?? "").trim();
-    const key = email || phone || o.orderId;
+    const rawPhone = (o.customer?.phone ?? "").trim();
+    const phone = normalizePhone(rawPhone) ?? rawPhone;
+    const key = phone || email || o.orderId;
     if (!key) continue;
     const existing = map.get(key);
     const created = o.createdAt ?? "";
@@ -47,6 +49,8 @@ export function buildCustomerRowsFromOrders(
       existing.lastOrderAt = created;
       existing.lastOrderId = o.orderId;
       if (o.customer?.name?.trim()) existing.name = o.customer.name.trim();
+      existing.email = o.customer?.email?.trim() || existing.email;
+      existing.phone = phone || existing.phone;
     }
   }
 

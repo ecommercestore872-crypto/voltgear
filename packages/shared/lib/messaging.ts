@@ -173,7 +173,7 @@ export async function sendBulk(
   text: string,
   { concurrency = 3 }: { concurrency?: number } = {}
 ): Promise<MessageResult[]> {
-  const results: MessageResult[] = [];
+  const results = new Array<MessageResult>(recipients.length);
   let cursor = 0;
 
   async function worker() {
@@ -186,14 +186,14 @@ export async function sendBulk(
         recipient.name || "valued customer"
       );
       try {
-        results.push(await sendMessage(recipient.phone, personalized));
+        results[index] = await sendMessage(recipient.phone, personalized);
       } catch (err) {
-        results.push({
+        results[index] = {
           phone: recipient.phone,
           status: "failed",
           provider: "unknown",
           error: err instanceof Error ? err.message : String(err),
-        });
+        };
       }
     }
   }

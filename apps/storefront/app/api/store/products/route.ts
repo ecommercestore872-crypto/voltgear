@@ -18,6 +18,7 @@ import { resolveStorefrontRecommendations } from "@/lib/wishlist-recommendations
 
 /** CDN + ISR — avoids a serverless hit on every cart/search upsell poll. */
 export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const dynamic = "force-dynamic";
 
 function json(data: unknown, status = 200, cacheable = true) {
   const headers: Record<string, string> =

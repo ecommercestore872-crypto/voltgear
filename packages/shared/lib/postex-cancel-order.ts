@@ -1,12 +1,15 @@
-import { readPostExJsonResponse, type PostExBaseEnv } from "@/lib/postex";
+import {
+  readPostExJsonResponse,
+  resolvePostExIntegrationBaseUrl,
+  type PostExBaseEnv,
+} from "@/lib/postex";
 
 import type { Order } from "@/lib/types";
 
 export function resolvePostExCancelOrderUrl(
   env: PostExBaseEnv = process.env as PostExBaseEnv,
 ): string {
-  const base = (env.POSTEX_API_BASE_URL || "https://api.postex.pk").replace(/\/$/, "");
-  return `${base}/services/integration/api/order/v1/cancel-order`;
+  return `${resolvePostExIntegrationBaseUrl(env)}/order/v1/cancel-order`;
 }
 
 function postExStatusOk(statusCode: unknown): boolean {

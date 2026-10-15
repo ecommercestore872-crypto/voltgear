@@ -25,10 +25,12 @@ async function GETHandler(request: Request) {
   }
 
   const base = publicSiteUrl().replace(/\/+$/, "");
-  const [newest, shopTypes] = await Promise.all([
-    fetchCatalogNewestProducts(WARM_PDP_SLUG_LIMIT, false).catch(() => []),
-    fetchShopTypes().catch(() => []),
+  const dependencies = await Promise.allSettled([
+    fetchCatalogNewestProducts(WARM_PDP_SLUG_LIMIT, false),
+    fetchShopTypes(),
   ]);
+  const newest = dependencies[0].status === "fulfilled" ? dependencies[0].value : [];
+  const shopTypes = dependencies[1].status === "fulfilled" ? dependencies[1].value : [];
   const categoryPaths = shopTypes.map((t) => `/products/${t.slug}`);
   const paths = [
     ...storefrontWarmPaths(),
@@ -59,7 +61,11 @@ async function GETHandler(request: Request) {
   }
 
   return NextResponse.json({
-    ok: failed.length === 0,
+    ok: failed.length === 0 && dependencies.every((result) => result.status === "fulfilled"),
+    dependencies: {
+      catalog: dependencies[0].status,
+      categories: dependencies[1].status,
+    },
     base,
     warmed: warmed.length,
     failed,

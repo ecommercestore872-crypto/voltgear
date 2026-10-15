@@ -32,9 +32,10 @@ export function parseOptionalQuantity(raw: unknown):
 }
 
 export function syncStockStatusWithQuantity(
-  status: string,
-  quantity: number | null
-): string {
-  if (quantity === 0) return "out-of-stock";
-  return status || "in-stock";
+  status: string | null | undefined,
+  quantity: number | null,
+): "in-stock" | "low-stock" | "out-of-stock" {
+  if (quantity != null) return nextStockStatus(quantity);
+  if (status === "low-stock" || status === "out-of-stock") return status;
+  return "in-stock";
 }

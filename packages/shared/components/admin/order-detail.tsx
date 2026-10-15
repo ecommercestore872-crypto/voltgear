@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ORDER_STATUS_VALUES,
+  allowedNextOrderStatuses,
   orderEmailIssueFromHistory,
 } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
@@ -301,7 +301,7 @@ export function OrderDetail({
   async function handleDelete() {
     if (
       !window.confirm(
-        "Are you sure you want to permanently delete this order? This action cannot be undone.",
+        "Delete this practice order permanently and restore its reserved inventory? This cannot be undone.",
       )
     ) {
       return;
@@ -585,7 +585,7 @@ export function OrderDetail({
             value={status}
             onChange={(e) => setStatus(e.target.value as OrderStatus)}
           >
-            {ORDER_STATUS_VALUES.map((s) => (
+            {allowedNextOrderStatuses(order.status ?? "new").map((s) => (
               <option key={s} value={s}>
                 {STATUS_LABEL[s]}
               </option>
@@ -611,21 +611,30 @@ export function OrderDetail({
         </Button>
       </form>
 
-      <section className="rounded-lg border border-destructive/20 p-4">
-        <h2 className="text-sm font-semibold text-destructive">Danger Zone</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Permanently delete this order. This action cannot be undone.
-        </p>
-        <Button
-          type="button"
-          variant="destructive"
-          className="mt-4"
-          disabled={saving}
-          onClick={handleDelete}
-        >
-          Delete Order
-        </Button>
-      </section>
+      {order.isDemo ? (
+        <section className="rounded-lg border border-destructive/20 p-4">
+          <h2 className="text-sm font-semibold text-destructive">Practice data</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Permanently delete this practice order and restore any reserved inventory.
+          </p>
+          <Button
+            type="button"
+            variant="destructive"
+            className="mt-4"
+            disabled={saving}
+            onClick={handleDelete}
+          >
+            Delete Practice Order
+          </Button>
+        </section>
+      ) : (
+        <section className="rounded-lg border p-4">
+          <h2 className="text-sm font-semibold">Commerce record retention</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Live orders are retained to preserve fulfillment, payment, inventory, and customer-service history.
+          </p>
+        </section>
+      )}
     </div>
   );
 }

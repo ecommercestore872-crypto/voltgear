@@ -8,6 +8,16 @@ export function canPublishSlide(slide: {
   const productId = (slide.productId ?? "").trim();
   if (!imageUrl) return { ok: false, reason: "Image is required." };
   if (!productId) return { ok: false, reason: "Product is required." };
+  if (!(imageUrl.startsWith("/") && !imageUrl.startsWith("//"))) {
+    try {
+      const parsed = new URL(imageUrl);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        return { ok: false, reason: "Image must use an HTTP(S) or local URL." };
+      }
+    } catch {
+      return { ok: false, reason: "Image URL is invalid." };
+    }
+  }
   return { ok: true };
 }
 

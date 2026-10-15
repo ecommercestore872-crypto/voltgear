@@ -18,6 +18,22 @@ async function POSTHandler(request: Request) {
   const items = Array.isArray((body as { items?: unknown } | null)?.items)
     ? (body as { items: { slug?: unknown; quantity?: unknown }[] }).items
     : [];
+  if (items.length > 50) {
+    return NextResponse.json(
+      { error: "Too many cart lines." },
+      { status: 400 },
+    );
+  }
+  const requestedUnits = items.reduce((sum, item) => {
+    const quantity = Number(item.quantity);
+    return sum + (Number.isInteger(quantity) && quantity > 0 ? quantity : 0);
+  }, 0);
+  if (requestedUnits > 500) {
+    return NextResponse.json(
+      { error: "Cart quantity is too large." },
+      { status: 400 },
+    );
+  }
   const [deals, catalog] = await Promise.all([
     listProductDeals(),
     fetchDealCatalog(),

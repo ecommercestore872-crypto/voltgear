@@ -5,6 +5,7 @@ import { getOrdersByEmail } from "@/lib/order-store";
 import { submitReview } from "@/lib/db/store";
 import { isDemoRequest } from "@/lib/demo";
 import { takePublicPostLimit } from "@/lib/public-api-guard";
+import { validateReviewSubmission } from "@/lib/review-submission-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,26 +32,23 @@ async function POSTHandler(request: Request) {
     }
 
     const body: ReviewBody = await request.json();
+    const parsed = validateReviewSubmission(
+      body,
+      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    );
+    if (!parsed.ok) {
+      return NextResponse.json(
+        { error: parsed.error },
+        { status: 400 },
+      );
+    }
     const { slug, rating, name, email, comment, image, category, productName } =
-      body;
+      parsed.data;
 
-    if (!slug) {
-      return NextResponse.json({ error: "Missing product." }, { status: 400 });
-    }
-    if (!rating || rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: "Please choose a rating between 1 and 5." },
-        { status: 400 },
-      );
-    }
-    if (!name?.trim() || !email?.trim() || !comment?.trim()) {
-      return NextResponse.json(
-        { error: "Name, email and review are required." },
-        { status: 400 },
-      );
-    }
-
-    const orders = await getOrdersByEmail(email.toLowerCase().trim());
+    const isDemo = isDemoRequest(request);
+    const orders = await getOrdersByEmail(email, {
+      demo: isDemo,
+    });
     const verified = orders.some((o) =>
       (o.items ?? []).some((i) => i.slug === slug),
     );
@@ -58,14 +56,14 @@ async function POSTHandler(request: Request) {
     const result = await submitReview({
       slug,
       rating,
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      comment: comment.trim(),
-      image: image?.trim(),
-      category: category?.trim(),
-      productName: productName?.trim(),
+      name,
+      email,
+      comment,
+      image,
+      category,
+      productName,
       verified,
-      isDemo: isDemoRequest(request),
+      isDemo,
     });
     if (!result.ok) {
       return NextResponse.json(

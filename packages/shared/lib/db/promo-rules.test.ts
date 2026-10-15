@@ -31,6 +31,44 @@ describe("validatePromoAdminInput", () => {
     });
     assert.equal(r.ok, true);
   });
+
+  it("normalizes campaign dates and a usage cap", () => {
+    const r = validatePromoAdminInput({
+      code: "LAUNCH",
+      type: "fixed",
+      value: 500,
+      startsAt: "2026-10-20T09:00:00.000Z",
+      endsAt: "2026-10-21T09:00:00.000Z",
+      maxUsage: "25",
+    });
+    assert.equal(r.ok, true);
+    if (r.ok) {
+      assert.equal(r.data.maxUsage, 25);
+      assert.equal(r.data.startsAt, "2026-10-20T09:00:00.000Z");
+    }
+  });
+
+  it("rejects an invalid campaign window or usage cap", () => {
+    assert.equal(
+      validatePromoAdminInput({
+        code: "BADWINDOW",
+        type: "percent",
+        value: 10,
+        startsAt: "2026-10-21T09:00:00Z",
+        endsAt: "2026-10-20T09:00:00Z",
+      }).ok,
+      false,
+    );
+    assert.equal(
+      validatePromoAdminInput({
+        code: "BADCAP",
+        type: "fixed",
+        value: 10,
+        maxUsage: 1.5,
+      }).ok,
+      false,
+    );
+  });
 });
 
 describe("applyPromoToTotals", () => {

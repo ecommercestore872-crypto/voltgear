@@ -39,6 +39,7 @@
     "verify:dr": "tsx scripts/verify-dr-export.ts"
   },
   "dependencies": {
+    "@noble/hashes": "^2.3.0",
     "@phosphor-icons/react": "^2.1.10",
     "@portabletext/react": "^3.2.4",
     "@radix-ui/react-accordion": "^1.2.20",

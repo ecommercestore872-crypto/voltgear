@@ -1,4 +1,5 @@
 import { categoryIsAssignable } from "@/lib/db/category-rules";
+import { syncStockStatusWithQuantity } from "@/lib/db/stock-rules";
 import {
   generateSellableVariants,
   parseVariantOptions,
@@ -137,8 +138,12 @@ export function mergeProductForm(
     images: form.images ?? [],
     shortDescription: form.shortDescription ?? existing?.shortDescription,
     description: form.description ?? existing?.description,
-    stockStatus:
-      form.quantity === 0 ? "out-of-stock" : form.stockStatus || "in-stock",
+    stockStatus: syncStockStatusWithQuantity(
+      form.stockStatus,
+      form.quantity != null && Number.isInteger(form.quantity) && form.quantity >= 0
+        ? form.quantity
+        : null,
+    ),
     quantity:
       form.quantity != null && Number.isInteger(form.quantity) && form.quantity >= 0
         ? form.quantity

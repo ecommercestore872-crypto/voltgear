@@ -7,6 +7,10 @@ import {
   moderateReview,
   deleteReview,
 } from "@/lib/db/admin-store";
+import {
+  isReviewSubmissionId,
+  parseReviewModerationInput,
+} from "@/lib/review-moderation-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,11 +28,11 @@ async function PATCHHandler(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const id = String(body?.id ?? "");
-  const action = body?.action === "reject" ? "reject" : "approve";
-  if (!id)
-    return NextResponse.json({ error: "Missing review id." }, { status: 400 });
-  const result = await moderateReview(id, action);
+  const parsed = parseReviewModerationInput(body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+  const result = await moderateReview(parsed.id, parsed.action, parsed.reply);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },
@@ -43,8 +47,8 @@ async function DELETEHandler(request: Request) {
   }
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id") ?? "";
-  if (!id)
-    return NextResponse.json({ error: "Missing review id." }, { status: 400 });
+  if (!isReviewSubmissionId(id))
+    return NextResponse.json({ error: "Invalid review id." }, { status: 400 });
   const result = await deleteReview(id);
   if (!result.ok)
     return NextResponse.json(

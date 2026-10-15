@@ -9,32 +9,30 @@ import { STOREFRONT_MERCHANDISING_CACHE_TAGS } from "./storefront-cache";
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("storefront merchandising cache tags", () => {
-  test("every tag used in store.ts unstable_cache is busted by merchandising revalidate", () => {
-    const storeSrc = readFileSync(join(here, "db", "store.ts"), "utf8");
+  test("every tagged storefront cache is busted by merchandising revalidate", () => {
     const cacheSrc = readFileSync(join(here, "storefront-cache.ts"), "utf8");
-    const tagMatches = storeSrc.matchAll(/tags:\s*\[(STOREFRONT_[A-Z_]+)/g);
     const bustSet = new Set<string>(STOREFRONT_MERCHANDISING_CACHE_TAGS);
+    const storeFiles = [
+      "collection-store.ts",
+      "store-catalog-store.ts",
+      "store-chrome-store.ts",
+      "store-content-store.ts",
+      "store.ts",
+    ];
 
-    for (const m of tagMatches) {
-      const constName = m[1];
-      const tagValue = cacheSrc.match(
-        new RegExp(`export const ${constName} = "([^"]+)"`),
-      )?.[1];
-      assert.ok(tagValue, `missing constant ${constName} in storefront-cache.ts`);
-      assert.ok(
-        bustSet.has(tagValue),
-        `${constName} (${tagValue}) must be in STOREFRONT_MERCHANDISING_CACHE_TAGS`,
-      );
-    }
-
-    const collectionSrc = readFileSync(join(here, "db", "collection-store.ts"), "utf8");
-    for (const m of collectionSrc.matchAll(/tags:\s*\[(STOREFRONT_[A-Z_]+)/g)) {
-      const constName = m[1];
-      const tagValue = cacheSrc.match(
-        new RegExp(`export const ${constName} = "([^"]+)"`),
-      )?.[1];
-      assert.ok(tagValue);
-      assert.ok(bustSet.has(tagValue), `${constName} in collection-store must be busted`);
+    for (const filename of storeFiles) {
+      const source = readFileSync(join(here, "db", filename), "utf8");
+      for (const match of source.matchAll(/tags:\s*\[(STOREFRONT_[A-Z_]+)/g)) {
+        const constName = match[1];
+        const tagValue = cacheSrc.match(
+          new RegExp(`export const ${constName} = "([^"]+)"`),
+        )?.[1];
+        assert.ok(tagValue, `missing constant ${constName} in storefront-cache.ts`);
+        assert.ok(
+          bustSet.has(tagValue),
+          `${constName} in ${filename} must be busted by merchandising revalidate`,
+        );
+      }
     }
   });
 });

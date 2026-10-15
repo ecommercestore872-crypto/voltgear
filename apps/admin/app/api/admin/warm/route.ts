@@ -18,9 +18,15 @@ async function GETHandler(request: Request) {
   const t0 = performance.now();
   try {
     const client = getServiceClient({ admin: true });
-    await client.from("settings").select("id").limit(1);
-  } catch {
-    /* still return ok — primary goal is cold-start mitigation */
+    const { error } = await client.from("site_settings").select("id").limit(1);
+    if (error) throw error;
+  } catch (error) {
+    console.error("[admin-warm] dependency check failed", error);
+    return NextResponse.json({
+      ok: false,
+      error: "Admin database dependency is unavailable.",
+      ms: Math.round(performance.now() - t0),
+    }, { status: 503 });
   }
   return NextResponse.json({
     ok: true,

@@ -21,7 +21,7 @@ async function GETHandler(request: Request) {
     console.error("[email-templates] list", error);
     return NextResponse.json(
       {
-        error: "Templates table not ready. Push the email_templates migration.",
+        error: "Email templates are temporarily unavailable.",
       },
       { status: 503 },
     );

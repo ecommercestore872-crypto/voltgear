@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
                 id="new-password"
                 type="password"
                 required
-                minLength={6}
+                minLength={12}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
@@ -164,7 +164,7 @@ export default function ResetPasswordPage() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button type="submit" disabled={submitting || password.length < 6} className="w-full">
+            <Button type="submit" disabled={submitting || password.length < 12} className="w-full">
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Save password
             </Button>

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import type { Order } from "../types";
 import {
+  allowedNextOrderStatuses,
   EMAIL_SEND_ISSUE_PREFIX,
   SHOPPER_CANCEL_NOTE,
   SHOPPER_CANCEL_WINDOW_MS,
@@ -106,6 +107,27 @@ describe("isAllowedOrderStatus", () => {
       assert.equal(isAllowedOrderStatus(s), true);
     }
     assert.equal(isAllowedOrderStatus("refunded"), false);
+  });
+});
+
+describe("allowedNextOrderStatuses", () => {
+  it("allows forward progress and cancellation, but not regressions", () => {
+    assert.deepEqual(allowedNextOrderStatuses("processing"), [
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled",
+    ]);
+    assert.deepEqual(allowedNextOrderStatuses("shipped"), [
+      "shipped",
+      "delivered",
+      "cancelled",
+    ]);
+  });
+
+  it("keeps delivered and cancelled terminal", () => {
+    assert.deepEqual(allowedNextOrderStatuses("delivered"), ["delivered"]);
+    assert.deepEqual(allowedNextOrderStatuses("cancelled"), ["cancelled"]);
   });
 });
 

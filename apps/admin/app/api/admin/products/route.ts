@@ -9,7 +9,6 @@ import {
   listAdminProductsPage,
   listAdminProductsSearch,
 } from "@/lib/db/admin-store";
-import { setProductCollections } from "@/lib/db/collection-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,15 +43,12 @@ async function POSTHandler(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await createAdminProduct(body?.doc ?? body ?? {});
+  const result = await createAdminProduct(body?.doc ?? body ?? {}, body?.collectionIds);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },
       { status: result.status },
     );
-  if (result.id) {
-    await setProductCollections(result.id, body?.collectionIds);
-  }
   return NextResponse.json(result);
 }
 

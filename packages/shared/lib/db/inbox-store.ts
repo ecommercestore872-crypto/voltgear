@@ -21,6 +21,8 @@ export type InboxItem = {
   adminNote: string | null;
   isDemo: boolean;
   createdAt: string;
+  updatedAt: string;
+  closedAt: string | null;
 };
 
 function mapRow(row: Record<string, unknown>): InboxItem {
@@ -38,6 +40,8 @@ function mapRow(row: Record<string, unknown>): InboxItem {
     adminNote: row.admin_note != null ? String(row.admin_note) : null,
     isDemo: Boolean(row.is_demo),
     createdAt: String(row.created_at ?? ""),
+    updatedAt: String(row.updated_at ?? row.created_at ?? ""),
+    closedAt: row.closed_at != null ? String(row.closed_at) : null,
   };
 }
 
@@ -94,6 +98,9 @@ export async function listContactSubmissions(opts?: {
 }
 
 export async function getContactSubmission(id: string): Promise<InboxItem | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return null;
+  }
   const { data, error } = await db()
     .from("contact_submissions")
     .select("*")
@@ -115,17 +122,26 @@ export async function updateContactSubmission(
     updates.status = status;
   }
   if (patch.adminNote !== undefined) {
-    updates.admin_note = String(patch.adminNote ?? "").trim() || null;
+    const note = String(patch.adminNote ?? "").trim();
+    if (note.length > 2000) {
+      return { ok: false, error: "Admin note must be 2,000 characters or fewer.", status: 400 };
+    }
+    updates.admin_note = note || null;
   }
   if (!Object.keys(updates).length) {
     return { ok: false, error: "Nothing to update.", status: 400 };
   }
 
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return { ok: false, error: "Invalid submission id.", status: 400 };
+  }
   const { data, error } = await db()
-    .from("contact_submissions")
-    .update(updates)
-    .eq("id", id)
-    .select("*")
+    .rpc("admin_update_contact_submission", {
+      p_id: id,
+      p_status: updates.status ?? null,
+      p_admin_note: updates.admin_note ?? null,
+      p_set_note: Object.prototype.hasOwnProperty.call(updates, "admin_note"),
+    })
     .maybeSingle();
 
   if (error) {
@@ -134,4 +150,18 @@ export async function updateContactSubmission(
   }
   if (!data) return { ok: false, error: "Not found.", status: 404 };
   return { ok: true, item: mapRow(data as Record<string, unknown>) };
+}
+
+export async function listContactSubmissionsForEmail(email: string): Promise<InboxItem[]> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return [];
+  const { data, error } = await db()
+    .from("contact_submissions")
+    .select("*")
+    .eq("is_demo", false)
+    .ilike("email", normalized)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
 }

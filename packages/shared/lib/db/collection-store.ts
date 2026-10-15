@@ -667,8 +667,12 @@ export async function setProductCollections(
   let collections: AdminCollection[];
   try {
     collections = await listAdminCollections();
-  } catch {
-    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Could not load collections.",
+      status: 500,
+    };
   }
   const assignable = new Set(
     collections.filter((c) => canAssignProductToCollection(c.mode)).map((c) => c.id)

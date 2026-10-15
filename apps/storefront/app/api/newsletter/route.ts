@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { subscribeNewsletter } from "@/lib/db/newsletter-store";
+import { isDemoRequest } from "@/lib/demo";
+import { checkoutClientIp } from "@/lib/checkout-guard";
 
 const rateLimiter = createMemoryRateLimiter({
   limit: 8,
@@ -10,14 +12,9 @@ const rateLimiter = createMemoryRateLimiter({
   maxKeys: 2000,
 });
 
-function clientIp(req: Request): string {
-  const forwarded = req.headers.get("x-forwarded-for") || "";
-  return forwarded.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
-}
-
 async function POSTHandler(req: Request) {
-  const ip = clientIp(req);
-  if (ip && !rateLimiter.take({ ip })) {
+  const ip = checkoutClientIp(req);
+  if (!rateLimiter.take({ ip })) {
     return NextResponse.json(
       { error: "Too many signup attempts. Try again later." },
       { status: 429 },
@@ -26,6 +23,11 @@ async function POSTHandler(req: Request) {
 
   try {
     const body = await req.json();
+    // A practice interaction should look successful without adding a real
+    // marketing subscriber or retaining the supplied address.
+    if (isDemoRequest(req)) {
+      return NextResponse.json({ ok: true, message: "Practice signup recorded." });
+    }
     const result = await subscribeNewsletter({
       email: body?.email,
       source: typeof body?.source === "string" ? body.source : "footer",

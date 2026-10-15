@@ -37,6 +37,15 @@ describe("resolvePostExTrackOrderUrl", () => {
       "https://api.postex.pk/services/integration/api/order/v1/track-order/23736240000001",
     );
   });
+
+  it("accepts a legacy integration base without duplicating the path", () => {
+    assert.equal(
+      resolvePostExTrackOrderUrl("23736240000001", {
+        POSTEX_API_BASE_URL: "https://api.postex.pk/services/integration/api/",
+      }),
+      "https://api.postex.pk/services/integration/api/order/v1/track-order/23736240000001",
+    );
+  });
 });
 
 describe("mapPostExTrackBodyToSafeResponse", () => {
