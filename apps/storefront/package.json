@@ -6,6 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-config-next": "latest"
   }
 }
