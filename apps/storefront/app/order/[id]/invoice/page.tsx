@@ -17,27 +17,29 @@ import "./invoice.css";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
+export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return {
     title: invoiceFileTitle(params.id),
     robots: { index: false, follow: false },
   };
 }
 
-export default async function InvoicePage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { email?: string; phone?: string };
-}) {
+export default async function InvoicePage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams?: Promise<{ email?: string; phone?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const [order, settings] = await Promise.all([
     getOrderByPublicId(params.id),
     fetchSiteSettings().catch(() => null),
   ]);
   if (!order) return notFound();
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const isAdmin = cookieStore.get(ADMIN_COOKIE)?.value === getAdminSecret();
 
   const fromEmailQuery =

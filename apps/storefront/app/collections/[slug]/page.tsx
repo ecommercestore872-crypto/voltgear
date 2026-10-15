@@ -14,11 +14,12 @@ import { normalizeSettings } from "@/lib/site-config";
 
 export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const found = await getStorefrontCollectionBySlug(params.slug).catch(
     () => null,
   );
@@ -30,11 +31,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function CollectionPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function CollectionPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   const demo = false;
   const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);

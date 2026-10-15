@@ -12,16 +12,17 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrdersPage({
-  searchParams,
-}: {
-  searchParams: {
-    status?: string;
-    tab?: string;
-    page?: string;
-    q?: string;
-  };
-}) {
+export default async function AdminOrdersPage(
+  props: {
+    searchParams: Promise<{
+      status?: string;
+      tab?: string;
+      page?: string;
+      q?: string;
+    }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const tab = searchParams.tab ?? searchParams.status ?? "all";
   const page = normalizeAdminOrdersPage(searchParams.page);
   const q = searchParams.q?.trim() ?? "";

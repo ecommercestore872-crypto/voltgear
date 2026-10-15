@@ -44,11 +44,12 @@ export async function generateStaticParams() {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const product = await loadPdpProductBySlug(params.slug).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
 
@@ -115,11 +116,12 @@ function PdpDeferredFallback() {
   );
 }
 
-export default async function Product2Page({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function Product2Page(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   let product: Product | null = null;
   try {
     product = await loadPdpProductBySlug(params.slug);

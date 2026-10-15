@@ -43,19 +43,20 @@ const STEP_ICON: Partial<Record<OrderStatus, typeof Check>> = {
   cancelled: X,
 };
 
-export default async function OrderSuccessPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { email?: string; phone?: string };
-}) {
+export default async function OrderSuccessPage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams?: Promise<{ email?: string; phone?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const fromEmailQuery =
     typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
   const fromPhoneQuery =
     typeof searchParams?.phone === "string" ? searchParams.phone.trim() : "";
   const fromCookie =
-    cookies().get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
+    (await cookies()).get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
   const emailHint = (fromEmailQuery || decodeURIComponent(fromCookie)).trim();
   const phoneHint = fromPhoneQuery;
 

@@ -12,11 +12,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCollectionDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function AdminCollectionDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const collection = await getAdminCollection(params.id).catch(() => null);
   if (!collection) notFound();
   const selectedProducts = await listAdminProductsByIds(

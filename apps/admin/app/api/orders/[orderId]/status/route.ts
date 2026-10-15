@@ -14,13 +14,13 @@ export const dynamic = "force-dynamic";
 
 async function POSTHandler(
   request: Request,
-  { params }: { params: { orderId: string } },
+  { params }: { params: Promise<{ orderId: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const orderId = params.orderId;
+  const { orderId } = await params;
   if (!orderId) {
     return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
   }
