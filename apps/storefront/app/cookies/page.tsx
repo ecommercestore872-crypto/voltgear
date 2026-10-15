@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 
 import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
@@ -66,4 +65,4 @@ export default function CookiesPage() {
   );
 }
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;

@@ -72,11 +72,13 @@ export function SearchResultsClient({ initialSearch }: { initialSearch: string }
   }, []);
 
   useEffect(() => {
-    setSearch(initialSearch);
-  }, [initialSearch]);
-
-  useEffect(() => {
-    void load(filters);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load(filters);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [filters, load]);
 
   useEffect(() => {

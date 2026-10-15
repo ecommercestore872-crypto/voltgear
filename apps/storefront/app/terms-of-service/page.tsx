@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 
 import {
@@ -12,7 +11,7 @@ import { SHOPPER_BRAND } from "@/lib/brand";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await loadCmsPage("terms-of-service");

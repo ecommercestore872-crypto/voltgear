@@ -10,7 +10,7 @@ import type { Page } from "@/lib/types";
 
 export async function loadCmsPage(slug: string): Promise<Page | null> {
   try {
-    return await fetchPageBySlug(slug, isDemoSession());
+    return await fetchPageBySlug(slug, await isDemoSession());
   } catch {
     return null;
   }

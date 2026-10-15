@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import { Fragment, type ReactNode } from "react";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
@@ -38,13 +37,9 @@ import {
 } from "@/lib/home-active-categories";
 import { formatPrice } from "@/lib/utils";
 
-const GadgetReviewsSlider = dynamic(
-  () =>
-    import("@/components/gadget/gadget-reviews-slider").then(
-      (m) => m.GadgetReviewsSlider,
-    ),
-  { loading: () => null, ssr: false },
-);
+import { GadgetReviewsSlider } from "@/components/gadget/gadget-reviews-slider-loader";
+
+import dynamic from "next/dynamic";
 
 const GadgetBlogSection = dynamic(
   () =>

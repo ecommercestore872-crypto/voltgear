@@ -22,9 +22,9 @@ export const dynamic = "force-dynamic";
  */
 async function GETHandler(
   request: Request,
-  context?: { params?: { orderId?: string } },
+  context: { params: Promise<{ orderId: string }> },
 ) {
-  const orderId = context?.params?.orderId;
+  const { orderId } = await context.params;
   if (!orderId) {
     return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
   }

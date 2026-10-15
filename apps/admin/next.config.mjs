@@ -7,9 +7,6 @@ const adminAssetOrigin = process.env.NEXT_PUBLIC_ADMIN_ASSET_ORIGIN?.replace(
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   ...(adminAssetOrigin ? { assetPrefix: adminAssetOrigin } : {}),
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -55,12 +52,6 @@ const nextConfig = {
       },
       {
         source: "/images/:path*",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
-      {
-        source: "/_next/image/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],

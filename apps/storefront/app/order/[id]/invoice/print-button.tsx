@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { invoiceFileTitle } from "@/lib/invoice-template-rules";
 
 export default function PrintButton({ orderId }: { orderId: string }) {
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
-    setReady(true);
     const previous = document.title;
     document.title = invoiceFileTitle(orderId);
     const auto = window.location.search.includes("print=1");
@@ -24,8 +21,6 @@ export default function PrintButton({ orderId }: { orderId: string }) {
       if (timer) window.clearTimeout(timer);
     };
   }, [orderId]);
-
-  if (!ready) return null;
 
   return (
     <Button

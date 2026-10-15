@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 
 import { WriteReviewForm } from "@/components/reviews/write-review-form";
 import { fetchReviewProducts } from "@/lib/db/store";
 import type { Product } from "@/lib/types";
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Write a Review",

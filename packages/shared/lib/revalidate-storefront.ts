@@ -30,7 +30,7 @@ async function flushStorefrontCache(
   const storefrontUrl = process.env.STOREFRONT_URL?.replace(/\/$/, "");
   if (!storefrontUrl) {
     for (const t of paths) revalidatePath(t.path, t.type);
-    for (const tag of cleanTags) revalidateTag(tag);
+    for (const tag of cleanTags) revalidateTag(tag, "max");
     logStorefrontRevalidate({
       ok: true,
       paths: paths.map((p) => p.path),
@@ -132,5 +132,5 @@ export async function revalidateAfterPublishLayout(
 
 /** Bust `unstable_cache` entries tagged for admin-only data (settings, shop types, etc.). */
 export function revalidateAdminCacheTag(tag: string): void {
-  revalidateTag(tag);
+  revalidateTag(tag, "max");
 }

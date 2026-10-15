@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { SearchEmptyShell } from "./search-empty-shell";
 
@@ -18,20 +18,16 @@ const SearchResultsClient = dynamic(
 
 /** Static /search shell; results load in a split chunk (no CatalogView in main bundle). */
 export function SearchPageClient() {
-  const [search, setSearch] = useState("");
-  const [ready, setReady] = useState(false);
+  const search = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("popstate", onStoreChange);
+      return () => window.removeEventListener("popstate", onStoreChange);
+    },
+    () => window.location.search,
+    () => "",
+  );
 
-  useEffect(() => {
-    setSearch(window.location.search);
-    setReady(true);
-    function onPopState() {
-      setSearch(window.location.search);
-    }
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
-
-  if (!ready) {
+  if (!search) {
     return <SearchEmptyShell />;
   }
 
@@ -45,5 +41,5 @@ export function SearchPageClient() {
     return <SearchEmptyShell />;
   }
 
-  return <SearchResultsClient initialSearch={search} />;
+  return <SearchResultsClient key={search} initialSearch={search} />;
 }

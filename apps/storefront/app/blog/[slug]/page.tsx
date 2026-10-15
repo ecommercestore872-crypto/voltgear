@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock, User } from "lucide-react";
@@ -19,7 +18,7 @@ import {
   sanitizeBlogSections,
 } from "@/lib/blog-safety-rules";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   try {

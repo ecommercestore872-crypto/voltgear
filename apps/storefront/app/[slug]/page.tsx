@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 
@@ -8,7 +7,7 @@ import { fetchPageBySlug, fetchSitemapPages } from "@/lib/db/store";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Page } from "@/lib/types";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   try {

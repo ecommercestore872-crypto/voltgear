@@ -166,8 +166,8 @@ export async function moderateReview(id: string, action: "approve" | "reject", r
   }
   const productId = String(data.product_id ?? "");
   const slug = String(data.product_slug ?? "");
-  if (productId) revalidateTag(`product-reviews-${productId}`);
-  revalidateTag(STOREFRONT_CATALOG_GRID_CACHE_TAG);
+  if (productId) revalidateTag(`product-reviews-${productId}`, "max");
+  revalidateTag(STOREFRONT_CATALOG_GRID_CACHE_TAG, "max");
   void revalidateAfterPublish(slug ? `/product/${slug}` : "/products", "/products");
   return { ok: true as const };
 }
@@ -186,8 +186,8 @@ export async function deleteReview(id: string) {
   }
   const productId = String(data.product_id ?? "");
   const slug = String(data.product_slug ?? "");
-  if (productId) revalidateTag(`product-reviews-${productId}`);
-  revalidateTag(STOREFRONT_CATALOG_GRID_CACHE_TAG);
+  if (productId) revalidateTag(`product-reviews-${productId}`, "max");
+  revalidateTag(STOREFRONT_CATALOG_GRID_CACHE_TAG, "max");
   void revalidateAfterPublish(slug ? `/product/${slug}` : "/products", "/products");
   return { ok: true as const };
 }

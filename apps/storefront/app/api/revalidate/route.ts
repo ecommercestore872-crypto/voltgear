@@ -68,7 +68,7 @@ async function POSTHandler(request: Request) {
         if (typeof raw === "string" && raw.trim()) tags.push(raw.trim());
       }
     }
-    for (const tag of tags) revalidateTag(tag);
+    for (const tag of tags) revalidateTag(tag, "max");
 
     const indexNow = await submitIndexNow({
       siteUrl: indexSiteUrl(),

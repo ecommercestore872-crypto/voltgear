@@ -1,23 +1,8 @@
 import type { Metadata } from "next";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 
-import dynamic from "next/dynamic";
-
 import { GadgetSupportLayout } from "@/components/gadget/gadget-support-layout";
-
-const TrackOrder = dynamic(
-  () => import("@/components/orders/track-order").then((m) => m.TrackOrder),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="min-h-[200px] animate-pulse rounded-2xl bg-[var(--g-line)]/30"
-        aria-busy="true"
-      />
-    ),
-  },
-);
+import { TrackOrderClient } from "../client-only-pages";
 
 export const metadata: Metadata = {
   title: "Track Your Order",
@@ -27,7 +12,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/track" },
 };
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;
 
 export default function TrackPage() {
   return (
@@ -43,7 +28,7 @@ export default function TrackPage() {
       ]}
     >
       <div className="min-w-0 overflow-hidden">
-        <TrackOrder />
+        <TrackOrderClient />
       </div>
       <p className="mt-4 text-sm text-[var(--g-taupe)]">
         Can&apos;t find your order?{" "}

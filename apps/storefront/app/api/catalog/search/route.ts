@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 
 import { fetchCatalog, parseCatalogFilters } from "@/lib/catalog";
 import { isDemoRequest } from "@/lib/demo";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import { withShopApiObservability } from "@/lib/shop-api-observability";
+import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 function json(data: unknown, status = 200, cacheable = true) {
   const headers: Record<string, string> =

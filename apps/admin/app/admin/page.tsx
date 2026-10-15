@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminIndexPage() {
+async function loadDashboardSnapshot() {
   try {
     const [orderMetrics, catalog, pendingReviewCount] = await Promise.all([
       fetchAdminOrderDashboardMetrics(),
@@ -32,7 +32,7 @@ export default async function AdminIndexPage() {
         catalog,
         pendingReviewCount,
       });
-      return <Dashboard snapshot={snapshot} />;
+      return snapshot;
     }
 
     const { orders, practiceOrderCount } = await fetchOrdersForAdminDashboard();
@@ -42,8 +42,13 @@ export default async function AdminIndexPage() {
       pendingReviewCount,
       practiceOrderCount,
     });
-    return <Dashboard snapshot={snapshot} />;
+    return snapshot;
   } catch {
-    return <Dashboard error />;
+    return null;
   }
+}
+
+export default async function AdminIndexPage() {
+  const snapshot = await loadDashboardSnapshot();
+  return snapshot ? <Dashboard snapshot={snapshot} /> : <Dashboard error />;
 }

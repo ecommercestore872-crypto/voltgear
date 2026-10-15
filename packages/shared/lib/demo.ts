@@ -25,6 +25,6 @@ export function isDemoRequest(request: Request): boolean {
   return cookieValue(request, DEMO_COOKIE) === DEMO_COOKIE_VALUE;
 }
 
-export function isDemoSession(): boolean {
-  return cookies().get(DEMO_COOKIE)?.value === DEMO_COOKIE_VALUE;
+export async function isDemoSession(): Promise<boolean> {
+  return (await cookies()).get(DEMO_COOKIE)?.value === DEMO_COOKIE_VALUE;
 }

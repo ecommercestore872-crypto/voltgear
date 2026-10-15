@@ -149,19 +149,23 @@ export function WishlistClient() {
 
   useEffect(() => {
     if (!hydrated) return;
-    setSavedProducts((prev) =>
-      prev.filter((p) => wishlistSlugs.includes(p.slug)),
-    );
-  }, [wishlistSlugs, hydrated]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    void loadProducts();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void loadProducts();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [hydrated, loadProducts]);
+
+  const visibleSavedProducts = useMemo(
+    () => savedProducts.filter((product) => wishlistSlugs.includes(product.slug)),
+    [savedProducts, wishlistSlugs],
+  );
 
   const showInitialSkeleton = !hydrated;
   const showLoadingGrid =
-    hydrated && wishlistSlugs.length > 0 && loading && !savedProducts.length;
+    hydrated && wishlistSlugs.length > 0 && loading && !visibleSavedProducts.length;
   const showEmpty =
     hydrated && !loading && !loadError && wishlistSlugs.length === 0;
   const showError = hydrated && loadError && wishlistSlugs.length > 0;
@@ -201,7 +205,7 @@ export function WishlistClient() {
             <div className="flex shrink-0 items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[color-mix(in_srgb,var(--g-blush)_55%,white)] px-4 py-2 shadow-[0_4px_16px_rgba(31,54,38,0.06)]">
               <Heart className="h-4 w-4 fill-[var(--g-forest)] text-[var(--g-forest)]" />
               <span className="text-[13px] font-bold text-[var(--g-forest)]">
-                {hydrated ? savedProducts.length : "—"} saved items
+                {hydrated ? visibleSavedProducts.length : "—"} saved items
               </span>
             </div>
           </div>
@@ -212,12 +216,12 @@ export function WishlistClient() {
         <div className="gadget-glass flex flex-col items-center justify-between gap-4 rounded-2xl p-3 md:flex-row">
           <div className="flex w-full items-center gap-1 overflow-x-auto no-scrollbar md:w-auto">
             <button type="button" className={FILTER_ACTIVE}>
-              All Items ({hydrated ? savedProducts.length : "—"})
+              All Items ({hydrated ? visibleSavedProducts.length : "—"})
             </button>
             <button type="button" className={FILTER_IDLE}>
               In Stock (
               {
-                savedProducts.filter((p) => p.stockStatus !== "out-of-stock")
+                visibleSavedProducts.filter((p) => p.stockStatus !== "out-of-stock")
                   .length
               }
               )
@@ -299,15 +303,15 @@ export function WishlistClient() {
           !showLoadingGrid &&
           !showEmpty &&
           !showError &&
-          savedProducts.length > 0 ? (
+          visibleSavedProducts.length > 0 ? (
             <>
-              {savedProducts.slice(0, 3).map((p) => (
+              {visibleSavedProducts.slice(0, 3).map((p) => (
                 <div key={p.slug} className="h-full">
                   <GadgetProductCard product={p} />
                 </div>
               ))}
 
-              {(savedProducts.length >= 1 || true) && (
+              {(visibleSavedProducts.length >= 1 || true) && (
                 <div className={PROMO_CARD}>
                   <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--g-sage)_28%,var(--g-line))] bg-[color-mix(in_srgb,var(--g-sage)_16%,var(--g-cream))] shadow-[inset_0_2px_6px_rgba(31,54,38,0.08)]">
                     <Percent
@@ -332,13 +336,13 @@ export function WishlistClient() {
                 </div>
               )}
 
-              {savedProducts.slice(3, 7).map((p) => (
+              {visibleSavedProducts.slice(3, 7).map((p) => (
                 <div key={p.slug} className="h-full">
                   <GadgetProductCard product={p} />
                 </div>
               ))}
 
-              {(savedProducts.length >= 3 || true) && (
+              {(visibleSavedProducts.length >= 3 || true) && (
                 <div className={PROMO_CARD}>
                   <h3 className="mb-2 mt-2 text-[17px] font-extrabold leading-tight tracking-tight text-[var(--g-charcoal)]">
                     Share your wishlist
@@ -397,7 +401,7 @@ export function WishlistClient() {
                 </div>
               )}
 
-              {savedProducts.slice(7).map((p) => (
+              {visibleSavedProducts.slice(7).map((p) => (
                 <div key={p.slug} className="h-full">
                   <GadgetProductCard product={p} />
                 </div>

@@ -3,7 +3,7 @@ import { fetchSiteSettings } from "@/lib/db/store";
 import { normalizeSettings } from "@/lib/site-config";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 /**
  * Public site configuration for client components (cart drawer, checkout).

@@ -43,6 +43,20 @@ const STEP_ICON: Partial<Record<OrderStatus, typeof Check>> = {
   cancelled: X,
 };
 
+function formatDeliveryWindow(createdAt: string) {
+  const createdTime = new Date(createdAt).getTime();
+  const start = new Date(createdTime + 3 * 86400000);
+  const end = new Date(createdTime + 5 * 86400000);
+  return `${start.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })} – ${end.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
+}
+
 export default async function OrderSuccessPage(
   props: {
     params: Promise<{ id: string }>;
@@ -97,6 +111,7 @@ export default async function OrderSuccessPage(
     total: order.total ?? 0,
   });
   const cancelled = status === "cancelled";
+  const estimatedDelivery = cancelled ? "—" : formatDeliveryWindow(createdAt);
 
   return (
     <div className="premium-royal-page-bg min-h-dvh border-t border-[var(--g-line)] pb-16 pt-8 text-[var(--g-charcoal)] lg:pb-32 lg:pt-12">
@@ -246,23 +261,7 @@ export default async function OrderSuccessPage(
               <Detail
                 icon={<Truck className="h-4 w-4" />}
                 label="Estimated delivery"
-                value={
-                  cancelled
-                    ? "—"
-                    : `${new Date(Date.now() + 3 * 86400000).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                        },
-                      )} – ${new Date(
-                        Date.now() + 5 * 86400000,
-                      ).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}`
-                }
+                value={estimatedDelivery}
                 hint={cancelled ? undefined : "(2–4 working days)"}
               />
               <Detail
