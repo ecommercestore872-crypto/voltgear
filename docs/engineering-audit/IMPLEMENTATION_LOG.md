@@ -38,8 +38,9 @@ The main-branch CI job selected Node 20 but the repository test runner used `--t
 | JSON parse and `git diff --check` | Pass |
 | `npm ci --dry-run --ignore-scripts --offline` | Pass; package and lockfile are consistent |
 | Staged diff secret-pattern scan | Pass; no credential or private-key pattern found |
+| GitHub Actions `Monorepo CI` run 38896519413, job `verify` | Pass on implementation commit `cb0d8b6`; install, unit tests, both linters, both type checks, and both builds succeeded |
 
-Remote CI is appended before Phase 1 is declared complete.
+The independent GitHub-hosted run completed successfully in 2 minutes 33 seconds. It confirms that the Node 24 workflow repair works outside the local Windows environment.
 
 ### Side effects
 

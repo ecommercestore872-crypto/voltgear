@@ -18,14 +18,14 @@
 | Lockfile consistency | Pass; clean install and final offline dry-run both succeeded |
 | Dependency report | Pass; unresolved findings documented |
 | Full diff and secret review | Pass; 13 scoped files and no secret pattern detected |
-| Draft pull request CI | Pending branch push |
+| Draft pull request CI | Pass; `Monorepo CI` run 38896519413, `verify` job 116958181777 |
 
 ## Known blockers and risks
 
 - Next.js 14.2.35 has unresolved runtime advisories with no non-major npm remediation.
 - The Next 16 migration must remain separate from this CI repair.
 - PR #2 will require manual workflow reconciliation to retain Node 24 and its database test job.
-- Branch protection cannot be relied upon until required checks are confirmed after the draft PR workflow succeeds.
+- Repository rulesets are not currently visible on the public endpoint; the confirmed required check name is `verify` from `Monorepo CI`.
 
 ## Recommended `main` protection settings
 
@@ -44,4 +44,4 @@ When PR #2 is reconciled, also require its isolated Supabase database regression
 
 ## Production readiness statement
 
-This Phase 1 branch is not authorized for production and is not release-ready until the final local gates and draft PR CI pass. Even after Phase 1 passes, unresolved Next.js advisories require a separate, tested framework remediation before the entire system can be called release-ready.
+Phase 1 acceptance gates pass locally and on the GitHub-hosted runner. This draft branch is still not authorized for production or merge. The unresolved Next.js advisories require a separate, tested framework remediation before the entire system can be called release-ready.
