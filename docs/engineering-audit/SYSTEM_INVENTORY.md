@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-This inventory was started during Phase 1 on 2026-10-16. It records only verified facts needed for the CI and dependency-security baseline. Broader architecture mapping remains a Phase 2 deliverable.
+This inventory was started during Phase 1 and expanded during the Phase 2 architecture review on 2026-10-16. It records verified repository structure and separates static evidence from runtime assumptions.
 
 ## Repository
 
@@ -21,6 +21,18 @@ This inventory was started during Phase 1 on 2026-10-16. It records only verifie
 | Shared package | `packages/shared` | Shared components, commerce rules, data access, tests, and utilities |
 | Database | `supabase` | PostgreSQL migrations, functions, policies, and database tests |
 | Automation | `.github/workflows/storefront-ci.yml` | Monorepo tests, lint, type checks, and production builds |
+
+## Architecture at a glance
+
+- The storefront and admin are separate Next.js App Router deployments.
+- `packages/shared` is the shared UI, commerce-domain, integration, and persistence boundary used by both apps.
+- Storefront request handling includes 19 explicit `route.ts` handlers; admin and operational handling includes 66 explicit `route.ts` handlers.
+- Supabase persistence history contains 60 migration files.
+- External server-side integrations include Supabase, PostEx, Resend, and Cloudinary.
+- The repository uses Next.js cache primitives and explicit cache tags to separate shopper reads from administrative writes.
+- A validated static graph contains 2,762 nodes, 5,135 edges, and 2,056 import relationships across 1,102 in-scope files, with no import cycles or graph-integrity failures.
+
+The detailed layer map, request flows, dependency concentrations, confidence levels, and failure boundaries are in `ARCHITECTURE_REVIEW.md`.
 
 ## Verified runtime baseline
 
@@ -49,3 +61,11 @@ This inventory was started during Phase 1 on 2026-10-16. It records only verifie
 - CI runtime selection can prevent every verification step after dependency installation.
 - The direct Next.js dependency is the only production dependency chain currently reported by `npm audit`; upgrading it is intentionally separated from this CI repair.
 - Local Windows sandboxing can block `tsx`/esbuild worker creation with `spawn EPERM`; CI runs on Linux and the local suite must be rerun outside that restricted sandbox.
+
+## Architecture failure boundaries added in Phase 2
+
+- Client Components must use HTTP/client adapters and type-only contracts rather than importing server Supabase or database-store modules at runtime.
+- Public storefront reads must not normalize or mutate administrative settings.
+- Admin writes must invalidate the matching storefront cache tags after persistence succeeds.
+- PostEx, Resend, Cloudinary, and Supabase failures must terminate at server adapters with safe application errors; credentials must never cross into client bundles.
+- The high-import shared type, utility, authorization, observability, cache, and data-facade modules have a larger regression radius and require both application builds after changes.

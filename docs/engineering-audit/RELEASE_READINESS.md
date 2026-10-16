@@ -45,3 +45,27 @@ When PR #2 is reconciled, also require its isolated Supabase database regression
 ## Production readiness statement
 
 Phase 1 acceptance gates pass locally and on the GitHub-hosted runner. This draft branch is still not authorized for production or merge. The unresolved Next.js advisories require a separate, tested framework remediation before the entire system can be called release-ready.
+
+## Phase 2 architecture gates
+
+| Gate | Status |
+| --- | --- |
+| Isolated Phase 2 branch based on verified Phase 1 commit | Pass |
+| Current source/graph coverage reconciled | Pass; 1,102 files |
+| Graph identity and integrity recorded | Pass; zero integrity failures or cycles |
+| Client/server boundary regression | Pass targeted and in full suite |
+| Settings mapper type-safety cleanup | Pass; both TypeScript projects and production builds |
+| Existing public-read mutation fix cross-verified | Pass; draft PR #3 commit `e42c87f` |
+| Full tests, lint, type checks, and production builds | Pass; 706 tests, clean lint/types, 54/37 pages |
+| Hosted draft-PR CI | Pending |
+
+### Phase 2 dependency and release order
+
+Phase 2 is intentionally stacked on the Phase 1 CI branch so it does not duplicate or obscure that review. Before any release candidate:
+
+1. Land or otherwise reconcile the Phase 1 Node 24 CI baseline.
+2. Land or reapply PR #3's read-only storefront settings fix.
+3. Rebase Phase 2 after those decisions and rerun all gates.
+4. Keep the unresolved Next.js major-upgrade remediation separate and fully regression-tested.
+
+Large Client Components remain a maintainability risk, not a release blocker by themselves. Refactor them through small reviewed changes with characterization tests rather than delaying all delivery for a broad rewrite.
