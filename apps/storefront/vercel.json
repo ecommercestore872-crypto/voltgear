@@ -3,7 +3,8 @@
   "framework": "nextjs",
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w @voltgear/storefront",
-  "regions": ["bom1"],
+  "ignoreCommand": "node ../../scripts/vercel-ignore-build.mjs storefront",
+  "regions": ["syd1"],
   "crons": [
     {
       "path": "/api/flows",

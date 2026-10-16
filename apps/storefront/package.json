@@ -2,6 +2,9 @@
   "name": "@voltgear/storefront",
   "version": "0.1.0",
   "private": true,
+  "dependencies": {
+    "@voltgear/shared": "0.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
