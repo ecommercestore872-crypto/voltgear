@@ -81,7 +81,7 @@
 ### ARCH-004 — Client/server module separation lacked an automated regression gate
 
 - Severity: P2 — Medium
-- Status: Resolved and verified locally; hosted CI verification pending
+- Status: Resolved and verified locally and on GitHub Actions
 - Evidence: Static review found 168 Client Components and no runtime import of `@/lib/supabase/server` or server database stores, but no test protected that boundary.
 - Impact: A future import could move server-only dependencies or credential-bearing code toward the browser bundle.
 - Resolution: Add a TypeScript-AST test that inspects source-only Client Components, ignores erased type imports, and rejects runtime imports of server Supabase and database-store modules.

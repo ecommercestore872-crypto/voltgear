@@ -57,7 +57,7 @@ Phase 1 acceptance gates pass locally and on the GitHub-hosted runner. This draf
 | Settings mapper type-safety cleanup | Pass; both TypeScript projects and production builds |
 | Existing public-read mutation fix cross-verified | Pass; draft PR #3 commit `e42c87f` |
 | Full tests, lint, type checks, and production builds | Pass; 706 tests, clean lint/types, 54/37 pages |
-| Hosted draft-PR CI | Pending |
+| Hosted draft-PR CI | Pass; run 38942612045, job 117113753313 |
 
 ### Phase 2 dependency and release order
 

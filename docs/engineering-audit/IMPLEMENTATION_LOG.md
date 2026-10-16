@@ -84,10 +84,11 @@ The repository had a large pre-existing code-knowledge graph, but its current in
 | Storefront and admin lint | Pass; no warnings or errors |
 | Storefront and admin TypeScript | Pass |
 | Storefront and admin production builds | Pass; 54 and 37 generated pages |
+| GitHub Actions `Monorepo CI` run 38942612045, job `verify` | Pass on implementation commit `570447a`; install, tests, lint, type checks, and both builds succeeded |
 
 ### Side effects and limits
 
 - No production service, database, deployment, secret, DNS, billing, or customer data was accessed or changed.
 - No component rewrite or folder move was attempted.
 - The graph is static evidence; it does not measure production latency, cache hit ratio, SQL query count, or external-provider reliability.
-- Phase 2 is stacked on the verified Phase 1 branch and must remain draft-only until its hosted gate passes.
+- Phase 2 remains a stacked draft on the verified Phase 1 branch. GitHub-hosted CI passed on the implementation commit; the final documentation-only evidence commit is verified separately before handoff.
