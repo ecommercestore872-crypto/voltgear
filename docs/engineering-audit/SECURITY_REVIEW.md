@@ -30,6 +30,13 @@ These execute in local development or build tooling. They are not imported into 
 - First-party actions use current Node-24-compatible major versions.
 - Dependency installation remains lockfile-based with `npm ci`.
 
+### Client/server boundary hardening
+
+- Static review found no Client Component runtime-importing the server Supabase client or server database stores.
+- Phase 2 adds a TypeScript-AST regression test for that boundary. It ignores type-only imports because TypeScript erases them, but rejects side-effect, value, namespace, mixed-value, and dynamic imports of the protected server modules.
+- Generated output and dependency folders are excluded so the check evaluates authored source and remains fast enough for the normal unit-test suite.
+- This protects module direction; it does not replace secret scanning, route authorization, Supabase row-level security, or browser bundle inspection.
+
 ### Deferred security work
 
 - Validate the Next 16 migration branch against official migration guidance and all application routes.

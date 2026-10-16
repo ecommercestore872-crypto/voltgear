@@ -114,12 +114,20 @@ function fromRow(row?: SettingsRow | null) {
     homeFeaturedTitle: str(d.homeFeaturedTitle ?? row?.home_featured_title),
     homeFeaturedSubtitle: str(d.homeFeaturedSubtitle ?? row?.home_featured_subtitle),
     homeFeaturedProductDescription: str(d.homeFeaturedProductDescription ?? row?.home_featured_product_description),
-    homeFeaturedProductSlug: str((d as any).homeFeaturedProductSlug ?? (row as any)?.home_featured_product_slug ?? ""),
-    homeFeaturedCustomImage: str((d as any).homeFeaturedCustomImage ?? (row as any)?.home_featured_custom_image ?? ""),
-    homeTrustHeadline: str((d as any).homeTrustHeadline ?? (row as any)?.home_trust_headline ?? ""),
-    homeTrustAccent: str((d as any).homeTrustAccent ?? (row as any)?.home_trust_accent ?? ""),
-    topbarAccent: str((d as any).topbarAccent ?? (row as any)?.topbar_accent ?? ""),
-    navShopAllText: str((d as any).navShopAllText ?? (row as any)?.nav_shop_all_text ?? ""),
+    homeFeaturedProductSlug: str(
+      d.homeFeaturedProductSlug ?? row?.home_featured_product_slug ?? "",
+    ),
+    homeFeaturedCustomImage: str(
+      d.homeFeaturedCustomImage ?? row?.home_featured_custom_image ?? "",
+    ),
+    homeTrustHeadline: str(
+      d.homeTrustHeadline ?? row?.home_trust_headline ?? "",
+    ),
+    homeTrustAccent: str(
+      d.homeTrustAccent ?? row?.home_trust_accent ?? "",
+    ),
+    topbarAccent: str(d.topbarAccent ?? row?.topbar_accent ?? ""),
+    navShopAllText: str(d.navShopAllText ?? row?.nav_shop_all_text ?? ""),
   };
 }
 
