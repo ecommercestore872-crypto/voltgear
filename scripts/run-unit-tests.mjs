@@ -19,7 +19,12 @@ function findTests(directory) {
   return found;
 }
 
-const files = findTests(join(process.cwd(), "packages", "shared", "lib")).sort();
+const testRoots = [
+  join(process.cwd(), "packages", "shared", "lib"),
+  join(process.cwd(), "apps", "storefront", "app"),
+  join(process.cwd(), "apps", "admin", "app"),
+];
+const files = testRoots.flatMap(findTests).sort();
 
 if (!files.length) {
   console.error("No test files found.");

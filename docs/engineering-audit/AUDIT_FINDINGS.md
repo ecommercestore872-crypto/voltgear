@@ -101,6 +101,33 @@
 - Evidence: The Phase 2 graph covers 1,102 files, 2,762 nodes, and 5,135 edges. Validation reports zero cycles, duplicate IDs, dangling edges, incomplete nodes, missing files, out-of-scan files, and unassigned file nodes.
 - Resolution: Record the graph commit, SHA-256, fallback method, layer counts, dependency concentrations, and limitations in `ARCHITECTURE_REVIEW.md`.
 
+### REL-001 — Explicit storefront pages collide with CMS root static parameters
+
+- Severity: P1 — High
+- Status: Remediated in Phase 3 source; local gates pass; isolated Vercel preview verification pending
+- Evidence: Production runtime logs repeatedly report `Cannot find module '/var/task/apps/storefront/.next/server/app/<route>/page.js'` for `/about`, `/contact`, `/faq`, `/privacy-policy`, `/shipping-returns`, and `/terms-of-service`. The same URLs can return `200` from stale CDN content, masking failed background regeneration. A Vercel preview built with production CMS access referenced the `[slug]` client chunk for `/about` and `/privacy-policy` rather than each explicit route's chunk.
+- Root cause: `app/[slug]/page.tsx` returned every non-blog CMS page from `generateStaticParams()`, including paths already owned by explicit App Router pages. Production CMS data therefore made one URL eligible under two route definitions during static generation and packaging.
+- Impact: ISR attempts can invoke a function whose explicit page module was not packaged, generating errors and extra compute while shoppers receive aging cached content.
+- Resolution: Exclude every explicit top-level storefront page from CMS catch-all static parameters. A structural test scans the App Router so a future explicit page cannot be added without updating the exclusion set.
+- Rollback: Revert the Phase 3 route-filter commit. This restores the prior behavior and the known runtime error; it does not require a data rollback.
+
+### COST-001 — Build CPU is the dominant variable Vercel charge
+
+- Severity: P2 — Medium
+- Status: Confirmed; existing build-scope optimization retained and cross-verified
+- Evidence: The read-only FOCUS export for the partial 2026-09-30 to 2026-10-16 UTC window reports $4.1024 billed usage, of which $2.87 (70.0%) is Build CPU Minutes. Runtime Function Invocations account for about $0.025 (0.6%).
+- Interpretation: Low visitor volume does not imply low deployment cost. Preview and production builds dominate variable usage in this measured window. The recurring Pro plan price is separate from usage and cannot be eliminated through code optimization.
+- Control: `vercel-ignore-build.mjs` already skips unrelated application, documentation, and database-only changes. Phase 3 deliberately changes only storefront source plus a CI-only test runner, so the admin preview should be skipped.
+- Recommendation: Keep small app-specific changes out of `packages/shared` when they are not truly shared; review preview deployment frequency; retain one tested production promotion rather than repeated manual deploys. Do not change billing or plan settings without owner approval.
+
+### TEST-001 — Root unit-test discovery omitted application-level tests
+
+- Severity: P2 — Medium
+- Status: Resolved and locally verified
+- Evidence: `scripts/run-unit-tests.mjs` recursively discovered only `packages/shared/lib`, while an existing TikTok catalog route test lived under `apps/storefront/app` and did not run in `npm test`.
+- Impact: Route-level regressions could pass the advertised full unit suite.
+- Resolution: Discover tests in shared library code and both applications. The full suite now includes the existing route test and the new route-ownership regression.
+
 ## Primary references
 
 - Node.js 24 CLI documentation for `--test-isolation`: https://nodejs.org/download/release/v24.0.2/docs/api/cli.html
@@ -108,3 +135,5 @@
 - GitHub Actions Node 20 retirement notice: https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/
 - `actions/setup-node` Node 24 usage: https://github.com/actions/setup-node
 - npm `engines` documentation: https://docs.npmjs.com/files/package.json/#engines
+- Next.js 14 `generateStaticParams` behavior: https://nextjs.org/docs/14/app/api-reference/functions/generate-static-params
+- Next.js 14 Full Route Cache behavior: https://nextjs.org/docs/14/app/building-your-application/caching

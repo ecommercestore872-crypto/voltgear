@@ -51,6 +51,15 @@ The detailed layer map, request flows, dependency concentrations, confidence lev
 - Git fetch/push authentication works through the repository remote.
 - The standalone `gh` CLI credential is invalid; the connected GitHub integration and public read-only API were used instead.
 
+## Vercel runtime facts added in Phase 3
+
+- Storefront production executes in Sydney (`syd1`) on Node 24 and currently builds from the monorepo with Next.js 14.2.35.
+- The inspected production build restored a previous cache, installed 518 packages, generated 148 pages with production CMS data, and wrote an approximately 242 MB build cache.
+- The same source produces 54 storefront pages without production CMS rows in the local environment; route-count differences must therefore be interpreted with data-dependent static generation in mind.
+- The admin project recorded no comparable missing-module runtime cluster during the inspected seven-day window.
+- Storefront and admin both use the repository's conservative ignore-build command. Shared application/dependency changes rebuild both; application-local changes build one; documentation and database-only changes skip both.
+- Vercel preview creation remains an external side effect of pushing a branch through the connected Git integration. Phase 3 uses preview only and never promotes it to production.
+
 ## Existing draft pull requests
 
 - PR #2, `ai/full-store-overhaul`: security and storefront hardening. It adds a separate Supabase database CI job and will require workflow conflict reconciliation after this Phase 1 PR.
