@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2026-10-16",
+  "baseCommit": "a4eccf204486eecdd542bf24d919d1188dd7522b",
+  "tool": "npm audit --json",
+  "auditReportVersion": 2,
+  "fullGraph": {
+    "vulnerabilityNodes": {
+      "critical": 1,
+      "high": 9,
+      "moderate": 2,
+      "low": 0,
+      "total": 12
+    },
+    "dependencyCounts": {
+      "production": 115,
+      "development": 453,
+      "optional": 92,
+      "total": 603
+    }
+  },
+  "productionOnly": {
+    "vulnerabilityNodes": {
+      "critical": 1,
+      "high": 1,
+      "moderate": 0,
+      "low": 0,
+      "total": 2
+    },
+    "packages": [
+      {
+        "name": "next",
+        "installed": "14.2.35",
+        "direct": true,
+        "aggregateSeverity": "critical",
+        "availableFix": "16.4.2",
+        "semverMajor": true
+      },
+      {
+        "name": "postcss",
+        "installed": "8.4.31",
+        "direct": false,
+        "dependencyPath": "next > postcss",
+        "aggregateSeverity": "high",
+        "availableFix": "via Next.js major upgrade"
+      }
+    ]
+  },
+  "developmentChains": [
+    {
+      "root": "eslint-config-next@14.2.35",
+      "affected": ["@next/eslint-plugin-next", "glob@10.3.10"],
+      "availableFix": "eslint-config-next@16.4.2",
+      "semverMajor": true
+    },
+    {
+      "root": "tailwindcss@3.4.19",
+      "affected": [
+        "braces@3.0.3",
+        "chokidar@3.6.0",
+        "fast-glob@3.3.3",
+        "micromatch@4.0.8",
+        "postcss-nested@6.2.0",
+        "postcss-selector-parser@6.1.4"
+      ],
+      "availableFix": "tailwindcss@4.3.3",
+      "semverMajor": true
+    }
+  ],
+  "nonBreakingDryRun": {
+    "command": "npm audit fix --dry-run --json",
+    "added": 0,
+    "changed": 0,
+    "removed": 0
+  },
+  "decision": "No forced or major dependency upgrades in Phase 1; evaluate the existing Next 16 branch independently."
+}

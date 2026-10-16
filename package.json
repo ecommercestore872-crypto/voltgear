@@ -2,6 +2,9 @@
   "name": "voltgear-monorepo",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24 <25"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -18,9 +21,12 @@
     "seed:category-webp": "tsx scripts/sync-category-webp-urls.ts",
     "build:storefront": "npm run build -w @voltgear/storefront",
     "ci:storefront": "npm run test && npm run build:storefront",
-    "ci": "npm run test && npm run lint && npm run build",
+    "ci": "npm run test && npm run lint:all && npm run typecheck:all && npm run build",
     "lint:admin": "npm run lint -w @voltgear/admin",
     "lint:all": "npm run lint -w @voltgear/storefront && npm run lint -w @voltgear/admin",
+    "typecheck:storefront": "tsc --noEmit --incremental false -p apps/storefront/tsconfig.json",
+    "typecheck:admin": "tsc --noEmit --incremental false -p apps/admin/tsconfig.json",
+    "typecheck:all": "npm run typecheck:storefront && npm run typecheck:admin",
     "build:admin": "npm run build -w @voltgear/admin",
     "start": "npm run start -w @voltgear/storefront",
     "lint": "npm run lint:all",
