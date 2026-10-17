@@ -1,5 +1,8 @@
 name: Monorepo CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -15,17 +18,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v7
         with:
-          node-version: "20"
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
           cache: npm
+          cache-dependency-path: package-lock.json
       - name: Install
         run: npm ci
       - name: Unit tests
         run: npm run test
       - name: Lint storefront and admin
         run: npm run lint:all
+      - name: Type-check storefront
+        run: npm run typecheck:storefront
+      - name: Type-check admin
+        run: npm run typecheck:admin
       - name: Build storefront
         run: npm run build:storefront
         env:
