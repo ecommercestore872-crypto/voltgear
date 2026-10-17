@@ -1,13 +1,6 @@
-import { Manrope } from "next/font/google";
-
-/** Admin UI only — single font keeps first paint fast (no Newsreader). */
-export const adminSans = Manrope({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-gadget-sans",
-  display: "swap",
-  preload: true,
-  adjustFontFallback: true,
-});
-
-export const adminFontClass = adminSans.variable;
+/**
+ * Admin typography is provided by @fontsource-variable/manrope and bundled locally.
+ * No Google Fonts HTTP calls are necessary during a production build.
+ * Keep the CSS variable class stable for the shared admin theme.
+ */
+export const adminFontClass = "admin-font-manrope";
