@@ -142,11 +142,24 @@ reported a $20 Vercel concern despite modest traffic.
 | Storefront production build | Pass; 54 generated pages |
 | Admin production build | Pass; 37 generated pages; initial Windows generated-directory `EPERM` passed on immediate retry |
 
+### Preview verification evidence
+
+| Check | Result |
+| --- | --- |
+| Storefront preview | Ready; deployment `dpl_G74hyUr5gngFNsvm2sRF37JHuDf2`, exact source commit `94d4a9a` |
+| Admin preview | Canceled by ignore-build; no admin compute build for the storefront-only change |
+| Production-like page generation | Pass; 148 pages generated with connected preview environment data |
+| Affected route requests | Pass; six of six returned HTTP 200 |
+| Route ownership in HTML | Pass; six of six use explicit route chunks and none use the root `[slug]` chunk |
+| Matched route header | Pass; `x-matched-path` reports the explicit route (sample: `/privacy-policy`) |
+| Preview missing-module search | Pass; no records in the deployment-scoped 24-hour window |
+| Preview error/fatal search | Pass; no records in the deployment-scoped 24-hour window |
+
 ### Side effects and limits
 
 - No production deployment, database, domain, secret, billing, or plan setting
   was changed.
-- The fix requires an isolated Vercel preview with production-like CMS data to
-  prove that explicit page modules are packaged correctly.
+- The isolated Vercel preview proves explicit page packaging, but production
+  remains unchanged until a separately approved release.
 - Home and `/products` latency remain a separate measured performance concern;
   Phase 3 does not claim to improve them.

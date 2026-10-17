@@ -104,20 +104,22 @@
 ### REL-001 — Explicit storefront pages collide with CMS root static parameters
 
 - Severity: P1 — High
-- Status: Remediated in Phase 3 source; local gates pass; isolated Vercel preview verification pending
+- Status: Resolved and verified locally and in an isolated Vercel preview
 - Evidence: Production runtime logs repeatedly report `Cannot find module '/var/task/apps/storefront/.next/server/app/<route>/page.js'` for `/about`, `/contact`, `/faq`, `/privacy-policy`, `/shipping-returns`, and `/terms-of-service`. The same URLs can return `200` from stale CDN content, masking failed background regeneration. A Vercel preview built with production CMS access referenced the `[slug]` client chunk for `/about` and `/privacy-policy` rather than each explicit route's chunk.
 - Root cause: `app/[slug]/page.tsx` returned every non-blog CMS page from `generateStaticParams()`, including paths already owned by explicit App Router pages. Production CMS data therefore made one URL eligible under two route definitions during static generation and packaging.
 - Impact: ISR attempts can invoke a function whose explicit page module was not packaged, generating errors and extra compute while shoppers receive aging cached content.
 - Resolution: Exclude every explicit top-level storefront page from CMS catch-all static parameters. A structural test scans the App Router so a future explicit page cannot be added without updating the exclusion set.
+- Preview proof: Deployment `dpl_G74hyUr5gngFNsvm2sRF37JHuDf2` built 148 production-data-dependent pages. All six affected URLs returned `200`, matched their explicit paths, referenced their explicit `app/<route>/page` chunks, and did not reference `app/[slug]/page`. A 24-hour deployment-scoped log query found no missing-module, error, or fatal records after the checks.
 - Rollback: Revert the Phase 3 route-filter commit. This restores the prior behavior and the known runtime error; it does not require a data rollback.
 
 ### COST-001 — Build CPU is the dominant variable Vercel charge
 
 - Severity: P2 — Medium
-- Status: Confirmed; existing build-scope optimization retained and cross-verified
+- Status: Confirmed; existing build-scope optimization retained and verified in Vercel
 - Evidence: The read-only FOCUS export for the partial 2026-09-30 to 2026-10-16 UTC window reports $4.1024 billed usage, of which $2.87 (70.0%) is Build CPU Minutes. Runtime Function Invocations account for about $0.025 (0.6%).
 - Interpretation: Low visitor volume does not imply low deployment cost. Preview and production builds dominate variable usage in this measured window. The recurring Pro plan price is separate from usage and cannot be eliminated through code optimization.
 - Control: `vercel-ignore-build.mjs` already skips unrelated application, documentation, and database-only changes. Phase 3 deliberately changes only storefront source plus a CI-only test runner, so the admin preview should be skipped.
+- Preview proof: The source commit created a ready storefront preview while the corresponding `voltgear-admin` deployment was canceled by the ignore-build command.
 - Recommendation: Keep small app-specific changes out of `packages/shared` when they are not truly shared; review preview deployment frequency; retain one tested production promotion rather than repeated manual deploys. Do not change billing or plan settings without owner approval.
 
 ### TEST-001 — Root unit-test discovery omitted application-level tests

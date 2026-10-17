@@ -78,3 +78,12 @@ inside `apps/storefront`, so its preview should build `voltgear` while
 - Home and product-list TTFB are high enough to justify a later, separately
   measured cache/query optimization. That work is not mixed into this route
   ownership fix.
+
+## Phase 3 preview result
+
+The exact source commit produced one ready storefront preview and one canceled
+admin deployment. The storefront build generated 148 pages with connected
+preview data. Six focused route requests returned their explicit route chunks,
+and a deployment-scoped 24-hour query reported no missing-module, error, or
+fatal logs. This verifies route packaging and build scoping; it is not a claim
+that production latency or monthly billing has already changed.

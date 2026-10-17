@@ -81,11 +81,11 @@ Large Client Components remain a maintainability risk, not a release blocker by 
 | Full unit suite | Pass; 712/712 |
 | Both linters and TypeScript projects | Pass |
 | Storefront and admin production builds | Pass; 54/37 pages |
-| Storefront-only Vercel build scope | Pending branch commit/preview evidence |
-| Explicit page module packaging in preview | Pending isolated preview |
-| Preview runtime error review | Pending isolated preview |
+| Storefront-only Vercel build scope | Pass; storefront ready, admin canceled |
+| Explicit page module packaging in preview | Pass; six of six explicit chunks, zero `[slug]` chunks |
+| Preview runtime error review | Pass; no missing-module/error/fatal logs in deployment-scoped 24-hour query |
 | Hosted draft-PR CI | Pending |
 
-The Phase 3 source is not authorized for production. It becomes review-ready
-only after the preview demonstrates explicit route chunks/modules, the admin
-build is skipped, and hosted CI passes on the exact reviewed commit.
+The Phase 3 source is not authorized for production. Preview acceptance gates
+pass; it becomes review-ready after hosted CI passes on the exact reviewed
+commit.
