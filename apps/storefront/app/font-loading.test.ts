@@ -59,5 +59,7 @@ describe("deterministic production font loading", () => {
     assert.match(adminCss, /--font-gadget-sans:\s*"Manrope Variable"/);
     assert.match(storefrontCss, /--font-gadget-sans:\s*"Manrope Variable"/);
     assert.match(storefrontCss, /--font-gadget-display:\s*"Newsreader Variable"/);
+    assert.match(storefrontCss, /--font-sans:\s*var\(--font-gadget-sans\)/);
+    assert.match(storefrontCss, /--font-heading:\s*var\(--font-gadget-display\)/);
   });
 });

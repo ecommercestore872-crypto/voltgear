@@ -6,6 +6,8 @@
 .gadget-fonts {
   --font-gadget-sans: "Manrope Variable";
   --font-gadget-display: "Newsreader Variable";
+  --font-sans: var(--font-gadget-sans);
+  --font-heading: var(--font-gadget-display);
 }
 
 @layer base {
