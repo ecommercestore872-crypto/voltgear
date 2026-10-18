@@ -65,6 +65,16 @@ import {
   type CheckoutFormField,
 } from "@/lib/checkout-form-fields";
 import { PAKISTAN_CITY_SUGGESTIONS } from "@/lib/pakistan-cities";
+import {
+  buildCheckoutOrderBody,
+  requestCheckoutOrder,
+  requestCheckoutPromo,
+} from "@/lib/checkout-client-api";
+import {
+  CHECKOUT_IDEMPOTENCY_STORAGE_KEY,
+  getOrCreateCheckoutIdempotency,
+  type CheckoutIdempotencyState,
+} from "@/lib/checkout-idempotency-client";
 
 const SUMMARY_CARD =
   "min-w-0 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm sm:rounded-2xl sm:p-5";
@@ -173,43 +183,10 @@ export default function CheckoutPageClient() {
     total: number;
   } | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
-  const idemRef = useRef<{ fingerprint: string; key: string } | null>(null);
+  const idemRef = useRef<CheckoutIdempotencyState | null>(null);
   const showMobileDock = useCheckoutMobileDock(
     step === 1 && items.length > 0,
   );
-
-  if (typeof window !== "undefined" && items.length > 0) {
-    const cartFingerprint = JSON.stringify(
-      items.map((i) => ({ slug: i.slug, q: i.quantity, v: i.variantKey }))
-    );
-    
-    if (!idemRef.current || idemRef.current.fingerprint !== cartFingerprint) {
-      const storedStr = window.sessionStorage.getItem("buy_n_try_checkout_idem");
-      let activeKey = "";
-
-      if (storedStr) {
-        try {
-          const stored = JSON.parse(storedStr);
-          if (stored.cartFingerprint === cartFingerprint) {
-            activeKey = stored.key;
-          }
-        } catch {}
-      }
-
-      if (!activeKey) {
-        activeKey =
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        
-        window.sessionStorage.setItem(
-          "buy_n_try_checkout_idem",
-          JSON.stringify({ key: activeKey, cartFingerprint, createdAt: Date.now() })
-        );
-      }
-      idemRef.current = { fingerprint: cartFingerprint, key: activeKey };
-    }
-  }
 
   const GIFT_WRAP_FEE = 199;
 
@@ -255,23 +232,19 @@ export default function CheckoutPageClient() {
     });
 
     try {
-      const res = await fetch("/api/promo/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: promoInput.trim(),
-          subtotal: merchandise,
-          shipping: baseShipping,
-          email: customer.email?.trim().toLowerCase() || undefined,
-        }),
+      const { response, data } = await requestCheckoutPromo({
+        code: promoInput.trim(),
+        subtotal: merchandise,
+        shipping: baseShipping,
+        email: customer.email?.trim().toLowerCase() || undefined,
       });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
+      if (!response.ok || data.ok !== true) {
         setActivePromo({
           code: promoInput.trim(),
           discount: 0,
           shipping: baseShipping,
-          error: data.error || "Invalid promo code",
+          error:
+            ("error" in data ? data.error : undefined) || "Invalid promo code",
         });
       } else if (
         dealDiscount > 0 &&
@@ -334,48 +307,42 @@ export default function CheckoutPageClient() {
     setApiError(null);
 
     try {
-      const activeIdemKey = idemRef.current?.key || "";
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": activeIdemKey,
-        },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            slug: i.slug,
-            name: i.name,
-            price: i.price,
-            quantity: i.quantity,
-            ...(i.sku ? { sku: i.sku } : {}),
-            ...(i.variantKey ? { variantKey: i.variantKey } : {}),
-            ...(i.variantName ? { variantName: i.variantName } : {}),
-            ...(i.variantSku ? { variantSku: i.variantSku } : {}),
-          })),
-          customer: {
-            ...currentCustomer,
-            note: orderNotes.trim() || undefined,
-          }, // contains name, email, phone, etc, plus order notes
-          payment: { method: payment },
-          subtotal,
-          shipping,
-          total, // actual final total including pseudo promos could break backend signature check in real app if api doesn't support promo, but keeping identical
-          giftWrap,
-          giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
-          idempotencyKey: activeIdemKey,
-          consent:
-            typeof window !== "undefined"
-              ? window.localStorage.getItem("bnt-cookie-consent")
-              : null,
-          ...(activePromo?.code && !activePromo.error
-            ? { promoCode: activePromo.code }
-            : {}),
-          attribution: readStoredClickAttribution() ?? undefined,
-        }),
+      const idempotency = getOrCreateCheckoutIdempotency({
+        items,
+        storage: window.sessionStorage,
+        current: idemRef.current,
       });
-      const data = await res.json();
+      idemRef.current = idempotency;
+      const activeIdemKey = idempotency.key;
+      const orderBody = buildCheckoutOrderBody({
+        items,
+        customer: {
+          ...currentCustomer,
+        },
+        orderNotes,
+        paymentMethod: payment,
+        subtotal,
+        shipping,
+        total,
+        giftWrap,
+        giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
+        idempotencyKey: activeIdemKey,
+        consent:
+          typeof window !== "undefined"
+            ? window.localStorage.getItem("bnt-cookie-consent")
+            : null,
+        promoCode:
+          activePromo?.code && !activePromo.error
+            ? activePromo.code
+            : undefined,
+        attribution: readStoredClickAttribution() ?? undefined,
+      });
+      const { response, data } = await requestCheckoutOrder(
+        orderBody,
+        activeIdemKey,
+      );
 
-      if (res.status === 409 && data.code === "PRICE_CHANGED") {
+      if (response.status === 409 && data.code === "PRICE_CHANGED") {
         for (const line of data.lines ?? []) {
           updateItemPrice(
             line.variantKey ? `${line.slug}::${line.variantKey}` : line.slug,
@@ -392,13 +359,17 @@ export default function CheckoutPageClient() {
         return;
       }
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error(data.error ?? "Failed");
       }
+      if (!data.orderId) {
+        throw new Error("Checkout returned an invalid order response.");
+      }
+      const orderId = data.orderId;
       tagCheckoutClarityEvent("order_success");
 
       if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem("buy_n_try_checkout_idem");
+        window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_STORAGE_KEY);
       }
       idemRef.current = null;
 
@@ -408,7 +379,7 @@ export default function CheckoutPageClient() {
           : currentCustomer.email?.trim().toLowerCase() ?? "";
       if (lookupEmail && typeof document !== "undefined") {
         const maxAge = 60 * 60 * 24;
-        document.cookie = `bnt_order_${encodeURIComponent(data.orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(data.orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
+        document.cookie = `bnt_order_${encodeURIComponent(orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
       }
       const orderQuery = new URLSearchParams();
       const phoneForTrack = currentCustomer.phone?.trim() ?? "";
@@ -422,7 +393,7 @@ export default function CheckoutPageClient() {
       if (first) {
         saveLastOrder({
           at: Date.now(),
-          orderId: data.orderId,
+          orderId,
           email: lookupEmail,
           name: currentCustomer.name?.trim() ?? "",
           product: { slug: first.slug, name: first.name },
@@ -431,7 +402,7 @@ export default function CheckoutPageClient() {
 
       orderNavigationRef.current = true;
       window.scrollTo({ top: 0, behavior: "instant" });
-      router.replace(`/order/${data.orderId}${orderQs}`);
+      router.replace(`/order/${orderId}${orderQs}`);
 
       window.setTimeout(() => {
         clearCart();
@@ -442,7 +413,7 @@ export default function CheckoutPageClient() {
         if (!data.replayed) {
           try {
             trackTikTokPurchase({
-              orderId: data.orderId,
+              orderId,
               total: purchaseTotal,
               lines: serverLines,
             });
@@ -451,7 +422,7 @@ export default function CheckoutPageClient() {
           }
           try {
             trackMetaPurchase({
-              orderId: data.orderId,
+              orderId,
               items: items.map((i) => ({
                 productId: i.productId,
                 name: i.name,
