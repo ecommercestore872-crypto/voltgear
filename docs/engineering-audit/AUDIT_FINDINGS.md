@@ -65,10 +65,10 @@
 ### ARCH-002 — Critical user flows are concentrated in oversized Client Components
 
 - Severity: P2 — Medium
-- Status: Confirmed maintainability risk; no rewrite attempted
-- Evidence: `checkout-page-client.tsx` is about 1,147 physical lines, `product-form.tsx` about 703, and `settings-form.tsx` about 704. The graph also identifies checkout and product editing among the highest-importing files.
+- Status: Confirmed maintainability risk; checkout extraction started and verified without a rewrite
+- Evidence: Before this slice, `checkout-page-client.tsx` was 1,210 physical lines, `product-form.tsx` 725, and `settings-form.tsx` 732. Checkout request construction, request transport, response contracts, and browser idempotency storage now live in focused, unit-tested library modules; the checkout component is 1,181 lines. Product and settings forms remain unchanged.
 - Impact: UI state, validation, requests, and presentation evolve together, increasing review surface and regression risk. File size alone does not prove a runtime defect.
-- Recommendation: Add characterization tests, then extract pure rules/reducers and request adapters one responsibility at a time. Avoid a broad component rewrite.
+- Recommendation: Continue extracting one responsibility per reviewed slice, prioritizing checkout presentation sections next and then the product/settings forms. Avoid a broad component rewrite.
 
 ### ARCH-003 — Settings mapping used unnecessary `any` assertions
 
