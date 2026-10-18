@@ -1,8 +1,7 @@
+import { adminAssetPrefix } from "../../packages/shared/lib/admin-asset-prefix.mjs";
+
 /** @type {import('next').NextConfig} */
-const adminAssetOrigin = process.env.NEXT_PUBLIC_ADMIN_ASSET_ORIGIN?.replace(
-  /\/$/,
-  "",
-);
+const adminAssetOrigin = adminAssetPrefix(process.env);
 
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
