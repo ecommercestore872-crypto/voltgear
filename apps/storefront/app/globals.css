@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Local font files preserve the public typography tokens without build-time HTTP. */
+.gadget-fonts {
+  --font-gadget-sans: "Manrope Variable";
+  --font-gadget-display: "Newsreader Variable";
+}
+
 @layer base {
   /* ── Light Precision Tech · Cloud Teal ──────────────────────────── */
   :root {
