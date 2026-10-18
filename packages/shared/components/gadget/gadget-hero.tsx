@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { gadgetImageSrc } from "@/lib/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { product2Href } from "@/lib/gadget-preview";
 import { PRODUCT_IMAGE } from "@/lib/product-image";

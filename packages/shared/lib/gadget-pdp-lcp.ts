@@ -1,4 +1,4 @@
-import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { gadgetImageSrc } from "@/lib/gadget-image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
 
