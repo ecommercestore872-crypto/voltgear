@@ -13,12 +13,12 @@ export const dynamic = "force-dynamic";
 
 async function GETHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const section = await getAdminHomepageSection(params.id);
+  const section = await getAdminHomepageSection((await params).id);
   if (!section) {
     return NextResponse.json({ error: "Section not found" }, { status: 404 });
   }
@@ -27,13 +27,13 @@ async function GETHandler(
 
 async function PATCHHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await saveAdminHomepageSection(params.id, body ?? {});
+  const result = await saveAdminHomepageSection((await params).id, body ?? {});
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },
@@ -45,12 +45,12 @@ async function PATCHHandler(
 
 async function DELETEHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteAdminHomepageSection(params.id);
+  const result = await deleteAdminHomepageSection((await params).id);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

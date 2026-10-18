@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, use } from "react";
 import {
   Truck,
   CheckCircle2,
@@ -11,11 +11,17 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function CustomerDeliveryRescuePage({
-  params: { token },
-}: {
-  params: { token: string };
-}) {
+export default function CustomerDeliveryRescuePage(
+  props: {
+    params: Promise<{ token: string }>;
+  }
+) {
+  const params = use(props.params);
+
+  const {
+    token
+  } = params;
+
   const [selectedAction, setSelectedAction] = useState<
     "RETRY" | "ADDRESS" | "PHONE" | null
   >(null);

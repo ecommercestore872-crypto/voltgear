@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import { Suspense } from "react";
 
 import { GadgetShopCatalogClient } from "@/components/gadget/gadget-shop-catalog-client";
@@ -17,7 +16,7 @@ import {
 import { normalizeSettings } from "@/lib/site-config";
 import type { Product } from "@/lib/types";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 const shopMeta = shopCatalogSearchMeta();
 

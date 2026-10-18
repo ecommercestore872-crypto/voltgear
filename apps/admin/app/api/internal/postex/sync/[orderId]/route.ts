@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(
   request: Request,
-  context: { params: { orderId: string } },
+  context: { params: Promise<{ orderId: string }> },
 ) {
   if (!isCronAuthorized(request.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -26,7 +26,7 @@ export async function POST(
     );
   }
 
-  const orderId = context.params.orderId?.trim();
+  const orderId = (await context.params).orderId?.trim();
   if (!orderId) {
     return NextResponse.json({ error: "Missing orderId." }, { status: 400 });
   }

@@ -11,13 +11,13 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 async function GETHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const shopType = await getAdminShopType(params.id);
+  const shopType = await getAdminShopType((await params).id);
   if (!shopType)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   return NextResponse.json({ shopType });
@@ -28,7 +28,7 @@ async function PATCHHandler(request: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await saveAdminShopType(params.id, body?.doc ?? body ?? {});
+  const result = await saveAdminShopType((await params).id, body?.doc ?? body ?? {});
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },
@@ -41,7 +41,7 @@ async function DELETEHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteAdminShopType(params.id);
+  const result = await deleteAdminShopType((await params).id);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },

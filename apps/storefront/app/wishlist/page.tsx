@@ -1,21 +1,7 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 
 import { WishlistStaticShell } from "@/components/wishlist/wishlist-static-shell";
-
-const WishlistClient = dynamic(
-  () => import("./wishlist-client").then((m) => m.WishlistClient),
-  {
-  ssr: false,
-  loading: () => (
-    <div
-      className="mx-auto min-h-[40vh] max-w-6xl animate-pulse px-4 py-10 lg:px-8"
-      aria-busy="true"
-    />
-  ),
-  },
-);
+import { WishlistClientLoader } from "./wishlist-client-loader";
 
 export const metadata: Metadata = {
   title: "My Wishlist",
@@ -23,13 +9,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;
 
 export default function WishlistPage() {
   return (
     <>
       <WishlistStaticShell />
-      <WishlistClient />
+      <WishlistClientLoader />
     </>
   );
 }

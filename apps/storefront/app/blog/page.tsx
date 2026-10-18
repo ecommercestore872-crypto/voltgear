@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, User } from "lucide-react";
@@ -36,7 +35,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export default async function BlogPage() {
   let posts: Page[] = [];

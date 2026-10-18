@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 async function POSTHandler(
   req: NextRequest,
-  context: { params: { orderId: string } },
+  context: { params: Promise<{ orderId: string }> },
 ) {
   if (!isAdminRequest(req)) {
     return NextResponse.json(
@@ -18,7 +18,7 @@ async function POSTHandler(
     );
   }
 
-  const result = await runPostExStatusSyncForOrderId(context.params.orderId, {
+  const result = await runPostExStatusSyncForOrderId((await context.params).orderId, {
     getOrder: getOrderByPublicId,
     applyStatusUpdate: async (orderId, newStatus, note) => {
       const updated = await updateOrderStatusRow(orderId, newStatus, note);

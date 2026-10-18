@@ -15,13 +15,13 @@ import { setProductCollections } from "@/lib/db/collection-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 async function GETHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const product = await getAdminProductForEditor(params.id);
+  const product = await getAdminProductForEditor((await params).id);
   if (!product)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   return NextResponse.json({ product });
@@ -36,20 +36,20 @@ async function PATCHHandler(request: Request, { params }: Ctx) {
   const doc = body?.doc;
   let result;
   if (action === "publish") {
-    result = await publishAdminProduct(params.id, doc, body?.collectionIds);
+    result = await publishAdminProduct((await params).id, doc, body?.collectionIds);
   }
   else if (action === "unpublish")
-    result = await unpublishAdminProduct(params.id);
+    result = await unpublishAdminProduct((await params).id);
   else if (action === "discard")
-    result = await discardAdminProductDraft(params.id);
-  else result = await saveAdminProduct(params.id, doc);
+    result = await discardAdminProductDraft((await params).id);
+  else result = await saveAdminProduct((await params).id, doc);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },
       { status: result.status },
     );
   if (action === "save") {
-    const membership = await setProductCollections(params.id, body?.collectionIds);
+    const membership = await setProductCollections((await params).id, body?.collectionIds);
     if (!membership.ok) {
       return NextResponse.json({ error: membership.error }, { status: membership.status });
     }
@@ -61,7 +61,7 @@ async function DELETEHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteAdminProduct(params.id);
+  const result = await deleteAdminProduct((await params).id);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },

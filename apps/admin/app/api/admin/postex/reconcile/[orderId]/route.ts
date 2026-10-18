@@ -22,7 +22,7 @@ function parseDateParam(value: string | null): string | null {
 
 async function GETHandler(
   req: NextRequest,
-  context: { params: { orderId: string } },
+  context: { params: Promise<{ orderId: string }> },
 ) {
   if (!isAdminRequest(req)) {
     return NextResponse.json(
@@ -31,7 +31,7 @@ async function GETHandler(
     );
   }
 
-  const orderId = context.params.orderId?.trim();
+  const orderId = (await context.params).orderId?.trim();
   if (!orderId) {
     return NextResponse.json(
       { success: false, error: "Missing orderId." },

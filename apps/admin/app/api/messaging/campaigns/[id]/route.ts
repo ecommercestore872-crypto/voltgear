@@ -10,12 +10,12 @@ export const dynamic = "force-dynamic";
 /** Admin: full delivery report for a single campaign. */
 async function GETHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const campaign = await getCampaign(params.id);
+  const campaign = await getCampaign((await params).id);
   if (!campaign) {
     return NextResponse.json({ error: "Campaign not found." }, { status: 404 });
   }

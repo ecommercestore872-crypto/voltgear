@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 async function GETHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -19,7 +19,8 @@ async function GETHandler(
     listProductDeals(),
     fetchDealCatalog(),
   ]);
-  const deal = deals.find((row) => row.id === params.id);
+  const { id } = await params;
+  const deal = deals.find((row) => row.id === id);
   if (!deal)
     return NextResponse.json({ error: "Deal not found." }, { status: 404 });
   const a = catalog.find((p) => p.slug === deal.slugA);

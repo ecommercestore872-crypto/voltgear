@@ -10,10 +10,9 @@ import {
 } from "@/lib/db/store";
 import { citySeoHubSlugs } from "@/lib/city-seo";
 import { indexSiteUrl } from "@/lib/seo-rules";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
 /** Cached sitemap — crawlers no longer force a fresh Supabase read every hit. */
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 function entry(
   url: string,

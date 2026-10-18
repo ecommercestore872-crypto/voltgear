@@ -9,13 +9,13 @@ export const dynamic = "force-dynamic";
 
 async function PATCHHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => ({}));
-  const result = await updateProductDeal(params.id, body ?? {});
+  const result = await updateProductDeal((await params).id, body ?? {});
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },
@@ -27,12 +27,12 @@ async function PATCHHandler(
 
 async function DELETEHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteProductDeal(params.id);
+  const result = await deleteProductDeal((await params).id);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

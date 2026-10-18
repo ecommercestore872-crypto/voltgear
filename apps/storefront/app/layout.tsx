@@ -1,22 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
-import dynamic from "next/dynamic";
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { DeferredUntilIdle } from "@/components/ui/deferred-until-idle";
-const MetaPixel = dynamic(
-  () =>
-    import("@/components/analytics/meta-pixel").then((m) => m.MetaPixel),
-  { ssr: false, loading: () => null },
-);
-
-const ClarityDeferred = dynamic(
-  () =>
-    import("@/components/analytics/clarity-deferred").then(
-      (m) => m.ClarityDeferred,
-    ),
-  { ssr: false, loading: () => null },
-);
+import {
+  CartDrawerClientOnly,
+  CartEffectsClientOnly,
+  ClarityClientOnly,
+  CompareBarClientOnly,
+  MetaPixelClientOnly,
+  ReviewReminderClientOnly,
+  ScrollToTopClientOnly,
+  UrgencyTickerClientOnly,
+} from "@/components/layout/storefront-client-only";
+import { StorefrontAnnouncementBar } from "@/components/promotions/announcement-bar";
+import { StorefrontPromoPopup } from "@/components/promotions/storefront-promo-popup";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import {
@@ -39,62 +36,6 @@ import type { SiteSettings } from "@/lib/types";
 import "@fontsource-variable/manrope/wght.css";
 import "@fontsource-variable/newsreader/wght.css";
 import "./globals.css";
-
-const StorefrontAnnouncementBar = dynamic(
-  () =>
-    import("@/components/promotions/announcement-bar").then(
-      (m) => m.StorefrontAnnouncementBar,
-    ),
-  { ssr: false, loading: () => null },
-);
-
-const ScrollToTopButton = dynamic(
-  () =>
-    import("@/components/ui/scroll-to-top-button").then(
-      (m) => m.ScrollToTopButton,
-    ),
-  { ssr: false, loading: () => null },
-);
-
-const CartDrawer = dynamic(
-  () => import("@/components/cart/cart-drawer").then((m) => m.CartDrawer),
-  { ssr: false, loading: () => null },
-);
-
-const ReviewReminderPopup = dynamic(
-  () =>
-    import("@/components/reviews/review-reminder-popup").then(
-      (m) => m.ReviewReminderPopup,
-    ),
-  { ssr: false, loading: () => null },
-);
-
-const CartEffects = dynamic(
-  () => import("@/components/effects/cart-effects").then((m) => m.CartEffects),
-  { ssr: false, loading: () => null },
-);
-
-const UrgencyTicker = dynamic(
-  () =>
-    import("@/components/sections/urgency-ticker").then((m) => m.UrgencyTicker),
-  { ssr: false, loading: () => null },
-);
-
-const CompareBarWrapper = dynamic(
-  () =>
-    import("@/components/product/compare-bar-wrapper").then(
-      (m) => m.CompareBarWrapper,
-    ),
-  { ssr: false, loading: () => null },
-);
-
-const StorefrontPromoPopup = dynamic(
-  () =>
-    import("@/components/promotions/storefront-promo-popup").then(
-      (m) => m.StorefrontPromoPopup,
-    ),
-  { ssr: false, loading: () => null },
-);
 
 const SITE_URL = indexSiteUrl();
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
@@ -193,7 +134,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 const ADSENSE_SCRIPT_SRC = adsenseHeadScriptSrc(
   process.env.NEXT_PUBLIC_ADSENSE_PUB_ID,
@@ -285,19 +226,19 @@ export default async function RootLayout({
           shopTypes={shopTypes}
           urgencyTicker={
             <DeferredUntilIdle timeoutMs={3200}>
-              <UrgencyTicker announcement={config.announcement} />
+              <UrgencyTickerClientOnly announcement={config.announcement} />
             </DeferredUntilIdle>
           }
-          cartDrawer={<CartDrawer />}
+          cartDrawer={<CartDrawerClientOnly />}
           reviewReminder={
             <DeferredUntilIdle>
-              <ReviewReminderPopup />
+              <ReviewReminderClientOnly />
             </DeferredUntilIdle>
           }
-          cartEffects={<CartEffects />}
+          cartEffects={<CartEffectsClientOnly />}
           compareBar={
             <DeferredUntilIdle>
-              <CompareBarWrapper />
+              <CompareBarClientOnly />
             </DeferredUntilIdle>
           }
           demoBanner={<DemoBanner />}
@@ -307,14 +248,14 @@ export default async function RootLayout({
             <StorefrontPromoPopup />
           </DeferredUntilIdle>
           <DeferredUntilIdle>
-            <ScrollToTopButton />
+            <ScrollToTopClientOnly />
           </DeferredUntilIdle>
           {children}
         </AppChrome>
         <DeferredUntilIdle timeoutMs={5500}>
-          <MetaPixel />
+          <MetaPixelClientOnly />
         </DeferredUntilIdle>
-        <ClarityDeferred projectId={CLARITY_ID} host={clarityHost} />
+        <ClarityClientOnly projectId={CLARITY_ID} host={clarityHost} />
       </body>
     </html>
   );

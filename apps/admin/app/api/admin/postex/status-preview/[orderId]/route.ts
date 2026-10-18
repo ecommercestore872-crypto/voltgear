@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 async function GETHandler(
   req: NextRequest,
-  context: { params: { orderId: string } },
+  context: { params: Promise<{ orderId: string }> },
 ) {
   if (!isAdminRequest(req)) {
     return NextResponse.json(
@@ -18,7 +18,7 @@ async function GETHandler(
     );
   }
 
-  const result = await runPostExStatusPreviewForOrderId(context.params.orderId, {
+  const result = await runPostExStatusPreviewForOrderId((await context.params).orderId, {
     getOrder: getOrderByPublicId,
   });
 
