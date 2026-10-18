@@ -17,41 +17,50 @@ import "./invoice.css";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   return {
-    title: invoiceFileTitle(params.id),
+    title: invoiceFileTitle(id),
     robots: { index: false, follow: false },
   };
 }
 
-export default async function InvoicePage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { email?: string; phone?: string };
-}) {
+export default async function InvoicePage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams?: Promise<{ email?: string; phone?: string }>;
+  }
+) {
+  const [{ id }, query, cookieStore] = await Promise.all([
+    props.params,
+    props.searchParams ??
+      Promise.resolve<{ email?: string; phone?: string }>({}),
+    cookies(),
+  ]);
   const [order, settings] = await Promise.all([
-    getOrderByPublicId(params.id),
+    getOrderByPublicId(id),
     fetchSiteSettings().catch(() => null),
   ]);
   if (!order) return notFound();
 
-  const cookieStore = cookies();
   const isAdmin = cookieStore.get(ADMIN_COOKIE)?.value === getAdminSecret();
 
   const fromEmailQuery =
-    typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+    typeof query.email === "string" ? query.email.trim() : "";
   const fromPhoneQuery =
-    typeof searchParams?.phone === "string" ? searchParams.phone.trim() : "";
+    typeof query.phone === "string" ? query.phone.trim() : "";
   const fromCookie =
-    cookieStore.get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
+    cookieStore.get(`bnt_order_${id}`)?.value?.trim() ?? "";
   const emailHint = (fromEmailQuery || decodeURIComponent(fromCookie)).trim();
   const phoneHint = fromPhoneQuery;
 
   if (!isAdmin) {
     if (!emailHint && !phoneHint) {
-      return <OrderEmailGate orderId={params.id} pathSuffix="/invoice" />;
+      return <OrderEmailGate orderId={id} pathSuffix="/invoice" />;
     }
     if (shopperLookupNotFound(order, { email: emailHint, phone: phoneHint })) {
       return notFound();

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { CheckCircle2, Mail, ShieldCheck } from "lucide-react";
 
@@ -159,4 +158,4 @@ export default async function WarrantyPage() {
   );
 }
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;

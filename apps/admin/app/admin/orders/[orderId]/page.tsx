@@ -20,11 +20,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrderDetailPage({
-  params,
-}: {
-  params: { orderId: string };
-}) {
+export default async function AdminOrderDetailPage(
+  props: {
+    params: Promise<{ orderId: string }>;
+  }
+) {
+  const params = await props.params;
   const order = await getOrderById(decodeURIComponent(params.orderId));
   if (!order) notFound();
   return <OrderDetail order={order} />;

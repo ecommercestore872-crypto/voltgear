@@ -8,8 +8,11 @@ import { CatalogBreadcrumbs } from "@/components/catalog/catalog-breadcrumbs";
 import { SearchExecutedTracker } from "@/components/analytics/search-executed-tracker";
 import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
-import type { CatalogFilters, CatalogResult } from "@/lib/catalog";
-import { buildCatalogUrl } from "@/lib/catalog";
+import {
+  buildCatalogUrl,
+  type CatalogFilters,
+  type CatalogResult,
+} from "@/lib/catalog-rules";
 import { products2Href } from "@/lib/gadget-preview";
 import type { Product } from "@/lib/types";
 

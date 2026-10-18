@@ -3,8 +3,7 @@ import {
   fetchCatalogFromDb,
   fetchCategoryCounts as fetchCategoryCountsFromDb,
 } from "@/lib/db/store";
-import type { CatalogFilters } from "@/lib/catalog-rules";
-import type { Product } from "@/lib/types";
+import type { CatalogFilters, CatalogResult } from "@/lib/catalog-rules";
 
 export { CATEGORIES } from "@/lib/categories";
 export {
@@ -15,16 +14,9 @@ export {
   parseCatalogFilters,
   type CatalogAvailability,
   type CatalogFilters,
+  type CatalogResult,
   type CatalogSort,
 } from "@/lib/catalog-rules";
-
-export interface CatalogResult {
-  items: Product[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
 
 export async function fetchCatalog(
   f: CatalogFilters,

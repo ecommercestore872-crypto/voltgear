@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
+import Link from "next/link";
 
 import { AdsensePrivacyDisclosures } from "@/components/legal/adsense-privacy-disclosures";
 import {
@@ -11,7 +11,7 @@ import {
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await loadCmsPage("privacy-policy");
@@ -93,13 +93,13 @@ export default async function PrivacyPolicyPage() {
             choice. They are required for the shop to function. Analytics tools
             (if enabled) measure which pages are used so we can fix broken
             flows. You can limit non-essential cookies from the cookie bar or
-            your browser. See our <a href="/cookies">cookie policy</a>.
+            your browser. See our <Link href="/cookies">cookie policy</Link>.
           </p>
 
           <h2>Your choices</h2>
           <p>
             Ask us to correct or delete account or order-contact details via the{" "}
-            <a href="/contact">contact page</a>
+            <Link href="/contact">contact page</Link>
             {email ? <> or {email}</> : null}. We keep order records as needed
             for warranties, disputes, and tax/accounting duties.
           </p>

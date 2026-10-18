@@ -19,11 +19,12 @@ function customersHref(page: number): string {
   return page <= 1 ? "/admin/customers" : `/admin/customers?page=${page}`;
 }
 
-export default async function AdminCustomersPage({
-  searchParams,
-}: {
-  searchParams: { page?: string };
-}) {
+export default async function AdminCustomersPage(
+  props: {
+    searchParams: Promise<{ page?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1);
   const { customers, total, pageSize } = await listAdminCustomersPage({
     page,

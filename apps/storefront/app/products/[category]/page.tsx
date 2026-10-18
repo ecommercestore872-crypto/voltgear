@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -27,13 +26,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { category: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ category: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
   const shop = findShopType(
     types.length ? types : FALLBACK_SHOP_TYPES,
@@ -62,11 +62,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function Products2CategoryPage({
-  params,
-}: {
-  params: { category: string };
-}) {
+export default async function Products2CategoryPage(
+  props: {
+    params: Promise<{ category: string }>;
+  }
+) {
+  const params = await props.params;
   let products: Product[] = [];
   let shopTypes = FALLBACK_SHOP_TYPES;
   const settings = await loadStorefrontSettings().catch(() => null);

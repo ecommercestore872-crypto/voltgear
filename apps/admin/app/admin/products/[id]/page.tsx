@@ -22,11 +22,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function EditProductPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function EditProductPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const [product, shopTypes, collections, collectionIds] = await Promise.all([
     getAdminProductForEditor(params.id),
     listAdminShopTypes().catch(() => []),

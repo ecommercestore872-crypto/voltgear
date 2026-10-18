@@ -22,7 +22,8 @@ export function generateStaticParams() {
   return citySeoHubSlugs().map((city) => ({ city }));
 }
 
-export async function generateMetadata({ params }: { params: { city: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ city: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const hub = findCitySeoHub(params.city);
   if (!hub) return { robots: { index: false, follow: false } };
   const title = cityHubTitle(hub);
@@ -36,7 +37,8 @@ export async function generateMetadata({ params }: { params: { city: string } })
   };
 }
 
-export default async function CityCodHubPage({ params }: { params: { city: string } }) {
+export default async function CityCodHubPage(props: { params: Promise<{ city: string }> }) {
+  const params = await props.params;
   const hub = findCitySeoHub(params.city);
   if (!hub) notFound();
   const siteUrl = indexSiteUrl();

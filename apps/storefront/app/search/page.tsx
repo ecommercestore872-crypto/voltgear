@@ -1,8 +1,7 @@
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
 import { SearchPageClient } from "./search-page-client";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export const metadata = {
   title: "Search",
