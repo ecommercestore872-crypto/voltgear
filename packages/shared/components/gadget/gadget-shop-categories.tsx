@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { CategoryGlyph } from "@/components/gadget/gadget-category-glyphs";
-import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { gadgetImageSrc } from "@/lib/gadget-image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
 import { categoryImageUrl } from "@/lib/site-static-image";

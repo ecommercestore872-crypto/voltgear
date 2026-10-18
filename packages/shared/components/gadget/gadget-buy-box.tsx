@@ -12,7 +12,7 @@ import {
 
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import { useCart } from "@/components/cart/cart-provider";
-import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { gadgetImageSrc } from "@/lib/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { GadgetProductWatchLinks } from "@/components/gadget/gadget-product-watch-links";

@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
-import { dirname, extname, join, relative } from "node:path";
+import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
 import ts from "typescript";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../../..");
+const sharedLibRoot = join(repoRoot, "packages", "shared", "lib");
+const sharedComponentsRoot = join(repoRoot, "packages", "shared", "components");
 const sourceRoots = [join(repoRoot, "apps"), join(repoRoot, "packages", "shared")];
 const sourceExtensions = new Set([".js", ".jsx", ".mjs", ".ts", ".tsx"]);
 const ignoredDirectories = new Set([
@@ -115,6 +117,42 @@ describe("client/server module boundary", () => {
       violations,
       [],
       `Client Components must use HTTP/client adapters or type-only imports:\n${violations.join("\n")}`,
+    );
+  });
+
+  it("keeps shared domain libraries independent from UI components", () => {
+    const violations: string[] = [];
+
+    for (const absolute of sourceFiles(sharedLibRoot)) {
+      const contents = readFileSync(absolute, "utf8");
+      const source = ts.createSourceFile(
+        absolute,
+        contents,
+        ts.ScriptTarget.Latest,
+        true,
+        absolute.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+      );
+
+      for (const moduleName of runtimeImportSources(source)) {
+        const normalized = moduleName.replaceAll("\\", "/");
+        const resolvedRelative = normalized.startsWith(".")
+          ? resolve(dirname(absolute), normalized)
+          : null;
+        if (
+          normalized === "@/components" ||
+          normalized.startsWith("@/components/") ||
+          resolvedRelative === sharedComponentsRoot ||
+          resolvedRelative?.startsWith(`${sharedComponentsRoot}${sep}`)
+        ) {
+          violations.push(`${relative(repoRoot, absolute)} -> ${moduleName}`);
+        }
+      }
+    }
+
+    assert.deepEqual(
+      violations,
+      [],
+      `Shared domain libraries must not depend on UI component modules:\n${violations.join("\n")}`,
     );
   });
 });

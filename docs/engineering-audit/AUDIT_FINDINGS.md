@@ -89,10 +89,10 @@
 ### ARCH-005 — One commerce-domain helper imports from a component directory
 
 - Severity: P3 — Low
-- Status: Confirmed; deferred intentionally
+- Status: Resolved and verified
 - Evidence: `packages/shared/lib/gadget-pdp-lcp.ts` imports a pure image helper from `packages/shared/components/gadget/gadget-image.ts`. It is the graph's only domain-to-UI import.
 - Impact: Folder placement obscures the intended dependency direction; no runtime failure or cycle exists.
-- Recommendation: Move the pure helper to a neutral library path only when a nearby feature change already touches both consumers.
+- Resolution: Move `gadgetImageSrc()` to `packages/shared/lib/gadget-image.ts`, update all direct consumers, and add a TypeScript-AST regression test that forbids runtime imports from `packages/shared/lib` into `@/components`.
 
 ### ARCH-006 — Architecture graph integrity and import topology were not reproducibly recorded
 

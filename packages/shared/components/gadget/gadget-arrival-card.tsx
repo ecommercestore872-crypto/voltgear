@@ -7,7 +7,7 @@ import { Check, ShoppingBag } from "lucide-react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
-import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { gadgetImageSrc } from "@/lib/gadget-image";
 import { product2Href } from "@/lib/gadget-preview";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
