@@ -92,3 +92,74 @@ The repository had a large pre-existing code-knowledge graph, but its current in
 - No component rewrite or folder move was attempted.
 - The graph is static evidence; it does not measure production latency, cache hit ratio, SQL query count, or external-provider reliability.
 - Phase 2 remains a stacked draft on the verified Phase 1 branch. GitHub-hosted CI passed on the implementation commit; the final documentation-only evidence commit is verified separately before handoff.
+
+## 2026-10-16 — Phase 3 Vercel reliability and cost control
+
+### Problem
+
+Production appeared healthy to a browser while Vercel logged repeated missing
+page-module failures for six explicit help/policy routes. Separately, the owner
+reported a $20 Vercel concern despite modest traffic.
+
+### Diagnosis
+
+- Queried production deployment metadata, build logs, runtime errors, function
+  metrics, and FOCUS billing charges read-only.
+- Confirmed the browser could receive stale cached HTML while ISR failed in the
+  background.
+- Compared the production-CMS Vercel output with the route tree and found that
+  `generateStaticParams()` for `/[slug]` returned CMS slugs already owned by
+  explicit top-level pages.
+- Measured Build CPU as 70.0% of the $4.1024 variable usage in the partial
+  16-day billing export; function invocation charges were about 0.6%.
+
+### Alternatives considered
+
+1. Make the affected pages fully dynamic or disable ISR. Rejected because it
+   increases request-time work without removing ambiguous route ownership.
+2. Delete the explicit pages and serve all CMS pages through `[slug]`. Rejected
+   as a large behavior, metadata, and component migration.
+3. Filter explicit route slugs out of CMS static parameters. Selected because
+   one URL then has one owner while ordinary CMS pages keep static generation.
+
+### Changes
+
+- Added a storefront-local static-parameter filter and wired `[slug]` to it.
+- Added a structural regression that fails if a new explicit root page is not
+  reserved from the catch-all.
+- Expanded unit-test discovery to include app-level tests in both applications.
+- Kept the runtime fix storefront-local so the Vercel admin project can skip the
+  preview build.
+
+### Local verification evidence
+
+| Check | Result |
+| --- | --- |
+| Focused route-ownership test | Pass; 3/3 |
+| Full unit suite | Pass; 712 tests, 342 suites, 0 failures |
+| Storefront and admin lint | Pass; no warnings or errors |
+| Storefront and admin TypeScript | Pass |
+| Storefront production build | Pass; 54 generated pages |
+| Admin production build | Pass; 37 generated pages; initial Windows generated-directory `EPERM` passed on immediate retry |
+
+### Preview verification evidence
+
+| Check | Result |
+| --- | --- |
+| Storefront preview | Ready; deployment `dpl_G74hyUr5gngFNsvm2sRF37JHuDf2`, exact source commit `94d4a9a` |
+| Admin preview | Canceled by ignore-build; no admin compute build for the storefront-only change |
+| Production-like page generation | Pass; 148 pages generated with connected preview environment data |
+| Affected route requests | Pass; six of six returned HTTP 200 |
+| Route ownership in HTML | Pass; six of six use explicit route chunks and none use the root `[slug]` chunk |
+| Matched route header | Pass; `x-matched-path` reports the explicit route (sample: `/privacy-policy`) |
+| Preview missing-module search | Pass; no records in the deployment-scoped 24-hour window |
+| Preview error/fatal search | Pass; no records in the deployment-scoped 24-hour window |
+
+### Side effects and limits
+
+- No production deployment, database, domain, secret, billing, or plan setting
+  was changed.
+- The isolated Vercel preview proves explicit page packaging, but production
+  remains unchanged until a separately approved release.
+- Home and `/products` latency remain a separate measured performance concern;
+  Phase 3 does not claim to improve them.

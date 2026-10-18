@@ -69,3 +69,23 @@ Phase 2 is intentionally stacked on the Phase 1 CI branch so it does not duplica
 4. Keep the unresolved Next.js major-upgrade remediation separate and fully regression-tested.
 
 Large Client Components remain a maintainability risk, not a release blocker by themselves. Refactor them through small reviewed changes with characterization tests rather than delaying all delivery for a broad rewrite.
+
+## Phase 3 Vercel reliability gates
+
+| Gate | Status |
+| --- | --- |
+| Production inspection remained read-only | Pass |
+| Route collision reproduced from runtime/build evidence | Pass |
+| Explicit route ownership regression | Pass; 3/3 |
+| Application tests included in root unit runner | Pass |
+| Full unit suite | Pass; 712/712 |
+| Both linters and TypeScript projects | Pass |
+| Storefront and admin production builds | Pass; 54/37 pages |
+| Storefront-only Vercel build scope | Pass; storefront ready, admin canceled |
+| Explicit page module packaging in preview | Pass; six of six explicit chunks, zero `[slug]` chunks |
+| Preview runtime error review | Pass; no missing-module/error/fatal logs in deployment-scoped 24-hour query |
+| Hosted draft-PR CI | Pending |
+
+The Phase 3 source is not authorized for production. Preview acceptance gates
+pass; it becomes review-ready after hosted CI passes on the exact reviewed
+commit.

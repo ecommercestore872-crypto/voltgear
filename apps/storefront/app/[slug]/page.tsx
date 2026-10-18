@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { fetchPageBySlug, fetchSitemapPages } from "@/lib/db/store";
 import { imageUrl } from "@/lib/sanity/image";
+import { storefrontCmsStaticParams } from "./static-params";
 import type { Page } from "@/lib/types";
 
 export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
@@ -13,9 +14,7 @@ export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
 export async function generateStaticParams() {
   try {
     const pages = await fetchSitemapPages();
-    return pages
-      .filter((page) => page.pageType !== "blog" && page.slug)
-      .map((page) => ({ slug: page.slug }));
+    return storefrontCmsStaticParams(pages);
   } catch {
     return [];
   }

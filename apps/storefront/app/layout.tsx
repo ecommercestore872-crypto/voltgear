@@ -36,6 +36,8 @@ import {
 import { normalizeSettings } from "@/lib/site-config";
 import { themeCssVars, themePreviewScript } from "@/lib/theme";
 import type { SiteSettings } from "@/lib/types";
+import "@fontsource-variable/manrope/wght.css";
+import "@fontsource-variable/newsreader/wght.css";
 import "./globals.css";
 
 const StorefrontAnnouncementBar = dynamic(

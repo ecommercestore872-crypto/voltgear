@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { adminFontClass } from "../lib/admin-fonts";
 import { cn } from "@/lib/utils";
 
+import "@fontsource-variable/manrope/wght.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
