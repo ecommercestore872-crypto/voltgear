@@ -82,7 +82,7 @@ export function applyPremiumEmailChrome(input: {
   const owner = input.audience === "owner";
   const trust = owner
     ? "Internal order alert · Cash on delivery · Pakistan"
-    : "Cash on delivery · Try it at home · Easy returns";
+    : "Cash on delivery · Try it at home · Customer support";
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="color-scheme" content="light"><title>${escapeHtml(

@@ -67,8 +67,6 @@ export function GadgetFooter({
   const config = normalizeSettings(settings);
   const socialLinks = getPublicSocialLinks(config);
   const threshold = config.freeShippingThreshold;
-  const warrantyMonths = config.warrantyMonths ?? 12;
-  const returnWindowDays = config.returnWindowDays ?? 7;
   const codEnabled = config.codEnabled;
 
   return (
@@ -101,26 +99,28 @@ export function GadgetFooter({
                 </p>
               </div>
             )}
-            <div className="flex flex-col items-center gap-1.5 p-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-[color-mix(in_srgb,var(--g-sage)_30%,white)] shadow-sm">
-                <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
-              </span>
-              <p className="text-xs font-bold text-white">
-                {warrantyMonths}-Month Warranty
-              </p>
-              <p className="text-[11px] text-white/85">
-                100% genuine replacement
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-1.5 p-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_28%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_35%,white)] shadow-sm">
-                <RotateCcw className="h-5 w-5 stroke-[1.6]" />
-              </span>
-              <p className="text-xs font-bold text-white">Easy Returns</p>
-              <p className="text-[11px] text-white/85">
-                {returnWindowDays}-day hassle-free policy
-              </p>
-            </div>
+            {config.warrantyMonths && (
+              <div className="flex flex-col items-center gap-1.5 p-2">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-[color-mix(in_srgb,var(--g-sage)_30%,white)] shadow-sm">
+                  <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
+                </span>
+                <p className="text-xs font-bold text-white">
+                  {config.warrantyMonths}-Month Warranty
+                </p>
+                <p className="text-[11px] text-white/85">Warranty details apply</p>
+              </div>
+            )}
+            {config.returnWindowDays && (
+              <div className="flex flex-col items-center gap-1.5 p-2">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_28%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_35%,white)] shadow-sm">
+                  <RotateCcw className="h-5 w-5 stroke-[1.6]" />
+                </span>
+                <p className="text-xs font-bold text-white">Easy Returns</p>
+                <p className="text-[11px] text-white/85">
+                  {config.returnWindowDays}-day policy
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -448,10 +448,10 @@ export default async function OrderSuccessPage(
           />
           <SupportCard
             icon={<ShieldCheck className="h-5 w-5" />}
-            title="Easy returns"
-            body="7 days easy returns and 1 year warranty on all products."
-            href="/warranty"
-            cta="Learn more"
+            title="Policies and support"
+            body="Review the current delivery, returns, and warranty information."
+            href="/shipping-returns"
+            cta="View policies"
           />
           <SupportCard
             icon={<Package className="h-5 w-5" />}
