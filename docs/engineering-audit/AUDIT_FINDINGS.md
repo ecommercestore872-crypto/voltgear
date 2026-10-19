@@ -65,10 +65,10 @@
 ### ARCH-002 — Critical user flows are concentrated in oversized Client Components
 
 - Severity: P2 — Medium
-- Status: Confirmed maintainability risk; all three components now have tested domain/request seams without a rewrite
-- Evidence: Before these slices, `checkout-page-client.tsx` was 1,210 physical lines, `product-form.tsx` 725, and `settings-form.tsx` 732. Checkout request construction, transport, response contracts, and browser idempotency storage now live in focused, unit-tested library modules; the checkout component is 1,181 lines. Product draft/live normalization, new-product defaults, and create/update/delete request construction are isolated behind unit tests, reducing the product form to 651 lines. Settings row/form normalization, API-document construction, and action-request serialization are now isolated and tested, reducing the settings form to 565 lines.
+- Status: Mitigated through tested incremental boundaries; no broad rewrite required
+- Evidence: Before these slices, `checkout-page-client.tsx` was 1,210 physical lines, `product-form.tsx` 725, and `settings-form.tsx` 732. Checkout request construction, transport, response contracts, browser idempotency storage, and the stateless desktop summary now live behind focused boundaries; the checkout component is 977 lines. Product draft/live normalization, new-product defaults, and create/update/delete request construction are isolated behind unit tests, reducing the product form to 651 lines. Settings row/form normalization, API-document construction, and action-request serialization are now isolated and tested, reducing the settings form to 565 lines.
 - Impact: UI state, validation, requests, and presentation evolve together, increasing review surface and regression risk. File size alone does not prove a runtime defect.
-- Recommendation: Continue extracting one responsibility per reviewed slice, prioritizing checkout presentation sections. Avoid a broad component rewrite.
+- Recommendation: Keep using one-responsibility slices when future checkout work touches another section. Do not schedule a broad component rewrite solely to reduce file size.
 
 ### ARCH-003 — Settings mapping used unnecessary `any` assertions
 
