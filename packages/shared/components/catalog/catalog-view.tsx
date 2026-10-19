@@ -15,10 +15,10 @@ import type { CatalogFilters, CatalogResult } from "@/lib/catalog-rules";
 import { CatalogSidebar } from "@/components/catalog/catalog-sidebar";
 import {
   ShieldCheck,
-  RefreshCcw,
   CheckCircle,
   Truck,
   LifeBuoy,
+  Banknote,
 } from "lucide-react";
 
 export interface CatalogViewProps {
@@ -85,35 +85,33 @@ export function CatalogView({
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-bold sm:text-sm">
-                100% Original Products
-              </p>
+              <p className="text-xs font-bold sm:text-sm">Cash on Delivery</p>
               <p className="text-[10px] text-muted-foreground sm:text-xs">
-                Sourced from trusted brands
+                Pay when your order arrives
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-lg border bg-secondary/20 p-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background drop-shadow border text-primary">
-              <CheckCircle className="h-5 w-5" />
+              <Truck className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-bold sm:text-sm">1 Year Warranty</p>
+              <p className="text-xs font-bold sm:text-sm">Nationwide Delivery</p>
               <p className="text-[10px] text-muted-foreground sm:text-xs">
-                Peace of mind guaranteed
+                Coverage confirmed at checkout
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-lg border bg-secondary/20 p-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background drop-shadow border text-primary">
-              <RefreshCcw className="h-5 w-5" />
+              <LifeBuoy className="h-5 w-5" />
             </div>
             <div>
               <p className="text-xs font-bold sm:text-sm">
-                7 Days Easy Returns
+                Order Support
               </p>
               <p className="text-[10px] text-muted-foreground sm:text-xs">
-                Hassle-free returns
+                Help before and after checkout
               </p>
             </div>
           </div>
@@ -221,19 +219,19 @@ export function CatalogView({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <RefreshCcw className="h-6 w-6 text-primary" />
+            <Banknote className="h-6 w-6 text-primary" />
             <div>
-              <p className="text-sm font-bold">7 Days Returns</p>
+              <p className="text-sm font-bold">Cash on Delivery</p>
               <p className="text-xs text-muted-foreground">
-                Easy & Hassle-free
+                Pay when your order arrives
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <CheckCircle className="h-6 w-6 text-primary" />
             <div>
-              <p className="text-sm font-bold">1 Year Warranty</p>
-              <p className="text-xs text-muted-foreground">On all products</p>
+              <p className="text-sm font-bold">Order Tracking</p>
+              <p className="text-xs text-muted-foreground">Track after ordering</p>
             </div>
           </div>
           <div className="flex items-center gap-3">

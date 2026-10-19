@@ -364,10 +364,10 @@ export function PurchaseSection({ product }: { product: Product }) {
                 </div>
                 <div>
                   <p className="text-[13px] font-bold text-foreground leading-tight">
-                    1 Year Warranty
+                    Order Support
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
-                    Official Brand Warranty
+                    Help before and after delivery
                   </p>
                 </div>
               </div>
