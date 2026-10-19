@@ -66,9 +66,9 @@
 
 - Severity: P2 — Medium
 - Status: Confirmed maintainability risk; all three components now have tested domain/request seams without a rewrite
-- Evidence: Before these slices, `checkout-page-client.tsx` was 1,210 physical lines, `product-form.tsx` 725, and `settings-form.tsx` 732. Checkout request construction, transport, response contracts, and browser idempotency storage now live in focused, unit-tested library modules; the checkout component is 1,181 lines. Product draft/live normalization and new-product defaults are isolated behind unit tests, reducing the product form to 656 lines. Settings row/form normalization and API-document construction are now isolated and tested, reducing the settings form to 566 lines.
+- Evidence: Before these slices, `checkout-page-client.tsx` was 1,210 physical lines, `product-form.tsx` 725, and `settings-form.tsx` 732. Checkout request construction, transport, response contracts, and browser idempotency storage now live in focused, unit-tested library modules; the checkout component is 1,181 lines. Product draft/live normalization, new-product defaults, and create/update/delete request construction are isolated behind unit tests, reducing the product form to 651 lines. Settings row/form normalization and API-document construction are now isolated and tested, reducing the settings form to 566 lines.
 - Impact: UI state, validation, requests, and presentation evolve together, increasing review surface and regression risk. File size alone does not prove a runtime defect.
-- Recommendation: Continue extracting one responsibility per reviewed slice, prioritizing checkout presentation sections and product/settings request orchestration. Avoid a broad component rewrite.
+- Recommendation: Continue extracting one responsibility per reviewed slice, prioritizing checkout presentation sections and settings request orchestration. Avoid a broad component rewrite.
 
 ### ARCH-003 — Settings mapping used unnecessary `any` assertions
 
