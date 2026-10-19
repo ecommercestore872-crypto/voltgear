@@ -211,3 +211,7 @@ Each change remained a separate stacked draft pull request. No draft was merged 
 ## 2026-10-19 — Phase 12 evidence alignment
 
 Fresh npm audit output, installed-tree verification, the security review, release-readiness record, system inventory, performance baseline, and finding register were reconciled so the documentation distinguishes the historical Next.js 14 production snapshot from the current Next.js 15 stacked source. The report intentionally preserves the nine development-tool findings and does not claim that preview code is live in production.
+
+## 2026-10-19 — Phase 13 public settings read boundary
+
+The standalone PR #3 fix was reconciled into the verified stack: `fetchSiteSettings()` no longer imports or invokes the administrative brand-settings writer before reading `site_settings`. A source-boundary regression prevents the public store module from depending on that writer again. The complete suite passes 746/746 tests, both TypeScript projects, and both linters. No settings row, migration, environment, or production deployment was mutated.

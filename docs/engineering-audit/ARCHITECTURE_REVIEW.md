@@ -93,7 +93,7 @@ The most central modules are `lib/types.ts` (155 importers), `lib/utils.ts` (86)
 
 ## Findings and recommended sequence
 
-1. Keep public reads read-only. The settings read path called an admin normalization writer; draft PR #3 removes that call. Treat that PR as a prerequisite before release.
+1. Keep public reads read-only. The settings read path previously called an admin normalization writer; the current stack removes that dependency and adds a regression test that forbids it from returning.
 2. Enforce the client/server boundary. Phase 2 adds an AST regression test that rejects runtime imports of server Supabase and database-store modules from Client Components while permitting type-only imports.
 3. Reduce concentration incrementally. Start with checkout, product editing, settings, broadcast management, and order detail. Extract pure state/reducer logic and request adapters before splitting presentation; preserve request/response contracts and add characterization tests first.
 4. Move the pure gadget image calculation to a neutral domain/utility path only when a nearby feature change already touches both importers. A standalone move has low user value.

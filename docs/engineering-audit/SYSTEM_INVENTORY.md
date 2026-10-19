@@ -63,7 +63,7 @@ The detailed layer map, request flows, dependency concentrations, confidence lev
 ## Existing draft pull requests
 
 - PR #2, `ai/full-store-overhaul`: security and storefront hardening. It adds a separate Supabase database CI job and will require workflow conflict reconciliation after this Phase 1 PR.
-- PR #3, `audit/storefront-settings-read-only-20261016`: one-file storefront settings read-path fix. It does not overlap the Phase 1 source changes.
+- PR #3, `audit/storefront-settings-read-only-20261016`: original one-file storefront settings read-path fix. Its change is now integrated with regression coverage in the current stack, so the standalone draft is superseded.
 - PR #8, `codex/phase-4-dependency-security`: Next.js 15 dependency remediation.
 - PR #9, `codex/phase-5-architecture-boundaries`: shared domain/UI dependency direction.
 - PR #10, `codex/phase-6-checkout-boundaries`: checkout client requests and idempotency storage.

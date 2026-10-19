@@ -33,7 +33,7 @@
 - Severity: P1 — High
 - Status: Resolved in the current stacked branch and verified against npm's 2026-10-19 advisory data
 - Evidence: The dependency remediation upgraded `next` and `eslint-config-next` to `15.5.28` and overrides Next's nested PostCSS to `8.5.30`. A fresh `npm audit --omit=dev --json` reports zero production vulnerability nodes across 113 production dependencies.
-- Validation: The upgraded stack passes 745 unit tests, both application type checks and linters, and the latest storefront/admin Vercel preview builds.
+- Validation: The upgraded stack passes 746 unit tests, both application type checks and linters, and the latest storefront/admin Vercel preview builds.
 - Release boundary: This is source-branch evidence, not a claim that production already runs the upgraded dependency. Production changes only after the reviewed stack is merged and explicitly promoted.
 
 ### DEP-002 — Development toolchains contain unresolved transitive advisories
@@ -54,11 +54,11 @@
 ### ARCH-001 — A public settings read performed an administrative write
 
 - Severity: P2 — Medium
-- Status: Confirmed; remediated in draft PR #3, commit `e42c87f`; not duplicated in this branch
-- Evidence: `fetchSiteSettings()` in `packages/shared/lib/db/store-chrome-store.ts` awaited `ensureShopperBrandSettings()` from the admin store before selecting the settings row.
+- Status: Resolved and verified in the current stacked branch
+- Evidence: `fetchSiteSettings()` in `packages/shared/lib/db/store-chrome-store.ts` previously awaited `ensureShopperBrandSettings()` from the admin store before selecting the settings row. The import and call are removed, and `public-settings-read-boundary.test.ts` rejects any future administrative-writer dependency from this public read module.
 - Root cause: One-time/default normalization was coupled to a frequently used public read path.
 - Impact: A cold settings read could issue extra database work and mutate CMS state. That makes a read less predictable and increases function/database cost.
-- Resolution: PR #3 removes the writer import and normalization call. Keep defaulting in migrations, explicit admin writes, or a dedicated maintenance operation.
+- Resolution: Keep defaulting in migrations, explicit admin writes, or a dedicated maintenance operation; public cached reads only select and map settings.
 
 ### ARCH-002 — Critical user flows are concentrated in oversized Client Components
 
