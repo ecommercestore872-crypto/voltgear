@@ -203,11 +203,15 @@ No production promotion, environment mutation, or database operation was perform
 | Checkout controller size | 1,210 lines before remediation; 977 after the reviewed slices |
 | Product form size | 725 lines before remediation; 651 after the reviewed slices |
 | Settings form size | 732 lines before remediation; 565 after the reviewed slices |
-| Latest storefront preview | Ready; `dpl_CmEaAKXzX6gRoRuXhLrHnzMVBqqg` |
-| Latest admin preview | Ready; `dpl_7qkQdhGKNjv8V7wQQw91cYVqo2qy` |
+| Phase 11 storefront preview | Ready; `dpl_CmEaAKXzX6gRoRuXhLrHnzMVBqqg` |
+| Phase 11 admin preview | Ready; `dpl_7qkQdhGKNjv8V7wQQw91cYVqo2qy` |
 
 Each change remained a separate stacked draft pull request. No draft was merged or promoted to production.
 
 ## 2026-10-19 — Phase 12 evidence alignment
 
 Fresh npm audit output, installed-tree verification, the security review, release-readiness record, system inventory, performance baseline, and finding register were reconciled so the documentation distinguishes the historical Next.js 14 production snapshot from the current Next.js 15 stacked source. The report intentionally preserves the nine development-tool findings and does not claim that preview code is live in production.
+
+## 2026-10-19 — Phase 13 public settings read boundary
+
+The standalone PR #3 fix was reconciled into the verified stack: `fetchSiteSettings()` no longer imports or invokes the administrative brand-settings writer before reading `site_settings`. A source-boundary regression prevents the public store module from depending on that writer again. The complete suite passes 746/746 tests, both TypeScript projects, and both linters. Storefront preview `dpl_6mZW9fBbuKYchQTYukwjvAAtujLY` and admin preview `dpl_9iK1XyUNtqVq46YnGDgE4Bujn6a3` both reached Ready. No settings row, migration, environment, or production deployment was mutated.

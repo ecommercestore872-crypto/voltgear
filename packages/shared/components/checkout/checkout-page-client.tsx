@@ -847,14 +847,18 @@ export default function CheckoutPageClient() {
                 </div>
 
                 <p className="mt-3 hidden items-center gap-3 text-[10px] text-muted-foreground sm:flex sm:flex-wrap sm:text-xs">
-                  <span className="inline-flex items-center gap-1">
-                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                    {config.warrantyMonths || 12}mo warranty
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <RotateCcw className="h-3.5 w-3.5 text-primary" />
-                    {config.returnWindowDays || 7}-day returns
-                  </span>
+                  {config.warrantyMonths ? (
+                    <span className="inline-flex items-center gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                      {config.warrantyMonths}mo warranty
+                    </span>
+                  ) : null}
+                  {config.returnWindowDays ? (
+                    <span className="inline-flex items-center gap-1">
+                      <RotateCcw className="h-3.5 w-3.5 text-primary" />
+                      {config.returnWindowDays}-day returns
+                    </span>
+                  ) : null}
                   <span className="inline-flex items-center gap-1">
                     <Lock className="h-3.5 w-3.5 text-primary" />
                     Secure checkout

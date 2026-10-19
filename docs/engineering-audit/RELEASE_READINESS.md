@@ -64,7 +64,7 @@ Phase 1 acceptance gates passed locally and on the GitHub-hosted runner. The cur
 Phase 2 is intentionally stacked on the Phase 1 CI branch so it does not duplicate or obscure that review. Before any release candidate:
 
 1. Land or otherwise reconcile the Phase 1 Node 24 CI baseline.
-2. Land or reapply PR #3's read-only storefront settings fix.
+2. Retain the integrated public-settings read-boundary fix and its regression test; the older standalone PR #3 is superseded by this stack.
 3. Rebase Phase 2 after those decisions and rerun all gates.
 4. Preserve the verified Next.js 15.5.28 remediation and keep any later Next 16/Tailwind 4 migration separate and fully regression-tested.
 
@@ -90,17 +90,17 @@ The Phase 3 source is not authorized for production. Preview acceptance gates
 pass; it becomes review-ready after hosted CI passes on the exact reviewed
 commit.
 
-## Current stacked-branch gates (Phases 4–12)
+## Current stacked-branch gates (Phases 4–13)
 
 | Gate | Status |
 | --- | --- |
 | Production-only npm audit | Pass; 0 findings across 113 production dependencies on 2026-10-19 |
 | Full npm audit | Documented risk; 9 development-only nodes (7 high, 2 moderate) |
-| Unit tests | Pass; 745/745 after the architecture slices |
+| Unit tests | Pass; 746/746 after the architecture and public-read slices |
 | Storefront and admin TypeScript | Pass |
 | Storefront and admin lint | Pass; no warnings or errors |
-| Latest storefront preview | Ready; deployment `dpl_CmEaAKXzX6gRoRuXhLrHnzMVBqqg` |
-| Latest admin preview | Ready; deployment `dpl_7qkQdhGKNjv8V7wQQw91cYVqo2qy` |
+| Latest storefront code preview | Ready; deployment `dpl_6mZW9fBbuKYchQTYukwjvAAtujLY` |
+| Latest admin code preview | Ready; deployment `dpl_9iK1XyUNtqVq46YnGDgE4Bujn6a3` |
 | Production mutation | None; previews and repository draft PRs only |
 
 The stack remains intentionally unmerged and undeployed. Merge the draft pull requests in dependency order, rerun the exact final CI revision, validate environment variables without printing secrets, and perform a separately approved production promotion with rollback monitoring.

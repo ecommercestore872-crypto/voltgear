@@ -78,18 +78,18 @@ function WishlistTrustFooter() {
           title: "Easy Returns",
           detail: config.returnWindowDays
             ? `${config.returnWindowDays}-day policy`
-            : "Hassle-free",
+            : "",
           icon: "returns" as const,
-          show: true,
+          show: Boolean(config.returnWindowDays),
         },
         {
           key: "curated",
           title: "Quality Covered",
           detail: config.warrantyMonths
             ? `${config.warrantyMonths}-month warranty`
-            : "Certified picks",
+            : "",
           icon: "curated" as const,
-          show: true,
+          show: Boolean(config.warrantyMonths),
         },
       ].filter((t) => t.show),
     [config, threshold],

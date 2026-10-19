@@ -203,16 +203,16 @@ export function CheckoutDesktopSidebar({
         <div className={SUMMARY_CARD}>
           <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
             {[
-              {
+              ...(warrantyMonths ? [{
                 icon: ShieldCheck,
-                title: `${warrantyMonths || 12}-Month Warranty`,
+                title: `${warrantyMonths}-Month Warranty`,
                 detail: "Guaranteed authentic",
-              },
-              {
+              }] : []),
+              ...(returnWindowDays ? [{
                 icon: RotateCcw,
-                title: `${returnWindowDays || 7}-Day Easy Returns`,
+                title: `${returnWindowDays}-Day Easy Returns`,
                 detail: "Hassle-free returns",
-              },
+              }] : []),
               {
                 icon: Banknote,
                 title: "Cash on Delivery",

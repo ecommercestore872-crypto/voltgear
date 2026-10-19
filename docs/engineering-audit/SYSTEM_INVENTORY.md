@@ -53,7 +53,7 @@ The detailed layer map, request flows, dependency concentrations, confidence lev
 
 ## Vercel runtime facts added in Phase 3
 
-- The Phase 3 production snapshot executed in Sydney (`syd1`) on Node 24 and built from the monorepo with Next.js 14.2.35. Current stacked previews build with Next.js 15.5.28; production is not assumed upgraded until an approved promotion occurs.
+- The Phase 3 production snapshot executed in Sydney (`syd1`) on Node 24 and built from the monorepo with Next.js 14.2.35. Current stacked previews through Phase 13 build with Next.js 15.5.28; production is not assumed upgraded until an approved promotion occurs.
 - The inspected production build restored a previous cache, installed 518 packages, generated 148 pages with production CMS data, and wrote an approximately 242 MB build cache.
 - The same source produces 54 storefront pages without production CMS rows in the local environment; route-count differences must therefore be interpreted with data-dependent static generation in mind.
 - The admin project recorded no comparable missing-module runtime cluster during the inspected seven-day window.
@@ -63,7 +63,11 @@ The detailed layer map, request flows, dependency concentrations, confidence lev
 ## Existing draft pull requests
 
 - PR #2, `ai/full-store-overhaul`: security and storefront hardening. It adds a separate Supabase database CI job and will require workflow conflict reconciliation after this Phase 1 PR.
-- PR #3, `audit/storefront-settings-read-only-20261016`: one-file storefront settings read-path fix. It does not overlap the Phase 1 source changes.
+- PR #3, `audit/storefront-settings-read-only-20261016`: original one-file storefront settings read-path fix. Its change is now integrated with regression coverage in the current stack, so the standalone draft is superseded.
+- PR #4, `codex/phase-1-ci-security`: Node 24 CI baseline and dependency-risk documentation; this is the stack root against `main`.
+- PR #5, `codex/phase-2-architecture-audit`: architecture inventory and client/server boundary enforcement.
+- PR #6, `codex/phase-3-vercel-reliability`: storefront static-route ownership and Vercel reliability.
+- PR #7, `codex/fix-admin-manrope-font-build-20261017`: superseded standalone admin-font experiment; it is not part of the numbered stack.
 - PR #8, `codex/phase-4-dependency-security`: Next.js 15 dependency remediation.
 - PR #9, `codex/phase-5-architecture-boundaries`: shared domain/UI dependency direction.
 - PR #10, `codex/phase-6-checkout-boundaries`: checkout client requests and idempotency storage.
@@ -72,8 +76,10 @@ The detailed layer map, request flows, dependency concentrations, confidence lev
 - PR #13, `codex/phase-9-product-request-boundaries`: product admin request rules.
 - PR #14, `codex/phase-10-settings-request-boundaries`: settings admin request rules.
 - PR #15, `codex/phase-11-checkout-presentation-boundary`: stateless desktop checkout presentation.
+- PR #16, `codex/phase-12-audit-documentation-alignment`: evidence and audit-document alignment.
+- PR #17, `codex/phase-13-public-settings-read-boundary`: side-effect-free public settings reads with regression coverage.
 
-PRs #8–#15 are intentionally stacked and must be reviewed and merged in order; none is a production deployment.
+PRs #4–#6 and #8–#17 are intentionally stacked and must be reviewed and merged in that order; PR #7 is not part of the stack. None is a production deployment.
 
 ## Failure boundaries in Phase 1
 

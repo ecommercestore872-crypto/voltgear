@@ -17,8 +17,6 @@ import {
   User,
   Heart,
   CheckCircle2,
-  Clock,
-  RotateCcw,
   Truck,
 } from "lucide-react";
 
@@ -31,7 +29,8 @@ import {
   type ShopType,
 } from "@/lib/categories";
 import type { SiteSettings } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { normalizeSettings } from "@/lib/site-config";
+import { cn, formatPrice } from "@/lib/utils";
 
 function SearchForm({
   className,
@@ -87,7 +86,8 @@ export function Navbar({
   const [megaOpen, setMegaOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  const brandName = settings?.brandName || "Buy n Try";
+  const config = normalizeSettings(settings);
+  const brandName = config.storeName;
   const links = shopTypeLinks(shopTypes);
   
   const headerLinks = settings?.headerLinks?.length 
@@ -172,18 +172,28 @@ export function Navbar({
       <div className="hidden md:flex w-full bg-[#EAF5F4] h-10 items-center justify-between px-4 lg:px-10 text-[10px] lg:text-[11px] font-bold tracking-wide text-primary border-b border-background">
         <div className="flex items-center gap-1.5">
           <Truck className="w-3.5 h-3.5" /> Free Delivery{" "}
-          <span className="hidden lg:inline">on orders over PKR 3,000</span>
+          <span className="hidden lg:inline">
+            on orders over {formatPrice(config.freeShippingThreshold)}
+          </span>
         </div>
         <div className="flex items-center gap-4 lg:gap-10">
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" /> 1 Year Warranty
-          </div>
-          <div className="flex items-center gap-1.5">
-            <RotateCcw className="w-3.5 h-3.5" /> 7 Days Returns
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5" /> COD Available
-          </div>
+          {config.warrantyMonths ? (
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {config.warrantyMonths}-Month Warranty
+            </div>
+          ) : null}
+          {config.returnWindowDays ? (
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {config.returnWindowDays}-Day Returns
+            </div>
+          ) : null}
+          {config.codEnabled ? (
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" /> COD Available
+            </div>
+          ) : null}
         </div>
       </div>
 
