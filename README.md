@@ -3,16 +3,16 @@
 A deploy-ready e-commerce storefront for an electronics accessories brand
 (smartwatches, power banks, chargers/adapters, earbuds & handsfree), built with:
 
-- **Next.js 14** (App Router, RSC, ISR)
+- **Next.js 15** (App Router, RSC, ISR)
 - **Tailwind CSS** + **shadcn/ui** components
-- **Sanity.io** as headless CMS (products, hero, testimonials, pages, site settings)
+- **Supabase** for the active product, content, order, and settings data model, managed through the custom admin app
 - **Cloudinary** for image hosting with AI background removal on upload
 - **Vercel-ready** — deploy with zero config
 
 ## Design system (CMS-driven)
 
 Two complete themes ship in `app/globals.css` as CSS custom properties,
-swappable from **Sanity Studio → Site Settings** — no code changes needed:
+swappable from **Admin → Global Settings** — no code changes needed:
 
 | Theme              | Look                                    |
 | ------------------ | --------------------------------------- |

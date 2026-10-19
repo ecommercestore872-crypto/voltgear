@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { Package, RefreshCw, Truck } from "lucide-react";
 
@@ -158,4 +157,4 @@ export default async function ShippingReturnsPage() {
   );
 }
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;

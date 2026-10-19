@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { preload } from "react-dom";
 
@@ -10,13 +8,7 @@ import { GadgetPdpProductGrid } from "@/components/gadget/gadget-pdp-product-gri
 import { GadgetPdpServerFacts } from "@/components/gadget/gadget-pdp-server-facts";
 import { GadgetPdpServerHero } from "@/components/gadget/gadget-pdp-server-hero";
 import { GadgetPdpDeferred } from "@/components/product/gadget-pdp-deferred";
-const ProductViewTracker = dynamic(
-  () =>
-    import("@/components/product/product-view-tracker").then(
-      (m) => m.ProductViewTracker,
-    ),
-  { ssr: false, loading: () => null },
-);
+import { ProductViewTrackerLoader } from "./product-view-tracker-loader";
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { loadPdpProductBySlug, loadPdpReviewStats } from "@/lib/db/product-pdp";
@@ -31,7 +23,7 @@ import type { Product } from "@/lib/types";
 import { indexSiteUrl, productStructuredData } from "@/lib/seo-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 const PDP_STATIC_BUILD_LIMIT = 160;
 
@@ -44,11 +36,12 @@ export async function generateStaticParams() {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const product = await loadPdpProductBySlug(params.slug).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
 
@@ -115,11 +108,12 @@ function PdpDeferredFallback() {
   );
 }
 
-export default async function Product2Page({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function Product2Page(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   let product: Product | null = null;
   try {
     product = await loadPdpProductBySlug(params.slug);
@@ -229,7 +223,7 @@ export default async function Product2Page({
           ]).replace(/</g, "\\u003c"),
         }}
       />
-      <ProductViewTracker
+      <ProductViewTrackerLoader
         slug={product.slug}
         name={product.name}
         price={product.price}

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 async function PUTHandler(
   req: NextRequest,
-  context: { params: { orderId: string } },
+  context: { params: Promise<{ orderId: string }> },
 ) {
   if (!isAdminRequest(req)) {
     return NextResponse.json(
@@ -18,7 +18,7 @@ async function PUTHandler(
     );
   }
 
-  const result = await runPostExCancelOrderForOrderId(context.params.orderId, {
+  const result = await runPostExCancelOrderForOrderId((await context.params).orderId, {
     getOrder: getOrderByPublicId,
   });
 

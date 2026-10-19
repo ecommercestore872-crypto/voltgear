@@ -1,4 +1,4 @@
-import type { ProductCategory } from "@/lib/types";
+import type { Product, ProductCategory } from "@/lib/types";
 
 export const PRODUCTS_PAGE_SIZE = 12;
 
@@ -26,6 +26,14 @@ export interface CatalogFilters {
   minPrice?: number;
   maxPrice?: number;
   page: number;
+}
+
+export interface CatalogResult {
+  items: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 function toInt(value: unknown, fallback = 1): number {

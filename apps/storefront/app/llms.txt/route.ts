@@ -4,7 +4,7 @@ import { SHOPPER_BRAND } from "@/lib/brand";
 import { indexSiteUrl, llmsTxt } from "@/lib/seo-rules";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export async function GET() {
   const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);

@@ -43,30 +43,35 @@ const STEP_ICON: Partial<Record<OrderStatus, typeof Check>> = {
   cancelled: X,
 };
 
-export default async function OrderSuccessPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { email?: string; phone?: string };
-}) {
+export default async function OrderSuccessPage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams?: Promise<{ email?: string; phone?: string }>;
+  }
+) {
+  const [{ id }, query, cookieStore] = await Promise.all([
+    props.params,
+    props.searchParams ??
+      Promise.resolve<{ email?: string; phone?: string }>({}),
+    cookies(),
+  ]);
   const fromEmailQuery =
-    typeof searchParams?.email === "string" ? searchParams.email.trim() : "";
+    typeof query.email === "string" ? query.email.trim() : "";
   const fromPhoneQuery =
-    typeof searchParams?.phone === "string" ? searchParams.phone.trim() : "";
+    typeof query.phone === "string" ? query.phone.trim() : "";
   const fromCookie =
-    cookies().get(`bnt_order_${params.id}`)?.value?.trim() ?? "";
+    cookieStore.get(`bnt_order_${id}`)?.value?.trim() ?? "";
   const emailHint = (fromEmailQuery || decodeURIComponent(fromCookie)).trim();
   const phoneHint = fromPhoneQuery;
 
   const [order, rawSettings] = await Promise.all([
-    getOrderByPublicId(params.id),
+    getOrderByPublicId(id),
     loadStorefrontSettings().catch(() => null),
   ]);
   if (!order) notFound();
 
   if (!emailHint && !phoneHint) {
-    return <OrderEmailGate orderId={params.id} />;
+    return <OrderEmailGate orderId={id} />;
   }
   if (shopperLookupNotFound(order, { email: emailHint, phone: phoneHint })) {
     notFound();

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   Banknote,
   Check,
-  ChevronLeft,
   Loader2,
   Lock,
   ShieldCheck,
@@ -49,7 +48,7 @@ import {
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
 import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
-import { CheckoutSummaryPriceRow } from "@/components/checkout/checkout-summary-price-row";
+import { CheckoutDesktopSidebar } from "@/components/checkout/checkout-desktop-sidebar";
 import { useCheckoutMobileDock } from "@/components/checkout/use-checkout-mobile-dock";
 import { useSiteConfig } from "@/lib/use-site-config";
 import type { PriceMismatch } from "@/lib/checkout-server";
@@ -65,9 +64,16 @@ import {
   type CheckoutFormField,
 } from "@/lib/checkout-form-fields";
 import { PAKISTAN_CITY_SUGGESTIONS } from "@/lib/pakistan-cities";
-
-const SUMMARY_CARD =
-  "min-w-0 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm sm:rounded-2xl sm:p-5";
+import {
+  buildCheckoutOrderBody,
+  requestCheckoutOrder,
+  requestCheckoutPromo,
+} from "@/lib/checkout-client-api";
+import {
+  CHECKOUT_IDEMPOTENCY_STORAGE_KEY,
+  getOrCreateCheckoutIdempotency,
+  type CheckoutIdempotencyState,
+} from "@/lib/checkout-idempotency-client";
 
 type PaymentMethod = "cod";
 
@@ -173,43 +179,10 @@ export default function CheckoutPageClient() {
     total: number;
   } | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
-  const idemRef = useRef<{ fingerprint: string; key: string } | null>(null);
+  const idemRef = useRef<CheckoutIdempotencyState | null>(null);
   const showMobileDock = useCheckoutMobileDock(
     step === 1 && items.length > 0,
   );
-
-  if (typeof window !== "undefined" && items.length > 0) {
-    const cartFingerprint = JSON.stringify(
-      items.map((i) => ({ slug: i.slug, q: i.quantity, v: i.variantKey }))
-    );
-    
-    if (!idemRef.current || idemRef.current.fingerprint !== cartFingerprint) {
-      const storedStr = window.sessionStorage.getItem("buy_n_try_checkout_idem");
-      let activeKey = "";
-
-      if (storedStr) {
-        try {
-          const stored = JSON.parse(storedStr);
-          if (stored.cartFingerprint === cartFingerprint) {
-            activeKey = stored.key;
-          }
-        } catch {}
-      }
-
-      if (!activeKey) {
-        activeKey =
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        
-        window.sessionStorage.setItem(
-          "buy_n_try_checkout_idem",
-          JSON.stringify({ key: activeKey, cartFingerprint, createdAt: Date.now() })
-        );
-      }
-      idemRef.current = { fingerprint: cartFingerprint, key: activeKey };
-    }
-  }
 
   const GIFT_WRAP_FEE = 199;
 
@@ -255,23 +228,19 @@ export default function CheckoutPageClient() {
     });
 
     try {
-      const res = await fetch("/api/promo/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: promoInput.trim(),
-          subtotal: merchandise,
-          shipping: baseShipping,
-          email: customer.email?.trim().toLowerCase() || undefined,
-        }),
+      const { response, data } = await requestCheckoutPromo({
+        code: promoInput.trim(),
+        subtotal: merchandise,
+        shipping: baseShipping,
+        email: customer.email?.trim().toLowerCase() || undefined,
       });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
+      if (!response.ok || data.ok !== true) {
         setActivePromo({
           code: promoInput.trim(),
           discount: 0,
           shipping: baseShipping,
-          error: data.error || "Invalid promo code",
+          error:
+            ("error" in data ? data.error : undefined) || "Invalid promo code",
         });
       } else if (
         dealDiscount > 0 &&
@@ -334,48 +303,42 @@ export default function CheckoutPageClient() {
     setApiError(null);
 
     try {
-      const activeIdemKey = idemRef.current?.key || "";
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": activeIdemKey,
-        },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            slug: i.slug,
-            name: i.name,
-            price: i.price,
-            quantity: i.quantity,
-            ...(i.sku ? { sku: i.sku } : {}),
-            ...(i.variantKey ? { variantKey: i.variantKey } : {}),
-            ...(i.variantName ? { variantName: i.variantName } : {}),
-            ...(i.variantSku ? { variantSku: i.variantSku } : {}),
-          })),
-          customer: {
-            ...currentCustomer,
-            note: orderNotes.trim() || undefined,
-          }, // contains name, email, phone, etc, plus order notes
-          payment: { method: payment },
-          subtotal,
-          shipping,
-          total, // actual final total including pseudo promos could break backend signature check in real app if api doesn't support promo, but keeping identical
-          giftWrap,
-          giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
-          idempotencyKey: activeIdemKey,
-          consent:
-            typeof window !== "undefined"
-              ? window.localStorage.getItem("bnt-cookie-consent")
-              : null,
-          ...(activePromo?.code && !activePromo.error
-            ? { promoCode: activePromo.code }
-            : {}),
-          attribution: readStoredClickAttribution() ?? undefined,
-        }),
+      const idempotency = getOrCreateCheckoutIdempotency({
+        items,
+        storage: window.sessionStorage,
+        current: idemRef.current,
       });
-      const data = await res.json();
+      idemRef.current = idempotency;
+      const activeIdemKey = idempotency.key;
+      const orderBody = buildCheckoutOrderBody({
+        items,
+        customer: {
+          ...currentCustomer,
+        },
+        orderNotes,
+        paymentMethod: payment,
+        subtotal,
+        shipping,
+        total,
+        giftWrap,
+        giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
+        idempotencyKey: activeIdemKey,
+        consent:
+          typeof window !== "undefined"
+            ? window.localStorage.getItem("bnt-cookie-consent")
+            : null,
+        promoCode:
+          activePromo?.code && !activePromo.error
+            ? activePromo.code
+            : undefined,
+        attribution: readStoredClickAttribution() ?? undefined,
+      });
+      const { response, data } = await requestCheckoutOrder(
+        orderBody,
+        activeIdemKey,
+      );
 
-      if (res.status === 409 && data.code === "PRICE_CHANGED") {
+      if (response.status === 409 && data.code === "PRICE_CHANGED") {
         for (const line of data.lines ?? []) {
           updateItemPrice(
             line.variantKey ? `${line.slug}::${line.variantKey}` : line.slug,
@@ -392,13 +355,17 @@ export default function CheckoutPageClient() {
         return;
       }
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error(data.error ?? "Failed");
       }
+      if (!data.orderId) {
+        throw new Error("Checkout returned an invalid order response.");
+      }
+      const orderId = data.orderId;
       tagCheckoutClarityEvent("order_success");
 
       if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem("buy_n_try_checkout_idem");
+        window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_STORAGE_KEY);
       }
       idemRef.current = null;
 
@@ -408,7 +375,7 @@ export default function CheckoutPageClient() {
           : currentCustomer.email?.trim().toLowerCase() ?? "";
       if (lookupEmail && typeof document !== "undefined") {
         const maxAge = 60 * 60 * 24;
-        document.cookie = `bnt_order_${encodeURIComponent(data.orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(data.orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
+        document.cookie = `bnt_order_${encodeURIComponent(orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
       }
       const orderQuery = new URLSearchParams();
       const phoneForTrack = currentCustomer.phone?.trim() ?? "";
@@ -422,7 +389,7 @@ export default function CheckoutPageClient() {
       if (first) {
         saveLastOrder({
           at: Date.now(),
-          orderId: data.orderId,
+          orderId,
           email: lookupEmail,
           name: currentCustomer.name?.trim() ?? "",
           product: { slug: first.slug, name: first.name },
@@ -431,7 +398,7 @@ export default function CheckoutPageClient() {
 
       orderNavigationRef.current = true;
       window.scrollTo({ top: 0, behavior: "instant" });
-      router.replace(`/order/${data.orderId}${orderQs}`);
+      router.replace(`/order/${orderId}${orderQs}`);
 
       window.setTimeout(() => {
         clearCart();
@@ -442,7 +409,7 @@ export default function CheckoutPageClient() {
         if (!data.replayed) {
           try {
             trackTikTokPurchase({
-              orderId: data.orderId,
+              orderId,
               total: purchaseTotal,
               lines: serverLines,
             });
@@ -451,7 +418,7 @@ export default function CheckoutPageClient() {
           }
           try {
             trackMetaPurchase({
-              orderId: data.orderId,
+              orderId,
               items: items.map((i) => ({
                 productId: i.productId,
                 name: i.name,
@@ -938,229 +905,29 @@ export default function CheckoutPageClient() {
             )}
           </div>
 
-          {/* ── Order summary sidebar (desktop) ─────────────────────────────── */}
-          <aside className="order-2 hidden w-full space-y-3 lg:block lg:order-none lg:sticky lg:top-8 lg:self-start lg:space-y-5">
-            <div className={cn(SUMMARY_CARD, "p-3 sm:p-4 lg:p-5")}>
-              <h2 className="mb-2 border-b border-[var(--g-line)] pb-2 text-sm font-bold text-foreground sm:mb-3 sm:pb-3 sm:text-base lg:text-[17px]">
-                Order summary
-              </h2>
-
-              <div className="space-y-2.5 border-b border-[var(--g-line)] pb-3.5 sm:space-y-3 sm:pb-4">
-                <CheckoutSummaryPriceRow
-                  label={`Subtotal (${items.reduce((acc, i) => acc + i.quantity, 0)} items)`}
-                  value={formatPrice(subtotal)}
-                />
-                {dealDiscount > 0 ? (
-                  <CheckoutSummaryPriceRow
-                    tone="deal"
-                    label={
-                      <>
-                        Pair deal
-                        {dealQuote.applied[0] ? (
-                          <span className="font-medium">
-                            {" "}
-                            · {dealQuote.applied[0].title}
-                          </span>
-                        ) : null}
-                      </>
-                    }
-                    value={`− ${formatPrice(dealDiscount)}`}
-                  />
-                ) : null}
-                <CheckoutSummaryPriceRow
-                  label="Shipping"
-                  value={shippingLabel ?? "—"}
-                />
-                {activePromo ? (
-                  <CheckoutSummaryPriceRow
-                    tone="deal"
-                    label="Promo discount"
-                    value={`− ${formatPrice(appliedDiscount)}`}
-                  />
-                ) : null}
-                {giftWrap ? (
-                  <CheckoutSummaryPriceRow
-                    tone="strong"
-                    label="Gift wrap"
-                    value={formatPrice(GIFT_WRAP_FEE)}
-                  />
-                ) : null}
-              </div>
-
-              <div className="mt-3.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 sm:mt-4">
-                <div className="min-w-0">
-                  <h3 className="text-base font-bold text-foreground sm:text-lg">
-                    Total
-                  </h3>
-                  <p className="text-[10px] leading-snug text-muted-foreground">
-                    Inclusive of all taxes
-                  </p>
-                </div>
-                <span className="shrink-0 text-right text-xl font-black tracking-tight text-primary tabular-nums sm:text-2xl">
-                  {formatPrice(total)}
-                </span>
-              </div>
-
-              {hasPromo && step === 2 ? (
-                <div className="mt-3.5 flex items-start gap-2 rounded-lg border border-primary/20 bg-[var(--g-cream)] p-3 text-xs font-bold text-primary sm:mt-4">
-                  <Banknote className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span className="min-w-0 leading-snug">
-                    You will save {formatPrice(appliedDiscount)} on this order!
-                  </span>
-                </div>
-              ) : null}
-            </div>
-
-            {step >= 1 && (
-              <div className={SUMMARY_CARD}>
-                <h3 className="mb-3 text-[13px] font-bold text-foreground">
-                  Have a promo code?
-                </h3>
-                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
-                  <Input
-                    placeholder="Enter promo code"
-                    value={promoInput}
-                    onChange={(e) => setPromoInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
-                    className="h-11 min-w-0 flex-1"
-                    disabled={activePromo?.loading}
-                  />
-                  <Button
-                    variant="default"
-                    onClick={handleApplyPromo}
-                    disabled={activePromo?.loading || !promoInput.trim()}
-                    className="h-11 w-full shrink-0 px-5 font-bold shadow-sm sm:w-auto"
-                  >
-                    {activePromo?.loading ? "Applying..." : "Apply"}
-                  </Button>
-                </div>
-                {activePromo?.error ? (
-                  <p className="mt-2 text-xs font-semibold text-destructive">
-                    {activePromo.error}
-                  </p>
-                ) : null}
-                {activePromo && !activePromo.error ? (
-                  <div className="mt-3 flex min-w-0 items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-                    <span className="min-w-0 truncate text-xs font-bold text-primary">
-                      Applied: {activePromo.code}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setActivePromo(null)}
-                      className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {priceChanged ? (
-              <div className="hidden rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-sm text-amber-800 lg:block">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                  <div className="min-w-0">
-                    <p className="font-semibold">
-                      Prices updated while processing.
-                    </p>
-                    <p className="mt-1 text-xs leading-snug">
-                      Review the summary before placing your order again.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {step >= 1 && (
-              <div className={SUMMARY_CARD}>
-                <div className="mb-4 grid grid-cols-1 gap-3 border-b border-[var(--g-line)] pb-4 sm:mb-5 sm:grid-cols-2 sm:gap-3.5 sm:pb-5">
-                  {[
-                    {
-                      icon: ShieldCheck,
-                      title: `${config.warrantyMonths || 12}-Month Warranty`,
-                      detail: "Guaranteed authentic",
-                    },
-                    {
-                      icon: RotateCcw,
-                      title: `${config.returnWindowDays || 7}-Day Easy Returns`,
-                      detail: "Hassle-free returns",
-                    },
-                    {
-                      icon: Banknote,
-                      title: "Cash on Delivery",
-                      detail: "Pay when you receive",
-                    },
-                    {
-                      icon: Lock,
-                      title: "Secure Checkout",
-                      detail: "100% safe & secure",
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.title}
-                      className="flex min-w-0 items-start gap-3"
-                    >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-cream)] text-primary">
-                        <item.icon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-bold uppercase tracking-wide text-foreground">
-                          {item.title}
-                        </p>
-                        <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
-                          {item.detail}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  form="details-form"
-                  type="submit"
-                  disabled={placing}
-                  className="h-12 w-full gap-2 text-[15px] font-bold shadow-md"
-                >
-                  {placing ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Lock className="h-4 w-4 shrink-0" />
-                  )}
-                  {placing ? "Processing..." : "Place Order"}
-                </Button>
-
-                <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground sm:mt-4">
-                  By placing your order, you agree to our{" "}
-                  <Link
-                    href="/terms-of-service"
-                    className="font-bold text-primary underline"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link
-                    href="/privacy-policy"
-                    className="font-bold text-primary underline"
-                  >
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
-
-                <div className="mt-5 text-center">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-10 text-sm w-full sm:w-auto"
-                    onClick={() => router.push(shopHref)}
-                  >
-                    <ChevronLeft className="mr-1 h-4 w-4" /> Continue Shopping
-                  </Button>
-                </div>
-              </div>
-            )}
-          </aside>
+          <CheckoutDesktopSidebar
+            step={step}
+            itemCount={items.reduce((count, item) => count + item.quantity, 0)}
+            subtotal={subtotal}
+            dealDiscount={dealDiscount}
+            dealTitle={dealQuote.applied[0]?.title}
+            shippingLabel={shippingLabel}
+            activePromo={activePromo}
+            hasPromo={hasPromo}
+            appliedDiscount={appliedDiscount}
+            giftWrap={giftWrap}
+            giftWrapFee={GIFT_WRAP_FEE}
+            total={total}
+            promoInput={promoInput}
+            placing={placing}
+            priceChanged={Boolean(priceChanged)}
+            warrantyMonths={config.warrantyMonths}
+            returnWindowDays={config.returnWindowDays}
+            onPromoInputChange={setPromoInput}
+            onApplyPromo={handleApplyPromo}
+            onRemovePromo={() => setActivePromo(null)}
+            onContinueShopping={() => router.push(shopHref)}
+          />
         </div>
       </div>
 

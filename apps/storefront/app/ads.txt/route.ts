@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { adsTxtBody } from "@/lib/adsense-policy";
 import { STOREFRONT_LEGAL_REVALIDATE } from "@/lib/storefront-cache";
 
-export const revalidate = STOREFRONT_LEGAL_REVALIDATE;
+export const revalidate = 3600;
 
 export function GET() {
   const body = adsTxtBody(process.env.NEXT_PUBLIC_ADSENSE_PUB_ID);

@@ -13,12 +13,12 @@ export const dynamic = "force-dynamic";
 
 async function GETHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const collection = await getAdminCollection(params.id).catch(() => null);
+  const collection = await getAdminCollection((await params).id).catch(() => null);
   if (!collection)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   return NextResponse.json({ collection });
@@ -26,13 +26,13 @@ async function GETHandler(
 
 async function PATCHHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await updateAdminCollection(params.id, body ?? {});
+  const result = await updateAdminCollection((await params).id, body ?? {});
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },
@@ -44,12 +44,12 @@ async function PATCHHandler(
 
 async function DELETEHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteAdminCollection(params.id);
+  const result = await deleteAdminCollection((await params).id);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

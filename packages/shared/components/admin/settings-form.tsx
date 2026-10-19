@@ -14,114 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MediaField } from "@/components/admin/media-field";
 import type { PublishStatus } from "@/lib/db/publish";
+import type { ChromeLink } from "@/lib/chrome-nav-rules";
 import {
-  DEFAULT_FOOTER_CARE_LINKS,
-  DEFAULT_FOOTER_COMPANY_LINKS,
-  DEFAULT_HELP_LINKS,
-  DEFAULT_NAV_LINKS,
-  type ChromeLink,
-} from "@/lib/chrome-nav-rules";
-import { adminDraftBag, chromeLinksField } from "@/lib/admin-draft";
-import { SHOPPER_BRAND, shouldReplaceBrandName } from "@/lib/brand";
-import { normalizeSettingsSocialLinks } from "@/lib/settings-social";
-
-type SettingsRow = Record<string, unknown> & {
-  status?: PublishStatus;
-  draft?: Record<string, unknown> | null;
-};
-
-function str(v: unknown) {
-  return v == null ? "" : String(v);
-}
-
-function fromRow(row?: SettingsRow | null) {
-  const d = adminDraftBag(row);
-  const social = normalizeSettingsSocialLinks(d.socialLinks ?? row?.social_links);
-  return {
-    brandName: shouldReplaceBrandName(str(d.brandName ?? row?.brand_name))
-      ? SHOPPER_BRAND.spokenName
-      : str(d.brandName ?? row?.brand_name),
-    tagline: str(d.tagline ?? row?.tagline),
-    logo: str(d.logo ?? row?.logo_url),
-    email: str(d.email ?? row?.email),
-    phone: str(d.phone ?? row?.phone),
-    address: str(d.address ?? row?.address),
-    whatsappNumber: str(d.whatsappNumber ?? row?.whatsapp_number),
-    whatsappConfirmFlow: Boolean(
-      d.whatsappConfirmFlow ?? row?.whatsapp_confirm_flow,
-    ),
-    currency: str(d.currency ?? row?.currency),
-    freeShippingThreshold: str(
-      d.freeShippingThreshold ?? row?.free_shipping_threshold,
-    ),
-    codEnabled: Boolean(
-      (d.codEnabled ?? row?.cod_enabled) ?? true,
-    ),
-    warrantyMonths: str(d.warrantyMonths ?? row?.warranty_months),
-    returnWindowDays: str(d.returnWindowDays ?? row?.return_window_days),
-    maxCodAmount: str(d.maxCodAmount ?? row?.max_cod_amount),
-    shippingFee: str(d.shippingFee ?? row?.shipping_fee),
-    returnPolicy: str(d.returnPolicy ?? row?.return_policy),
-    warrantyInfo: str(d.warrantyInfo ?? row?.warranty_info),
-    instagram: social.find((s) => s.platform === "instagram")?.url ?? "",
-    tiktok: social.find((s) => s.platform === "tiktok")?.url ?? "",
-    facebook: social.find((s) => s.platform === "facebook")?.url ?? "",
-    announcementEnabled: Boolean(
-      (d.announcement as { enabled?: boolean } | undefined)?.enabled ??
-      (row?.announcement as { enabled?: boolean } | undefined)?.enabled,
-    ),
-    announcementMessage: str(
-      (d.announcement as { message?: string } | undefined)?.message ??
-        (row?.announcement as { message?: string } | undefined)?.message,
-    ),
-    announcementCountdownEnabled: Boolean(
-      (d.announcement as { countdownEnabled?: boolean } | undefined)
-        ?.countdownEnabled ??
-      (row?.announcement as { countdownEnabled?: boolean } | undefined)
-        ?.countdownEnabled,
-    ),
-    announcementStartsAt: str(
-      (d.announcement as { startsAt?: string } | undefined)?.startsAt ??
-        (row?.announcement as { startsAt?: string } | undefined)?.startsAt,
-    ),
-    announcementEndsAt: str(
-      (d.announcement as { endsAt?: string } | undefined)?.endsAt ??
-        (row?.announcement as { endsAt?: string } | undefined)?.endsAt,
-    ),
-    seoTitle: str(
-      (d.seo as { title?: string } | undefined)?.title ??
-        (row?.seo as { title?: string } | undefined)?.title,
-    ),
-    seoDescription: str(
-      (d.seo as { description?: string } | undefined)?.description ??
-        (row?.seo as { description?: string } | undefined)?.description,
-    ),
-    navLinks: chromeLinksField(d.navLinks ?? row?.nav_links, DEFAULT_NAV_LINKS),
-    headerLinks: chromeLinksField(d.headerLinks ?? row?.header_links, []),
-    helpLinks: chromeLinksField(d.helpLinks ?? row?.help_links, DEFAULT_HELP_LINKS),
-    footerCompanyLinks: chromeLinksField(
-      d.footerCompanyLinks ?? row?.footer_company_links,
-      DEFAULT_FOOTER_COMPANY_LINKS,
-    ),
-    footerCareLinks: chromeLinksField(
-      d.footerCareLinks ?? row?.footer_care_links,
-      DEFAULT_FOOTER_CARE_LINKS,
-    ),
-    homeBestsellersTitle: str(d.homeBestsellersTitle ?? row?.home_bestsellers_title),
-    homeOffersTitle: str(d.homeOffersTitle ?? row?.home_offers_title),
-    homeCategoriesTitle: str(d.homeCategoriesTitle ?? row?.home_categories_title),
-    homeFeaturedEyebrow: str(d.homeFeaturedEyebrow ?? row?.home_featured_eyebrow),
-    homeFeaturedTitle: str(d.homeFeaturedTitle ?? row?.home_featured_title),
-    homeFeaturedSubtitle: str(d.homeFeaturedSubtitle ?? row?.home_featured_subtitle),
-    homeFeaturedProductDescription: str(d.homeFeaturedProductDescription ?? row?.home_featured_product_description),
-    homeFeaturedProductSlug: str((d as any).homeFeaturedProductSlug ?? (row as any)?.home_featured_product_slug ?? ""),
-    homeFeaturedCustomImage: str((d as any).homeFeaturedCustomImage ?? (row as any)?.home_featured_custom_image ?? ""),
-    homeTrustHeadline: str((d as any).homeTrustHeadline ?? (row as any)?.home_trust_headline ?? ""),
-    homeTrustAccent: str((d as any).homeTrustAccent ?? (row as any)?.home_trust_accent ?? ""),
-    topbarAccent: str((d as any).topbarAccent ?? (row as any)?.topbar_accent ?? ""),
-    navShopAllText: str((d as any).navShopAllText ?? (row as any)?.nav_shop_all_text ?? ""),
-  };
-}
+  buildSettingsActionRequest,
+  settingsFormFromRow,
+  type SettingsAction,
+  type SettingsRow,
+} from "@/lib/admin-settings-form-rules";
 
 type FeaturedProductOption = {
   _id: string;
@@ -140,7 +39,7 @@ export function SettingsForm({
   initialFeaturedProduct?: FeaturedProductOption | null;
 }) {
   const router = useRouter();
-  const [form, setForm] = useState(() => fromRow(settings));
+  const [form, setForm] = useState(() => settingsFormFromRow(settings));
   const [status, setStatus] = useState<PublishStatus>(
     settings?.status ?? "published",
   );
@@ -208,73 +107,15 @@ export function SettingsForm({
 
   const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
-  function doc() {
-    const socialLinks = [
-      form.instagram ? { platform: "instagram", url: form.instagram } : null,
-      form.tiktok ? { platform: "tiktok", url: form.tiktok } : null,
-      form.facebook ? { platform: "facebook", url: form.facebook } : null,
-    ].filter(Boolean);
-    return {
-      brandName: form.brandName,
-      tagline: form.tagline,
-      logo: form.logo,
-      email: form.email,
-      phone: form.phone,
-      address: form.address,
-      whatsappNumber: form.whatsappNumber,
-      whatsappConfirmFlow: form.whatsappConfirmFlow,
-      currency: form.currency,
-      freeShippingThreshold: form.freeShippingThreshold
-        ? Number(form.freeShippingThreshold)
-        : undefined,
-      codEnabled: form.codEnabled,
-      warrantyMonths: form.warrantyMonths ? Number(form.warrantyMonths) : undefined,
-      returnWindowDays: form.returnWindowDays ? Number(form.returnWindowDays) : undefined,
-      maxCodAmount: form.maxCodAmount ? Number(form.maxCodAmount) : undefined,
-      shippingFee: form.shippingFee ? Number(form.shippingFee) : undefined,
-      returnPolicy: form.returnPolicy,
-      warrantyInfo: form.warrantyInfo,
-      socialLinks,
-      announcement: {
-        enabled: form.announcementEnabled,
-        message: form.announcementMessage,
-        countdownEnabled: form.announcementCountdownEnabled,
-        startsAt: form.announcementStartsAt || null,
-        endsAt: form.announcementEndsAt || null,
-      },
-      seo: { title: form.seoTitle, description: form.seoDescription },
-      navLinks: form.navLinks,
-      headerLinks: form.headerLinks,
-      helpLinks: form.helpLinks,
-      footerCompanyLinks: form.footerCompanyLinks,
-      footerCareLinks: form.footerCareLinks,
-      homeBestsellersTitle: form.homeBestsellersTitle,
-      homeOffersTitle: form.homeOffersTitle,
-      homeCategoriesTitle: form.homeCategoriesTitle,
-      homeFeaturedEyebrow: form.homeFeaturedEyebrow,
-      homeFeaturedTitle: form.homeFeaturedTitle,
-      homeFeaturedSubtitle: form.homeFeaturedSubtitle,
-      homeFeaturedProductDescription: form.homeFeaturedProductDescription,
-      homeFeaturedProductSlug: form.homeFeaturedProductSlug || null,
-      homeFeaturedCustomImage: form.homeFeaturedCustomImage || null,
-      homeTrustHeadline: form.homeTrustHeadline,
-      homeTrustAccent: form.homeTrustAccent,
-      topbarAccent: form.topbarAccent,
-      navShopAllText: form.navShopAllText,
-    };
-  }
-
-  async function run(action: "save" | "publish" | "discard") {
+  async function run(action: SettingsAction) {
     setSaving(true);
     setError(null);
     try {
-      await adminFetch("/api/admin/settings", {
-        method: "PATCH",
-        body: JSON.stringify({ action, doc: doc() }),
-      });
+      const request = buildSettingsActionRequest(action, form);
+      await adminFetch(request.path, request.init);
       if (action === "publish") setStatus("published");
       if (action === "discard") {
-        const reset = fromRow({ ...settings, draft: null });
+        const reset = settingsFormFromRow({ ...settings, draft: null });
         setForm(reset);
         resetSaved(reset);
       } else {

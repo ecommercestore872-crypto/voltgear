@@ -13,11 +13,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCustomerProfilePage({
-  params,
-}: {
-  params: { key: string };
-}) {
+export default async function AdminCustomerProfilePage(
+  props: {
+    params: Promise<{ key: string }>;
+  }
+) {
+  const params = await props.params;
   const profile = await getCustomerProfile(params.key).catch(() => null);
   if (!profile) notFound();
 

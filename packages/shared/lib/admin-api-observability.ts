@@ -32,22 +32,27 @@ export function logAdminApiEvent(event: AdminApiLogEvent): void {
 }
 
 /** Next route handlers may be `(req)` or `(req, { params })`. */
-export type AdminApiRouteHandler = (
-  request: Request,
-  context?: unknown,
+export type AdminApiRouteHandler<
+  R extends Request = Request,
+  A extends unknown[] = [],
+> = (
+  request: R,
+  ...args: A
 ) => Response | Promise<Response>;
 
 /** Wrap a Route Handler export to record duration and status. */
-export function withAdminApiObservability(
+export function withAdminApiObservability<
+  R extends Request,
+  A extends unknown[],
+>(
   routeName: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Next route arity varies
-  handler: any,
-): AdminApiRouteHandler {
-  const wrapped: AdminApiRouteHandler = async (request, context) => {
+  handler: AdminApiRouteHandler<R, A>,
+): AdminApiRouteHandler<R, A> {
+  const wrapped: AdminApiRouteHandler<R, A> = async (request, ...args) => {
     const t0 = performance.now();
     let status = 500;
     try {
-      const response = await handler(request, context);
+      const response = await handler(request, ...args);
       status = response.status;
       return response;
     } finally {

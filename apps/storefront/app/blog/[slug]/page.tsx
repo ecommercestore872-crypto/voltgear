@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock, User } from "lucide-react";
@@ -19,7 +18,7 @@ import {
   sanitizeBlogSections,
 } from "@/lib/blog-safety-rules";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   try {
@@ -55,11 +54,12 @@ function readingMinutes(blocks: ContentBlock[] | undefined): number {
   return Math.max(1, Math.round(words / 200));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   let post: Page | null = null;
   try {
     post = await fetchPageBySlug(params.slug, false);
@@ -87,11 +87,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPostPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function BlogPostPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   let post: Page | null = null;
   try {
     post = await fetchPageBySlug(params.slug, false);

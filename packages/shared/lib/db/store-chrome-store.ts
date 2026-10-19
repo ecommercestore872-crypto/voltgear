@@ -1,6 +1,5 @@
 import { unstable_cache } from "next/cache";
 
-import { ensureShopperBrandSettings } from "@/lib/db/admin-store";
 import { MAX_HERO_SLIDES } from "@/lib/db/hero-slide-rules";
 import {
   mapHero,
@@ -34,7 +33,7 @@ import type {
 
 export const fetchSiteSettings = unstable_cache(
   async (): Promise<SiteSettings | null> => {
-    await ensureShopperBrandSettings();
+    // Public storefront reads must not mutate CMS settings or perform setup queries.
     const { data, error } = await db()
       .from("site_settings")
       .select("*")

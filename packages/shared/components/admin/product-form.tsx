@@ -32,87 +32,17 @@ const VariantAxesFields = dynamic(
 );
 import type { CollectionPickerItem } from "@/lib/db/collection-rules";
 import {
+  buildProductActionRequest,
+  type ProductAction,
+} from "@/lib/admin-product-action-rules";
+import { productDocumentFromAdmin } from "@/lib/admin-product-form-rules";
+import {
   portableTextToPlain,
   slugify,
   textToPortableText,
   type ProductDocument,
   type PublishStatus,
 } from "@/lib/db/publish";
-
-function emptyDoc(): ProductDocument {
-  return {
-    name: "",
-    slug: "",
-    category: "",
-    price: 0,
-    stockStatus: "in-stock",
-    quantity: null,
-    images: [],
-    features: [],
-    specifications: [],
-    compatibility: [],
-    inTheBox: [],
-    productFaq: [],
-    variants: [],
-    colorEnabled: false,
-    sizeEnabled: false,
-    colorOptions: [],
-    reviews: [],
-    addons: [],
-    freeShipping: false,
-  };
-}
-
-function fromProduct(
-  product?: AdminProduct | null,
-  knownSlugs: string[] = [],
-): ProductDocument {
-  if (!product) return emptyDoc();
-  const doc = product.draft ?? {
-    name: product.name,
-    slug: product.slug,
-    brand: product.brand,
-    sku: product.sku,
-    category: product.category,
-    price: product.price,
-    compareAtPrice: product.compareAtPrice,
-    images: product.images ?? [],
-    cloudinaryImages: product.cloudinaryImages,
-    shortDescription: product.shortDescription,
-    description: product.description,
-    features: product.features,
-    specifications: product.specifications,
-    compatibility: product.compatibility,
-    inTheBox: product.inTheBox,
-    productVideo: product.productVideo,
-    variants: product.variants,
-    colorEnabled: product.colorEnabled,
-    sizeEnabled: product.sizeEnabled,
-    colorOptions: product.colorOptions,
-    sizeOptions: product.sizeOptions,
-    productFaq: product.productFaq,
-    stockStatus: product.stockStatus,
-    quantity: product.quantity ?? null,
-    rating: product.rating,
-    reviewCount: product.reviewCount,
-    reviews: product.reviews,
-    featured: product.featured,
-    isDemo: product.isDemo,
-    costPrice: product.costPrice,
-    addons: product.addons ?? [],
-    freeShipping: product.freeShipping ?? false,
-  };
-  const merged = {
-    ...emptyDoc(),
-    ...doc,
-    isDemo: Boolean(doc.isDemo ?? product.isDemo),
-    costPrice: doc.costPrice ?? product.costPrice,
-  };
-  if (merged.category && !knownSlugs.includes(merged.category)) {
-    merged.category = "";
-  }
-  return merged;
-}
 
 export function ProductForm({
   product,
@@ -129,7 +59,7 @@ export function ProductForm({
   const isNew = !product;
   const knownSlugs = shopTypes.map((t) => t.slug);
   const [doc, setDoc] = useState<ProductDocument>(() =>
-    fromProduct(product, knownSlugs),
+    productDocumentFromAdmin(product, knownSlugs),
   );
   const [status, setStatus] = useState<PublishStatus>(
     product?.status ?? "draft",
@@ -137,7 +67,9 @@ export function ProductForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [description, setDescription] = useState(() =>
-    portableTextToPlain(fromProduct(product, knownSlugs).description),
+    portableTextToPlain(
+      productDocumentFromAdmin(product, knownSlugs).description,
+    ),
   );
   const [collectionList, setCollectionList] = useState(collections);
   const [selectedCollectionIds, setSelectedCollectionIds] =
@@ -183,9 +115,7 @@ export function ProductForm({
     });
   }
 
-  async function run(
-    action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
-  ) {
+  async function run(action: ProductAction) {
     if (activeUploads > 0 && action !== "delete") {
       setError("Please wait for media uploads to finish before saving.");
       return;
@@ -204,36 +134,32 @@ export function ProductForm({
           return;
         }
       }
+      const request = buildProductActionRequest({
+        action,
+        id,
+        document: latestPayload,
+        collectionIds: selectedCollectionIds,
+      });
+      if (!request) return;
+      if (action === "delete") {
+        if (!confirm("Delete this product? This cannot be undone.")) return;
+      }
+      const json = await adminFetch(request.path, request.init);
       if (action === "create") {
-        const json = await adminFetch("/api/admin/products", {
-          method: "POST",
-          body: JSON.stringify({
-            doc: latestPayload,
-            collectionIds: selectedCollectionIds,
-          }),
-        });
         router.replace(`/admin/products/${json.id}`);
         return;
       }
-      if (!id) return;
       if (action === "delete") {
-        if (!confirm("Delete this product? This cannot be undone.")) return;
-        await adminFetch(`/api/admin/products/${id}`, { method: "DELETE" });
         router.replace("/admin/products");
         return;
       }
-      await adminFetch(`/api/admin/products/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          action,
-          doc: latestPayload,
-          collectionIds: selectedCollectionIds,
-        }),
-      });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
       if (action === "discard" && product) {
-        const live = fromProduct({ ...product, draft: null }, knownSlugs);
+        const live = productDocumentFromAdmin(
+          { ...product, draft: null },
+          knownSlugs,
+        );
         const liveDescription = portableTextToPlain(live.description);
         setDoc(live);
         setDescription(liveDescription);

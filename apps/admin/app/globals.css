@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted Manrope retains the existing admin font tokens without CI font fetches. */
+.admin-font-manrope {
+  --font-gadget-sans: "Manrope Variable";
+  --font-sans: "Manrope Variable";
+  --font-heading: "Manrope Variable";
+}
+
 @layer base {
   /* â”€â”€ Light Precision Tech Â· Cloud Teal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   :root {

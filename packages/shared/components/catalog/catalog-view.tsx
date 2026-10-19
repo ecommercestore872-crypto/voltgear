@@ -11,7 +11,7 @@ import { ProductGrid, EmptyState } from "@/components/catalog/product-grid";
 import { CatalogPagination } from "@/components/catalog/catalog-pagination";
 import { SortSelect } from "@/components/catalog/sort-select";
 import type { ShopType } from "@/lib/categories";
-import type { CatalogFilters, CatalogResult } from "@/lib/catalog";
+import type { CatalogFilters, CatalogResult } from "@/lib/catalog-rules";
 import { CatalogSidebar } from "@/components/catalog/catalog-sidebar";
 import {
   ShieldCheck,

@@ -1,31 +1,30 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { fetchPageBySlug, fetchSitemapPages } from "@/lib/db/store";
 import { imageUrl } from "@/lib/sanity/image";
+import { storefrontCmsStaticParams } from "./static-params";
 import type { Page } from "@/lib/types";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   try {
     const pages = await fetchSitemapPages();
-    return pages
-      .filter((page) => page.pageType !== "blog" && page.slug)
-      .map((page) => ({ slug: page.slug }));
+    return storefrontCmsStaticParams(pages);
   } catch {
     return [];
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   let page: Page | null = null;
   try {
     page = await fetchPageBySlug(params.slug, false);
@@ -52,11 +51,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function StaticPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function StaticPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   let page: Page | null = null;
   try {
     page = await fetchPageBySlug(params.slug, false);

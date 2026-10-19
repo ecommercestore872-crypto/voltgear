@@ -12,14 +12,14 @@ export const dynamic = "force-dynamic";
 
 async function GETHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   let item;
   try {
-    item = await getContactSubmission(params.id);
+    item = await getContactSubmission((await params).id);
   } catch (error) {
     console.error("[inbox] load failed", error);
     return NextResponse.json({ error: "Inbox is temporarily unavailable." }, { status: 503 });
@@ -30,7 +30,7 @@ async function GETHandler(
 
 async function PATCHHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,7 +42,7 @@ async function PATCHHandler(
   const patch: { status?: unknown; adminNote?: unknown } = {};
   if (Object.prototype.hasOwnProperty.call(body, "status")) patch.status = body.status;
   if (Object.prototype.hasOwnProperty.call(body, "adminNote")) patch.adminNote = body.adminNote;
-  const result = await updateContactSubmission(params.id, patch);
+  const result = await updateContactSubmission((await params).id, patch);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

@@ -12,11 +12,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function EditHomepageSectionPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function EditHomepageSectionPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const section = await getAdminHomepageSection(params.id);
   if (!section) notFound();
 

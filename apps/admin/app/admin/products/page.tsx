@@ -17,16 +17,17 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage({
-  searchParams,
-}: {
-  searchParams: {
-    stock?: string;
-    q?: string;
-    page?: string;
-    category?: string;
-  };
-}) {
+export default async function AdminProductsPage(
+  props: {
+    searchParams: Promise<{
+      stock?: string;
+      q?: string;
+      page?: string;
+      category?: string;
+    }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const q = searchParams.q?.trim() ?? "";
   const stockAttention = searchParams.stock === "attention";
   const category = searchParams.category?.trim() || undefined;

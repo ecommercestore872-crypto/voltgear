@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 
 import { GadgetHomePage } from "@/components/gadget/gadget-home-page";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { storeAlternatesLanguages } from "@/lib/seo-rules";
 import type { SiteSettings } from "@/lib/types";
 
-export const revalidate = STOREFRONT_CATALOG_REVALIDATE;
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   let settings: SiteSettings | null = null;

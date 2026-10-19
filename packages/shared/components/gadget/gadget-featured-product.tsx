@@ -7,7 +7,7 @@ import { Check, ShoppingBag, Star } from "lucide-react";
 
 import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
 import { useCart } from "@/components/cart/cart-provider";
-import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { gadgetImageSrc } from "@/lib/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { product2Href } from "@/lib/gadget-preview";
 import { PRODUCT_IMAGE } from "@/lib/product-image";

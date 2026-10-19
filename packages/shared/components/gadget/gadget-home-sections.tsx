@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { Fragment, type ReactNode } from "react";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
+import { GadgetReviewsSliderLoader } from "@/components/gadget/gadget-reviews-slider-loader";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
 import { GadgetTrustStrip } from "@/components/gadget/gadget-trust-strip";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
@@ -37,14 +38,6 @@ import {
   slugSetFromShopTypeLinks,
 } from "@/lib/home-active-categories";
 import { formatPrice } from "@/lib/utils";
-
-const GadgetReviewsSlider = dynamic(
-  () =>
-    import("@/components/gadget/gadget-reviews-slider").then(
-      (m) => m.GadgetReviewsSlider,
-    ),
-  { loading: () => null, ssr: false },
-);
 
 const GadgetBlogSection = dynamic(
   () =>
@@ -400,7 +393,9 @@ export async function GadgetHomeSections() {
             );
             break;
           case "reviews":
-            section = <GadgetReviewsSlider key={id} reviews={testimonials} />;
+            section = (
+              <GadgetReviewsSliderLoader key={id} reviews={testimonials} />
+            );
             break;
           case "blog":
             section = <GadgetBlogSection key={id} posts={blogPosts} />;

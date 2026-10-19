@@ -12,13 +12,13 @@ export const dynamic = "force-dynamic";
 
 async function PATCHHandler(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await updateEmailTemplate(params.id, {
+  const result = await updateEmailTemplate((await params).id, {
     name: body?.name,
     subject: body?.subject,
     bodyText: body?.bodyText ?? body?.text,
@@ -34,12 +34,12 @@ async function PATCHHandler(
 
 async function DELETEHandler(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isAdminRequest(_request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteEmailTemplate(params.id);
+  const result = await deleteEmailTemplate((await params).id);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

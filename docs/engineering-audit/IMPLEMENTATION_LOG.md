@@ -1,0 +1,217 @@
+# Implementation Log
+
+## 2026-10-16 — Phase 1 CI and runtime baseline
+
+### Problem
+
+The main-branch CI job selected Node 20 but the repository test runner used `--test-isolation=none`, which Node 20 rejects. As a result, the workflow never reached lint or build verification.
+
+### Alternatives considered
+
+1. Keep Node 20 and replace the stable flag with older experimental behavior. Rejected because current direct dependencies require Node 22+, GitHub has retired Node 20 on hosted runners, and Vercel already uses Node 24.
+2. Standardize on Node 24. Selected because it matches production, local development, dependency engines, and the stable Node test-runner interface.
+
+### Changes
+
+- Added `.nvmrc` with Node major 24.
+- Declared `node >=24 <25` in `package.json` and lockfile workspace metadata.
+- Updated CI to Node-24-compatible first-party Actions and read-only repository permissions.
+- Added explicit storefront and admin TypeScript scripts and workflow steps.
+- Updated the root `ci` script to run tests, both linters, both type checks, and both builds.
+- Added Phase 1 audit, security, readiness, and rollback documentation.
+
+### Verification evidence
+
+| Command or check | Result |
+| --- | --- |
+| `git fetch --prune origin` | Pass; base matched `origin/main` at `a4eccf2` |
+| `npx --yes node@20 --test --test-isolation=none` | Expected reproduction: exit 1, bad option |
+| `npm ci` on Node 24 | Pass; 515 packages installed from lockfile |
+| `npm run typecheck:all` | Pass for storefront and admin |
+| `npm run test` in restricted sandbox | Blocked by Windows `spawn EPERM`; not counted as a code failure |
+| `npm run test` outside restricted sandbox | Pass; 705 tests, 339 suites, 0 failures |
+| `npm audit --json` | Completed with nonzero status because 12 findings remain |
+| `npm audit --omit=dev --json` | Completed with nonzero status; 2 production vulnerability nodes remain |
+| `npm audit fix --dry-run --json` | Zero compatible changes available |
+| `npm run lint:all` | Pass; storefront and admin, no warnings or errors |
+| `npm run build` | Pass; storefront 54 pages, admin 37 pages |
+| JSON parse and `git diff --check` | Pass |
+| `npm ci --dry-run --ignore-scripts --offline` | Pass; package and lockfile are consistent |
+| Staged diff secret-pattern scan | Pass; no credential or private-key pattern found |
+| GitHub Actions `Monorepo CI` run 38896519413, job `verify` | Pass on implementation commit `cb0d8b6`; install, unit tests, both linters, both type checks, and both builds succeeded |
+
+The independent GitHub-hosted run completed successfully in 2 minutes 33 seconds. It confirms that the Node 24 workflow repair works outside the local Windows environment.
+
+### Side effects
+
+- No application business rules changed.
+- No database schema or data changed.
+- No deployment configuration or production environment changed.
+- PR #2's database workflow additions are not copied; it will need a future conflict resolution that retains this Node 24 baseline.
+
+## 2026-10-16 — Phase 2 architecture and boundary review
+
+### Problem
+
+The repository had a large pre-existing code-knowledge graph, but its current integrity, architectural direction, and client/server boundary had not been cross-verified against the Phase 1 commit. Several large Client Components and one public-read/admin-write coupling needed evidence-based triage before further optimization.
+
+### Method
+
+- Scanned 1,102 current in-scope files with the Understand workflow.
+- Attempted a full graph rebuild. When the account's subagent allowance was exhausted, used the skill's deterministic fallback: retain the verified unaffected graph, prune changed/deleted paths, recompute imports, re-analyze all 19 changed files, merge, and validate.
+- Generated a focused architecture evidence artifact and separately inspected request boundaries, caching, data stores, integrations, large Client Components, and unsafe assertions.
+- Classified findings as confirmed static facts, strongly supported risks, or unmeasured runtime concerns.
+
+### Changes
+
+- Added `ARCHITECTURE_REVIEW.md` with a plain-language system map, logical layers, request/data flows, dependency concentrations, failure boundaries, confidence, and a safe improvement order.
+- Expanded `SYSTEM_INVENTORY.md` with verified route, migration, graph, integration, and boundary facts.
+- Added an AST regression test that prevents Client Components from runtime-importing server Supabase and database-store modules while allowing type-only imports.
+- Removed six unnecessary `any` assertions from settings mapping without changing behavior.
+- Recorded the public-read mutation as already remediated by draft PR #3 rather than creating a conflicting duplicate patch.
+
+### Architecture evidence
+
+| Check | Result |
+| --- | --- |
+| Graph scope | 1,102 files; 2,762 nodes; 5,135 edges |
+| Import topology | 2,056 import edges; no import or self-import cycles |
+| Graph integrity | Zero duplicate IDs, dangling/incomplete nodes, missing/out-of-scan files, or unassigned file nodes |
+| Client/server targeted regression | Pass; 1 test in about 3 seconds after excluding generated output |
+| Public-read mutation | Confirmed in base; exact fix verified in draft PR #3 commit `e42c87f` |
+| Domain-to-UI imports | One placement smell; no cycle or runtime defect |
+| Full unit suite | Pass; 706 tests, 340 suites, 0 failures |
+| Storefront and admin lint | Pass; no warnings or errors |
+| Storefront and admin TypeScript | Pass |
+| Storefront and admin production builds | Pass; 54 and 37 generated pages |
+| GitHub Actions `Monorepo CI` run 38942612045, job `verify` | Pass on implementation commit `570447a`; install, tests, lint, type checks, and both builds succeeded |
+
+### Side effects and limits
+
+- No production service, database, deployment, secret, DNS, billing, or customer data was accessed or changed.
+- No component rewrite or folder move was attempted.
+- The graph is static evidence; it does not measure production latency, cache hit ratio, SQL query count, or external-provider reliability.
+- Phase 2 remains a stacked draft on the verified Phase 1 branch. GitHub-hosted CI passed on the implementation commit; the final documentation-only evidence commit is verified separately before handoff.
+
+## 2026-10-16 — Phase 3 Vercel reliability and cost control
+
+### Problem
+
+Production appeared healthy to a browser while Vercel logged repeated missing
+page-module failures for six explicit help/policy routes. Separately, the owner
+reported a $20 Vercel concern despite modest traffic.
+
+### Diagnosis
+
+- Queried production deployment metadata, build logs, runtime errors, function
+  metrics, and FOCUS billing charges read-only.
+- Confirmed the browser could receive stale cached HTML while ISR failed in the
+  background.
+- Compared the production-CMS Vercel output with the route tree and found that
+  `generateStaticParams()` for `/[slug]` returned CMS slugs already owned by
+  explicit top-level pages.
+- Measured Build CPU as 70.0% of the $4.1024 variable usage in the partial
+  16-day billing export; function invocation charges were about 0.6%.
+
+### Alternatives considered
+
+1. Make the affected pages fully dynamic or disable ISR. Rejected because it
+   increases request-time work without removing ambiguous route ownership.
+2. Delete the explicit pages and serve all CMS pages through `[slug]`. Rejected
+   as a large behavior, metadata, and component migration.
+3. Filter explicit route slugs out of CMS static parameters. Selected because
+   one URL then has one owner while ordinary CMS pages keep static generation.
+
+### Changes
+
+- Added a storefront-local static-parameter filter and wired `[slug]` to it.
+- Added a structural regression that fails if a new explicit root page is not
+  reserved from the catch-all.
+- Expanded unit-test discovery to include app-level tests in both applications.
+- Kept the runtime fix storefront-local so the Vercel admin project can skip the
+  preview build.
+
+### Local verification evidence
+
+| Check | Result |
+| --- | --- |
+| Focused route-ownership test | Pass; 3/3 |
+| Full unit suite | Pass; 712 tests, 342 suites, 0 failures |
+| Storefront and admin lint | Pass; no warnings or errors |
+| Storefront and admin TypeScript | Pass |
+| Storefront production build | Pass; 54 generated pages |
+| Admin production build | Pass; 37 generated pages; initial Windows generated-directory `EPERM` passed on immediate retry |
+
+### Preview verification evidence
+
+| Check | Result |
+| --- | --- |
+| Storefront preview | Ready; deployment `dpl_G74hyUr5gngFNsvm2sRF37JHuDf2`, exact source commit `94d4a9a` |
+| Admin preview | Canceled by ignore-build; no admin compute build for the storefront-only change |
+| Production-like page generation | Pass; 148 pages generated with connected preview environment data |
+| Affected route requests | Pass; six of six returned HTTP 200 |
+| Route ownership in HTML | Pass; six of six use explicit route chunks and none use the root `[slug]` chunk |
+| Matched route header | Pass; `x-matched-path` reports the explicit route (sample: `/privacy-policy`) |
+| Preview missing-module search | Pass; no records in the deployment-scoped 24-hour window |
+| Preview error/fatal search | Pass; no records in the deployment-scoped 24-hour window |
+
+### Side effects and limits
+
+- No production deployment, database, domain, secret, billing, or plan setting
+  was changed.
+- The isolated Vercel preview proves explicit page packaging, but production
+  remains unchanged until a separately approved release.
+- Home and `/products` latency remain a separate measured performance concern;
+  Phase 3 does not claim to improve them.
+
+## 2026-10-19 — Phase 4 dependency remediation
+
+### Changes
+
+- Upgraded `next` and `eslint-config-next` from 14.2.35 to 15.5.28.
+- Added a root override for Next's nested PostCSS at 8.5.30.
+- Kept the separate Next 16/Tailwind 4 migration out of this stack.
+
+### Verification evidence
+
+| Check | Result |
+| --- | --- |
+| `npm audit --omit=dev --json` | Pass; 0 production findings across 113 production dependencies |
+| Full `npm audit --json` | 9 development-only nodes documented: 7 high, 2 moderate |
+| Installed dependency tree | `next@15.5.28`, nested `postcss@8.5.30`, `nanoid@3.3.20` |
+| Regression gates | Tests, both TypeScript projects, both linters, and Vercel previews passed throughout the later stack |
+
+No production promotion, environment mutation, or database operation was performed.
+
+## 2026-10-19 — Phases 5–11 incremental architecture boundaries
+
+### Changes
+
+- Moved the gadget image helper from the component layer into the shared library layer and added dependency-direction regression coverage.
+- Extracted checkout request transport and browser idempotency handling.
+- Extracted product row/form normalization and product action request serialization.
+- Extracted settings row/form normalization, API document construction, and settings action request serialization.
+- Extracted the desktop checkout summary into a stateless presentation component.
+
+### Final verification evidence
+
+| Check | Result |
+| --- | --- |
+| Unit tests | Pass; 745/745, 354 suites |
+| Storefront and admin TypeScript | Pass |
+| Storefront and admin lint | Pass; no warnings or errors |
+| Checkout controller size | 1,210 lines before remediation; 977 after the reviewed slices |
+| Product form size | 725 lines before remediation; 651 after the reviewed slices |
+| Settings form size | 732 lines before remediation; 565 after the reviewed slices |
+| Phase 11 storefront preview | Ready; `dpl_CmEaAKXzX6gRoRuXhLrHnzMVBqqg` |
+| Phase 11 admin preview | Ready; `dpl_7qkQdhGKNjv8V7wQQw91cYVqo2qy` |
+
+Each change remained a separate stacked draft pull request. No draft was merged or promoted to production.
+
+## 2026-10-19 — Phase 12 evidence alignment
+
+Fresh npm audit output, installed-tree verification, the security review, release-readiness record, system inventory, performance baseline, and finding register were reconciled so the documentation distinguishes the historical Next.js 14 production snapshot from the current Next.js 15 stacked source. The report intentionally preserves the nine development-tool findings and does not claim that preview code is live in production.
+
+## 2026-10-19 — Phase 13 public settings read boundary
+
+The standalone PR #3 fix was reconciled into the verified stack: `fetchSiteSettings()` no longer imports or invokes the administrative brand-settings writer before reading `site_settings`. A source-boundary regression prevents the public store module from depending on that writer again. The complete suite passes 746/746 tests, both TypeScript projects, and both linters. Storefront preview `dpl_6mZW9fBbuKYchQTYukwjvAAtujLY` and admin preview `dpl_9iK1XyUNtqVq46YnGDgE4Bujn6a3` both reached Ready. No settings row, migration, environment, or production deployment was mutated.

@@ -14,13 +14,13 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 async function GETHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const testimonial = await getAdminTestimonial(params.id);
+  const testimonial = await getAdminTestimonial((await params).id);
   if (!testimonial)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   return NextResponse.json({ testimonial });
@@ -35,12 +35,12 @@ async function PATCHHandler(request: Request, { params }: Ctx) {
   const doc = body?.doc;
   let result;
   if (action === "publish")
-    result = await publishAdminTestimonial(params.id, doc);
+    result = await publishAdminTestimonial((await params).id, doc);
   else if (action === "unpublish")
-    result = await unpublishAdminTestimonial(params.id);
+    result = await unpublishAdminTestimonial((await params).id);
   else if (action === "discard")
-    result = await discardAdminTestimonialDraft(params.id);
-  else result = await saveAdminTestimonial(params.id, doc);
+    result = await discardAdminTestimonialDraft((await params).id);
+  else result = await saveAdminTestimonial((await params).id, doc);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },
@@ -53,7 +53,7 @@ async function DELETEHandler(request: Request, { params }: Ctx) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteAdminTestimonial(params.id);
+  const result = await deleteAdminTestimonial((await params).id);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },
