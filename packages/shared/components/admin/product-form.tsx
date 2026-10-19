@@ -31,6 +31,10 @@ const VariantAxesFields = dynamic(
   { ssr: false },
 );
 import type { CollectionPickerItem } from "@/lib/db/collection-rules";
+import {
+  buildProductActionRequest,
+  type ProductAction,
+} from "@/lib/admin-product-action-rules";
 import { productDocumentFromAdmin } from "@/lib/admin-product-form-rules";
 import {
   portableTextToPlain,
@@ -111,9 +115,7 @@ export function ProductForm({
     });
   }
 
-  async function run(
-    action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",
-  ) {
+  async function run(action: ProductAction) {
     if (activeUploads > 0 && action !== "delete") {
       setError("Please wait for media uploads to finish before saving.");
       return;
@@ -132,32 +134,25 @@ export function ProductForm({
           return;
         }
       }
+      const request = buildProductActionRequest({
+        action,
+        id,
+        document: latestPayload,
+        collectionIds: selectedCollectionIds,
+      });
+      if (!request) return;
+      if (action === "delete") {
+        if (!confirm("Delete this product? This cannot be undone.")) return;
+      }
+      const json = await adminFetch(request.path, request.init);
       if (action === "create") {
-        const json = await adminFetch("/api/admin/products", {
-          method: "POST",
-          body: JSON.stringify({
-            doc: latestPayload,
-            collectionIds: selectedCollectionIds,
-          }),
-        });
         router.replace(`/admin/products/${json.id}`);
         return;
       }
-      if (!id) return;
       if (action === "delete") {
-        if (!confirm("Delete this product? This cannot be undone.")) return;
-        await adminFetch(`/api/admin/products/${id}`, { method: "DELETE" });
         router.replace("/admin/products");
         return;
       }
-      await adminFetch(`/api/admin/products/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          action,
-          doc: latestPayload,
-          collectionIds: selectedCollectionIds,
-        }),
-      });
       if (action === "publish") setStatus("published");
       if (action === "unpublish") setStatus("unpublished");
       if (action === "discard" && product) {
