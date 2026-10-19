@@ -20,10 +20,10 @@
 | Full diff and secret review | Pass; 13 scoped files and no secret pattern detected |
 | Draft pull request CI | Pass; `Monorepo CI` run 38896519413, `verify` job 116958181777 |
 
-## Known blockers and risks
+## Historical Phase 1 blockers and current risks
 
-- Next.js 14.2.35 has unresolved runtime advisories with no non-major npm remediation.
-- The Next 16 migration must remain separate from this CI repair.
+- The Phase 1 baseline's Next.js 14.2.35 production advisories are resolved in the current stacked source by Next.js 15.5.28 and the nested PostCSS override; fresh production audit output contains zero findings.
+- Nine development-tool vulnerability nodes remain (seven high, two moderate). They require separate Tailwind/ESLint toolchain work and are not reachable from shopper request handlers.
 - PR #2 will require manual workflow reconciliation to retain Node 24 and its database test job.
 - Repository rulesets are not currently visible on the public endpoint; the confirmed required check name is `verify` from `Monorepo CI`.
 
@@ -44,7 +44,7 @@ When PR #2 is reconciled, also require its isolated Supabase database regression
 
 ## Production readiness statement
 
-Phase 1 acceptance gates pass locally and on the GitHub-hosted runner. This draft branch is still not authorized for production or merge. The unresolved Next.js advisories require a separate, tested framework remediation before the entire system can be called release-ready.
+Phase 1 acceptance gates passed locally and on the GitHub-hosted runner. The current stacked source also clears the production dependency audit and passes its later refactoring gates, but it is still not authorized for production or merge. Review, merge ordering, environment checks, and an explicit production promotion remain release requirements.
 
 ## Phase 2 architecture gates
 
@@ -66,7 +66,7 @@ Phase 2 is intentionally stacked on the Phase 1 CI branch so it does not duplica
 1. Land or otherwise reconcile the Phase 1 Node 24 CI baseline.
 2. Land or reapply PR #3's read-only storefront settings fix.
 3. Rebase Phase 2 after those decisions and rerun all gates.
-4. Keep the unresolved Next.js major-upgrade remediation separate and fully regression-tested.
+4. Preserve the verified Next.js 15.5.28 remediation and keep any later Next 16/Tailwind 4 migration separate and fully regression-tested.
 
 Large Client Components remain a maintainability risk, not a release blocker by themselves. Refactor them through small reviewed changes with characterization tests rather than delaying all delivery for a broad rewrite.
 
@@ -89,3 +89,18 @@ Large Client Components remain a maintainability risk, not a release blocker by 
 The Phase 3 source is not authorized for production. Preview acceptance gates
 pass; it becomes review-ready after hosted CI passes on the exact reviewed
 commit.
+
+## Current stacked-branch gates (Phases 4–12)
+
+| Gate | Status |
+| --- | --- |
+| Production-only npm audit | Pass; 0 findings across 113 production dependencies on 2026-10-19 |
+| Full npm audit | Documented risk; 9 development-only nodes (7 high, 2 moderate) |
+| Unit tests | Pass; 745/745 after the architecture slices |
+| Storefront and admin TypeScript | Pass |
+| Storefront and admin lint | Pass; no warnings or errors |
+| Latest storefront preview | Ready; deployment `dpl_CmEaAKXzX6gRoRuXhLrHnzMVBqqg` |
+| Latest admin preview | Ready; deployment `dpl_7qkQdhGKNjv8V7wQQw91cYVqo2qy` |
+| Production mutation | None; previews and repository draft PRs only |
+
+The stack remains intentionally unmerged and undeployed. Merge the draft pull requests in dependency order, rerun the exact final CI revision, validate environment variables without printing secrets, and perform a separately approved production promotion with rollback monitoring.

@@ -163,3 +163,51 @@ reported a $20 Vercel concern despite modest traffic.
   remains unchanged until a separately approved release.
 - Home and `/products` latency remain a separate measured performance concern;
   Phase 3 does not claim to improve them.
+
+## 2026-10-19 — Phase 4 dependency remediation
+
+### Changes
+
+- Upgraded `next` and `eslint-config-next` from 14.2.35 to 15.5.28.
+- Added a root override for Next's nested PostCSS at 8.5.30.
+- Kept the separate Next 16/Tailwind 4 migration out of this stack.
+
+### Verification evidence
+
+| Check | Result |
+| --- | --- |
+| `npm audit --omit=dev --json` | Pass; 0 production findings across 113 production dependencies |
+| Full `npm audit --json` | 9 development-only nodes documented: 7 high, 2 moderate |
+| Installed dependency tree | `next@15.5.28`, nested `postcss@8.5.30`, `nanoid@3.3.20` |
+| Regression gates | Tests, both TypeScript projects, both linters, and Vercel previews passed throughout the later stack |
+
+No production promotion, environment mutation, or database operation was performed.
+
+## 2026-10-19 — Phases 5–11 incremental architecture boundaries
+
+### Changes
+
+- Moved the gadget image helper from the component layer into the shared library layer and added dependency-direction regression coverage.
+- Extracted checkout request transport and browser idempotency handling.
+- Extracted product row/form normalization and product action request serialization.
+- Extracted settings row/form normalization, API document construction, and settings action request serialization.
+- Extracted the desktop checkout summary into a stateless presentation component.
+
+### Final verification evidence
+
+| Check | Result |
+| --- | --- |
+| Unit tests | Pass; 745/745, 354 suites |
+| Storefront and admin TypeScript | Pass |
+| Storefront and admin lint | Pass; no warnings or errors |
+| Checkout controller size | 1,210 lines before remediation; 977 after the reviewed slices |
+| Product form size | 725 lines before remediation; 651 after the reviewed slices |
+| Settings form size | 732 lines before remediation; 565 after the reviewed slices |
+| Latest storefront preview | Ready; `dpl_CmEaAKXzX6gRoRuXhLrHnzMVBqqg` |
+| Latest admin preview | Ready; `dpl_7qkQdhGKNjv8V7wQQw91cYVqo2qy` |
+
+Each change remained a separate stacked draft pull request. No draft was merged or promoted to production.
+
+## 2026-10-19 — Phase 12 evidence alignment
+
+Fresh npm audit output, installed-tree verification, the security review, release-readiness record, system inventory, performance baseline, and finding register were reconciled so the documentation distinguishes the historical Next.js 14 production snapshot from the current Next.js 15 stacked source. The report intentionally preserves the nine development-tool findings and does not claim that preview code is live in production.
