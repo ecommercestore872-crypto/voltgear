@@ -150,6 +150,21 @@ export function settingsFormFromRow(row?: SettingsRow | null) {
 
 export type SettingsFormState = ReturnType<typeof settingsFormFromRow>;
 
+export type SettingsAction = "save" | "publish" | "discard";
+
+export function buildSettingsActionRequest(
+  action: SettingsAction,
+  form: SettingsFormState,
+) {
+  return {
+    path: "/api/admin/settings",
+    init: {
+      method: "PATCH" as const,
+      body: JSON.stringify({ action, doc: buildSettingsDocument(form) }),
+    },
+  };
+}
+
 export function buildSettingsDocument(form: SettingsFormState) {
   const socialLinks = [
     form.instagram ? { platform: "instagram", url: form.instagram } : null,

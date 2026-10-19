@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  buildSettingsActionRequest,
   buildSettingsDocument,
   settingsFormFromRow,
   type SettingsRow,
@@ -42,6 +43,41 @@ describe("settingsFormFromRow", () => {
     });
 
     assert.equal(form.email, "live@example.com");
+  });
+});
+
+describe("buildSettingsActionRequest", () => {
+  for (const action of ["save", "publish", "discard"] as const) {
+    it(`builds the ${action} PATCH request`, () => {
+      const form = settingsFormFromRow({
+        brand_name: "Buy n Try",
+        email: "owner@example.com",
+      });
+
+      const request = buildSettingsActionRequest(action, form);
+      const body = JSON.parse(request.init.body) as {
+        action: string;
+        doc: { brandName: string; email: string };
+      };
+
+      assert.equal(request.path, "/api/admin/settings");
+      assert.equal(request.init.method, "PATCH");
+      assert.equal(body.action, action);
+      assert.equal(body.doc.brandName, "Buy n Try");
+      assert.equal(body.doc.email, "owner@example.com");
+    });
+  }
+
+  it("serializes a snapshot that later form edits cannot mutate", () => {
+    const form = settingsFormFromRow({ email: "before@example.com" });
+    const request = buildSettingsActionRequest("save", form);
+
+    form.email = "after@example.com";
+
+    const body = JSON.parse(request.init.body) as {
+      doc: { email: string };
+    };
+    assert.equal(body.doc.email, "before@example.com");
   });
 });
 
