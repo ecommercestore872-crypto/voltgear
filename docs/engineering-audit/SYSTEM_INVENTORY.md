@@ -64,6 +64,10 @@ The detailed layer map, request flows, dependency concentrations, confidence lev
 
 - PR #2, `ai/full-store-overhaul`: security and storefront hardening. It adds a separate Supabase database CI job and will require workflow conflict reconciliation after this Phase 1 PR.
 - PR #3, `audit/storefront-settings-read-only-20261016`: original one-file storefront settings read-path fix. Its change is now integrated with regression coverage in the current stack, so the standalone draft is superseded.
+- PR #4, `codex/phase-1-ci-security`: Node 24 CI baseline and dependency-risk documentation; this is the stack root against `main`.
+- PR #5, `codex/phase-2-architecture-audit`: architecture inventory and client/server boundary enforcement.
+- PR #6, `codex/phase-3-vercel-reliability`: storefront static-route ownership and Vercel reliability.
+- PR #7, `codex/fix-admin-manrope-font-build-20261017`: superseded standalone admin-font experiment; it is not part of the numbered stack.
 - PR #8, `codex/phase-4-dependency-security`: Next.js 15 dependency remediation.
 - PR #9, `codex/phase-5-architecture-boundaries`: shared domain/UI dependency direction.
 - PR #10, `codex/phase-6-checkout-boundaries`: checkout client requests and idempotency storage.
@@ -75,7 +79,7 @@ The detailed layer map, request flows, dependency concentrations, confidence lev
 - PR #16, `codex/phase-12-audit-documentation-alignment`: evidence and audit-document alignment.
 - PR #17, `codex/phase-13-public-settings-read-boundary`: side-effect-free public settings reads with regression coverage.
 
-PRs #8–#17 are intentionally stacked and must be reviewed and merged in order; none is a production deployment.
+PRs #4–#6 and #8–#17 are intentionally stacked and must be reviewed and merged in that order; PR #7 is not part of the stack. None is a production deployment.
 
 ## Failure boundaries in Phase 1
 
