@@ -102,6 +102,6 @@ The most central modules are `lib/types.ts` (155 importers), `lib/utils.ts` (86)
 ## What this review does not claim
 
 - Static imports do not prove production latency, query counts, cache hit rates, or provider reliability.
-- Passing tests do not remove the unresolved Next.js advisories documented in `SECURITY_REVIEW.md`.
+- Passing tests do not remove the remaining development-tool advisories documented in `SECURITY_REVIEW.md`; the production dependency audit is clean on the current stacked branch.
 - The absence of import cycles does not prove that every business transaction is atomic or idempotent.
 - No production deployment, database query, migration, secret update, billing change, or live destructive test was performed.

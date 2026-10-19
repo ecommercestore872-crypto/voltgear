@@ -1,27 +1,31 @@
 # Security Review
 
-## Phase 1 dependency assessment
+## Current dependency assessment
 
 ### Audit summary
 
 - Tool: npm 11 audit service.
 - Lockfile: npm lockfile v3.
-- Full dependency graph: 12 vulnerability nodes — 1 critical, 9 high, 2 moderate.
-- Production-only graph: 2 vulnerability nodes — direct `next` (critical aggregate) and its nested `postcss` (high aggregate).
-- Automatic non-breaking remediation: none; dry run changed zero packages.
+- Snapshot date: 2026-10-19 on source commit `8a2dbad`.
+- Full dependency graph: 9 development-only vulnerability nodes — 7 high and 2 moderate.
+- Production-only graph: 0 vulnerability nodes across 113 production dependencies.
+- Installed runtime chain: `next@15.5.28` with nested `postcss@8.5.30` enforced by the root override.
+- `npm ls` confirms `nanoid@3.3.20` and the overridden PostCSS version are already installed and locked.
 
-### Runtime chain
+### Runtime remediation
 
-`voltgear-monorepo -> next@14.2.35 -> postcss@8.4.31`
+The Phase 1 baseline used `next@14.2.35 -> postcss@8.4.31` and had two production audit nodes. The dependency remediation upgraded Next.js and its ESLint configuration to 15.5.28, updated the lockfile, and constrained Next's nested PostCSS to 8.5.30. Fresh production-only audit output is clean.
 
-The Next aggregate includes denial of service, cache behavior, rewrite/SSRF, Windows-hosted RCE, and image optimizer advisories. Applicability differs by deployment and code path. No exploitation was attempted. npm's available remediation is Next 16.4.2, a major framework migration already being evaluated on a separate branch.
+This result applies to the current stacked source and its previews. It does not claim that production already runs the upgraded framework; production remains unchanged until the reviewed stack is merged and promoted.
 
 ### Development-only chains
 
-- `eslint-config-next@14.2.35 -> @next/eslint-plugin-next -> glob@10.3.10`
-- `tailwindcss@3.4.19 -> chokidar/fast-glob/micromatch/postcss-nested/postcss-selector-parser`
+- `eslint-config-next@15.5.28 -> @next/eslint-plugin-next -> fast-glob/micromatch`
+- `tailwindcss@3.4.19 -> braces/chokidar/fast-glob/micromatch/postcss-nested/postcss-selector-parser`
 
 These execute in local development or build tooling. They are not imported into shopper request handlers, but a compromised build environment remains a supply-chain risk.
+
+`npm audit fix --dry-run --json` simulates two package reconciliations (`nanoid` and Next's nested `postcss`), but the installed tree and lockfile already resolve to the proposed versions. Its remaining advisory suggestions require an unsuitable ESLint configuration downgrade or the separate Tailwind 4 migration; neither is applied automatically.
 
 ### Workflow hardening implemented
 
@@ -39,10 +43,10 @@ These execute in local development or build tooling. They are not imported into 
 
 ### Deferred security work
 
-- Validate the Next 16 migration branch against official migration guidance and all application routes.
-- Review whether Vercel's managed image pipeline changes exposure to the AVIF advisory.
-- Add an intentional dependency policy only after an upgrade path exists; do not create a permanently failing audit gate.
-- Perform license and broader supply-chain review during the full dependency phase.
+- Evaluate Next 16 and Tailwind 4 as separate toolchain migrations with route, image, build, and browser regressions.
+- Keep CI inputs trusted and lockfile installs deterministic while the development-only pattern-parser findings remain.
+- Add an intentional dependency policy only when it can distinguish production from accepted development-only findings; do not create a permanently failing gate.
+- Perform license and broader provenance review as a separate supply-chain task; this update validates vulnerabilities, not every transitive package license.
 
 ### Sensitive-data statement
 

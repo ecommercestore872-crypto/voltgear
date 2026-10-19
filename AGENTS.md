@@ -22,7 +22,7 @@ Avoid complexity that does not improve a customer, merchant or engineering outco
 
 ## Current stack
 
-- Next.js 14 App Router
+- Next.js 15 App Router
 - React 18
 - TypeScript
 - Tailwind CSS

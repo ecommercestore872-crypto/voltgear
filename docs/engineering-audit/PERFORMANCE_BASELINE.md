@@ -8,7 +8,7 @@ The earlier Vercel cost investigation established that repeated builds were the 
 
 ## Phase 1 build baseline
 
-- Framework: Next.js 14.2.35.
+- Framework at the Phase 1 baseline: Next.js 14.2.35. The current stacked source uses Next.js 15.5.28; no performance improvement is claimed without a controlled before/after measurement.
 - CI runner target: GitHub-hosted Ubuntu with Node 24.
 - Production runtime target: Vercel Node 24 in Sydney.
 - Build timing will be recorded from the Phase 1 draft PR workflow because a clean Linux CI run is the reproducible comparison point.
