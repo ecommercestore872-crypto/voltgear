@@ -16,8 +16,9 @@ import { MediaField } from "@/components/admin/media-field";
 import type { PublishStatus } from "@/lib/db/publish";
 import type { ChromeLink } from "@/lib/chrome-nav-rules";
 import {
-  buildSettingsDocument,
+  buildSettingsActionRequest,
   settingsFormFromRow,
+  type SettingsAction,
   type SettingsRow,
 } from "@/lib/admin-settings-form-rules";
 
@@ -106,14 +107,12 @@ export function SettingsForm({
 
   const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
-  async function run(action: "save" | "publish" | "discard") {
+  async function run(action: SettingsAction) {
     setSaving(true);
     setError(null);
     try {
-      await adminFetch("/api/admin/settings", {
-        method: "PATCH",
-        body: JSON.stringify({ action, doc: buildSettingsDocument(form) }),
-      });
+      const request = buildSettingsActionRequest(action, form);
+      await adminFetch(request.path, request.init);
       if (action === "publish") setStatus("published");
       if (action === "discard") {
         const reset = settingsFormFromRow({ ...settings, draft: null });
