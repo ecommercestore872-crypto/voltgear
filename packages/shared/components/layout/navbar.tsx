@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -23,6 +22,7 @@ import {
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { useCart } from "@/components/cart/cart-provider";
 import { MegaMenu } from "@/components/layout/mega-menu";
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import {
   FALLBACK_SHOP_TYPES,
   shopTypeLinks,

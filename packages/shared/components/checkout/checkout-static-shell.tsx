@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Banknote, ShieldCheck, Truck } from "lucide-react";
 
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { formatPrice } from "@/lib/utils";
@@ -21,8 +21,11 @@ export async function CheckoutStaticShell() {
           <span className="sm:hidden">Secure cash on delivery checkout</span>
           <span className="hidden sm:inline">Checkout — cash on delivery</span>
         </h1>
-        <p className="mt-1 max-w-2xl text-xs leading-snug text-[var(--g-taupe)] sm:text-sm">
-          <span className="sm:hidden">Name, mobile &amp; address — pay when your order arrives.</span>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--g-taupe)]">
+          <span className="sm:hidden">
+            Enter your name, mobile number and delivery address. Pay cash when
+            your order arrives.
+          </span>
           <span className="hidden sm:inline">Enter your details below. Pay when your order arrives.</span>
         </p>
         <ul className="mt-2 hidden flex-wrap gap-2 text-xs text-[var(--g-charcoal)] sm:flex sm:mt-4 sm:gap-3 sm:text-sm">

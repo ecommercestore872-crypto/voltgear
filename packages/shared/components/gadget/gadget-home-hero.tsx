@@ -2,7 +2,7 @@ import { preload } from "react-dom";
 
 import { fetchHeroSlides } from "@/lib/db/store";
 import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
-import { heroLcpImageUrl } from "@/lib/gadget-hero-lcp";
+import { heroLcpPreload } from "@/lib/gadget-hero-lcp";
 import { products2Href } from "@/lib/gadget-preview";
 
 import { GadgetHeroSlider } from "./gadget-hero-slider";
@@ -31,15 +31,35 @@ export async function GadgetHomeHero() {
     slides = [];
   }
 
-  const lcpMobile =
-    slides[0] != null ? heroLcpImageUrl(slides[0], { mobile: true }) : "";
-  const lcpDesktop =
-    slides[0] != null ? heroLcpImageUrl(slides[0], { mobile: false }) : "";
-  if (lcpMobile) {
-    preload(lcpMobile, { as: "image", fetchPriority: "high" });
-  }
-  if (lcpDesktop && lcpDesktop !== lcpMobile) {
-    preload(lcpDesktop, { as: "image", fetchPriority: "low" });
+  if (slides[0]) {
+    const mobile = heroLcpPreload(slides[0], {
+      mobile: true,
+      quality: 62,
+    });
+    const desktop = heroLcpPreload(slides[0], {
+      mobile: false,
+      quality: 65,
+    });
+    const hasDedicatedMobileImage = mobile.href !== desktop.href;
+
+    if (mobile.href) {
+      preload(mobile.href, {
+        as: "image",
+        fetchPriority: "high",
+        imageSrcSet: mobile.imageSrcSet,
+        imageSizes: "100vw",
+        media: hasDedicatedMobileImage ? "(max-width: 639px)" : undefined,
+      });
+    }
+    if (desktop.href && hasDedicatedMobileImage) {
+      preload(desktop.href, {
+        as: "image",
+        fetchPriority: "high",
+        imageSrcSet: desktop.imageSrcSet,
+        imageSizes: "(max-width: 1024px) 90vw, 1280px",
+        media: "(min-width: 640px)",
+      });
+    }
   }
 
   return (

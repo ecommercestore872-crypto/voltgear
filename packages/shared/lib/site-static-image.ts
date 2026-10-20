@@ -20,6 +20,12 @@ export function siteStaticImageUrl(
   { w = 640 }: { w?: number } = {},
 ): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
+  if (
+    w <= 256 &&
+    /^\/categories\/[^/]+\.webp$/i.test(normalized)
+  ) {
+    return normalized.replace("/categories/", "/categories/thumb/");
+  }
   /**
    * Pre-built storefront artwork is already compressed and deployed with the
    * app. Keep it on the first-party CDN instead of wrapping a remote URL in

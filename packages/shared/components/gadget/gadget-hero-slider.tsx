@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
@@ -18,6 +18,62 @@ const INTERVAL_MS = 5500;
 const FADE_MS = 700;
 
 export type { GadgetHeroBanner } from "@/lib/gadget-hero-banners";
+
+function ResponsiveHeroImage({
+  banner,
+  eager,
+}: {
+  banner: GadgetHeroBanner;
+  eager: boolean;
+}) {
+  if (!banner.mobileImageUrl) {
+    return (
+      <Image
+        loader={cloudinaryLoader}
+        src={banner.imageUrl}
+        alt=""
+        fill
+        priority={eager}
+        fetchPriority={eager ? "high" : "auto"}
+        quality={eager ? 65 : 72}
+        className="object-cover object-center z-[1]"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
+      />
+    );
+  }
+
+  const mobile = getImageProps({
+    loader: cloudinaryLoader,
+    src: banner.mobileImageUrl,
+    alt: "",
+    fill: true,
+    priority: eager,
+    fetchPriority: eager ? "high" : "auto",
+    quality: eager ? 62 : 70,
+    sizes: "100vw",
+  }).props;
+  const desktop = getImageProps({
+    loader: cloudinaryLoader,
+    src: banner.imageUrl,
+    alt: "",
+    fill: true,
+    priority: eager,
+    fetchPriority: eager ? "high" : "auto",
+    quality: eager ? 65 : 72,
+    sizes: "(max-width: 1024px) 90vw, 1280px",
+  }).props;
+
+  return (
+    <picture>
+      <source
+        media="(min-width: 640px)"
+        srcSet={desktop.srcSet}
+        sizes={desktop.sizes}
+      />
+      <img {...mobile} className="object-cover object-center z-[1]" />
+    </picture>
+  );
+}
 
 export function GadgetHeroSlider({
   slides = [],
@@ -130,36 +186,7 @@ export function GadgetHeroSlider({
                 aria-hidden={!isActive}
               >
                 {shouldPaint ? (
-                  <>
-                    {banner.mobileImageUrl ? (
-                      <Image
-                        loader={cloudinaryLoader}
-                        src={banner.mobileImageUrl}
-                        alt=""
-                        fill
-                        priority={i === 0}
-                        fetchPriority={i === 0 ? "high" : "auto"}
-                        quality={i === 0 ? 62 : 70}
-                        className="object-cover sm:hidden object-center z-[1]"
-                        sizes="100vw"
-                      />
-                    ) : null}
-                    <Image
-                      loader={cloudinaryLoader}
-                      src={banner.imageUrl}
-                      alt=""
-                      fill
-                      priority={i === 0}
-                      fetchPriority={i === 0 ? "high" : "auto"}
-                      quality={i === 0 ? 65 : 72}
-                      className={
-                        banner.mobileImageUrl
-                          ? "hidden sm:block object-cover object-center z-[1]"
-                          : "object-cover object-center z-[1]"
-                      }
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
-                    />
-                  </>
+                  <ResponsiveHeroImage banner={banner} eager={i === 0} />
                 ) : null}
               </div>
             );

@@ -43,6 +43,8 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: https://buyntryy.com
           ADMIN_TOKEN: ci-placeholder-not-for-production
+      - name: Enforce storefront performance budgets
+        run: npm run check:performance-budget
       - name: Build admin
         run: npm run build:admin
         env:

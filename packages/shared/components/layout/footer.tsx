@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import {
   FALLBACK_SHOP_TYPES,
   shopTypeLinks,

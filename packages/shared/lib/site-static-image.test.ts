@@ -7,7 +7,10 @@ describe("siteStaticImageUrl", () => {
   it("returns local path when Cloudinary is not configured", () => {
     const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     delete process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    assert.equal(siteStaticImageUrl("/categories/charger.webp", { w: 256 }), "/categories/charger.webp");
+    assert.equal(
+      siteStaticImageUrl("/categories/charger.webp", { w: 256 }),
+      "/categories/thumb/charger.webp",
+    );
     if (prev) process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prev;
   });
 
@@ -32,5 +35,12 @@ describe("siteStaticImageUrl", () => {
         process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prevCloud;
       }
     }
+  });
+
+  it("keeps the full category artwork when a larger rendition is requested", () => {
+    assert.equal(
+      siteStaticImageUrl("/categories/charger.webp", { w: 640 }),
+      "/categories/charger.webp",
+    );
   });
 });

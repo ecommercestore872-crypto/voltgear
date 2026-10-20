@@ -64,7 +64,7 @@ describe("storefront shell must not suspend on ad query strings", () => {
     assert.doesNotMatch(src, /^\s*["']use client["']/);
     assert.doesNotMatch(src, /ssr\s*:\s*false/);
     assert.match(src, /<CheckoutStaticShell\s*\/>/);
-    assert.match(src, /<CheckoutPageClient\s*\/>/);
+    assert.match(src, /<CheckoutPageGate\s*\/>/);
 
     const shell = readShared("components/checkout/checkout-static-shell.tsx");
     assert.doesNotMatch(shell, /premium-royal-header-band premium-royal-enter/);
@@ -72,13 +72,11 @@ describe("storefront shell must not suspend on ad query strings", () => {
   });
 
   it("checkout reserves layout space until local cart state is hydrated", () => {
-    const clientPath = join(
-      sharedRoot,
-      "components/checkout/checkout-page-client.tsx",
-    );
-    const src = readFileSync(clientPath, "utf8");
+    const src = readShared("components/checkout/checkout-page-gate.tsx");
     assert.match(src, /if \(!hydrated\)/);
     assert.match(src, /<CheckoutHydrationFallback\s*\/>/);
+    assert.match(src, /dynamic\(/);
+    assert.match(src, /items\.length === 0/);
 
     const fallback = readShared(
       "components/checkout/checkout-hydration-fallback.tsx",
@@ -95,11 +93,24 @@ describe("storefront shell must not suspend on ad query strings", () => {
     const layout = readFileSync(layoutPath, "utf8");
     const meta = readShared("components/analytics/meta-pixel.tsx");
     const adsense = readShared("components/ads/adsense-loader.tsx");
+    const clarity = readShared("components/analytics/clarity-deferred.tsx");
 
     assert.doesNotMatch(layout, /setTimeout\(load,\s*9000\)/);
     assert.match(layout, /<AdSenseLoaderClientOnly/);
     assert.match(meta, /consent !== "all"/);
     assert.match(adsense, /consent !== "all"/);
+    assert.match(clarity, /consent !== "all"/);
+  });
+
+  it("shopper links avoid speculative route downloads by default", () => {
+    const link = readShared("components/navigation/storefront-link.tsx");
+    const gadgetNavbar = readShared("components/gadget/gadget-navbar.tsx");
+    const gadgetFooter = readShared("components/gadget/gadget-footer.tsx");
+
+    assert.match(link, /prefetch = false/);
+    assert.match(link, /<NextLink prefetch=\{prefetch\}/);
+    assert.match(gadgetNavbar, /StorefrontLink as Link/);
+    assert.match(gadgetFooter, /StorefrontLink as Link/);
   });
 
   it("keeps audited storefront controls accessible", () => {
