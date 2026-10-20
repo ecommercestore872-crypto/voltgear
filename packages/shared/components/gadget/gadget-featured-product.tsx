@@ -97,14 +97,13 @@ export function GadgetFeaturedProduct({
           <Link
             href={href}
             prefetch={false}
-            aria-label={product.name}
             className="flex relative min-h-[23rem] sm:min-h-[26rem] lg:min-h-0 h-full bg-[var(--g-cream)]"
           >
             {image ? (
               <div className="relative w-full h-full flex items-center justify-center p-0 sm:p-8 lg:p-8">
                 <Image
                   src={image}
-                  alt=""
+                  alt={product.name}
                   fill
                   quality={90}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"

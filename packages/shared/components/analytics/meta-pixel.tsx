@@ -2,20 +2,39 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  COOKIE_CONSENT_CHANGE_EVENT,
+  COOKIE_CONSENT_STORAGE_KEY,
+  type CookieConsentChoice,
+} from "@/components/legal/cookie-consent-bar";
 import { ensureMetaPageView } from "@/lib/meta-pixel-events";
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 export function MetaPixel() {
   const pathname = usePathname();
+  const [consent, setConsent] = useState<CookieConsentChoice | null>(null);
 
   useEffect(() => {
-    if (!META_PIXEL_ID) return;
-    ensureMetaPageView(pathname);
-  }, [pathname]);
+    const stored = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+    setConsent(stored === "all" || stored === "essential" ? stored : null);
 
-  if (!META_PIXEL_ID) return null;
+    function onConsent(event: Event) {
+      const choice = (event as CustomEvent<CookieConsentChoice>).detail;
+      setConsent(choice === "all" || choice === "essential" ? choice : null);
+    }
+
+    window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+    return () => window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+  }, []);
+
+  useEffect(() => {
+    if (!META_PIXEL_ID || consent !== "all") return;
+    ensureMetaPageView(pathname);
+  }, [consent, pathname]);
+
+  if (!META_PIXEL_ID || consent !== "all") return null;
 
   return (
     <>

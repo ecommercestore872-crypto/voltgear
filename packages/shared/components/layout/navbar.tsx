@@ -117,7 +117,6 @@ export function Navbar({
     <Link
       href="/"
       className="flex min-h-11 shrink-0 items-center group"
-      aria-label={`${brandName} home`}
     >
       <ShopBrandMark logo={settings?.logo} name={brandName} compact priority />
     </Link>
@@ -152,6 +151,7 @@ export function Navbar({
   const MobileCartButton = (
     <button
       onClick={openCart}
+      aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
       className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-foreground transition-colors duration-200 hover:bg-secondary active:scale-95"
     >
       <ShoppingCart className="h-5 w-5" />
@@ -232,6 +232,7 @@ export function Navbar({
             />
             <button
               type="submit"
+              aria-label="Submit search"
               className="h-full px-6 bg-primary text-primary-foreground font-semibold flex items-center justify-center hover:bg-primary-hover transition-colors"
             >
               <Search className="h-4 w-4" />

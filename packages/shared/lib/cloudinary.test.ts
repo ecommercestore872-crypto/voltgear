@@ -72,6 +72,32 @@ describe("cloudinaryImageUrl", () => {
     }
   });
 
+  it("cloudinaryLoader serves pre-optimized gadget and brand artwork from origin", () => {
+    const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";
+    try {
+      assert.equal(
+        cloudinaryLoader({
+          src: "/gadget/products/prod-studio-max.webp",
+          width: 640,
+          quality: 70,
+        }),
+        "/gadget/products/prod-studio-max.webp",
+      );
+      assert.equal(
+        cloudinaryLoader({
+          src: "/brand/bnt-seal.webp",
+          width: 192,
+          quality: 70,
+        }),
+        "/brand/bnt-seal.webp",
+      );
+    } finally {
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      else process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prev;
+    }
+  });
+
   it("strips transform segments from upload tail", () => {
     assert.equal(
       cloudinaryAssetPathAfterUpload("f_auto,q_60,w_800/folder/x.webp"),

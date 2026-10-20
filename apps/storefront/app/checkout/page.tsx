@@ -1,18 +1,11 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-const CheckoutPageClient = dynamic(
-  () =>
-    import("@/components/checkout/checkout-page-client").then(
-      (m) => m.default,
-    ),
-  {
-    ssr: false,
-    loading: () => null,
-  },
-);
+import CheckoutPageClient from "@/components/checkout/checkout-page-client";
+import { CheckoutStaticShell } from "@/components/checkout/checkout-static-shell";
 
 export default function CheckoutPage() {
-  return <CheckoutPageClient />;
+  return (
+    <>
+      <CheckoutStaticShell />
+      <CheckoutPageClient />
+    </>
+  );
 }

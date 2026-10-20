@@ -269,7 +269,6 @@ export function GadgetNavbar({
           <Link
             href="/"
             className="group flex min-h-11 shrink-0 items-center"
-            aria-label={`${brandName} home`}
           >
             <ShopBrandMark
               logo={settings?.logo}

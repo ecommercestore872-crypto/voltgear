@@ -192,7 +192,6 @@ export function GadgetFooter({
             <Link
               href="/"
               className="inline-flex min-h-11 w-fit items-center"
-              aria-label={`${brandName} home`}
             >
               <ShopBrandMark logo={settings?.logo} name={brandName} invert />
             </Link>

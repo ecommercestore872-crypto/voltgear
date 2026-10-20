@@ -281,12 +281,17 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
               aria-current={i === active ? "true" : undefined}
               aria-label={`Go to review ${i + 1}`}
               onClick={() => goTo(i)}
-              className={`h-2 rounded-full transition-all duration-300 ease-out ${
-                i === active
-                  ? "w-7 bg-[var(--g-forest)]"
-                  : "w-2 bg-[var(--g-taupe)]/35 hover:bg-[var(--g-taupe)]/60"
-              }`}
-            />
+              className="flex h-8 min-w-8 items-center justify-center rounded-full"
+            >
+              <span
+                aria-hidden
+                className={`block h-2 rounded-full transition-all duration-300 ease-out ${
+                  i === active
+                    ? "w-7 bg-[var(--g-forest)]"
+                    : "w-2 bg-[var(--g-taupe)]/35"
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>

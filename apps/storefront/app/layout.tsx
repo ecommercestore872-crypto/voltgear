@@ -7,6 +7,7 @@ import {
   CartEffectsClientOnly,
   ClarityClientOnly,
   CompareBarClientOnly,
+  AdSenseLoaderClientOnly,
   MetaPixelClientOnly,
   ReviewReminderClientOnly,
   ScrollToTopClientOnly,
@@ -200,11 +201,6 @@ export default async function RootLayout({
               "if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister()})}).catch(function(){})}",
           }}
         />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var done=false;function load(){if(done)return;done=true;var ad=document.createElement('script');ad.async=1;ad.crossOrigin='anonymous';ad.src='${ADSENSE_SCRIPT_SRC}';document.head.appendChild(ad);}['scroll','click','touchstart','keydown'].forEach(function(ev){window.addEventListener(ev,load,{once:true,passive:true})});setTimeout(load, 9000);})();`,
-          }}
-        />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans antialiased overflow-x-hidden w-full relative">
@@ -255,6 +251,7 @@ export default async function RootLayout({
         <DeferredUntilIdle timeoutMs={5500}>
           <MetaPixelClientOnly />
         </DeferredUntilIdle>
+        <AdSenseLoaderClientOnly src={ADSENSE_SCRIPT_SRC} />
         <ClarityClientOnly projectId={CLARITY_ID} host={clarityHost} />
       </body>
     </html>

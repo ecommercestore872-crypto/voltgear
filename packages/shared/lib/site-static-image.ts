@@ -20,8 +20,16 @@ export function siteStaticImageUrl(
   { w = 640 }: { w?: number } = {},
 ): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
-  /** Pre-built category cutouts — serve from origin (local + prod), no Cloudinary fetch. */
-  if (normalized.startsWith("/categories/")) {
+  /**
+   * Pre-built storefront artwork is already compressed and deployed with the
+   * app. Keep it on the first-party CDN instead of wrapping a remote URL in
+   * Cloudinary's upload delivery type, which returns 404.
+   */
+  if (
+    normalized.startsWith("/categories/") ||
+    normalized.startsWith("/gadget/") ||
+    normalized.startsWith("/brand/")
+  ) {
     return normalized;
   }
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;

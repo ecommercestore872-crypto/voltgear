@@ -89,8 +89,15 @@ export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
     return cloudinaryImageUrl(src, { w: width, q });
   }
   if (src.startsWith("/") && !src.startsWith("//")) {
-    // Blog covers live in /public/blog as pre-optimized WebP — do not proxy via fetch.
-    if (src.startsWith("/blog/") || src.startsWith("/categories/")) {
+    // Versioned storefront artwork is already compressed in /public. Serving it
+    // from the app's CDN avoids an invalid Cloudinary upload URL around a remote
+    // origin URL and removes an unnecessary third-party hop.
+    if (
+      src.startsWith("/blog/") ||
+      src.startsWith("/categories/") ||
+      src.startsWith("/gadget/") ||
+      src.startsWith("/brand/")
+    ) {
       return src;
     }
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;

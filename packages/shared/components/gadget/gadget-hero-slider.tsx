@@ -213,7 +213,7 @@ export function GadgetHeroSlider({
                     type="button"
                     aria-label={`Go to slide ${i + 1}`}
                     onClick={() => setIndex(i)}
-                    className="relative flex h-6 items-center focus:outline-none"
+                    className="relative flex h-8 min-w-8 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <span
                       className={`relative block h-1.5 rounded-full overflow-hidden transition-colors duration-300 ${
