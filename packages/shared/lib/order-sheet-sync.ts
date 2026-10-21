@@ -98,4 +98,3 @@ export function scheduleOrderSheetSync(orderId: string): void {
   if (!normalized) return;
   deferAfterResponse(() => syncOrderToGoogleSheet(normalized));
 }
-
