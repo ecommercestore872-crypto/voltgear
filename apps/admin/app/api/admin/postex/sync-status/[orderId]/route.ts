@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
 import { getOrderByPublicId, updateOrderStatusRow } from "@/lib/db/store";
+import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 import { runPostExStatusSyncForOrderId } from "@/lib/postex-status-sync";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ async function POSTHandler(
       if (!updated) {
         return { ok: false, error: "Could not update order status." };
       }
+      scheduleOrderSheetSync(orderId);
       return { ok: true };
     },
   });
