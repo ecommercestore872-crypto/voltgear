@@ -85,7 +85,7 @@ export const fetchHeroSlides = unstable_cache(
   async (includeDemo = false): Promise<HeroSlide[]> => {
     const { data, error } = await execDemoQuery(() =>
       demoFilter(
-        db().from("hero_slides").select("*").eq("status", LIVE),
+        db().from("hero_slides").select("id,title,subtitle,image_url,product_id,sort_order").eq("status", LIVE),
         includeDemo,
       )
         .order("sort_order", { ascending: true })
@@ -107,7 +107,9 @@ export const fetchHeroSlides = unstable_cache(
       demoFilter(
         db()
           .from("products")
-          .select(PRODUCT_EMBED)
+          // Campaigns need identity and availability, not PDP copy, reviews or
+          // galleries. Keep quantity so sold-out CTAs still follow stock truth.
+          .select("id,name,slug,category,price,stock_status,quantity,is_demo,status")
           .in("id", productIds)
           .eq("status", LIVE),
         includeDemo,
@@ -131,7 +133,7 @@ export const fetchHeroSlides = unstable_cache(
     }
     return slides.slice(0, MAX_HERO_SLIDES);
   },
-  ["fetchHeroSlides"],
+  ["fetchHeroSlides-v2-slim"],
   {
     revalidate: STOREFRONT_CATALOG_REVALIDATE,
     tags: [STOREFRONT_HERO_SLIDES_CACHE_TAG],

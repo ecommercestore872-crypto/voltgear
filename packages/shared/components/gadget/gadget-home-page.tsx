@@ -1,18 +1,16 @@
 import { Suspense } from "react";
 
-import {
-  GadgetHomeHero,
-  GadgetHomeHeroFallback,
-} from "@/components/gadget/gadget-home-hero";
+import { GadgetHomeHero } from "@/components/gadget/gadget-home-hero";
 import { GadgetHomeSections } from "@/components/gadget/gadget-home-sections";
 
 /** Shared Biometic homepage used by live `/`. */
-export function GadgetHomePage() {
+export async function GadgetHomePage() {
+  // Put the real banner in the page's first HTML, including ISR regeneration.
+  // Only the heavier below-the-fold catalog remains independently streamed.
+  const hero = await GadgetHomeHero();
   return (
     <div className="text-[var(--g-charcoal)]">
-      <Suspense fallback={<GadgetHomeHeroFallback />}>
-        <GadgetHomeHero />
-      </Suspense>
+      {hero}
       <Suspense fallback={null}>
         <GadgetHomeSections />
       </Suspense>

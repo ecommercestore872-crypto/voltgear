@@ -61,3 +61,19 @@ export function heroLcpPreload(
     ).join(", "),
   };
 }
+
+/** Match ResponsiveHeroImage's picture sources, quality and sizes exactly. */
+export function heroLcpPreloads(slide: Pick<HeroSlide, "imageUrl" | "subtitle">) {
+  const hasMobile = Boolean(parseHeroSlideMeta(slide.subtitle).mobile?.trim());
+  if (!hasMobile) {
+    return [{
+      ...heroLcpPreload(slide, { mobile: false, quality: 65 }),
+      imageSizes: "(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px",
+      media: undefined,
+    }].filter((image) => image.href);
+  }
+  return [
+    { ...heroLcpPreload(slide, { mobile: true, quality: 62 }), imageSizes: "100vw", media: "(max-width: 639px)" },
+    { ...heroLcpPreload(slide, { mobile: false, quality: 65 }), imageSizes: "(max-width: 1024px) 90vw, 1280px", media: "(min-width: 640px)" },
+  ].filter((image) => image.href);
+}

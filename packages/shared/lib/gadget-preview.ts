@@ -1,6 +1,9 @@
 export function isGadgetPreviewPath(pathname: string): boolean {
   return (
     pathname === "/" ||
+    // Vercel can serialize the root ISR document with this internal pathname.
+    // Keep its server chrome identical to the browser's public `/` pathname.
+    pathname === "/index" ||
     pathname === "/product" ||
     pathname.startsWith("/product/") ||
     pathname === "/products" ||
