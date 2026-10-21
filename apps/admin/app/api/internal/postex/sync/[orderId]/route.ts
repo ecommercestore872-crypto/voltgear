@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { isCronAuthorized } from "@/lib/deploy-rules";
 import { getOrderByPublicId, updateOrderStatusRow } from "@/lib/db/store";
+import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 import { runPostExStatusSyncForOrderId } from "@/lib/postex-status-sync";
 
 export const runtime = "nodejs";
@@ -38,6 +39,7 @@ export async function POST(
       if (!updated) {
         return { ok: false, error: "Could not update order status." };
       }
+      scheduleOrderSheetSync(id);
       return { ok: true };
     },
   });

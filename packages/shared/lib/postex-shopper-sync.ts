@@ -1,5 +1,6 @@
 import { resolveAdminUpstreamBaseUrl } from "@/lib/deploy-rules";
 import { getOrderByPublicId, updateOrderStatusRow } from "@/lib/db/store";
+import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 import { runPostExStatusSyncForOrderId } from "@/lib/postex-status-sync";
 
 const lastSyncAt = new Map<string, number>();
@@ -21,6 +22,7 @@ function postExSyncDeps() {
       if (!updated) {
         return { ok: false as const, error: "Could not update order status." };
       }
+      scheduleOrderSheetSync(id);
       return { ok: true as const };
     },
   };
@@ -76,6 +78,7 @@ export async function syncPostExOrdersBatch(orderIds: string[]): Promise<{
           if (!updated) {
             return { ok: false, error: "Could not update order status." };
           }
+          scheduleOrderSheetSync(oid);
           return { ok: true };
         },
       });

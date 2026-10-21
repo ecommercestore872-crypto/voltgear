@@ -18,6 +18,7 @@ import {
   getLightweightOrders as getLightweightOrdersFromDb,
 } from "@/lib/db/store";
 import { ORDER_STATUS_VALUES } from "@/lib/db/order-rules";
+import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 import type {
   EmailEventKind,
   Order,
@@ -94,7 +95,9 @@ export async function updateOrderStatus(
   status: OrderStatus,
   note?: string
 ): Promise<Order | null> {
-  return updateOrderStatusRow(orderId, status, note);
+  const updated = await updateOrderStatusRow(orderId, status, note);
+  if (updated) scheduleOrderSheetSync(orderId);
+  return updated;
 }
 
 export async function cancelOrder(
@@ -103,7 +106,9 @@ export async function cancelOrder(
 ): Promise<
   { ok: true } | { ok: false; error: string; status: 404 | 409 | 503 }
 > {
-  return cancelOrderRestoreInventoryRow(orderId, note);
+  const result = await cancelOrderRestoreInventoryRow(orderId, note);
+  if (result.ok) scheduleOrderSheetSync(orderId);
+  return result;
 }
 
 export async function deleteOrder(orderId: string) {

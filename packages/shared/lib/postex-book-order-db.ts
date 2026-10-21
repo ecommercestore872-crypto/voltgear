@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
+
 /** Atomic claim: only one concurrent book request may proceed per order. */
 export async function claimPostExBookingRow(
   client: SupabaseClient,
@@ -59,5 +61,6 @@ export async function completePostExBookingRow(
     return { ok: false, error: "Could not save PostEx tracking on the order." };
   }
 
+  scheduleOrderSheetSync(orderId);
   return { ok: true };
 }
