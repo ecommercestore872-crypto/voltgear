@@ -2,7 +2,7 @@
 export default function StorefrontLoading() {
   return (
     <div
-      className="flex min-h-[40vh] items-center justify-center bg-[var(--g-cream)] px-6 py-12 text-[var(--g-forest)]"
+      className="flex min-h-dvh items-center justify-center bg-[var(--g-cream)] px-6 py-12 text-[var(--g-forest)]"
       role="status"
       aria-busy="true"
       aria-label="Loading"

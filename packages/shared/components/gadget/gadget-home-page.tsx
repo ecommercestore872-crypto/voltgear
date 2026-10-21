@@ -9,7 +9,8 @@ export async function GadgetHomePage() {
   // Only the heavier below-the-fold catalog remains independently streamed.
   const hero = await GadgetHomeHero();
   return (
-    <div className="text-[var(--g-charcoal)]">
+    // Keep the footer below the viewport while lower sections stream in.
+    <div className="min-h-dvh text-[var(--g-charcoal)]">
       {hero}
       <Suspense fallback={null}>
         <GadgetHomeSections />

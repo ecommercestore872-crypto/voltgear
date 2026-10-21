@@ -1,14 +1,21 @@
-// Read-only baseline: no cache invalidation or authenticated requests.
+import { readFile } from "node:fs/promises";
+
+// Read-only baseline: no cache invalidation. --html can inspect an authenticated
+// response saved by `vercel curl` without exposing credentials to this script.
+const htmlFile = process.argv[2] === "--html" ? process.argv[3] : undefined;
 const url = process.argv[2] || "https://buyntryy.com/";
-for (let run = 1; run <= 2; run++) {
+for (let run = 1; run <= (htmlFile ? 1 : 2); run++) {
   const start = performance.now();
-  const response = await fetch(url);
+  const response = htmlFile ? undefined : await fetch(url);
   const ttfbMs = Math.round(performance.now() - start);
-  const html = await response.text();
+  const html = htmlFile ? await readFile(htmlFile, "utf8") : await response.text();
   console.log(JSON.stringify({
-    run, url, status: response.status,
-    cache: response.headers.get("x-vercel-cache"), ttfbMs,
-    totalMs: Math.round(performance.now() - start),
+    run, source: htmlFile || url, status: response?.status,
+    finalUrl: response?.url,
+    title: html.match(/<title>([^<]*)<\/title>/)?.[1],
+    cache: response?.headers.get("x-vercel-cache"),
+    ttfbMs: htmlFile ? undefined : ttfbMs,
+    totalMs: htmlFile ? undefined : Math.round(performance.now() - start),
     gadgetHeader: html.includes("gadget-main-nav"),
     blankHero: html.includes("Loading campaign banners"),
     header: html.match(/<header[^>]*>/)?.[0],
