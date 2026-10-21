@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Banknote,
   Mail,
@@ -11,6 +10,7 @@ import {
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
 import { GadgetSocialGlyph } from "@/components/gadget/gadget-social-glyphs";
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import { getPublicSocialLinks } from "@/lib/social-links-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
@@ -192,7 +192,6 @@ export function GadgetFooter({
             <Link
               href="/"
               className="inline-flex min-h-11 w-fit items-center"
-              aria-label={`${brandName} home`}
             >
               <ShopBrandMark logo={settings?.logo} name={brandName} invert />
             </Link>

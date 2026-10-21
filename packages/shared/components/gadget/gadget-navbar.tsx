@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -15,6 +14,8 @@ import {
   Truck,
   X,
 } from "@phosphor-icons/react";
+
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 
 import { useCart } from "@/components/cart/cart-provider";
 import {
@@ -269,7 +270,6 @@ export function GadgetNavbar({
           <Link
             href="/"
             className="group flex min-h-11 shrink-0 items-center"
-            aria-label={`${brandName} home`}
           >
             <ShopBrandMark
               logo={settings?.logo}

@@ -47,6 +47,7 @@ interface CartContextValue {
   items: CartItem[];
   count: number;
   subtotal: number;
+  hydrated: boolean;
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -180,6 +181,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       count,
       subtotal,
+      hydrated,
       isOpen,
       openCart,
       closeCart,
@@ -193,6 +195,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       count,
       subtotal,
+      hydrated,
       isOpen,
       openCart,
       closeCart,
@@ -211,6 +214,7 @@ const SSR_CART: CartContextValue = {
   items: [],
   count: 0,
   subtotal: 0,
+  hydrated: false,
   isOpen: false,
   openCart: () => {},
   closeCart: () => {},

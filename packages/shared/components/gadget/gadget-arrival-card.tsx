@@ -189,7 +189,11 @@ export function GadgetArrivalCard({
                 type="button"
                 onClick={handleBuy}
                 title={`Add ${product.name} to cart`}
-                aria-label={`Add ${product.name} to cart`}
+                aria-label={
+                  added
+                    ? `Added to cart: ${product.name}`
+                    : `Add to cart: ${product.name}`
+                }
                 className="gadget-buy-cta flex h-12 w-full items-center justify-center gap-1.5 rounded-xl text-[13px] font-semibold transition duration-200 active:scale-[0.99]"
               >
                 {added ? (

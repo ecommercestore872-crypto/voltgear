@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import {
   FALLBACK_SHOP_TYPES,
   shopTypeLinks,
@@ -28,7 +27,6 @@ export function Footer({
           <Link
             href="/"
             className="inline-flex min-h-11 w-fit items-center"
-            aria-label={`${brandName} home`}
           >
             <ShopBrandMark logo={settings?.logo} name={brandName} invert />
           </Link>
@@ -67,9 +65,9 @@ export function Footer({
 
         {/* Shop column */}
         <div>
-          <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/50">
+          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/50">
             Shop
-          </h3>
+          </h2>
           <ul className="space-y-3">
             {links.map((link) => (
               <li key={link.href}>
@@ -94,9 +92,9 @@ export function Footer({
 
         {/* Company column */}
         <div>
-          <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/50">
+          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/50">
             Company
-          </h3>
+          </h2>
           <ul className="space-y-3">
             <li>
               <Link
@@ -143,9 +141,9 @@ export function Footer({
 
         {/* Support column */}
         <div>
-          <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/50">
+          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/50">
             Customer Support
-          </h3>
+          </h2>
           <ul className="space-y-3">
             <li>
               <Link
@@ -192,9 +190,9 @@ export function Footer({
           {/* Contact details — only shown when real data is configured */}
           {(settings?.email || settings?.phone || settings?.address) && (
             <div className="mt-8">
-              <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-white/50">
+              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-white/50">
                 Get in Touch
-              </h3>
+              </h2>
               <ul className="space-y-2 text-sm text-white/70">
                 {settings?.email && (
                   <li>

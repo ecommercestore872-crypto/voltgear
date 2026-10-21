@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import { COOKIE_CONSENT_STORAGE_KEY } from "@/components/legal/cookie-consent-bar";
+import {
+  COOKIE_CONSENT_CHANGE_EVENT,
+  COOKIE_CONSENT_STORAGE_KEY,
+  type CookieConsentChoice,
+} from "@/components/legal/cookie-consent-bar";
+import { ADSENSE_READY_EVENT } from "@/components/ads/adsense-loader";
 import { allowsAdsenseDisplayAds } from "@/lib/adsense-placement";
 import { resolveAdsensePublisherId } from "@/lib/adsense-policy";
 import { BLOG_AD_MIN_HEIGHT_PX } from "@/lib/blog-safety-rules";
@@ -27,9 +32,18 @@ export function AdSenseUnit({
   const [adsAllowed, setAdsAllowed] = useState(false);
 
   useEffect(() => {
-    setAdsAllowed(
-      window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all",
-    );
+    const syncConsent = () => {
+      setAdsAllowed(
+        window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all",
+      );
+    };
+    const onConsent = (event: Event) => {
+      const choice = (event as CustomEvent<CookieConsentChoice>).detail;
+      setAdsAllowed(choice === "all");
+    };
+    syncConsent();
+    window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+    return () => window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
   }, [pathname]);
 
   useEffect(() => {
@@ -41,13 +55,19 @@ export function AdSenseUnit({
     ) {
       return;
     }
-    try {
-      // @ts-expect-error adsbygoogle is injected by Google's script
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-      pushed.current = true;
-    } catch (err) {
-      console.warn("AdSense push error:", err);
-    }
+    const pushAd = () => {
+      if (pushed.current) return;
+      try {
+        // @ts-expect-error adsbygoogle is injected by Google's script
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        pushed.current = true;
+      } catch (err) {
+        console.warn("AdSense push error:", err);
+      }
+    };
+    window.addEventListener(ADSENSE_READY_EVENT, pushAd, { once: true });
+    if (document.getElementById("adsense-site-script")) pushAd();
+    return () => window.removeEventListener(ADSENSE_READY_EVENT, pushAd);
   }, [adsAllowed, pathname, slot]);
 
   if (!slot || !adsAllowed || !allowsAdsenseDisplayAds(pathname)) return null;

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -9,7 +8,6 @@ import {
   Loader2,
   Lock,
   ShieldCheck,
-  ShoppingBag,
   AlertTriangle,
   Gift,
   MapPin,
@@ -27,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 
 import { useCart, cartLineKey } from "@/components/cart/cart-provider";
 import { useDealQuote } from "@/components/deals/use-deal-quote";
@@ -542,26 +541,6 @@ export default function CheckoutPageClient() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, items, subtotal]);
-
-  /* ── Empty cart ─────────────────────────────────────────────────── */
-  if (items.length === 0) {
-    return (
-      <div className="container mx-auto max-w-xl px-4 py-16 lg:px-8">
-        <div className="rounded-2xl border border-dashed p-6 text-center sm:p-12">
-          <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h1 className="mt-4 text-2xl font-bold tracking-tight">
-            Your cart is empty
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Add some products and come back to check out.
-          </p>
-          <Button asChild className="mt-6">
-            <Link href={shopHref}>Start Shopping</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="premium-royal-page-bg min-h-dvh overflow-x-clip font-sans">

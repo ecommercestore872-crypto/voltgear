@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Banknote, ShieldCheck, Truck } from "lucide-react";
 
+import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { formatPrice } from "@/lib/utils";
@@ -12,17 +12,20 @@ export async function CheckoutStaticShell() {
   const threshold = Number(config.freeShippingThreshold ?? 0);
 
   return (
-    <div className="premium-royal-header-band premium-royal-enter">
+    <div className="premium-royal-header-band">
       <div className="mx-auto max-w-6xl px-4 py-3 sm:py-5 lg:px-8 lg:py-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--g-gold,#c9a227)] sm:text-[11px]">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--g-forest,#123d2b)] sm:text-[11px]">
           Premium · original · nationwide COD
         </p>
-        <h1 className="gadget-display mt-1 text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:mt-1.5 sm:text-2xl lg:text-3xl">
-          <span className="sm:hidden">Your delivery details</span>
+        <h1 className="gadget-display mt-1 text-2xl font-semibold leading-tight tracking-tight text-[var(--g-charcoal)] sm:mt-1.5 lg:text-3xl">
+          <span className="sm:hidden">Secure cash on delivery checkout</span>
           <span className="hidden sm:inline">Checkout — cash on delivery</span>
         </h1>
-        <p className="mt-1 max-w-2xl text-xs leading-snug text-[var(--g-taupe)] sm:text-sm">
-          <span className="sm:hidden">Name, mobile &amp; address — pay when your order arrives.</span>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--g-taupe)]">
+          <span className="sm:hidden">
+            Enter your name, mobile number and delivery address. Pay cash when
+            your order arrives.
+          </span>
           <span className="hidden sm:inline">Enter your details below. Pay when your order arrives.</span>
         </p>
         <ul className="mt-2 hidden flex-wrap gap-2 text-xs text-[var(--g-charcoal)] sm:flex sm:mt-4 sm:gap-3 sm:text-sm">
