@@ -55,6 +55,17 @@ describe("isGadgetContinuityPath", () => {
 });
 
 describe("shouldUseGadgetChrome", () => {
+  it("keeps the Vercel root ISR alias identical before and after hydration", () => {
+    for (const sessionActive of [false, true]) {
+      assert.equal(shouldUseGadgetChrome("/index", { sessionActive }), true);
+      assert.equal(shouldUseGadgetChrome("/index", { sessionActive }), shouldUseGadgetChrome("/", { sessionActive }));
+    }
+    assert.equal(isGadgetPreviewPath("/index"), true);
+    for (const path of ["/indexnow", "/index/foo", "/admin"]) {
+      assert.equal(isGadgetPreviewPath(path), false);
+      assert.equal(shouldUseGadgetChrome(path), false);
+    }
+  });
   it("keeps preview routes, continuity pages, and gated checkout", () => {
     assert.equal(shouldUseGadgetChrome("/"), true);
     assert.equal(shouldUseGadgetChrome("/order/VG-1"), true);
