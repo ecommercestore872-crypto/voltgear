@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,16 @@ import type { AdminOrderTabCounts } from "@/lib/db/admin-orders-rules";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RemoveDemoData } from "@/components/admin/remove-demo-data";
-import { readAdminUiState, writeAdminUiState } from "@/lib/admin-ui-persist";
+import {
+  acknowledgeOrderListNavigation,
+  createOrderListNavigationState,
+  editOrderListNavigation,
+  ordersListHref,
+  recordOrderListNavigation,
+} from "@/lib/admin-order-navigation-rules";
+import { formatAdminOrderDate as formatDate } from "@/lib/admin-date";
 
 import { StatusBadge } from "@/components/admin/status-badge";
-
-const ORDERS_SEARCH_KEY = "admin.orders.search";
-const ORDERS_TAB_KEY = "admin.orders.tab";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
@@ -28,26 +32,6 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const TABS = ["all", "new", "processing", "shipped", "delivered", "cancelled"];
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
-function ordersListHref(
-  basePath: string,
-  opts: { tab: string; page: number; q: string },
-): string {
-  const params = new URLSearchParams();
-  if (opts.tab && opts.tab !== "all") params.set("tab", opts.tab);
-  if (opts.page > 1) params.set("page", String(opts.page));
-  const q = opts.q.trim();
-  if (q.length >= 2) params.set("q", q);
-  const qs = params.toString();
-  return qs ? `${basePath}?${qs}` : basePath;
-}
 
 export function OrderList({
   orders,
@@ -70,38 +54,64 @@ export function OrderList({
   const pathname = usePathname() || "/admin/orders";
   const [q, setQ] = useState(initialQuery);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigationRef = useRef(createOrderListNavigationState());
+  const routeRef = useRef({ pathname, activeTab, page });
+  routeRef.current = { pathname, activeTab, page };
+
+  const cancelPendingSearch = useCallback(() => {
+    if (debounceRef.current !== null) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
+    const handlePopState = () => {
+      cancelPendingSearch();
+      navigationRef.current = createOrderListNavigationState();
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      cancelPendingSearch();
+    };
+  }, [cancelPendingSearch]);
+
+  const committedHref = ordersListHref(pathname, {
+    tab: activeTab,
+    page,
+    q: initialQuery,
+  });
+
+  useEffect(() => {
+    const acknowledgement = acknowledgeOrderListNavigation(
+      navigationRef.current,
+      committedHref,
+    );
+    navigationRef.current = acknowledgement.state;
+    // An older search response must not erase a newer edit or its debounce.
+    if (acknowledgement.preserveDraft) return;
+    cancelPendingSearch();
     setQ(initialQuery);
-  }, [initialQuery]);
-
-  useEffect(() => {
-    if (initialQuery) return;
-    const savedQ = readAdminUiState(ORDERS_SEARCH_KEY);
-    if (savedQ) setQ(savedQ);
-  }, [initialQuery]);
-
-  useEffect(() => {
-    writeAdminUiState(ORDERS_SEARCH_KEY, q);
-  }, [q]);
-
-  useEffect(() => {
-    writeAdminUiState(ORDERS_TAB_KEY, activeTab);
-  }, [activeTab]);
+  }, [committedHref, initialQuery, cancelPendingSearch]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   function navigate(next: { tab?: string; page?: number; q?: string }) {
-    const tab = next.tab ?? activeTab;
-    const nextPage = next.page ?? page;
+    cancelPendingSearch();
+    const tab = next.tab ?? routeRef.current.activeTab;
+    const nextPage = next.page ?? routeRef.current.page;
     const query = next.q ?? q;
-    router.push(
-      ordersListHref(pathname, {
-        tab,
-        page: nextPage,
-        q: query,
-      }),
+    const href = ordersListHref(routeRef.current.pathname, {
+      tab,
+      page: nextPage,
+      q: query,
+    });
+    navigationRef.current = recordOrderListNavigation(
+      navigationRef.current,
+      href,
     );
+    router.push(href);
   }
 
   function handleTabChange(tab: string) {
@@ -109,8 +119,9 @@ export function OrderList({
   }
 
   function handleSearchChange(value: string) {
+    navigationRef.current = editOrderListNavigation(navigationRef.current);
     setQ(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    cancelPendingSearch();
     debounceRef.current = setTimeout(() => {
       navigate({ q: value, page: 1 });
     }, 350);
@@ -142,11 +153,16 @@ export function OrderList({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="overflow-x-auto">
-          <div className="flex gap-1 rounded-lg border bg-muted/40 p-1 w-max">
+          <div
+            role="group"
+            aria-label="Filter orders by status"
+            className="flex gap-1 rounded-lg border bg-muted/40 p-1 w-max"
+          >
             {TABS.map((t) => (
               <button
                 key={t}
                 type="button"
+                aria-pressed={activeTab === t}
                 onClick={() => handleTabChange(t)}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
                   activeTab === t
@@ -198,6 +214,7 @@ export function OrderList({
                   <div>
                     <Link
                       href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
+                      onClick={cancelPendingSearch}
                       className="text-lg font-bold tracking-tight text-foreground hover:text-blue-600 transition-colors"
                     >
                       {o.orderId}
@@ -226,6 +243,7 @@ export function OrderList({
 
                 <Link
                   href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
+                  onClick={cancelPendingSearch}
                   className="block w-full rounded-xl bg-muted/50 py-3 text-center text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
                 >
                   Manage Order
@@ -261,6 +279,7 @@ export function OrderList({
                     <td className="px-4 py-3 font-medium">
                       <Link
                         href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
+                        onClick={cancelPendingSearch}
                         className="tabular-nums hover:text-blue-600 transition-colors"
                       >
                         {o.orderId}
@@ -298,6 +317,7 @@ export function OrderList({
                   size="sm"
                   className="h-8 w-8 p-0"
                   disabled={page <= 1}
+                  aria-label="Previous page of orders"
                   onClick={() => navigate({ page: page - 1 })}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -307,6 +327,7 @@ export function OrderList({
                   size="sm"
                   className="h-8 w-8 p-0"
                   disabled={page >= totalPages}
+                  aria-label="Next page of orders"
                   onClick={() => navigate({ page: page + 1 })}
                 >
                   <ChevronRight className="h-4 w-4" />

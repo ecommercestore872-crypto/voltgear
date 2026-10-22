@@ -6,6 +6,7 @@ import {
 } from "@/lib/postex-order-payload";
 
 import type { Order } from "@/lib/types";
+import { canBookOrderWithPostEx } from "./postex-booking-rules";
 
 
 
@@ -111,7 +112,7 @@ export async function runPostExBookOrder(
 
 ): Promise<PostExBookOrderHttpResult> {
 
-  const trimmedId = orderId?.trim();
+  const trimmedId = typeof orderId === "string" ? orderId.trim() : "";
 
   if (!trimmedId) {
 
@@ -138,6 +139,13 @@ export async function runPostExBookOrder(
   }
 
 
+
+  if (!canBookOrderWithPostEx(order)) {
+    return {
+      status: 409,
+      body: { error: "Only live new or processing orders can be booked with PostEx." },
+    };
+  }
 
   const built = await deps.buildPostExPayload(order);
 

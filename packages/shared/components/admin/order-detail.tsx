@@ -18,6 +18,8 @@ import {
   orderEmailIssueFromHistory,
 } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
+import { canBookOrderWithPostEx } from "@/lib/postex-booking-rules";
+import { formatAdminOrderDate as formatDate } from "@/lib/admin-date";
 import { formatPrice } from "@/lib/utils";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -27,14 +29,6 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
-
-function formatDate(iso?: string | null): string {
-  if (!iso) return "";
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
 
 export function OrderDetail({
   order,
@@ -376,7 +370,7 @@ export function OrderDetail({
             <Button
               type="button"
               variant="outline"
-              disabled={postExBusy || Boolean(postexTracking)}
+              disabled={postExBusy || Boolean(postexTracking) || !canBookOrderWithPostEx(order)}
               onClick={() => void handleCheckPostExReady()}
               className="shadow-sm"
             >
@@ -385,7 +379,7 @@ export function OrderDetail({
             <Button
               type="button"
               variant="outline"
-              disabled={postExBusy || Boolean(postexTracking)}
+              disabled={postExBusy || Boolean(postexTracking) || !canBookOrderWithPostEx(order)}
               onClick={() => void handleBookPostEx()}
               className="inline-flex items-center gap-1.5 shadow-sm border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-900 dark:text-blue-300 dark:bg-blue-950/30 dark:hover:bg-blue-900/50"
             >
