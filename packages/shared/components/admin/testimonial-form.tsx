@@ -47,7 +47,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Row | null }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form, !isNew);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
   async function run(
     action: "create" | "save" | "publish" | "unpublish" | "discard" | "delete",

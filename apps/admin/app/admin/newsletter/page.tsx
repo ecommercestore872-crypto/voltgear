@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import { NewsletterList } from "@/components/admin/newsletter-list";
-import { listNewsletterSubscribers } from "@/lib/db/newsletter-store";
+import { listNewsletterSubscribersPage, type NewsletterPage } from "@/lib/db/newsletter-store";
+import { NEWSLETTER_PAGE_SIZE, newsletterListFilters } from "@/lib/newsletter-pagination-rules";
 
 export const metadata: Metadata = {
   title: "Newsletter",
@@ -10,11 +11,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminNewsletterPage() {
-  let subscribers: Awaited<ReturnType<typeof listNewsletterSubscribers>> = [];
+export default async function AdminNewsletterPage({ searchParams }: {
+  searchParams: Promise<{ status?: string; q?: string; page?: string }>;
+}) {
+  const filters = newsletterListFilters(await searchParams);
+  let result: NewsletterPage = { subscribers: [], total: 0, page: filters.page, pageSize: NEWSLETTER_PAGE_SIZE };
   let loadError: string | null = null;
   try {
-    subscribers = await listNewsletterSubscribers();
+    result = await listNewsletterSubscribersPage(filters);
   } catch {
     loadError = "Newsletter data is temporarily unavailable. Please retry shortly.";
   }
@@ -26,7 +30,7 @@ export default async function AdminNewsletterPage() {
           {loadError}
         </p>
       ) : null}
-      <NewsletterList subscribers={subscribers} />
+      <NewsletterList subscribers={result.subscribers} total={result.total} pageSize={result.pageSize} filters={filters} loadFailed={Boolean(loadError)} />
     </div>
   );
 }

@@ -84,6 +84,13 @@ function productSearch(rows: Record<string, unknown>[] = [], error: Error | null
 }
 
 describe("admin command product search", () => {
+  it("does not interpolate PostgREST punctuation or wildcard operators from input", async () => {
+    const subject = productSearch();
+    await subject.store.listAdminProductsForCommandSearch('watch),name.eq.("speaker"_*)');
+    assert.equal(subject.calls.find((call) => call.method === "or")?.args[0],
+      "name.ilike.%watch name.eq. speaker%,slug.ilike.%watch name.eq. speaker%,category.ilike.%watch name.eq. speaker%");
+  });
+
   it("uses one bounded narrow query without image hydration or a draft lookup", async () => {
     const subject = productSearch([{ id: "p1", name: "Watch", slug: "watch" }]);
     const rows = await subject.store.listAdminProductsForCommandSearch("  %watch%  ");

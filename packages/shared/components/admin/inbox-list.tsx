@@ -1,28 +1,66 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import type { InboxItem } from "@/lib/db/inbox-store";
 import { adminFetch } from "@/components/admin/admin-fetch";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
+import { Input } from "@/components/ui/input";
+import { formatAdminDate } from "@/lib/admin-date";
+import { inboxListFilters, inboxListHref, inboxNoteIsDirty, type InboxListFilters } from "@/lib/inbox-pagination-rules";
 
-export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
+export function InboxList({ initialItems, total, pageSize, filters, loadFailed = false }: {
+  initialItems: InboxItem[]; total: number; pageSize: number;
+  filters: InboxListFilters; loadFailed?: boolean;
+}) {
+  const router = useRouter();
+  const [navigating, startNavigation] = useTransition();
   const [items, setItems] = useState(initialItems);
-  const [filter, setFilter] = useState<"all" | "contact" | "complaint" | "new">(
-    "all",
-  );
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [matchingTotal, setMatchingTotal] = useState(total);
+  const [query, setQuery] = useState(filters.q);
+  const [selected, setSelected] = useState<InboxItem | null>(null);
+  const selectedIdRef = useRef<string | null>(null);
   const [note, setNote] = useState("");
+  const [savedNote, setSavedNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const visible = useMemo(() => {
-    if (filter === "all") return items;
-    if (filter === "new") return items.filter((i) => i.status === "new");
-    return items.filter((i) => i.kind === filter);
-  }, [items, filter]);
+  const dirty = inboxNoteIsDirty(note, savedNote);
+  useUnsavedChangesGuard(dirty);
+  const routeKey = inboxListHref(filters);
 
-  const selected = items.find((i) => i.id === selectedId) ?? null;
+  useEffect(() => {
+    setItems(initialItems);
+    setMatchingTotal(total);
+  }, [initialItems, total]);
+
+  useEffect(() => {
+    setSelected(null);
+    selectedIdRef.current = null;
+    setNote("");
+    setSavedNote("");
+    setQuery(filters.q);
+  }, [routeKey, filters.q]);
+
+  function confirmDiscardNote() {
+    return !dirty || window.confirm("Discard the unsaved internal note?");
+  }
+
+  function navigate(next: Partial<InboxListFilters>) {
+    if (busy || navigating || !confirmDiscardNote()) return;
+    setSelected(null);
+    selectedIdRef.current = null;
+    setNote("");
+    setSavedNote("");
+    const nextFilters = inboxListFilters({ ...filters, q: query, ...next });
+    setQuery(nextFilters.q);
+    startNavigation(() => router.push(inboxListHref(nextFilters)));
+  }
+
+  const visible = items;
+  const totalPages = Math.max(1, Math.ceil(matchingTotal / pageSize));
 
   async function patch(
     id: string,
@@ -36,7 +74,14 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
         body: JSON.stringify(body),
       })) as { item?: InboxItem };
       if (!data.item) throw new Error("Update failed");
-      setItems((prev) => prev.map((i) => (i.id === id ? data.item! : i)));
+      const updated = data.item;
+      setItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
+      setSelected((prev) => prev?.id === id ? updated : prev);
+      if (body.adminNote !== undefined && selectedIdRef.current === id) {
+        setNote(updated.adminNote ?? "");
+        setSavedNote(updated.adminNote ?? "");
+      }
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Update failed");
     } finally {
@@ -45,8 +90,11 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
   }
 
   async function openItem(item: InboxItem) {
-    setSelectedId(item.id);
+    if (busy || navigating || selected?.id === item.id || !confirmDiscardNote()) return;
+    selectedIdRef.current = item.id;
+    setSelected(item);
     setNote(item.adminNote ?? "");
+    setSavedNote(item.adminNote ?? "");
     if (item.status === "new") {
       await patch(item.id, { status: "read" });
     }
@@ -71,36 +119,29 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
         </div>
       </div>
 
-      <div
-        className="flex flex-wrap gap-2"
-        role="group"
-        aria-label="Filter inbox"
-      >
-        {(
-          [
-            ["all", "All Messages"],
-            ["new", "Unread"],
-            ["contact", "Standard Inquiries"],
-            ["complaint", "Complaints"],
-          ] as const
-        ).map(([id, label]) => (
-          <Button
-            key={id}
-            type="button"
-            size="sm"
-            className="rounded-full shadow-sm"
-            variant={filter === id ? "default" : "outline"}
-            onClick={() => setFilter(id)}
-          >
-            {label}
-            {id === "new" && (
-              <span className="ml-2 inline-flex items-center justify-center bg-white/20 text-white rounded-full px-1.5 py-0.5 text-[9px] font-bold">
-                {items.filter(i => i.status === "new").length}
-              </span>
-            )}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <select aria-label="Message kind" className="h-9 rounded-md border bg-background px-3 text-sm"
+          value={filters.kind} disabled={busy || navigating}
+          onChange={(event) => navigate({ kind: event.target.value as InboxListFilters["kind"], page: 1 })}>
+          <option value="all">All message kinds</option>
+          <option value="contact">Standard inquiries</option>
+          <option value="complaint">Complaints</option>
+        </select>
+        <select aria-label="Message status" className="h-9 rounded-md border bg-background px-3 text-sm"
+          value={filters.status} disabled={busy || navigating}
+          onChange={(event) => navigate({ status: event.target.value as InboxListFilters["status"], page: 1 })}>
+          <option value="all">All statuses</option>
+          <option value="new">Unread</option>
+          <option value="read">Read</option>
+          <option value="closed">Closed</option>
+        </select>
+        <form className="flex flex-1 gap-2 min-w-64" onSubmit={(event) => { event.preventDefault(); navigate({ page: 1 }); }}>
+          <Input aria-label="Search inbox" placeholder="Search name, email, subject or message" maxLength={80}
+            value={query} onChange={(event) => setQuery(event.target.value)} disabled={busy || navigating} />
+          <Button type="submit" variant="outline" disabled={busy || navigating}>Search</Button>
+        </form>
       </div>
+      {!loadFailed && <p className="text-sm text-muted-foreground" aria-live="polite">{matchingTotal} messages match the current filters. Page {filters.page}.</p>}
       
       {error && (
         <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm">
@@ -115,7 +156,7 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
             <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">Message Queue</h2>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {visible.length === 0 ? (
+            {loadFailed ? <p className="p-8 text-sm text-muted-foreground">Messages could not be loaded. Retry this page.</p> : visible.length === 0 ? (
                <div className="flex flex-col items-center justify-center p-10 text-center">
                  <p className="text-sm text-muted-foreground">Inbox zero! No messages match this filter.</p>
                </div>
@@ -124,9 +165,11 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
                 <button
                   key={item.id}
                   type="button"
+                  disabled={busy || navigating}
+                  aria-pressed={selected?.id === item.id}
                   onClick={() => openItem(item)}
                   className={`w-full text-left p-4 rounded-xl transition-all duration-200 border-2 ${
-                    selectedId === item.id
+                    selected?.id === item.id
                       ? "border-primary bg-primary/5 shadow-sm"
                       : "border-transparent hover:bg-muted/40"
                   }`}
@@ -166,7 +209,7 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
                   <p className="text-[11px] font-medium text-muted-foreground/70 flex items-center justify-between">
                     <span className="truncate">{item.email}</span>
                     <span className="shrink-0 pl-2">
-                       {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ""}
+                       {formatAdminDate(item.createdAt)}
                     </span>
                   </p>
                 </button>
@@ -235,10 +278,12 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
                 
                 {/* Admin Note Section */}
                 <div className="mt-8 space-y-3">
-                  <label className="block text-sm font-semibold tracking-wide text-foreground">
+                  <label htmlFor="inbox-admin-note" className="block text-sm font-semibold tracking-wide text-foreground">
                     Internal Note (Not visible to customer)
                   </label>
                   <textarea
+                    id="inbox-admin-note"
+                    disabled={busy || navigating}
                     maxLength={2000}
                     className="w-full min-h-[120px] rounded-xl border bg-card px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm transition-all focus:border-primary resize-y"
                     placeholder="Leave a note about how this was handled..."
@@ -282,6 +327,15 @@ export function InboxList({ initialItems }: { initialItems: InboxItem[] }) {
               </div>
             </>
           )}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <p className="text-muted-foreground">Showing {items.length} messages on this page{loadFailed ? "" : ` of ${matchingTotal} matching messages`}.</p>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" disabled={busy || navigating || filters.page <= 1}
+            onClick={() => navigate({ page: filters.page - 1 })}>Previous page</Button>
+          <Button type="button" variant="outline" disabled={busy || navigating || loadFailed || filters.page >= totalPages}
+            onClick={() => navigate({ page: filters.page + 1 })}>Next page</Button>
         </div>
       </div>
     </div>

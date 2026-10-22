@@ -13,6 +13,10 @@ timings have not been measured**. Build sizes are not runtime measurements.
 | Dashboard preferred path | Order aggregate RPC + four catalog queries + pending-review count | Preserved; deployed RPC availability unverified |
 | Dashboard fallback | Multiple overlapping/bounded-by-provider order reads | Unchanged; do not label totals complete without deployed-path/cardinality check |
 | Page/blog index | Draft JSON loaded for presence badge | Unchanged; narrow projection follow-up |
+| Product combined search | Max 120 candidates, then client filtering; incorrect totals/pages | One exact-count filtered query plus page-only draft lookup, max 48 default rows; category scans unchanged |
+| Inbox/newsletter lists | Up to 200/500 records serialized, then browser filters | 50-row counted server pages; exact counts may have DB cost, not yet timed |
+| Newsletter CSV | First 500 subscribers only | Bounded 500-row keyset batches; complete synthetic 607-subscriber fixture, not live timed export |
+| Command dialog | Dynamic component mounted on every admin page | Loaded on first open, retained afterward for close focus; no route latency claim |
 
 Next controlled measurement protocol:
 

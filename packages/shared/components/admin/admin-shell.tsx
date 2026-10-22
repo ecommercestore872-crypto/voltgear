@@ -3,8 +3,8 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { LogOut, Menu, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LogOut, Menu, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { clearAdminToken } from "@/lib/admin-token";
@@ -90,6 +90,27 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchMounted, setSearchMounted] = useState(false);
+  const searchReturnFocus = useRef<HTMLElement | null>(null);
+  const changeSearchOpen = useCallback((next: boolean) => {
+    if (next) setSearchMounted(true);
+    if (next && document.activeElement instanceof HTMLElement) {
+      searchReturnFocus.current = document.activeElement;
+    }
+    setSearchOpen(next);
+  }, []);
+  useEffect(() => {
+    if (isAdminLoginPath(pathname)) return;
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        changeSearchOpen(!searchOpen);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pathname, searchOpen, changeSearchOpen]);
 
   if (isAdminLoginPath(pathname)) {
     return <>{children}</>;
@@ -151,9 +172,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           ))}
         </nav>
-        <p className="mt-6 px-3 text-[0.65rem] text-[var(--g-taupe)]">
+        <button type="button" onClick={() => changeSearchOpen(true)}
+          className="admin-nav-link mt-6 w-full rounded-md px-3 py-2 text-left text-xs"
+          aria-label="Search admin">
           Search · Ctrl/⌘ K
-        </p>
+        </button>
         <Button
           variant="ghost"
           size="sm"
@@ -175,10 +198,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
           <span className="text-sm font-medium">Admin</span>
+          <Button type="button" variant="outline" size="icon" className="ml-auto"
+            aria-label="Search admin" onClick={() => changeSearchOpen(true)}>
+            <Search className="h-4 w-4" />
+          </Button>
         </header>
         <div className="flex-1 overflow-x-auto p-4 lg:p-8">{children}</div>
       </div>
-      <AdminCommandPalette />
+      {searchMounted ? <AdminCommandPalette open={searchOpen} onOpenChange={changeSearchOpen} returnFocusTo={searchReturnFocus} /> : null}
     </div>
   );
 }

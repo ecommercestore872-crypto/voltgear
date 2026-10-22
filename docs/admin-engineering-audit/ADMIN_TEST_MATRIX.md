@@ -12,7 +12,7 @@ Tests describe what was actually exercised, not business acceptance by implicati
 | Order timestamps | Browser reproduced SSR/client locale hydration mismatch; shared explicit en-GB/Asia-Karachi formatter; 2/2 timezone/invalid-date tests passed | Other admin date renderers still need review |
 | Command search | Real adapter/API loaded with mocked dependencies; narrow query, no hydration/draft query, input/candidate bounds, scoring/ranking/12-hit cap, error propagation; 9/9 focused passed | Not DB execution-plan/payload timing evidence |
 | Category freshness | Runtime cache registration guard checks same tag invalidated by product writes | Does not execute Next cache invalidation |
-| Whole monorepo | Final `npm run ci` exit 0: 801/801 tests, both lint/typechecks and both production builds | Local no-production-env evidence, not deployed integration |
+| Whole monorepo, previous batch | `npm run ci` exit 0: 801/801 tests, both lint/typechecks and both production builds | Current follow-up gate is recorded below; not deployed integration |
 | All admin business modules | Feature/source map and independent review | No blanket CRUD, publication or communication acceptance claim |
 
 Responsive fixture checks: actual CSS widths 360, 390, 768, 1024, 1440 for actual
@@ -29,8 +29,43 @@ email or provider-booking scripts against production as harmless health checks.
 
 ## Combined gate result
 
-`npm run ci` completed with exit 0 on the final source state: 801/801 tests, both
+The previous combined gate completed with exit 0: 801/801 tests, both
 lint runs, both TypeScript checks, and both production builds passed. This includes
 the final delayed-search-response correction and client-safe email marker. No fixture
 route was included in the build. `git diff --check` passed. Earlier intermediate
 full gates are not substituted for this final result.
+
+## Operational-list and editor follow-up evidence
+
+| Area | Observed evidence | Limitation |
+| --- | --- | --- |
+| Product list | Fluent adapter fixtures: combined filters before range/count, search beyond 120, stable ordering, draft lookup scoped to returned page, malformed search, API auth/errors | Mock contract, not deployed query plans |
+| Product navigation | Controlled hook sequences: newer typing survives earlier URL responses; category/stock/page preserved; debounce cleared on navigation/unmount | Not browser adversarial transport integration |
+| Inbox directory | 300+ synthetic rows, older records reachable, matching totals/filters, invalid filters, API auth/errors | No real customer data read or status/note save |
+| Newsletter directory/export | 612-row fixture, 607 subscribed across multiple batches, keyset deletion stability, empty/error/cancel/stream failure cases, CSV auth/formula rules retained | Subscription updates during export can change membership; not transactional snapshot |
+| New editors/customer errors | Dirty hook pristine/edit/save/reset simulation; guards ensure new forms enable tracking; actual transpiled customer page rejects mocked DB error | No browser save/publish or live customer directory |
+| Palette transport | Controlled hook/effect simulation reverses transport completions despite ignored abort, closes during request, suppresses late failure | Browser/network timing not inferred from unit simulation |
+| Palette browser | Visible mobile control, focus trap, Escape, settled opener return focus, Ctrl-K reopening; actual Radix dialog within 360/390/768/1024/1440 viewports; no warning/error logs | Synthetic local route, not authenticated deployed acceptance |
+| Inbox browser | Read-status fixture opened without mutation; editing then selection emitted discard-note confirmation | Browser tool consumed confirmation before Cancel path could be verified; retention not claimed |
+| Lists browser | Actual products/inbox/newsletter components at all five widths, no document-level horizontal overflow | Small synthetic dataset, no real filtering/navigation/mutations or CSV download |
+| Dates | Explicit en-GB/Pakistan order/inbox/newsletter date tests and fixture rendering | Not all admin date surfaces reviewed |
+
+The temporary fixture route and development cache were removed before staging/build.
+Screenshot evidence uses only synthetic content, stored outside the repository.
+Independent workers' final review was interrupted by usage limits; main-agent source,
+browser and gate checks do not substitute for that unfinished independent release review.
+
+Final follow-up gate on the combined source saved in `05b1ff2` and `d8c7cbf`:
+`npm run ci` exited 0: **836/836 tests**, both lint runs, both TypeScript checks,
+both production builds. `npm run check:performance-budget` exited 0; all ten
+storefront JavaScript/CSS checks passed. `git diff --check` passed. Fixture absent
+from source and generated route manifests. No production environment file was loaded.
+
+Post-gate build-script regression: initial PR25 preview checks appeared green, but both
+deployments were CANCELED and logs explicitly attributed this to ignored-build exit 0.
+The unsafe missing-baseline HEAD^ fallback was replaced with conservative build behavior.
+Actual script tested through controlled process/git dependencies: missing/zero baseline,
+multi-commit range, verified docs/other-app skip, failed/empty diff and unknown target.
+Focused script/scope run **8/8**, complete subsequent `npm test` **840/840**, admin
+typecheck and `node --check scripts/vercel-ignore-build.mjs` passed. This last change
+only affects build gating, not application bundles; no second full CI build is claimed.

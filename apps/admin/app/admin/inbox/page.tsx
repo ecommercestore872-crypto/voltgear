@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import { InboxList } from "@/components/admin/inbox-list";
-import { listContactSubmissions } from "@/lib/db/inbox-store";
+import { listContactSubmissionsPage, type InboxPage } from "@/lib/db/inbox-store";
+import { INBOX_PAGE_SIZE, inboxListFilters } from "@/lib/inbox-pagination-rules";
 
 export const metadata: Metadata = {
   title: "Inbox",
@@ -10,11 +11,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminInboxPage() {
-  let items: Awaited<ReturnType<typeof listContactSubmissions>> = [];
+export default async function AdminInboxPage({ searchParams }: {
+  searchParams: Promise<{ kind?: string; status?: string; q?: string; page?: string }>;
+}) {
+  const filters = inboxListFilters(await searchParams);
+  let result: InboxPage = { items: [], total: 0, page: filters.page, pageSize: INBOX_PAGE_SIZE };
   let loadError: string | null = null;
   try {
-    items = await listContactSubmissions();
+    result = await listContactSubmissionsPage(filters);
   } catch {
     loadError = "Inbox data is temporarily unavailable. Please retry shortly.";
   }
@@ -26,7 +30,7 @@ export default async function AdminInboxPage() {
           {loadError}
         </p>
       ) : null}
-      <InboxList initialItems={items} />
+      <InboxList initialItems={result.items} total={result.total} pageSize={result.pageSize} filters={filters} loadFailed={Boolean(loadError)} />
     </div>
   );
 }

@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import {
-  ADMIN_CUSTOMERS_PAGE_SIZE,
-  listAdminCustomersPage,
-} from "@/lib/db/customer-list";
+import { listAdminCustomersPage } from "@/lib/db/customer-list";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -28,12 +25,7 @@ export default async function AdminCustomersPage(
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1);
   const { customers, total, pageSize } = await listAdminCustomersPage({
     page,
-  }).catch(() => ({
-    customers: [],
-    total: 0,
-    page: 1,
-    pageSize: ADMIN_CUSTOMERS_PAGE_SIZE,
-  }));
+  });
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const showingFrom = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -66,7 +58,7 @@ export default async function AdminCustomersPage(
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-xl border bg-card shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+          <div className="overflow-x-auto rounded-xl border bg-card shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-muted/40 border-b">
                 <tr>

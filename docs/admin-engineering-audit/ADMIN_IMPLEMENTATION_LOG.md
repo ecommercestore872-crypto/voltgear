@@ -37,3 +37,47 @@ for production merely by appearing in this inventory.
 Regression evidence and limitations live in ADMIN_TEST_MATRIX.md. These batches are
 incremental, not a claim the entire overhaul is complete. Production infrastructure,
 orders, inventory, credentials, customer communications and other projects were untouched.
+
+## 2026-10-22 — Complete operational lists and safer editing
+
+- Products now apply combined query/category/stock filters before range, use exact
+  matching totals and deterministic ordering, and hydrate draft flags only for the page.
+  URL-backed state replaces client filtering and session restoration. Controlled tests
+  cover newer typing surviving older navigation responses and debounce cancellation.
+- Inbox/newsletter now use counted, no-store server pages instead of capped browser
+  filtering. API error states are explicit; failed loads are not displayed as empty business.
+- Newsletter CSV streams all subscribed records in bounded keyset batches, with an
+  initial creation-time high water. It is explicitly not a transactionally frozen snapshot.
+  Synthetic fixtures cover more than 500 records, cancellation and stream failures.
+- New product, page/blog and testimonial editors now enable dirty tracking. Inbox
+  notes warn before selection/filter changes, and status-only saves do not mark notes saved.
+- Command search gains visible mobile/desktop controls and the existing Radix dialog,
+  keyboard containment/return focus, real guarded anchor navigation, and latest-request
+  protection. It loads only after first use, then stays mounted for reliable close focus.
+  Browser verification caught a conditional-unmount focus defect; it was corrected and
+  Escape, settled return focus and Ctrl-K reopening were rechecked.
+- Customer directory failures now reach the route error boundary; table overflow scrolls.
+  Inbox/newsletter dates use the same explicit Pakistan-time formatting policy as orders.
+- Synthetic product/inbox/newsletter views and dialog checked at CSS widths
+  360/390/768/1024/1440: no document horizontal overflow; dialog within viewport.
+  Inbox selection emitted the discard-note confirmation. The browser tool consumed that
+  dialog before cancellation could be checked, so note retention on Cancel is not claimed.
+- Removed the temporary public local fixture route and its generated dev cache/config
+  changes before the production-build gate. These synthetic test artifacts are recoverable
+  from task history and are not shipped. No real customer mutations or exports executed.
+- Bounded workers supplied list changes and targeted tests; their final independent
+  review was interrupted by usage limits. Coordinator source/browser/full-gate verification
+  is reported separately; unfinished independent review is not represented as complete.
+- Saved source commits `05b1ff2` (lists/export) and `d8c7cbf` (editor/search/customer).
+  Combined final local `npm run ci` exit 0: 836/836 tests, both lint/typechecks and
+  both builds; all ten storefront performance-budget checks passed. No runtime speed,
+  Lighthouse score, deployed CRUD acceptance or production readiness is inferred.
+- Opened draft PR25 stacked on PR24. Direct deployment inspection found initial
+  green Vercel checks were canceled builds: ignored-build logs explicitly reported skip.
+  Found unsafe missing-baseline HEAD^ fallback, which ignores earlier commits when
+  a push ends in docs. Missing/zero baseline now builds conservatively; known baseline
+  retains normal app scoping. No dashboard setting, environment or production change.
+- After this build-script-only correction, full `npm test` passed **840/840**; focused
+  build-scope/script tests 8/8, admin typecheck and Node syntax check passed. App bundles
+  are unchanged from the 836-test full CI gate. Final remote deployment status must be
+  read independently; canceled/skipped deployments are not successful preview builds.

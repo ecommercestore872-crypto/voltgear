@@ -9,21 +9,21 @@ All routes below are relative to `/admin`. **Source presence is not runtime acce
 | --- | --- | --- |
 | Dashboard `/` | Daily order/revenue/stock queues; order metrics RPC, catalog/reviews | OPTIMIZE; verify RPC deployment, status/date/demo accounting and fallback bounds |
 | Orders `/orders`, `/orders/[orderId]` | Daily fulfillment, notes, inventory-safe lifecycle, PostEx, Sheets/email | FIX; booking mitigation implemented; coordinated cancellation reservation remains |
-| Products `/products`, `/products/new`, `/products/[id]` | Catalog price/stock/media/variants and drafts | FIX; combined search/category/stock pagination and new-form dirty protection remain |
+| Products `/products`, `/products/new`, `/products/[id]` | Catalog price/stock/media/variants and drafts | IMPROVED; combined server filters/count/page and new-form dirty protection implemented; editor CRUD/media acceptance remains |
 | Shop types `/categories`, new/edit | Category discovery and product references | OPTIMIZE; cache dependency fixed; read-path seeding/count completeness need follow-up |
 | Collections `/collections`, edit | Curated product groups; product references | KEEP provisionally; verify removed/stale references and publish propagation |
 | Hero `/hero` | Campaign slides/images/product links/order | KEEP provisionally; verify draft/publish/reorder against isolated fixtures |
 | Home layout `/home` | Section ordering/lifestyle configuration | SIMPLIFY candidate; assess overlap without removing routes |
 | Homepage sections `/homepage-sections`, new/edit | Dynamic/curated merchandising | KEEP provisionally; verify previews, deterministic ordering, deleted products |
-| Testimonials `/testimonials`, new/edit | Configured customer endorsements | FIX; new-form unsaved protection; never fabricate endorsements |
+| Testimonials `/testimonials`, new/edit | Configured customer endorsements | IMPROVED; new-form unsaved protection enabled; publication acceptance remains; never fabricate endorsements |
 | Discounts `/discounts` | Coupon eligibility/expiry/activation | KEEP provisionally; test timezone, minimums and checkout parity with mocks |
 | Deals `/deals` | Bundles/suggested combinations/graphics | KEEP provisionally; test price authority, stale products, publishing |
 | Reviews `/reviews` | Moderation/replies | KEEP provisionally; test approval transitions, authorization and pagination |
 | Blog `/blog`, new/edit | Guides, SEO, publishing | OPTIMIZE; index draft payload and unsaved new content |
 | Pages `/pages`, new/edit | Policy/content management | OPTIMIZE; same editor/index boundary as blog |
-| Inbox `/inbox` | Support follow-up/status/notes | FIX; server filters/pagination beyond 200, note-loss protection |
-| Customers `/customers`, `/customers/[key]` | Order-derived customer directory | FIX; load failure differs from empty; responsive table, fallback total accuracy |
-| Newsletter `/newsletter` | Subscriber management/export | FIX; 500-row cutoff affects listing/export completeness |
+| Inbox `/inbox` | Support follow-up/status/notes | IMPROVED; counted server pages beyond 200, note-change confirmation; mutation and browser Back acceptance remain |
+| Customers `/customers`, `/customers/[key]` | Order-derived customer directory | IMPROVED; failures no longer fake empty, table scrolls; fallback total accuracy and complete workflow acceptance remain |
+| Newsletter `/newsletter` | Subscriber management/export | IMPROVED; counted pages and bounded complete CSV path replace 500-row cutoff; consent/mutation live acceptance remains |
 | Messaging `/broadcast` | Consent-aware campaigns/recipient reporting | RETAIN AS ADVANCED; provider-only mocks, dedup/retry/opt-out acceptance still needed |
 | Settings `/settings` | Branding/nav/SEO/operational policy | KEEP provisionally; verify fresh drafts, validation, read-path setup writes |
 | Order emails `/order-emails` | Transactional template editing | RETAIN AS ADVANCED; test template escaping and notification idempotency |

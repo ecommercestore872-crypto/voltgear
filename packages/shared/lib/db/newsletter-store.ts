@@ -1,5 +1,11 @@
 import { getServiceClient } from "@/lib/supabase/server";
 import {
+  NEWSLETTER_EXPORT_BATCH_SIZE,
+  NEWSLETTER_PAGE_SIZE,
+  newsletterListFilters,
+  type NewsletterListFilters,
+} from "@/lib/newsletter-pagination-rules";
+import {
   normalizeNewsletterEmail,
   normalizeNewsletterSource,
 } from "@/lib/newsletter-rules";
@@ -55,14 +61,69 @@ export async function subscribeNewsletter(input: {
   };
 }
 
-export async function listNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
-  const { data, error } = await db()
+const SUBSCRIBER_SELECT = "id, email, source, status, consent_at, unsubscribed_at, created_at";
+
+export type NewsletterPage = {
+  subscribers: NewsletterSubscriber[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export async function listNewsletterSubscribersPage(
+  opts: Partial<NewsletterListFilters> = {},
+): Promise<NewsletterPage> {
+  const filters = newsletterListFilters(opts);
+  let query = getServiceClient({ admin: true })
     .from("newsletter_subscribers")
-    .select("id, email, source, status, consent_at, unsubscribed_at, created_at")
+    .select(SUBSCRIBER_SELECT, { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(500);
+    .order("id", { ascending: false });
+  if (filters.status !== "all") query = query.eq("status", filters.status);
+  if (filters.q) {
+    const pattern = `%${filters.q}%`;
+    query = query.or(`email.ilike.${pattern},source.ilike.${pattern}`);
+  }
+  const from = (filters.page - 1) * NEWSLETTER_PAGE_SIZE;
+  const { data, count, error } = await query.range(from, from + NEWSLETTER_PAGE_SIZE - 1);
   if (error) throw error;
-  return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+  return {
+    subscribers: (data ?? []).map((row) => mapRow(row as Record<string, unknown>)),
+    total: count ?? 0,
+    page: filters.page,
+    pageSize: NEWSLETTER_PAGE_SIZE,
+  };
+}
+
+/** Stable keyset batches, bounded to records created by the export high water. */
+export async function* subscribedNewsletterBatches(): AsyncGenerator<NewsletterSubscriber[], void> {
+  const client = getServiceClient({ admin: true });
+  const highWaterResult = await client.from("newsletter_subscribers")
+    .select("created_at")
+    .eq("status", "subscribed")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (highWaterResult.error) throw highWaterResult.error;
+  if (!highWaterResult.data) return;
+  const highWater = String(highWaterResult.data.created_at);
+  let afterId: string | null = null;
+  while (true) {
+    let query = client.from("newsletter_subscribers")
+      .select(SUBSCRIBER_SELECT)
+      .eq("status", "subscribed")
+      .lte("created_at", highWater)
+      .order("id", { ascending: true })
+      .limit(NEWSLETTER_EXPORT_BATCH_SIZE);
+    if (afterId) query = query.gt("id", afterId);
+    const { data, error } = await query;
+    if (error) throw error;
+    const batch = (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+    if (!batch.length) return;
+    afterId = batch[batch.length - 1].id;
+    yield batch;
+    if (batch.length < NEWSLETTER_EXPORT_BATCH_SIZE) return;
+  }
 }
 
 export async function unsubscribeNewsletterSubscriber(

@@ -6,8 +6,13 @@ import { shouldBuildVercelProject } from "../packages/shared/lib/vercel-build-sc
 
 const target = process.argv[2];
 const previousSha = process.env.VERCEL_GIT_PREVIOUS_SHA?.trim();
-const base = previousSha && !/^0+$/.test(previousSha) ? previousSha : "HEAD^";
-const result = spawnSync("git", ["diff", "--name-only", base, "HEAD"], {
+// HEAD^ only covers the final commit, not an entire multi-commit push. Without a
+// trustworthy previous baseline, rebuilding is safer than silently skipping code.
+if (!previousSha || /^0+$/.test(previousSha)) {
+  console.log("Vercel build will continue: no previous commit baseline is available.");
+  process.exit(1);
+}
+const result = spawnSync("git", ["diff", "--name-only", previousSha, "HEAD"], {
   encoding: "utf8",
 });
 
