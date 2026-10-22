@@ -29,6 +29,30 @@ describe("admin authentication boundaries", () => {
     }
   });
 
+  it("requires an exact browser origin for cookie mutations, not bearer integrations", () => {
+    const previous = process.env.ADMIN_TOKEN;
+    process.env.ADMIN_TOKEN = "test-admin-secret";
+    try {
+      const cookie = `vg_admin=${deriveAdminSessionToken("test-admin-secret")}`;
+      for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+        for (const origin of [undefined, "null", "https://hostile.example.test", "http://admin.example.test"]) {
+          const headers: Record<string, string> = { cookie, "content-type": "text/plain" };
+          if (origin) headers.origin = origin;
+          assert.equal(isAdminRequest(new Request("https://admin.example.test/api/admin/settings", { method, headers })), false);
+        }
+        assert.equal(isAdminRequest(new Request("https://admin.example.test/api/admin/settings", {
+          method, headers: { cookie, origin: "https://admin.example.test" },
+        })), true);
+        assert.equal(isAdminRequest(new Request("https://admin.example.test/api/admin/settings", {
+          method, headers: { authorization: "Bearer test-admin-secret" },
+        })), true);
+      }
+    } finally {
+      if (previous === undefined) delete process.env.ADMIN_TOKEN;
+      else process.env.ADMIN_TOKEN = previous;
+    }
+  });
+
   it("keeps only self-authenticating endpoints public", () => {
     assert.equal(isAdminApiPublicPath("/api/admin/login"), true);
     assert.equal(isAdminApiPublicPath("/api/admin/forgot-password"), true);

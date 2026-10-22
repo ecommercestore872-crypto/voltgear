@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
+import { POSTEX_BOOKABLE_STATUSES } from "./postex-booking-rules";
 
 /** Atomic claim: only one concurrent book request may proceed per order. */
 export async function claimPostExBookingRow(
@@ -12,6 +13,8 @@ export async function claimPostExBookingRow(
     .from("orders")
     .update({ postex_booking_claimed_at: claimedAt })
     .eq("order_id", orderId)
+    .eq("is_demo", false)
+    .in("status", [...POSTEX_BOOKABLE_STATUSES])
     .is("postex_tracking_number", null)
     .is("postex_booking_claimed_at", null)
     .select("id")
@@ -46,7 +49,7 @@ export async function completePostExBookingRow(
   trackingNumber: string,
   shippedAt: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { error } = await client
+  const { data, error } = await client
     .from("orders")
     .update({
       postex_tracking_number: trackingNumber,
@@ -54,11 +57,21 @@ export async function completePostExBookingRow(
       status_updated_at: shippedAt,
       postex_booking_claimed_at: null,
     })
-    .eq("order_id", orderId);
+    .eq("order_id", orderId)
+    .eq("is_demo", false)
+    .in("status", [...POSTEX_BOOKABLE_STATUSES])
+    .eq("postex_booking_claimed_at", shippedAt)
+    .is("postex_tracking_number", null)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     console.error("[postex-book] persist tracking failed:", error.message);
     return { ok: false, error: "Could not save PostEx tracking on the order." };
+  }
+
+  if (!data) {
+    return { ok: false, error: "Order changed during booking. Manual reconciliation is required." };
   }
 
   scheduleOrderSheetSync(orderId);
