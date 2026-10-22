@@ -72,3 +72,12 @@ orders, inventory, credentials, customer communications and other projects were 
   Combined final local `npm run ci` exit 0: 836/836 tests, both lint/typechecks and
   both builds; all ten storefront performance-budget checks passed. No runtime speed,
   Lighthouse score, deployed CRUD acceptance or production readiness is inferred.
+- Opened draft PR25 stacked on PR24. Direct deployment inspection found initial
+  green Vercel checks were canceled builds: ignored-build logs explicitly reported skip.
+  Found unsafe missing-baseline HEAD^ fallback, which ignores earlier commits when
+  a push ends in docs. Missing/zero baseline now builds conservatively; known baseline
+  retains normal app scoping. No dashboard setting, environment or production change.
+- After this build-script-only correction, full `npm test` passed **840/840**; focused
+  build-scope/script tests 8/8, admin typecheck and Node syntax check passed. App bundles
+  are unchanged from the 836-test full CI gate. Final remote deployment status must be
+  read independently; canceled/skipped deployments are not successful preview builds.

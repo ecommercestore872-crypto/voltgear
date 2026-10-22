@@ -6,6 +6,8 @@ Initial source improvements are isolated, reversible and intended for draft revi
 Previous batch local gate passed: 801 tests, both linters/typechecks and both production builds.
 Current follow-up gate passed: **836/836 tests**, both lint/typechecks, both production
 builds, all ten storefront JS/CSS budget checks and whitespace diff verification.
+Subsequent build-ignore-only correction passed all **840/840** unit tests, focused
+script/scope regressions, admin typecheck and Node syntax check. App source unchanged.
 Order list/detail synthetic responsive checks are documented, not blanket workflow approval.
 No production merge/deployment, DB migration/write, order/inventory mutation, communication,
 DNS/billing/credential/environment update or unrelated project change was performed.
@@ -48,3 +50,8 @@ tracking, command-dialog accessibility/stale responses and honest customer error
 No schema or production configuration change. Keep the source-only stack draft.
 Browser Back guard behavior, session revocation, cancellation coordination and live
 cache invalidation remain unverified/unresolved; no all-modules-perfect claim.
+
+Draft PR25 is stacked on PR24. The GitHub workflow targets only main PRs/pushes, so
+this feature-branch stack does not establish remote GitHub CI coverage. Initial Vercel
+checks were green but deployments CANCELED by ignored-build logic; build-script fallback
+corrected. Verify final commit's actual Ready deployments separately before acceptance.

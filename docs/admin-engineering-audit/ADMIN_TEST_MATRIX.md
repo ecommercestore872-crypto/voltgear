@@ -60,3 +60,12 @@ Final follow-up gate on the combined source saved in `05b1ff2` and `d8c7cbf`:
 both production builds. `npm run check:performance-budget` exited 0; all ten
 storefront JavaScript/CSS checks passed. `git diff --check` passed. Fixture absent
 from source and generated route manifests. No production environment file was loaded.
+
+Post-gate build-script regression: initial PR25 preview checks appeared green, but both
+deployments were CANCELED and logs explicitly attributed this to ignored-build exit 0.
+The unsafe missing-baseline HEAD^ fallback was replaced with conservative build behavior.
+Actual script tested through controlled process/git dependencies: missing/zero baseline,
+multi-commit range, verified docs/other-app skip, failed/empty diff and unknown target.
+Focused script/scope run **8/8**, complete subsequent `npm test` **840/840**, admin
+typecheck and `node --check scripts/vercel-ignore-build.mjs` passed. This last change
+only affects build gating, not application bundles; no second full CI build is claimed.
