@@ -3,10 +3,8 @@ import type { Metadata } from "next";
 import { ProductList } from "@/components/admin/product-list";
 import {
   ADMIN_PRODUCTS_PAGE_SIZE,
-  countAdminProducts,
   listAdminProductCategoryCounts,
-  listAdminProductsPage,
-  listAdminProductsSearch,
+  listAdminProductsPageWithCount,
   listAdminShopTypes,
 } from "@/lib/db/admin-store";
 
@@ -33,41 +31,27 @@ export default async function AdminProductsPage(
   const category = searchParams.category?.trim() || undefined;
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1);
 
-  if (q.length >= 2) {
-    const [products, shopTypes] = await Promise.all([
-      listAdminProductsSearch(q),
-      listAdminShopTypes().catch(() => []),
-    ]);
-    return (
-      <ProductList
-        products={products}
-        shopTypes={shopTypes}
-        stockFilter={searchParams.stock}
-        serverQuery={q}
-      />
-    );
-  }
-
-  const [products, totalCount, categoryCounts, shopTypes] = await Promise.all([
-    listAdminProductsPage({
+  const [result, categoryCounts, shopTypes] = await Promise.all([
+    listAdminProductsPageWithCount({
       page,
       pageSize: ADMIN_PRODUCTS_PAGE_SIZE,
+      q,
       category,
       stockAttention,
     }),
-    countAdminProducts({ category, stockAttention }),
     listAdminProductCategoryCounts().catch(() => []),
     listAdminShopTypes().catch(() => []),
   ]);
 
   return (
     <ProductList
-      products={products}
+      products={result.products}
       shopTypes={shopTypes}
       stockFilter={searchParams.stock}
-      totalCount={totalCount}
-      page={page}
-      pageSize={ADMIN_PRODUCTS_PAGE_SIZE}
+      serverQuery={q.length >= 2 ? q : ""}
+      totalCount={result.total}
+      page={result.page}
+      pageSize={result.pageSize}
       serverCategory={category}
       categoryCounts={categoryCounts}
     />

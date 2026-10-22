@@ -4,10 +4,8 @@ import { NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/admin";
 import {
   ADMIN_PRODUCTS_PAGE_SIZE,
-  countAdminProducts,
   createAdminProduct,
-  listAdminProductsPage,
-  listAdminProductsSearch,
+  listAdminProductsPageWithCount,
 } from "@/lib/db/admin-store";
 
 export const runtime = "nodejs";
@@ -19,10 +17,6 @@ async function GETHandler(request: Request) {
   }
   const url = new URL(request.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
-  if (q.length >= 2) {
-    const products = await listAdminProductsSearch(q);
-    return NextResponse.json({ products, total: products.length, q });
-  }
   const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10) || 1);
   const pageSize = Math.min(
     100,
@@ -31,11 +25,12 @@ async function GETHandler(request: Request) {
   );
   const category = url.searchParams.get("category")?.trim() || undefined;
   const stockAttention = url.searchParams.get("stock") === "attention";
-  const [products, total] = await Promise.all([
-    listAdminProductsPage({ page, pageSize, category, stockAttention }),
-    countAdminProducts({ category, stockAttention }),
-  ]);
-  return NextResponse.json({ products, total, page, pageSize, category });
+  try {
+    const result = await listAdminProductsPageWithCount({ page, pageSize, q, category, stockAttention });
+    return NextResponse.json({ ...result, q, category, stock: stockAttention ? "attention" : undefined });
+  } catch {
+    return NextResponse.json({ error: "Products are temporarily unavailable." }, { status: 503 });
+  }
 }
 
 async function POSTHandler(request: Request) {

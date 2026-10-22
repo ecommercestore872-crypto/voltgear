@@ -111,6 +111,9 @@ const ADMIN_PRODUCT_DASHBOARD_SELECT =
 const ADMIN_PRODUCT_LITE_SELECT =
   "id, name, slug, category, price, stock_status, quantity, status, is_demo, updated_at";
 const ADMIN_PRODUCT_SEARCH_LIMIT = 120;
+function cleanAdminProductSearch(term: string): string {
+  return term.replace(/[,%_()\\"*]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+}
 const STOCK_ATTENTION_STATUSES = ["low-stock", "out-of-stock"] as const;
 
 export const ADMIN_PRODUCTS_PAGE_SIZE = 48;
@@ -282,26 +285,49 @@ async function finalizeAdminProductGridRows(rows: Record<string, unknown>[]): Pr
   }));
 }
 
-export async function listAdminProductsPage(options: {
+export async function listAdminProductsPageWithCount(options: {
   page: number;
   pageSize?: number;
+  q?: string;
   category?: string;
   stockAttention?: boolean;
-}): Promise<AdminProduct[]> {
-  const pageSize = Math.min(100, Math.max(1, options.pageSize ?? ADMIN_PRODUCTS_PAGE_SIZE));
-  const page = Math.max(1, options.page);
+}): Promise<{ products: AdminProduct[]; total: number; page: number; pageSize: number }> {
+  const requestedPageSize = options.pageSize ?? ADMIN_PRODUCTS_PAGE_SIZE;
+  const pageSize = Number.isFinite(requestedPageSize)
+    ? Math.min(100, Math.max(1, Math.trunc(requestedPageSize)))
+    : ADMIN_PRODUCTS_PAGE_SIZE;
+  const page = Number.isFinite(options.page) ? Math.min(1_000_000, Math.max(1, Math.trunc(options.page))) : 1;
+  const term = options.q?.trim() ?? "";
+  const cleaned = cleanAdminProductSearch(term);
+  if (term.length >= 2 && cleaned.length < 2) {
+    return { products: [], total: 0, page, pageSize };
+  }
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
-  let query = db()
-    .from("products")
-    .select(ADMIN_PRODUCT_GRID_SELECT)
-    .order("updated_at", { ascending: false })
-    .range(from, to);
+  let query = db().from("products").select(ADMIN_PRODUCT_GRID_SELECT, { count: "exact" });
+  if (cleaned.length >= 2) {
+    const pattern = `%${cleaned}%`;
+    query = query.or(`name.ilike.${pattern},slug.ilike.${pattern},category.ilike.${pattern}`);
+  }
   if (options.category) query = query.eq("category", options.category);
   if (options.stockAttention) query = query.in("stock_status", [...STOCK_ATTENTION_STATUSES]);
-  const { data, error } = await query;
+  const { data, count, error } = await query
+    .order("updated_at", { ascending: false })
+    .order("id", { ascending: true })
+    .range(from, to);
   if (error) throw error;
-  return finalizeAdminProductGridRows((data ?? []) as Record<string, unknown>[]);
+  return {
+    products: await finalizeAdminProductGridRows((data ?? []) as Record<string, unknown>[]),
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
+}
+
+export async function listAdminProductsPage(
+  options: Parameters<typeof listAdminProductsPageWithCount>[0],
+): Promise<AdminProduct[]> {
+  return (await listAdminProductsPageWithCount(options)).products;
 }
 
 async function listAdminProductCategoryCountsUncached(): Promise<{ slug: string; count: number }[]> {
@@ -339,7 +365,7 @@ export async function listAdminProductsByIds(ids: string[]): Promise<AdminProduc
 }
 
 export async function listAdminProductsSearch(term: string): Promise<AdminProduct[]> {
-  const cleaned = term.trim().replace(/[%]/g, "").slice(0, 80);
+  const cleaned = cleanAdminProductSearch(term);
   if (cleaned.length < 2) return [];
   const pattern = `%${cleaned}%`;
   const { data, error } = await db()
@@ -355,7 +381,7 @@ export async function listAdminProductsSearch(term: string): Promise<AdminProduc
 export async function listAdminProductsForCommandSearch(
   term: string,
 ): Promise<{ id: string; name: string; slug: string }[]> {
-  const cleaned = term.trim().replace(/[%]/g, "").slice(0, 80);
+  const cleaned = cleanAdminProductSearch(term);
   if (cleaned.length < 2) return [];
   const pattern = `%${cleaned}%`;
   const { data, error } = await db()

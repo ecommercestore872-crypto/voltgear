@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
 import { parseInboxKind, parseInboxStatus } from "@/lib/db/inbox-rules";
-import { listContactSubmissions } from "@/lib/db/inbox-store";
+import { listContactSubmissionsPage } from "@/lib/db/inbox-store";
+import { inboxListFilters } from "@/lib/inbox-pagination-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,10 +16,10 @@ async function GETHandler(request: Request) {
   const url = new URL(request.url);
   const kindParam = url.searchParams.get("kind");
   const statusParam = url.searchParams.get("status");
-  if (kindParam && kindParam !== "contact" && kindParam !== "complaint") {
+  if (kindParam && kindParam !== "all" && kindParam !== "contact" && kindParam !== "complaint") {
     return NextResponse.json({ error: "Invalid inbox kind." }, { status: 400 });
   }
-  if (statusParam && !parseInboxStatus(statusParam)) {
+  if (statusParam && statusParam !== "all" && !parseInboxStatus(statusParam)) {
     return NextResponse.json({ error: "Invalid inbox status." }, { status: 400 });
   }
   const kind =
@@ -30,8 +31,10 @@ async function GETHandler(request: Request) {
     : undefined;
 
   try {
-    const items = await listContactSubmissions({ kind, status });
-    return NextResponse.json({ items });
+    const result = await listContactSubmissionsPage(inboxListFilters({
+      kind, status, q: url.searchParams.get("q"), page: url.searchParams.get("page"),
+    }));
+    return NextResponse.json(result);
   } catch (error) {
     console.error("[inbox] list failed", error);
     return NextResponse.json(

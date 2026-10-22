@@ -23,6 +23,7 @@ export {
   listAdminProductsForDashboard,
   listAdminProductsLite,
   listAdminProductsPage,
+  listAdminProductsPageWithCount,
   listAdminProductsSearch,
   productToDocument,
 } from "@/lib/db/admin-product-read-store";

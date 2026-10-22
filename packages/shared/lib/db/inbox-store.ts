@@ -1,4 +1,5 @@
 import { getServiceClient } from "@/lib/supabase/server";
+import { INBOX_PAGE_SIZE, inboxListFilters, type InboxListFilters } from "@/lib/inbox-pagination-rules";
 import {
   parseInboxStatus,
   type InboxKind,
@@ -77,24 +78,40 @@ export async function createContactSubmission(input: {
   return { ok: true, id: String(data.id) };
 }
 
-export async function listContactSubmissions(opts?: {
-  kind?: InboxKind;
-  status?: InboxStatus;
+export type InboxPage = {
+  items: InboxItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export async function listContactSubmissionsPage(opts: Partial<InboxListFilters> & {
   includeDemo?: boolean;
-}): Promise<InboxItem[]> {
-  let q = db()
+} = {}): Promise<InboxPage> {
+  const filters = inboxListFilters(opts);
+  let q = getServiceClient({ admin: true })
     .from("contact_submissions")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(200);
+    .order("id", { ascending: false });
 
-  if (!opts?.includeDemo) q = q.eq("is_demo", false);
-  if (opts?.kind) q = q.eq("kind", opts.kind);
-  if (opts?.status) q = q.eq("status", opts.status);
+  if (!opts.includeDemo) q = q.eq("is_demo", false);
+  if (filters.kind !== "all") q = q.eq("kind", filters.kind);
+  if (filters.status !== "all") q = q.eq("status", filters.status);
+  if (filters.q) {
+    const pattern = `%${filters.q}%`;
+    q = q.or(["name", "email", "subject", "message"].map((field) => `${field}.ilike.${pattern}`).join(","));
+  }
 
-  const { data, error } = await q;
+  const from = (filters.page - 1) * INBOX_PAGE_SIZE;
+  const { data, count, error } = await q.range(from, from + INBOX_PAGE_SIZE - 1);
   if (error) throw error;
-  return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+  return {
+    items: (data ?? []).map((row) => mapRow(row as Record<string, unknown>)),
+    total: count ?? 0,
+    page: filters.page,
+    pageSize: INBOX_PAGE_SIZE,
+  };
 }
 
 export async function getContactSubmission(id: string): Promise<InboxItem | null> {
