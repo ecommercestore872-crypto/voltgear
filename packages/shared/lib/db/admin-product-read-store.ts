@@ -352,6 +352,26 @@ export async function listAdminProductsSearch(term: string): Promise<AdminProduc
   return finalizeAdminProductGridRows((data ?? []) as Record<string, unknown>[]);
 }
 
+export async function listAdminProductsForCommandSearch(
+  term: string,
+): Promise<{ id: string; name: string; slug: string }[]> {
+  const cleaned = term.trim().replace(/[%]/g, "").slice(0, 80);
+  if (cleaned.length < 2) return [];
+  const pattern = `%${cleaned}%`;
+  const { data, error } = await db()
+    .from("products")
+    .select("id, name, slug")
+    .or(`name.ilike.${pattern},slug.ilike.${pattern},category.ilike.${pattern}`)
+    .order("updated_at", { ascending: false })
+    .limit(ADMIN_PRODUCT_SEARCH_LIMIT);
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    name: String(row.name ?? ""),
+    slug: String(row.slug ?? ""),
+  }));
+}
+
 export async function getAdminProduct(id: string): Promise<AdminProduct | null> {
   const { data, error } = await db()
     .from("products")

@@ -1,7 +1,7 @@
 import { normalizePhoneForCheckout } from "@/lib/checkout-customer-rules";
 import { normalizePhone } from "@/lib/messaging";
 
-import { EMAIL_SEND_ISSUE_PREFIX } from "../email-rules";
+import { EMAIL_SEND_ISSUE_PREFIX } from "../order-email-status";
 import type {
   Order,
   OrderStatus,
