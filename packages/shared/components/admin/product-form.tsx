@@ -101,7 +101,7 @@ export function ProductForm({
     }),
     [payload, selectedCollectionIds],
   );
-  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(dirtyState, !isNew);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(dirtyState);
 
   function commitSavedBaseline(latest: ProductDocument) {
     resetSaved({

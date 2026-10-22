@@ -90,7 +90,7 @@ export function PageForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form, !isNew);
+  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(form);
 
   function doc() {
     let sections: ContentBlock[] = isBlog ? form.sections : [];
