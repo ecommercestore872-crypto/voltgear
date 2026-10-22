@@ -112,7 +112,7 @@ function bumpAdminShopTypesCache() {
 export async function listAdminShopTypes(): Promise<ShopType[]> {
   return unstable_cache(listAdminShopTypesUncached, ["admin-shop-types-v1"], {
     revalidate: 300,
-    tags: [ADMIN_SHOP_TYPES_CACHE_TAG],
+    tags: [ADMIN_SHOP_TYPES_CACHE_TAG, "admin-products"],
   })();
 }
 

@@ -1,5 +1,7 @@
 import { SHOPPER_BRAND, resolveCustomerDisplayName, shouldReplaceBrandName } from "./brand";
 import { signActionUrl } from "./crypto-actions";
+import { EMAIL_SEND_ISSUE_PREFIX } from "./order-email-status";
+export { EMAIL_SEND_ISSUE_PREFIX } from "./order-email-status";
 import type { OrderStatus } from "./types";
 
 import { publicSiteUrl } from "./deploy-rules";
@@ -224,7 +226,6 @@ export type NewOrderEmailResult = {
   adminTo: string;
 };
 
-export const EMAIL_SEND_ISSUE_PREFIX = "Email send issue:";
 
 export function orderEmailFailureNote(result: NewOrderEmailResult): string | null {
   const parts: string[] = [];

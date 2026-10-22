@@ -4,7 +4,7 @@ import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { isAdminRequest } from "@/lib/admin";
 import { scoreAdminSearchHits } from "@/lib/db/admin-search-rules";
 import { searchAdminOrdersByTerm } from "@/lib/db/admin-orders-store";
-import { listAdminProductsSearch } from "@/lib/db/admin-store";
+import { listAdminProductsForCommandSearch } from "@/lib/db/admin-store";
 import { buildCustomerRowsFromOrders } from "@/lib/db/customer-list";
 
 export const runtime = "nodejs";
@@ -24,16 +24,12 @@ export const GET = withAdminApiObservability(
     try {
       const [orders, products] = await Promise.all([
         searchAdminOrdersByTerm(trimmed, 24),
-        listAdminProductsSearch(trimmed),
+        listAdminProductsForCommandSearch(trimmed),
       ]);
       const customers = buildCustomerRowsFromOrders(orders).slice(0, 12);
       const hits = scoreAdminSearchHits(trimmed, {
         orders: orders.map((o) => ({ orderId: o.orderId })),
-        products: products.map((p) => ({
-          id: p._id,
-          name: p.name,
-          slug: p.slug,
-        })),
+        products,
         customers,
       });
       return NextResponse.json({ hits });
