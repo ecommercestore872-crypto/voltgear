@@ -43,3 +43,14 @@ Source-only initial review, 2026-10-22. No real provider/customer mutations or d
 No full dependency-advisory, RLS penetration, upload fuzzing, role matrix, recovery-email,
 or deployed-secret/config review is claimed. Those remain separate safe audit steps.
 No sensitive payloads belong in reports, screenshots, logs or PRs.
+
+## Operational-list follow-up
+
+List/export handlers retain admin authentication and the existing mutation Origin gate.
+New query normalizers bound page/search input and remove PostgREST filter punctuation
+and wildcard characters before interpolation; equality filters are not string-built ORs.
+List/export reads use the existing no-store service-client mode. Newsletter download is
+authenticated, no-store, and streams bounded batches; CSV formula escaping is preserved.
+No new public business-data endpoint, dependency, SQL migration or provider action added.
+Local browser fixtures contained synthetic data and an unreachable Supabase URL; fixture
+source was removed before staging. Shared production/preview isolation warning still applies.
