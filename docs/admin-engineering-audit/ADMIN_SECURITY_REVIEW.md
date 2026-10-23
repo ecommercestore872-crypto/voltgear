@@ -54,3 +54,17 @@ authenticated, no-store, and streams bounded batches; CSV formula escaping is pr
 No new public business-data endpoint, dependency, SQL migration or provider action added.
 Local browser fixtures contained synthetic data and an unreachable Supabase URL; fixture
 source was removed before staging. Shared production/preview isolation warning still applies.
+
+## Product media boundary — 2026-10-23
+
+Authenticated upload DELETE returns 409 without provider side effects; URL unlinking
+does not authorize deleting live/shared bytes. Product deletion cleanup remains open.
+POST checks metadata before buffering, MIME/extension/signature consistency, and real
+raster decoding with existing Sharp under a 40-million-pixel bound. File limit is
+4,000,000 bytes, leaving multipart headroom below the hosting ceiling
+([Vercel limits](https://vercel.com/docs/functions/limitations)).
+HEIC/HEIF headers are not full local decoding: successful provider WebP conversion is
+required; raw originals never fall back to Storage. Transport timeouts, 5xx and malformed
+success can persist ambiguously; no auto-retry/second-provider copy. Generic errors omit
+provider secrets. Tests use synthetic raster bytes and mocked providers, not live bucket
+policies, malware scanning or production integration. Prior release blockers remain.

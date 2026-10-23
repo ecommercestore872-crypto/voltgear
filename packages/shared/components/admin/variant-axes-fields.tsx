@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminUpload } from "@/components/admin/admin-fetch";
+import { isAdminUploadUrl } from "@/lib/admin-upload-rules";
 import { optionKey, type VariantOption } from "@/lib/variant-options-rules";
 
 function blankOption(): VariantOption {
@@ -20,24 +21,48 @@ function blankOption(): VariantOption {
 function ColorPhotoInput({
   url,
   onChange,
+  onBusyChange,
+  disabled = false,
 }: {
   url?: string;
   onChange: (url?: string) => void;
+  onBusyChange?: (busy: boolean) => void;
+  disabled?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const current = useRef({ onChange, onBusyChange, disabled });
+  current.current = { onChange, onBusyChange, disabled };
+  const mounted = useRef(true);
+  const pending = useRef(false);
+  const release = useCallback(() => {
+    if (pending.current) {
+      pending.current = false;
+      current.current.onBusyChange?.(false);
+    }
+  }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; release(); };
+  }, [release]);
 
   async function onFile(file?: File) {
-    if (!file) return;
+    if (!file || pending.current || current.current.disabled) return;
+    pending.current = true;
     setBusy(true);
+    current.current.onBusyChange?.(true);
     setError(null);
     try {
       const json = await adminUpload(file);
-      onChange(typeof json.secureUrl === "string" ? json.secureUrl : undefined);
+      if (!mounted.current) return;
+      const image = typeof json?.secureUrl === "string" ? json.secureUrl.trim() : "";
+      if (!isAdminUploadUrl(image)) throw new Error("Upload returned an invalid image URL.");
+      current.current.onChange(image);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      if (mounted.current) setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
-      setBusy(false);
+      release();
+      if (mounted.current) setBusy(false);
     }
   }
 
@@ -52,7 +77,7 @@ function ColorPhotoInput({
         <Input
           type="file"
           accept="image/*"
-          disabled={busy}
+          disabled={busy || disabled}
           className="h-10 text-xs"
           onChange={(e) => onFile(e.target.files?.[0])}
         />
@@ -61,6 +86,7 @@ function ColorPhotoInput({
             type="button"
             variant="ghost"
             size="sm"
+              disabled={busy || disabled}
             onClick={() => onChange(undefined)}
           >
             Clear
@@ -77,11 +103,15 @@ function OptionList({
   onChange,
   withPhoto,
   addLabel,
+  onBusyChange,
+  disabled,
 }: {
   options: VariantOption[];
   onChange: (next: VariantOption[]) => void;
   withPhoto?: boolean;
   addLabel: string;
+  onBusyChange?: (busy: boolean) => void;
+  disabled?: boolean;
 }) {
   function patch(index: number, next: Partial<VariantOption>) {
     onChange(
@@ -134,6 +164,8 @@ function OptionList({
           {withPhoto ? (
             <ColorPhotoInput
               url={row.image}
+              onBusyChange={onBusyChange}
+              disabled={disabled}
               onChange={(image) => patch(i, { image })}
             />
           ) : null}
@@ -158,6 +190,8 @@ export function VariantAxesFields({
   colorOptions,
   sizeOptions,
   onChange,
+  onBusyChange,
+  disabled = false,
 }: {
   colorEnabled: boolean;
   sizeEnabled: boolean;
@@ -169,9 +203,11 @@ export function VariantAxesFields({
     colorOptions: VariantOption[];
     sizeOptions: VariantOption[];
   }) => void;
+  onBusyChange?: (busy: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
-    <div className="space-y-4">
+    <fieldset disabled={disabled} className="min-w-0 space-y-4">
       <div>
         <p className="text-sm font-medium">Variants</p>
         <p className="text-xs text-muted-foreground">
@@ -197,6 +233,8 @@ export function VariantAxesFields({
       {colorEnabled ? (
         <OptionList
           options={colorOptions}
+          onBusyChange={onBusyChange}
+          disabled={disabled}
           withPhoto
           addLabel="Add color"
           onChange={(next) =>
@@ -238,6 +276,6 @@ export function VariantAxesFields({
           }
         />
       ) : null}
-    </div>
+    </fieldset>
   );
 }

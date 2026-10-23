@@ -69,3 +69,25 @@ multi-commit range, verified docs/other-app skip, failed/empty diff and unknown 
 Focused script/scope run **8/8**, complete subsequent `npm test` **840/840**, admin
 typecheck and `node --check scripts/vercel-ignore-build.mjs` passed. This last change
 only affects build gating, not application bundles; no second full CI build is claimed.
+
+## Product media/editor acceptance — 2026-10-23
+
+| Area | Observed evidence / limit |
+| --- | --- |
+| Media unlink/paste/reorder/upload races/errors/unmount | 8 controlled actual-component tests passed; mocked transport, not DOM/provider integration |
+| Upload API/auth/file/provider boundaries | Real tiny raster decoding plus mocked providers; oversized before buffering, renamed/truncated content, HEIC conversion, ambiguous fallback prevention, no deletion |
+| Product repeat Save/failure retry/blur upload race | Controlled actual ProductForm tests passed; no backend mutation |
+| All upload locations/disabled controls | Actual component props/callback tests; not rendered evidence |
+| Unpublish/discard/membership baseline | Same-session component regressions; not persistent/concurrent-editor certification |
+| Color cleanup / pending pristine guard / badge/social hydration | Controlled component/hook and pure-helper regressions passed |
+| Actual create/reload/publish/stock/checkout | NOT integration-tested; production-connected previews forbidden |
+| 360/390/768/1024/1440 rendered UI, actual picker/focus | NOT VERIFIED: browser tool unavailable before launch; fixture source removed |
+| Independent final review | Incomplete due worker usage limits; coordinator checks are not independent sign-off |
+
+Final local gate on the combined product/media source: `npm run ci` exited 0 with
+**874/874 tests**, both lint runs (no warnings/errors), both TypeScript checks and
+both production builds. `npm run check:performance-budget` exited 0 with all ten
+checks passing; `git diff --check` passed. Temporary fixture routes are absent.
+No production environment file was loaded. These results do not establish rendered
+browser acceptance or real provider/database integration. Exact remote commit/run
+and preview results must be verified separately after pushing the draft branch.

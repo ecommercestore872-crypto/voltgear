@@ -55,3 +55,42 @@ Draft PR25 is stacked on PR24. The GitHub workflow targets only main PRs/pushes,
 this feature-branch stack does not establish remote GitHub CI coverage. Initial Vercel
 checks were green but deployments CANCELED by ignored-build logic; build-script fallback
 corrected. Verify final commit's actual Ready deployments separately before acceptance.
+
+## Product extension — NOT READY — BLOCKERS REMAIN
+
+Media/editor safeguards do not certify the lifecycle. P06–P11 add review replacement,
+raw numeric coercion, stale quantity overwrite, draft/live flags/membership and shared
+image cleanup risks. Session/courier/proxy/isolation blockers also remain.
+
+Before any production atomic publish/inventory change: exact project/migration, current
+RPC contract, stock/review/version invariants, draft membership model, compatible app
+rollout, isolated interleaving/rollback tests and recovery plan. No production SQL approved.
+
+Browser tool became unavailable; new UI responsiveness is unverified. Final GitHub CI
+and actual Ready previews must match the exact commit. No merge/production deployment.
+
+Combined source passed the complete local gate: 874/874 tests, both app lint and
+TypeScript checks, both production builds, all ten storefront bundle-budget checks
+and whitespace verification. This improves source confidence but does not close the
+publication/inventory, rendered UI or production isolation blockers above.
+
+### Proposed atomic publication boundary (design only)
+
+- Content publishing must not delete/reinsert moderation-owned reviews or write their
+  rating/count aggregates. Preserving a freshly fetched array in application code alone
+  still loses a concurrent approval and changes review identities.
+- Unchanged inventory must be preserved by the transaction, not copied from a saved
+  editor snapshot. Explicit quantity adjustments need an intent marker and original
+  stock baseline retained through draft saves/reloads. Comparing a new live snapshot
+  to an old draft quantity is not safe: it can silently restock sold units.
+- A versioned publish RPC should lock the product, validate explicit stock adjustment
+  baselines, apply content/media/variants/manual membership atomically, and return a
+  conflict rather than overwrite changed stock. updated_at alone misses checkout changes.
+- Keep is_demo/cost/manual membership in draft until publication. Define compatible
+  treatment for legacy drafts without intent metadata; default to preserving live stock,
+  with an explicit adjustment flow rather than silently interpreting stale quantities.
+- Use the new RPC only after isolated transaction tests and migration approval; missing
+  RPC must fail closed, never fall back to the known unsafe old publication path.
+- Required interleavings: checkout during content-only publish; explicit stocktake vs
+  checkout; saved draft reopened after a sale; cancellation restoration; concurrent
+  review approval; membership failure rollback. No migration is applied by this design.

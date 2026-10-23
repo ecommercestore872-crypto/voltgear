@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, "codex/admin-*", "codex/product-*"]
 
 concurrency:
   group: storefront-ci-${{ github.ref }}
