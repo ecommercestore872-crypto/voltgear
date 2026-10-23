@@ -58,7 +58,8 @@ source was removed before staging. Shared production/preview isolation warning s
 ## Product media boundary — 2026-10-23
 
 Authenticated upload DELETE returns 409 without provider side effects; URL unlinking
-does not authorize deleting live/shared bytes. Product deletion cleanup remains open.
+does not authorize deleting live/shared bytes. The follow-up below removes the
+product-deletion cleanup path as well; reference-aware orphan cleanup stays deferred.
 POST checks metadata before buffering, MIME/extension/signature consistency, and real
 raster decoding with existing Sharp under a 40-million-pixel bound. File limit is
 4,000,000 bytes, leaving multipart headroom below the hosting ceiling
@@ -68,3 +69,12 @@ required; raw originals never fall back to Storage. Transport timeouts, 5xx and 
 success can persist ambiguously; no auto-retry/second-provider copy. Generic errors omit
 provider secrets. Tests use synthetic raster bytes and mocked providers, not live bucket
 policies, malware scanning or production integration. Prior release blockers remain.
+
+## Product deletion follow-up — shared media
+
+The product deletion adapter no longer calls Storage remove. A URL in one product's
+live/draft image list is not proof that the file is unreferenced elsewhere. Existing
+route authorization and product-row deletion behavior are unchanged. Five mocked
+adapter regressions prove no Storage access and no invalidation on a failed delete;
+this is not an RLS/cascade/live-provider integration test. Retained unused files are
+an explicit safety tradeoff; no orphan purge, migration or real deletion was run.

@@ -172,26 +172,14 @@ export async function discardAdminProductDraft(id: string) {
   return { ok: true as const };
 }
 
-function supabaseProductImagePath(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const marker = "/storage/v1/object/public/product-images/";
-  if (!value.includes(marker)) return null;
-  return value.split(marker)[1] || null;
-}
-
 export async function deleteAdminProduct(id: string) {
   const current = await getAdminProduct(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
-  const storageImages = new Set<string>();
-  for (const image of [...(current.images ?? []), ...(current.draft?.images ?? [])]) {
-    const path = supabaseProductImagePath(image);
-    if (path) storageImages.add(path);
-  }
   const { error } = await db().from("products").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };
-  if (storageImages.size > 0) {
-    await getServiceClient().storage.from("product-images").remove([...storageImages]);
-  }
+  // Images may also be referenced by other products, drafts or CMS content.
+  // Product deletion must not delete shared bytes. Reference-aware orphan cleanup
+  // is a separate operation; retaining an unused object is safer than breaking it.
   void revalidateShopMerchandising(
     "/",
     "/products",

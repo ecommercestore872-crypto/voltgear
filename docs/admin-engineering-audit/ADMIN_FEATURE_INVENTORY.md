@@ -118,3 +118,7 @@ server validation remains authoritative. Never infer stock, reviews, warranty or
 4. Measure authenticated performance in isolated data; retain #23-25 improvements.
 5. Address previous session/courier/read-side-write blockers, then independent release
    review. Production changes and real mutation tests still require separate approval.
+
+Follow-up: product-row deletion now retains image bytes just as editor unlink does.
+This closes the automatic shared-file destruction path, not reference-aware garbage
+collection, historical order snapshot design or real deletion acceptance.

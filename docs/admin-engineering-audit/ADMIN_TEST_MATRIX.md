@@ -91,3 +91,16 @@ checks passing; `git diff --check` passed. Temporary fixture routes are absent.
 No production environment file was loaded. These results do not establish rendered
 browser acceptance or real provider/database integration. Exact remote commit/run
 and preview results must be verified separately after pushing the draft branch.
+
+### Product deletion follow-up
+
+- Actual adapter under mocked database/Storage: five regressions passed for successful
+  deletion, shared live/draft images, missing product, rejected deletion and deferred
+  completion. Storage access throws in the harness; zero accesses observed.
+- Actual runner under controlled process/filesystem: five regressions passed for
+  direct Node launch, >8 KB arguments, empty discovery and failure exit propagation.
+- No real deletion, schema/cascade/RLS test, rendered UI acceptance or orphan cleanup.
+- Combined local gate log: 884/884 tests, both lint/typecheck runs and both production
+  builds completed successfully; all ten bundle-budget checks and whitespace verification
+  passed. The execution handle was lost across tool reconnection, so no recovered
+  process-exit-code claim. Verify exact-commit remote CI separately.
