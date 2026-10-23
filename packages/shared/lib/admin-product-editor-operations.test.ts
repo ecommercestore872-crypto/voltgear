@@ -98,6 +98,16 @@ function editor() {
 }
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
+it("uses a shrinkable explicit single-column editor grid before the desktop breakpoint", () => {
+  const subject = editor();
+  const grid = subject.node("fieldset");
+  assert.match(String(grid.props.className), /\bgrid-cols-1\b/);
+  assert.match(String(grid.props.className), /\blg:grid-cols-3\b/);
+  const columns = (grid.props.children as Tree[]).filter((child) => child?.type === "div");
+  assert.equal(columns.length, 2);
+  assert.ok(columns.every((column) => /\bmin-w-0\b/.test(String(column.props.className))));
+});
+
 it("locks before the blur wait so two Save activations create one mutation, then permits failure retry", async () => {
   const subject = editor();
   const first = subject.action("onSave"); const duplicate = subject.action("onSave");

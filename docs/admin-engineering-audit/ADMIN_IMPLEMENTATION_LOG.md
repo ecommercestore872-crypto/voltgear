@@ -128,3 +128,24 @@ orders, inventory, credentials, customer communications and other projects were 
   both completed production builds. All ten storefront bundle-budget checks and
   whitespace verification passed. The process handle was lost across tool reconnection;
   no recovered exit-code claim. Exact remote CI remains the final independent gate.
+
+### Browser follow-up / responsive grid
+
+- PR27 exact head `c05c9122099e2ca7c9d650d548f93ed58b6e9437` passed
+  [Monorepo CI](https://github.com/ecommercestore872-crypto/voltgear/actions/runs/39971382467).
+  Vercel API confirmed actual READY previews `dpl_6KZ7vZY1qouRHAB8AT3vnwq3p4GG`
+  and `dpl_6xqMNy6AhsdK3bMr8PkCXh3NEZUu`, both with no production target.
+- Browser tooling became available again. Used an isolated localhost synthetic
+  ProductForm fixture with all API calls intercepted and no service configuration.
+  Caught and corrected implicit mobile grid expansion; desktop layout retained.
+- Native reorder/remove caused no API calls. Mocked Unpublish retained dirty title;
+  dismissing the actual beforeunload prompt retained unsaved text. This does not
+  prove browser Back behavior or backend publication correctness.
+- Inline mobile/desktop screenshots inspected. File export and native upload picker
+  were blocked by browser tool path permissions; no workaround or upload success claim.
+  Final post-reload console had no warning/errors; initial fixture favicon 404 corrected.
+- Stopped only the fixture server, removed three fixture source files and its exact
+  generated cache, restored Next's incidental config changes. No fixture will ship.
+- Final combined `npm run ci` exited 0: 885/885 tests, both lint/typechecks and both
+  production builds; all ten bundle-budget checks and whitespace gate passed. Final
+  admin manifest has zero fixture routes. Exact remote head checks still required.

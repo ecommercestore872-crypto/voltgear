@@ -78,3 +78,8 @@ route authorization and product-row deletion behavior are unchanged. Five mocked
 adapter regressions prove no Storage access and no invalidation on a failed delete;
 this is not an RLS/cascade/live-provider integration test. Retained unused files are
 an explicit safety tradeoff; no orphan purge, migration or real deletion was run.
+
+Rendered follow-up used an isolated browser context and localhost-only synthetic data.
+All API calls were intercepted in the temporary fixture; no production preview was
+mutation-tested. No cookies, tokens or other authentication material were inspected.
+Temporary fixture source/cache removed and dev server stopped before the final gate.

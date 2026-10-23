@@ -267,8 +267,8 @@ export function ProductForm({
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       {activeUploads > 0 ? <p role="status" className="text-sm text-muted-foreground">Uploading media. Editing and saving are paused until the upload finishes.</p> : null}
-      <fieldset disabled={saving || activeUploads > 0} aria-busy={saving || activeUploads > 0} className="grid min-w-0 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <fieldset disabled={saving || activeUploads > 0} aria-busy={saving || activeUploads > 0} className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <div className="space-y-1.5">
             <Label htmlFor="name">Product name</Label>
             <Input
@@ -502,7 +502,7 @@ export function ProductForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="price">Selling price (PKR)</Label>
             <Input

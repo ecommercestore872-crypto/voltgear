@@ -104,3 +104,20 @@ and preview results must be verified separately after pushing the draft branch.
   builds completed successfully; all ten bundle-budget checks and whitespace verification
   passed. The execution handle was lost across tool reconnection, so no recovered
   process-exit-code claim. Verify exact-commit remote CI separately.
+
+### Rendered product follow-up (synthetic localhost, not deployed acceptance)
+
+- Exact viewport tests: 360/390/768/1024/1440 px. Before correction at 360: 403 px
+  body vs 350 px client. After correction body/client matched at all five widths;
+  no descendants extended beyond the client edge. Mobile-touch 390 screenshot
+  and desktop 1440 screenshot inspected inline; file export denied by tool policy.
+- Photo reorder/remove: actual controls changed URL order/membership; fixture API
+  interceptor observed no calls. Mocked Unpublish retained unsaved title/dirty state.
+- Actual beforeunload prompt: Dismiss retained edited text. Not a browser Back test.
+- Final console read: zero warnings/errors; only local HMR/RSC requests observed.
+- Native picker could not read a local image due tool path permissions. Upload locking
+  remains unit-covered, not browser-certified. No real persistence/provider testing.
+- Focused editor tests: 7/7, including responsive structure guard. Final `npm run ci`
+  exited 0: 885/885 tests, both lint/typecheck runs and both production builds.
+  All ten storefront bundle-budget checks and whitespace verification passed.
+  No fixture routes in the final generated admin app manifest.

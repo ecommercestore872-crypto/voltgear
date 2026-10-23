@@ -122,3 +122,7 @@ server validation remains authoritative. Never infer stock, reviews, warranty or
 Follow-up: product-row deletion now retains image bytes just as editor unlink does.
 This closes the automatic shared-file destruction path, not reference-aware garbage
 collection, historical order snapshot design or real deletion acceptance.
+
+Responsive follow-up: same existing editor now explicitly uses one shrinkable column
+below the desktop breakpoint. Five-width synthetic browser check completed. No field
+model, sidebar architecture or publication semantics changed by this layout correction.

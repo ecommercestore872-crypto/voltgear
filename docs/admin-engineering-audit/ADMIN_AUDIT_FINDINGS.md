@@ -49,3 +49,13 @@ catalog filtering/pagination; navigation/forms; CMS/communications; measured ren
 | P11 | Medium | Unknown PATCH actions fall through to Save; malformed documents can throw | OPEN: explicit action/document validation before adapter work |
 
 Source/test findings are not proof of production incidents. No live data/provider mutations.
+
+## Browser follow-up — responsive product editor
+
+P12 (Medium): the product fieldset used an implicit auto grid below `lg`, allowing
+native file-input minimum sizing to expand both editor columns. In the synthetic
+fixture at 360 px, body scroll width was 403 px vs 350 px available client width.
+Source correction adds explicit `grid-cols-1` and shrinkable column wrappers while
+retaining the existing `lg:grid-cols-3` layout. Post-fix measurements at 360/390/768/
+1024/1440 px showed no overflowing descendants. Actual admin-shell navigation and
+real-device Safari/Android acceptance are not established by this local fixture.
