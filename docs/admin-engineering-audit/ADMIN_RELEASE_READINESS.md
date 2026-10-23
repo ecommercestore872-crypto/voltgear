@@ -60,7 +60,13 @@ corrected. Verify final commit's actual Ready deployments separately before acce
 
 Media/editor safeguards do not certify the lifecycle. P06–P11 add review replacement,
 raw numeric coercion, stale quantity overwrite, draft/live flags/membership and shared
-image cleanup risks. Session/courier/proxy/isolation blockers also remain.
+image cleanup risks. P10's automatic shared-image deletion is corrected in the next
+source-only batch; orphan cleanup is deliberately deferred. P06–P09/P11 and the
+session/courier/proxy/isolation blockers remain.
+
+Product deletion follow-up local log confirms 884 passing tests, both lint/typecheck
+runs and both completed production builds; all ten bundle-budget checks passed.
+These are source/build checks, not real deletion or publication acceptance.
 
 Before any production atomic publish/inventory change: exact project/migration, current
 RPC contract, stock/review/version invariants, draft membership model, compatible app

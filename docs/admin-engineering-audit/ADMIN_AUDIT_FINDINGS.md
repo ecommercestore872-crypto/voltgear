@@ -45,7 +45,7 @@ catalog filtering/pagination; navigation/forms; CMS/communications; measured ren
 | P07 | High | Invalid price normalizes to publishable 0; invalid/omitted quantity normalizes to untracked null | OPEN: raw validation, positive publish price, omitted vs explicit null semantics |
 | P08 | High | Publisher replaces quantity from stale editor; checkout decrement does not advance updated_at | OPEN: stock baseline/revision under transaction lock or separate adjustment. Timestamp CAS alone is insufficient |
 | P09 | High | Save Draft writes live is_demo/cost and API changes live manual collections | OPEN: atomic draft/live separation and partial-save handling |
-| P10 | Medium | Product deletion removes Storage bytes without shared-reference checks | OPEN: retain shared bytes; separate reference-aware cleanup |
+| P10 | Medium | Product deletion removed Storage bytes without shared-reference checks | Source fixed in follow-up: product deletion retains bytes; separate reference-aware cleanup deferred. Mocked deletion/failure tests, not live acceptance |
 | P11 | Medium | Unknown PATCH actions fall through to Save; malformed documents can throw | OPEN: explicit action/document validation before adapter work |
 
 Source/test findings are not proof of production incidents. No live data/provider mutations.

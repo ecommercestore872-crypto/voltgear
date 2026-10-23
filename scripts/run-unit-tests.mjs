@@ -32,9 +32,11 @@ if (!files.length) {
 }
 
 const result = spawnSync(
-  process.platform === "win32" ? "npx.cmd" : "npx",
-  ["tsx", "--test", "--test-isolation=none", "--test-concurrency=1", ...files],
-  { stdio: "inherit", shell: process.platform === "win32" },
+  process.execPath,
+  ["--import", "tsx", "--test", "--test-isolation=none", "--test-concurrency=1", ...files],
+  // Bypass cmd.exe's ~8 KB command limit on Windows as the test suite grows.
+  // Separate arguments also preserve spaces/metacharacters without shell parsing.
+  { stdio: "inherit" },
 );
 
 process.exit(result.status ?? 1);

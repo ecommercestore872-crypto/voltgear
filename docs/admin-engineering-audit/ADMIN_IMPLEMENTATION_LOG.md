@@ -107,3 +107,24 @@ orders, inventory, credentials, customer communications and other projects were 
   and both production builds. All ten storefront bundle-budget checks and whitespace
   verification passed. No storefront page, dependency, schema or live-data changes.
   Remote GitHub CI and actual Ready states remain separate exact-commit gates.
+
+### Product deletion follow-up
+
+- PR26 commit `02c17dca65df3ccbc70f6a3c61deedab3173c4fe` passed remote
+  [Monorepo CI](https://github.com/ecommercestore872-crypto/voltgear/actions/runs/39936750608).
+  Vercel API confirmed exact-commit storefront `dpl_2RFvDGhXxEm66Mfnkut4Sccduu47`
+  and admin `dpl_6RgpDRtF6Wd2CRQjoCFL7JaXwk8v` READY; no production target.
+- Isolated next branch `codex/product-delete-media-safety` preserves that tested head.
+  Product deletion no longer accesses Storage or deletes potentially shared image
+  files. Existing product-row deletion, cache invalidation and revalidation retained.
+  Unreferenced files may remain until separately approved reference-aware cleanup.
+- Five controlled actual-adapter tests cover success, shared live/draft images,
+  not-found, database failure and deferred completion. No real product was deleted.
+- Growing Windows test arguments exposed a cmd.exe command-length failure before any
+  tests ran. The existing runner now invokes current Node with `--import tsx` directly,
+  without a shell. Five runner regressions cover spaces/metacharacters, >8 KB arguments,
+  empty discovery, failing exit and launch failure. No dependency was added.
+- Final combined local gate log confirms 884/884 tests, both lint/typecheck runs and
+  both completed production builds. All ten storefront bundle-budget checks and
+  whitespace verification passed. The process handle was lost across tool reconnection;
+  no recovered exit-code claim. Exact remote CI remains the final independent gate.

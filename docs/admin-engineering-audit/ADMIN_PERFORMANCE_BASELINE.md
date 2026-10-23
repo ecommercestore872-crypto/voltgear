@@ -65,3 +65,10 @@ activation; no UI save while any image operation is pending; compare same fixtur
 bundle size and p50/p75/p95 cold/warm list/editor/search/save timings before declaring a
 speed improvement. Define numeric latency targets only after a repeatable isolated baseline,
 including region, network, file dimensions, catalog size and cache state.
+
+## Product deletion follow-up
+
+Removing inline Storage cleanup eliminates that extra provider call from successful
+product deletion. No latency improvement is claimed without a measured operation.
+No storefront page, image-delivery path or dependency changed. The shell-free test
+launcher is a developer/CI reliability fix, not a buyer rendering optimization.
