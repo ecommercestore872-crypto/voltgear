@@ -68,6 +68,15 @@ Product deletion follow-up local log confirms 884 passing tests, both lint/typec
 runs and both completed production builds; all ten bundle-budget checks passed.
 These are source/build checks, not real deletion or publication acceptance.
 
+Follow-up browser tooling became available: synthetic responsive checks and selected
+editor interactions now have actual rendered evidence. Native upload picker, deployed
+authenticated acceptance, real-device platforms and isolated publication/concurrency
+tests remain incomplete. This limited evidence does not clear the release blockers.
+
+Final responsive batch local gate exited 0 with 885/885 tests, both lint/typecheck
+runs and production builds, all ten bundle-budget checks and no fixture routes.
+Verify final exact-commit remote CI/Ready independently. Keep the stack draft.
+
 Before any production atomic publish/inventory change: exact project/migration, current
 RPC contract, stock/review/version invariants, draft membership model, compatible app
 rollout, isolated interleaving/rollback tests and recovery plan. No production SQL approved.

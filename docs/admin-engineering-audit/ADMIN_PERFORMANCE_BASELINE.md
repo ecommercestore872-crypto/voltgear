@@ -72,3 +72,7 @@ Removing inline Storage cleanup eliminates that extra provider call from success
 product deletion. No latency improvement is claimed without a measured operation.
 No storefront page, image-delivery path or dependency changed. The shell-free test
 launcher is a developer/CI reliability fix, not a buyer rendering optimization.
+
+Rendered product follow-up measured layout width, not speed: the implicit phone grid
+overflow was corrected and checked at five widths. Development compilation/HMR timings
+and fixture rendering are not production cold/warm latency, Lighthouse or staff RUM.
