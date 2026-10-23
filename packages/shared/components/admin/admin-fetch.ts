@@ -1,4 +1,5 @@
 import { adminHeaders, clearAdminToken } from "@/lib/admin-token";
+import { validateAdminUploadMetadata } from "@/lib/admin-upload-rules";
 
 export class AdminAuthError extends Error {}
 
@@ -59,8 +60,19 @@ export async function adminUpload(
   file: File,
   folder = "ecommerce-store/admin",
 ) {
+  // Fast feedback only: the server repeats these checks and validates actual bytes.
+  validateAdminUploadMetadata(file);
   const form = new FormData();
   form.append("file", file);
   form.append("folder", folder);
-  return adminFetch("/api/admin/upload", { method: "POST", body: form });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120_000);
+  try {
+    return await adminFetch("/api/admin/upload", { method: "POST", body: form, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("Upload timed out. Its outcome may be uncertain; check the media provider before retrying.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }

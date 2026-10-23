@@ -1,14 +1,27 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2, Upload, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { adminFetch, adminUpload } from "./admin-fetch";
+import { adminUpload } from "./admin-fetch";
 import { isProductImageTooSmall } from "@/lib/product-image";
+
+function mediaUrl(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const url = value.trim();
+  if (!url || /[\\\u0000-\u0020\u007f]/.test(url)) return null;
+  if (url.startsWith("/") && !url.startsWith("//")) return url;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" && !parsed.username && !parsed.password ? url : null;
+  } catch {
+    return null;
+  }
+}
 
 export function MediaField({
   label,
@@ -17,6 +30,7 @@ export function MediaField({
   onBusyChange,
   accept = "image/*,.heic,.heif",
   hint,
+  disabled = false,
 }: {
   label: string;
   urls: string[];
@@ -24,22 +38,53 @@ export function MediaField({
   onBusyChange?: (busy: boolean) => void;
   accept?: string;
   hint?: string;
+  disabled?: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mountedRef = useRef(true);
+  const pendingRef = useRef<{ release: () => void } | null>(null);
+  const latestRef = useRef({ urls, onChange, onBusyChange, disabled });
+  latestRef.current = { urls, onChange, onBusyChange, disabled };
+  const pasteRef = useRef("");
   const [paste, setPaste] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warn, setWarn] = useState<string | null>(null);
 
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      pendingRef.current?.release();
+    };
+  }, []);
+
+  function changeUrls(next: string[]) {
+    latestRef.current.urls = next;
+    latestRef.current.onChange(next);
+  }
+
   async function onFile(file?: File) {
-    if (!file) return;
+    if (!file || !mountedRef.current || latestRef.current.disabled || pendingRef.current) return;
+    // Pair the release with the observer that received the acquire, even if props change.
+    const notifyBusy = latestRef.current.onBusyChange;
+    let released = false;
+    const pending = { release() {
+      if (released) return;
+      released = true;
+      notifyBusy?.(false);
+    } };
+    pendingRef.current = pending;
     setBusy(true);
-    onBusyChange?.(true);
+    notifyBusy?.(true);
     setError(null);
     setWarn(null);
     try {
       const json = await adminUpload(file);
-      onChange([...urls, json.secureUrl]);
+      if (!mountedRef.current) return;
+      const uploadedUrl = mediaUrl(json?.secureUrl);
+      if (!uploadedUrl) throw new Error("Upload did not return a valid media URL. Please try again.");
+      changeUrls([...latestRef.current.urls, uploadedUrl]);
       if (
         accept.startsWith("image") &&
         isProductImageTooSmall(json.width, json.height)
@@ -49,47 +94,43 @@ export function MediaField({
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      if (mountedRef.current) setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
-      setBusy(false);
-      onBusyChange?.(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      pending.release();
+      if (pendingRef.current === pending) pendingRef.current = null;
+      if (mountedRef.current) {
+        setBusy(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
     }
   }
 
   function addPaste() {
-    const url = paste.trim();
-    if (!url) return;
-    onChange([...urls, url]);
+    if (!mountedRef.current || latestRef.current.disabled || !pasteRef.current.trim()) return;
+    const url = mediaUrl(pasteRef.current);
+    if (!url) {
+      setError("Use an HTTPS media URL or a local path beginning with /.");
+      return;
+    }
+    changeUrls([...latestRef.current.urls, url]);
+    pasteRef.current = "";
     setPaste("");
+    setError(null);
   }
 
   function move(index: number, dir: -1 | 1) {
-    const next = [...urls];
+    if (!mountedRef.current || latestRef.current.disabled) return;
+    const next = [...latestRef.current.urls];
     const target = index + dir;
-    if (target < 0 || target >= next.length) return;
+    if (index < 0 || index >= next.length || target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
-    onChange(next);
+    changeUrls(next);
   }
 
-  async function handleRemove(index: number) {
-    const targetUrl = urls[index];
-    if (!targetUrl) return;
-
-    // Delete from state immediately
-    onChange(urls.filter((_, j) => j !== index));
-
-    // Best effort delete from backend storage if it looks like a managed asset
-    if (targetUrl.includes("/storage/v1/object/public/product-images/") || targetUrl.includes("res.cloudinary.com/")) {
-      try {
-        await adminFetch(
-          `/api/admin/upload?url=${encodeURIComponent(targetUrl)}`,
-          { method: "DELETE" },
-        );
-      } catch (err) {
-        console.error("Failed to delete unused media asset from server:", err);
-      }
-    }
+  function handleRemove(index: number) {
+    if (!mountedRef.current || latestRef.current.disabled) return;
+    // This edits the form relationship only. Assets may still be live or shared.
+    changeUrls(latestRef.current.urls.filter((_, j) => j !== index));
   }
 
   return (
@@ -115,6 +156,7 @@ export function MediaField({
               variant="ghost"
               size="icon"
               aria-label="Move up"
+              disabled={disabled || i === 0}
               onClick={() => move(i, -1)}
             >
               <ArrowUp className="h-4 w-4" />
@@ -124,6 +166,7 @@ export function MediaField({
               variant="ghost"
               size="icon"
               aria-label="Move down"
+              disabled={disabled || i === urls.length - 1}
               onClick={() => move(i, 1)}
             >
               <ArrowDown className="h-4 w-4" />
@@ -133,6 +176,7 @@ export function MediaField({
               variant="ghost"
               size="icon"
               aria-label="Remove"
+              disabled={disabled}
               onClick={() => handleRemove(i)}
             >
               <Trash2 className="h-4 w-4" />
@@ -145,7 +189,7 @@ export function MediaField({
           <Button
             type="button"
             variant="outline"
-            disabled={busy}
+            disabled={busy || disabled}
             onClick={() => fileInputRef.current?.click()}
             className="shrink-0 shadow-sm"
           >
@@ -156,7 +200,7 @@ export function MediaField({
             ref={fileInputRef}
             type="file"
             accept={accept}
-            disabled={busy}
+            disabled={busy || disabled}
             className="hidden"
             onChange={(e) => onFile(e.target.files?.[0])}
           />
@@ -166,8 +210,12 @@ export function MediaField({
           <Input
             placeholder="https://..."
             value={paste}
+            disabled={disabled}
             className="min-w-0 shadow-sm"
-            onChange={(e) => setPaste(e.target.value)}
+            onChange={(e) => {
+              pasteRef.current = e.target.value;
+              setPaste(e.target.value);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -175,17 +223,17 @@ export function MediaField({
               }
             }}
             onBlur={() => {
-              if (paste.trim()) addPaste();
+              addPaste();
             }}
           />
-          <Button type="button" variant="outline" onClick={addPaste} className="shrink-0 shadow-sm">
+          <Button type="button" variant="outline" disabled={disabled} onClick={addPaste} className="shrink-0 shadow-sm">
             <Plus className="mr-1 h-4 w-4" />
             Add
           </Button>
         </div>
       </div>
       {warn ? <p className="text-sm text-amber-700">{warn}</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
     </div>
   );
 }

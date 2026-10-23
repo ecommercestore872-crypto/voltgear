@@ -1,14 +1,16 @@
 import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { v2 as cloudinary, type UploadApiOptions } from "cloudinary";
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 
 import { isAdminRequest } from "@/lib/admin";
 import {
-  CLOUDINARY_API_KEY,
-  CLOUDINARY_API_SECRET,
-  CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_FOLDER,
+  CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD_NAME, CLOUDINARY_FOLDER,
 } from "@/lib/cloudinary";
+import {
+  ADMIN_UPLOAD_MAX_BYTES, ADMIN_UPLOAD_MAX_PIXELS, adminUploadFolder,
+  isAdminUploadUrl, validateAdminUploadMetadata, validateAdminUploadSignature,
+} from "@/lib/admin-upload-rules";
 import { getServiceClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -19,152 +21,107 @@ function isConfigured(value: string | undefined): boolean {
 }
 
 cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
+  cloud_name: CLOUDINARY_CLOUD_NAME, api_key: CLOUDINARY_API_KEY, api_secret: CLOUDINARY_API_SECRET,
 });
 
-async function uploadToStorage(file: File, folder: string) {
+async function uploadToStorage(file: File, buffer: Buffer, folder: string, mimeType: string) {
   const client = getServiceClient();
-  const ext = (file.name.split(".").pop() || "bin").replace(
-    /[^a-zA-Z0-9]/g,
-    "",
-  );
+  const ext = file.name.split(".").pop()!.toLowerCase();
   const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const { error } = await client.storage
-    .from("product-images")
-    .upload(path, buffer, {
-      contentType: file.type || "application/octet-stream",
-      upsert: false,
-    });
-  if (error) throw error;
+  const { error } = await client.storage.from("product-images").upload(path, buffer, {
+    contentType: mimeType, upsert: false,
+  });
+  if (error) throw new Error("Storage unavailable");
   const { data } = client.storage.from("product-images").getPublicUrl(path);
+  if (!isAdminUploadUrl(data?.publicUrl)) throw new Error("Invalid Storage response");
   return { secureUrl: data.publicUrl, publicId: path };
 }
 
 async function POSTHandler(request: Request) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdminRequest(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Early transport check is advisory; File.size is checked after parsing too.
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && Number(contentLength) > ADMIN_UPLOAD_MAX_BYTES + 256_000) {
+    return NextResponse.json({ error: "Images must be 4 MB or smaller." }, { status: 413 });
   }
-  const formData = await request.formData();
+  let formData: FormData;
+  try { formData = await request.formData(); }
+  catch { return NextResponse.json({ error: "Provide a valid image upload." }, { status: 400 }); }
   const file = formData.get("file");
-  const folder = (formData.get("folder") as string) || CLOUDINARY_FOLDER;
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "No file provided." }, { status: 400 });
+  if (!(file instanceof File)) return NextResponse.json({ error: "No file provided." }, { status: 400 });
+
+  let image: ReturnType<typeof validateAdminUploadMetadata>;
+  let folder: string;
+  try {
+    image = validateAdminUploadMetadata(file);
+    folder = adminUploadFolder(formData.get("folder"), CLOUDINARY_FOLDER);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid image." }, {
+      status: file.size > ADMIN_UPLOAD_MAX_BYTES ? 413 : 400,
+    });
+  }
+  let buffer: Buffer;
+  let dimensions: { width?: number; height?: number } = {};
+  try {
+    buffer = Buffer.from(await file.arrayBuffer());
+    validateAdminUploadSignature(buffer, image);
+    if (!image.requiresConversion) {
+      const decoder = sharp(buffer, { animated: true, limitInputPixels: ADMIN_UPLOAD_MAX_PIXELS, failOn: "warning" });
+      const metadata = await decoder.metadata();
+      if (!metadata.width || !metadata.height || metadata.width * metadata.height > ADMIN_UPLOAD_MAX_PIXELS) {
+        throw new Error("Invalid image dimensions");
+      }
+      // Unlike metadata/header checks, stats forces decoding. Do not alter stored bytes or animation.
+      await decoder.stats();
+      dimensions = { width: metadata.width, height: metadata.pageHeight ?? metadata.height };
+    }
+  } catch {
+    return NextResponse.json({ error: "The image could not be read safely. Export a valid image and try again." }, { status: 400 });
   }
 
-  const isVideo = (file.type || "").startsWith("video/");
-  const cloudinaryReady =
-    isConfigured(CLOUDINARY_CLOUD_NAME) &&
-    isConfigured(CLOUDINARY_API_KEY) &&
-    isConfigured(CLOUDINARY_API_SECRET);
-
+  const cloudinaryReady = isConfigured(CLOUDINARY_CLOUD_NAME) && isConfigured(CLOUDINARY_API_KEY) && isConfigured(CLOUDINARY_API_SECRET);
   if (cloudinaryReady) {
+    let result;
+    let completed = false;
     try {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const mimeType = file.type || "application/octet-stream";
-      const base64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
-      
-      const fileExt = (file.name || "").split(".").pop()?.toLowerCase();
-      const isHeic = fileExt === "heic" || fileExt === "heif" || mimeType.includes("heic") || mimeType.includes("heif");
-      
-      const uploadOptions: UploadApiOptions = {
-        folder,
-        resource_type: isVideo ? "video" : "image",
-      };
-      
-      if (isHeic) {
-        uploadOptions.format = "webp";
-      }
-      
-      const result = await cloudinary.uploader.upload(base64, uploadOptions);
-      return NextResponse.json({
-        publicId: result.public_id,
-        secureUrl: result.secure_url,
-        width: result.width,
-        height: result.height,
-      });
+      const options: UploadApiOptions = { folder, resource_type: "image" };
+      if (image.requiresConversion) options.format = "webp";
+      result = await cloudinary.uploader.upload(`data:${image.mimeType};base64,${buffer.toString("base64")}`, options);
+      completed = true;
     } catch (error) {
-      console.error("[admin/upload] Cloudinary failed, trying Storage", error);
+      const providerCode = error && typeof error === "object" && "http_code" in error ? error.http_code : undefined;
+      // A timeout/network/5xx result may have persisted the upload already.
+      // Only an explicit rejection is safe to send to a second storage provider.
+      if (typeof providerCode !== "number" || ![400, 401, 403, 404, 413, 415, 420, 429].includes(providerCode)) {
+        return NextResponse.json({ error: "Upload outcome is uncertain. Check the media provider before retrying." }, { status: 502 });
+      }
+      console.error("[admin/upload] Cloudinary rejected the upload");
+    }
+    if (completed) {
+      if (!result || !isAdminUploadUrl(result.secure_url) || typeof result.public_id !== "string" || !result.public_id.trim() ||
+          !Number.isSafeInteger(result.width) || result.width <= 0 || !Number.isSafeInteger(result.height) || result.height <= 0 ||
+          result.width * result.height > ADMIN_UPLOAD_MAX_PIXELS || (image.requiresConversion && result.format !== "webp")) {
+        // A provider may already have stored an asset. Do not automatically create a second copy.
+        return NextResponse.json({ error: "Upload returned an invalid response. Check the media provider before retrying." }, { status: 502 });
+      }
+      return NextResponse.json({ publicId: result.public_id, secureUrl: result.secure_url, width: result.width, height: result.height });
     }
   }
-
-  try {
-    const stored = await uploadToStorage(
-      file,
-      folder.replace(/[^a-zA-Z0-9/_-]/g, "") || "admin",
-    );
-    return NextResponse.json(stored);
-  } catch (error) {
-    console.error("[admin/upload] Storage failed", error);
-    return NextResponse.json(
-      { error: "Upload failed. Check Cloudinary or Storage settings." },
-      { status: 500 },
-    );
+  if (image.requiresConversion) {
+    return NextResponse.json({ error: "HEIC/HEIF requires the image conversion provider. Export JPEG, PNG or WebP and try again." }, { status: 503 });
+  }
+  try { return NextResponse.json({ ...await uploadToStorage(file, buffer, folder, image.mimeType), ...dimensions }); }
+  catch {
+    console.error("[admin/upload] Storage upload unavailable");
+    return NextResponse.json({ error: "Upload failed. Check Cloudinary or Storage settings." }, { status: 503 });
   }
 }
 
 async function DELETEHandler(request: Request) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { searchParams } = new URL(request.url);
-  const urlParam = searchParams.get("url") || searchParams.get("publicId");
-
-  if (!urlParam) {
-    return NextResponse.json({ error: "Missing url or publicId parameter" }, { status: 400 });
-  }
-
-  try {
-    // 1. Check if it's a Supabase storage URL
-    if (urlParam.includes("/storage/v1/object/public/product-images/")) {
-      const path = urlParam.split("/storage/v1/object/public/product-images/")[1];
-      if (path) {
-        const client = getServiceClient();
-        const { error } = await client.storage.from("product-images").remove([path]);
-        if (error) {
-          console.error("[admin/upload DELETE] Supabase remove error", error);
-          return NextResponse.json({ error: error.message }, { status: 500 });
-        }
-        return NextResponse.json({ ok: true, deleted: path });
-      }
-    }
-
-    // 2. Check if Cloudinary is configured, and try deleting from Cloudinary
-    const cloudinaryReady =
-      isConfigured(CLOUDINARY_CLOUD_NAME) &&
-      isConfigured(CLOUDINARY_API_KEY) &&
-      isConfigured(CLOUDINARY_API_SECRET);
-
-    if (cloudinaryReady) {
-      let publicId = urlParam;
-      // Extract public_id if a full Cloudinary URL was passed
-      if (urlParam.includes("res.cloudinary.com")) {
-        const parts = urlParam.split("/upload/");
-        if (parts.length > 1) {
-          // Remove version number if present (e.g. v1234567/)
-          let pathPart = parts[1];
-          if (pathPart.match(/^v\d+\//)) {
-            pathPart = pathPart.replace(/^v\d+\//, "");
-          }
-          // Remove file extension
-          publicId = pathPart.split(".")[0];
-        }
-      }
-
-      const result = await cloudinary.uploader.destroy(publicId);
-      return NextResponse.json({ ok: true, result });
-    }
-
-    return NextResponse.json({ ok: true, message: "URL not recognized for explicit deletion" });
-  } catch (error: unknown) {
-    console.error("[admin/upload DELETE] failed", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to delete asset";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  if (!isAdminRequest(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json({
+    error: "Removing media only unlinks it from the form. Permanent deletion is disabled until reference-safe cleanup is available.",
+  }, { status: 409 });
 }
 
 export const POST = withAdminApiObservability("POST /api/admin/upload", POSTHandler);
