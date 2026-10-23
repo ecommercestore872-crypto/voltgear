@@ -6,11 +6,11 @@ import { adminFormFingerprint } from "@/lib/admin-unsaved-rules";
 
 import { useUnsavedChangesGuard } from "./use-unsaved-changes-guard";
 
-export function useAdminFormDirty<T>(state: T, enabled = true) {
+export function useAdminFormDirty<T>(state: T, enabled = true, pendingWork = false) {
   const fingerprint = useMemo(() => adminFormFingerprint(state), [state]);
   const saved = useRef(fingerprint);
   const dirty = enabled && fingerprint !== saved.current;
-  useUnsavedChangesGuard(dirty);
+  useUnsavedChangesGuard(dirty || pendingWork);
 
   return {
     dirty,

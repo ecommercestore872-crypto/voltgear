@@ -81,3 +81,29 @@ orders, inventory, credentials, customer communications and other projects were 
   build-scope/script tests 8/8, admin typecheck and Node syntax check passed. App bundles
   are unchanged from the 836-test full CI gate. Final remote deployment status must be
   read independently; canceled/skipped deployments are not successful preview builds.
+
+## 2026-10-23 — Product/media safety batch
+
+- Reconciled PR23/24/25 open/draft heads; isolated branch starts at PR25 `48a96ce`.
+- Official Shopify comparison, field-level gap matrix and editor blueprint appended to
+  ADMIN_FEATURE_INVENTORY.md. Existing model reused; no new dependency/schema/provider.
+- Media removal unlinks only; upload DELETE fails closed until reference-safe cleanup.
+  Product-deletion byte cleanup remains a separate open risk.
+- Added shared 4 MB policy, signature checks and bounded real Sharp decoding. HEIC/HEIF
+  requires confirmed WebP conversion; ambiguous failures/malformed success do not create
+  fallback copies. A bounded client timeout reports uncertainty without auto-retry.
+- All product media locations register pending work. Controls lock, save acquires a
+  synchronous ref, and captured document/collections define saved baselines. Unpublish
+  preserves unsaved edits; same-session discard restores latest publish/saved membership.
+- Existing badge/social links now hydrate correctly; new Save is sticky; PKR/stock labels
+  clarify the actual product-level inventory model.
+- CI PR branch filters now include stacked admin/product bases; read-only permissions,
+  placeholder build credentials and absence of deployment steps are unchanged.
+- Independent initial audits completed; worker follow-up review hit usage limits.
+  Coordinator completed remaining integration/tests; independent final sign-off unclaimed.
+- Browser tool became unavailable before fixture launch verification. Temporary fixture
+  source removed; no new rendered UI/viewport acceptance or substituted old screenshot.
+- Final combined local `npm run ci` exited 0: 874/874 tests, both lint/typecheck runs
+  and both production builds. All ten storefront bundle-budget checks and whitespace
+  verification passed. No storefront page, dependency, schema or live-data changes.
+  Remote GitHub CI and actual Ready states remain separate exact-commit gates.

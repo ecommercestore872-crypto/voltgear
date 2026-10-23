@@ -41,3 +41,27 @@ after extracting the client-safe email-history marker, final build reported **13
 That is a 125 kB reduction in Next's build estimate, not transferred-byte, hydration,
 route-latency or user-speed evidence. The final build also contains the small search
 race correction; no runtime causal percentage is claimed.
+
+## Product/media baseline extension — 2026-10-23
+
+No authenticated isolated dataset or real-provider upload benchmark is available.
+The current batch is reliability/security work, not measured speed optimization.
+
+| Workload | Before/source gap | Current bounded contract / measurement need |
+| --- | --- | --- |
+| Product media upload | No application size/content validation before provider work | 4,000,000-byte client/server file gate; 40M-pixel decode bound; unchanged original raster bytes/animation; HEIC converted by configured provider |
+| Duplicate uploads/saves | Reentry and blur-window save races | One in-flight upload per field and synchronous product mutation lock; controlled regressions, not throughput telemetry |
+| Stalled client upload | No explicit client deadline | 120-second abort, uncertain-outcome message, no automatic retry; not a provider-side cancellation guarantee |
+| Product list | Existing PR25 counted/filter query contract | Preserve 48 default rows / 100 maximum and page-only draft lookup; p50/p75/p95 DB timing still unavailable |
+| Product editor hydration | Existing large form and dynamic media/axes components | Existing approach retained; production-build JS estimate is not hydration/interaction timing |
+| Save/publish | Actual remote persistence/transaction time unknown | No fabricated latency or completion guarantee; follow-up stock/review correctness required first |
+
+Validation deliberately adds bounded image decode CPU. No upload-speed, compression,
+Lighthouse or revenue benefit is claimed without a matched measurement. Existing shared
+storefront JS/CSS budgets remain mandatory at the full gate.
+
+Provisional acceptance budgets: no increase in list row cardinality; one mutation per
+activation; no UI save while any image operation is pending; compare same fixture's
+bundle size and p50/p75/p95 cold/warm list/editor/search/save timings before declaring a
+speed improvement. Define numeric latency targets only after a repeatable isolated baseline,
+including region, network, file dimensions, catalog size and cache state.

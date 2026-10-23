@@ -31,3 +31,21 @@ IDOR was established in the reviewed admin surface. This is not a complete penet
 
 Use specialist follow-up batches: security/session; operational list completeness;
 catalog filtering/pagination; navigation/forms; CMS/communications; measured rendering.
+
+## Product/media follow-up — 2026-10-23
+
+| ID | Severity | Confirmed source evidence | Current disposition |
+| --- | --- | --- | --- |
+| P01 | High | MediaField Remove called upload DELETE before Save; endpoint deleted assets without reference checks | Source fixed: unlink-only editing; authenticated DELETE returns 409 without provider effects. Orphan cleanup deferred |
+| P02 | Medium | Upload completion used captured arrays; add-on/color uploads absent from parent pending counter | Source fixed: latest MediaField refs, lifecycle checks, all locations registered; product controls locked while pending/saving |
+| P03 | Medium | Save waited before setting saving; no synchronous in-flight lock | Source fixed: ref before wait, upload recheck, document/collections snapshot, retry after failure |
+| P04 | Medium | Arbitrary files buffered/stored without validation; fallback could duplicate ambiguous uploads | Source fixed: 4 MB metadata/signature gate, bounded raster decode; HEIC requires confirmed conversion; no ambiguous fallback |
+| P05 | Medium | Unpublish marked unsaved fields clean; discard used initial live props and retained unsaved collections | Source fixed for same session: correct baseline, latest publication snapshot and saved memberships. Cross-editor conflicts remain |
+| P06 | High | Slim editor emits empty reviews; publishing replaces live review rows | OPEN: preserve moderation-owned data atomically, including concurrent approvals |
+| P07 | High | Invalid price normalizes to publishable 0; invalid/omitted quantity normalizes to untracked null | OPEN: raw validation, positive publish price, omitted vs explicit null semantics |
+| P08 | High | Publisher replaces quantity from stale editor; checkout decrement does not advance updated_at | OPEN: stock baseline/revision under transaction lock or separate adjustment. Timestamp CAS alone is insufficient |
+| P09 | High | Save Draft writes live is_demo/cost and API changes live manual collections | OPEN: atomic draft/live separation and partial-save handling |
+| P10 | Medium | Product deletion removes Storage bytes without shared-reference checks | OPEN: retain shared bytes; separate reference-aware cleanup |
+| P11 | Medium | Unknown PATCH actions fall through to Save; malformed documents can throw | OPEN: explicit action/document validation before adapter work |
+
+Source/test findings are not proof of production incidents. No live data/provider mutations.

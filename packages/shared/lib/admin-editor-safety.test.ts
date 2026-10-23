@@ -51,6 +51,22 @@ it("does not disable dirty protection for new product, page/blog or testimonial 
   }
 });
 
+it("guards pristine content during pending work without pretending its fields changed", () => {
+  let saved: { current: string } | undefined;
+  let guarded = false;
+  const { useAdminFormDirty } = load<typeof import("../components/admin/use-admin-form-dirty")>(
+    new URL("../components/admin/use-admin-form-dirty.ts", import.meta.url), {
+      react: { useMemo: (fn: () => unknown) => fn(), useRef: (initial: string) => saved ??= { current: initial } },
+      "@/lib/admin-unsaved-rules": { adminFormFingerprint },
+      "./use-unsaved-changes-guard": { useUnsavedChangesGuard: (value: boolean) => { guarded = value; } },
+    },
+  );
+  assert.equal(useAdminFormDirty({ title: "" }, true, true).dirty, false);
+  assert.equal(guarded, true);
+  assert.equal(useAdminFormDirty({ title: "" }, true, false).dirty, false);
+  assert.equal(guarded, false);
+});
+
 it("lets customer load failures reach the existing retryable route boundary instead of an empty-business state", async () => {
   const jsx = (type: unknown, props: unknown) => ({ type, props });
   const page = load<{ default: (props: unknown) => Promise<unknown> }>(

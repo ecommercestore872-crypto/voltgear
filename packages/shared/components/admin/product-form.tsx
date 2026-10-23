@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { StringArrayInput } from "@/components/admin/string-array-input";
 import { ObjectArrayInput } from "@/components/admin/object-array-input";
@@ -75,6 +75,12 @@ export function ProductForm({
   const [selectedCollectionIds, setSelectedCollectionIds] =
     useState(collectionIds);
   const [activeUploads, setActiveUploads] = useState(0);
+  const activeUploadsRef = useRef(0);
+  const savingRef = useRef(false);
+  const collectionIdsRef = useRef(selectedCollectionIds);
+  collectionIdsRef.current = selectedCollectionIds;
+  const savedCollectionIdsRef = useRef([...collectionIds]);
+  const liveDocumentRef = useRef(product ? productDocumentFromAdmin({ ...product, draft: null }, knownSlugs) : null);
   const id = product?._id;
 
   const set = <K extends keyof ProductDocument>(
@@ -101,9 +107,9 @@ export function ProductForm({
     }),
     [payload, selectedCollectionIds],
   );
-  const { dirty, syncSaved, resetSaved } = useAdminFormDirty(dirtyState);
+  const { dirty, resetSaved } = useAdminFormDirty(dirtyState, true, activeUploads > 0 || saving);
 
-  function commitSavedBaseline(latest: ProductDocument) {
+  function commitSavedBaseline(latest: ProductDocument, submittedCollections: string[]) {
     resetSaved({
       payload: {
         ...latest,
@@ -111,23 +117,30 @@ export function ProductForm({
           portableTextToPlain(latest.description),
         ),
       },
-      collectionIds: [...selectedCollectionIds].sort(),
+      collectionIds: [...submittedCollections].sort(),
     });
   }
 
   async function run(action: ProductAction) {
-    if (activeUploads > 0 && action !== "delete") {
+    if (savingRef.current) return;
+    if (activeUploadsRef.current > 0) {
       setError("Please wait for media uploads to finish before saving.");
       return;
     }
 
-    // Yield to the event loop so any pending onBlur auto-commits can flush state
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    const latestPayload = payloadRef.current;
-
+    // Lock synchronously, before yielding for onBlur commits, so repeated clicks
+    // cannot create duplicate mutations while React is updating disabled state.
+    savingRef.current = true;
     setSaving(true);
     setError(null);
     try {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      if (activeUploadsRef.current > 0) {
+        setError("Please wait for media uploads to finish before saving.");
+        return;
+      }
+      const latestPayload = payloadRef.current;
+      const submittedCollections = [...collectionIdsRef.current];
       if (action === "create" || action === "save" || action === "publish") {
         if (!shopTypes.some((t) => t.slug === latestPayload.category)) {
           setError("Pick a category.");
@@ -138,7 +151,7 @@ export function ProductForm({
         action,
         id,
         document: latestPayload,
-        collectionIds: selectedCollectionIds,
+        collectionIds: submittedCollections,
       });
       if (!request) return;
       if (action === "delete") {
@@ -153,22 +166,26 @@ export function ProductForm({
         router.replace("/admin/products");
         return;
       }
-      if (action === "publish") setStatus("published");
+      if (action === "publish") {
+        setStatus("published");
+        liveDocumentRef.current = latestPayload;
+      }
       if (action === "unpublish") setStatus("unpublished");
       if (action === "discard" && product) {
-        const live = productDocumentFromAdmin(
-          { ...product, draft: null },
-          knownSlugs,
-        );
+        const live = liveDocumentRef.current!;
+        const restoredCollections = [...savedCollectionIdsRef.current];
         const liveDescription = portableTextToPlain(live.description);
         setDoc(live);
         setDescription(liveDescription);
+        setSelectedCollectionIds(restoredCollections);
+        collectionIdsRef.current = restoredCollections;
         commitSavedBaseline({
           ...live,
           description: textToPortableText(liveDescription),
-        });
-      } else {
-        commitSavedBaseline(latestPayload);
+        }, restoredCollections);
+      } else if (action === "save" || action === "publish") {
+        savedCollectionIdsRef.current = [...submittedCollections];
+        commitSavedBaseline(latestPayload, submittedCollections);
       }
     } catch (err) {
       if (err instanceof AdminAuthError) {
@@ -177,13 +194,15 @@ export function ProductForm({
       }
       setError(err instanceof Error ? err.message : "Could not save.");
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }
 
-  const handleBusyChange = (busy: boolean) => {
-    setActiveUploads((prev) => Math.max(0, prev + (busy ? 1 : -1)));
-  };
+  const handleBusyChange = useCallback((busy: boolean) => {
+    activeUploadsRef.current = Math.max(0, activeUploadsRef.current + (busy ? 1 : -1));
+    setActiveUploads(activeUploadsRef.current);
+  }, []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -201,7 +220,7 @@ export function ProductForm({
               {isNew ? "Add New Product" : doc.name || "Edit Product"}
               {!isNew && (
                 <Badge variant="outline" className="font-normal text-muted-foreground hidden sm:inline-flex bg-muted/30">
-                  {status === "published" ? "Published" : "Draft"}
+                  {status === "published" ? "Published" : status === "unpublished" ? "Unpublished" : "Draft"}
                 </Badge>
               )}
             </h1>
@@ -218,7 +237,7 @@ export function ProductForm({
               variant="destructive"
               onClick={() => run("delete")}
               className="shrink-0 shadow-sm"
-              disabled={saving}
+              disabled={saving || activeUploads > 0}
             >
               Delete Product
             </Button>
@@ -227,9 +246,11 @@ export function ProductForm({
       </div>
 
       {isNew ? (
-        <Button type="button" onClick={() => run("create")} disabled={saving || activeUploads > 0}>
-          Save draft {activeUploads > 0 && "(Uploading...)"}
-        </Button>
+        <AdminStickyPublishBar>
+          <Button type="button" onClick={() => run("create")} disabled={saving || activeUploads > 0}>
+            Save draft {activeUploads > 0 && "(Uploading...)"}
+          </Button>
+        </AdminStickyPublishBar>
       ) : (
         <AdminStickyPublishBar>
           <PublishBar
@@ -245,7 +266,8 @@ export function ProductForm({
       )}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      {activeUploads > 0 ? <p role="status" className="text-sm text-muted-foreground">Uploading media. Editing and saving are paused until the upload finishes.</p> : null}
+      <fieldset disabled={saving || activeUploads > 0} aria-busy={saving || activeUploads > 0} className="grid min-w-0 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <div className="space-y-1.5">
             <Label htmlFor="name">Product name</Label>
@@ -261,6 +283,7 @@ export function ProductForm({
             urls={doc.images ?? []}
             onChange={(images) => set("images", images)}
             onBusyChange={handleBusyChange}
+            disabled={saving}
           />
           <div className="space-y-1.5">
             <p className="text-xs text-muted-foreground -mt-2 mb-3">
@@ -292,6 +315,7 @@ export function ProductForm({
               set("productVideo", { ...doc.productVideo, poster: urls[urls.length - 1] })
             }
             onBusyChange={handleBusyChange}
+            disabled={saving}
           />
           <div className="space-y-1.5">
             <Label htmlFor="short">Short summary</Label>
@@ -444,6 +468,8 @@ export function ProductForm({
                         label="Image (optional)"
                         hint="Format: JPG, WEBP, or PNG. Recommended size: 400x400px (Square) to prevent distortion."
                         urls={addon.image ? [addon.image] : []}
+                        disabled={saving}
+                        onBusyChange={handleBusyChange}
                         onChange={(urls) => {
                           const next = [...(doc.addons ?? [])];
                           next[idx] = { ...next[idx], image: urls[urls.length - 1] ?? "" };
@@ -478,7 +504,7 @@ export function ProductForm({
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="price">Price</Label>
+            <Label htmlFor="price">Selling price (PKR)</Label>
             <Input
               id="price"
               type="number"
@@ -488,7 +514,7 @@ export function ProductForm({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="compare">Old price (optional)</Label>
+            <Label htmlFor="compare">Compare-at price (PKR, optional)</Label>
             <Input
               id="compare"
               type="number"
@@ -580,11 +606,13 @@ export function ProductForm({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Leave empty for unlimited. Set a number to stop overselling. Zero
-              marks the product sold out.
+              Leave empty for untracked quantity; availability still applies.
+              Zero marks the product sold out. Units are shared across all variants.
             </p>
           </div>
           <VariantAxesFields
+            disabled={saving || activeUploads > 0}
+            onBusyChange={handleBusyChange}
             colorEnabled={Boolean(doc.colorEnabled)}
             sizeEnabled={Boolean(doc.sizeEnabled)}
             colorOptions={doc.colorOptions ?? []}
@@ -645,7 +673,7 @@ export function ProductForm({
             Practice product — guests cannot see this
           </label>
         </div>
-      </div>
+      </fieldset>
     </div>
   );
 }

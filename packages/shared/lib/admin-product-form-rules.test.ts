@@ -48,6 +48,15 @@ describe("emptyProductDocument", () => {
 });
 
 describe("productDocumentFromAdmin", () => {
+  it("preserves existing merchandising and social links when editing live products", () => {
+    const result = productDocumentFromAdmin(adminProduct({
+      badge: "Merchant configured", instagramUrl: "https://www.instagram.com/reel/fixture/",
+      tiktokUrl: "https://www.tiktok.com/@fixture/video/1",
+    }), ["watches"]);
+    assert.equal(result.badge, "Merchant configured");
+    assert.equal(result.instagramUrl, "https://www.instagram.com/reel/fixture/");
+    assert.equal(result.tiktokUrl, "https://www.tiktok.com/@fixture/video/1");
+  });
   it("prefers the saved draft and preserves live-only commercial flags", () => {
     const product = adminProduct({
       isDemo: true,
