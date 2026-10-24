@@ -34,16 +34,19 @@ export async function generateMetadata(
   }
 ): Promise<Metadata> {
   const params = await props.params;
-  const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
-  const shop = findShopType(
-    types.length ? types : FALLBACK_SHOP_TYPES,
-    params.category,
-  );
-  const name = shop?.name || params.category.replace(/-/g, " ");
+  const types = await fetchShopTypes().catch(() => []);
+  const shop = findShopType(types, params.category);
+  if (!shop) {
+    return {
+      title: "Category Not Found",
+      robots: { index: false, follow: false },
+    };
+  }
+  const name = shop.name;
   const meta = categorySearchMeta({
     slug: params.category,
     name,
-    description: shop?.description,
+    description: shop.description,
   });
   return {
     title: { absolute: meta.title },
@@ -69,7 +72,7 @@ export default async function Products2CategoryPage(
 ) {
   const params = await props.params;
   let products: Product[] = [];
-  let shopTypes = FALLBACK_SHOP_TYPES;
+  let shopTypes: typeof FALLBACK_SHOP_TYPES = [];
   const settings = await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
 
@@ -79,9 +82,10 @@ export default async function Products2CategoryPage(
       fetchShopTypes(),
     ]);
     products = applyGadgetStudioImagesList(p);
-    shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
+    shopTypes = types;
   } catch {
     products = [];
+    shopTypes = [];
   }
 
   const shop = findShopType(shopTypes, params.category);
