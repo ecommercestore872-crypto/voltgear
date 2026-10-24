@@ -6,6 +6,7 @@ import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import sharp from "sharp";
 import * as rules from "./admin-upload-rules";
+import { AdminRequestError } from "./admin-request-error";
 
 function loadModule<T>(file: string, dependencies: Record<string, unknown>, globals: Record<string, unknown> = {}): T {
   const exports = {};
@@ -238,6 +239,7 @@ it("adminUpload rejects invalid metadata before fetch and forwards valid files o
   const client = loadModule<{ adminUpload: (file: File) => Promise<unknown> }>("../components/admin/admin-fetch.ts", {
     "@/lib/admin-token": { adminHeaders: () => ({ authorization: "fixture-token" }) },
     "@/lib/admin-upload-rules": rules,
+    "@/lib/admin-request-error": { AdminRequestError },
   }, { fetch: async (url: string, options: RequestInit) => {
     calls.push({ url, options }); return Response.json({ secureUrl: "https://fixture.test/a.png" });
   } });
@@ -255,6 +257,7 @@ it("bounds stalled uploads, clears its timer and reports an uncertain outcome wi
   let cleared = false;
   const client = loadModule<{ adminUpload: (file: File) => Promise<unknown> }>("../components/admin/admin-fetch.ts", {
     "@/lib/admin-token": { adminHeaders: () => ({}) }, "@/lib/admin-upload-rules": rules,
+    "@/lib/admin-request-error": { AdminRequestError },
   }, {
     setTimeout: (callback: () => void, milliseconds: number) => { assert.equal(milliseconds, 120_000); expire = callback; return 1; },
     clearTimeout: () => { cleared = true; },

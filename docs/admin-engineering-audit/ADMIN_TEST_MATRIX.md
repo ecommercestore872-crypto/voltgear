@@ -1,5 +1,15 @@
 # Verification matrix
 
+## 2026-10-24 product integrity extension
+
+See [exact evidence and limitations](PRODUCT_INTEGRITY_V2.md). Real disposable PostgreSQL
+17 tests now cover both lock orderings of checkout/cancellation/review approval versus
+publish, stale admin revisions, inventory ABA, explicit stock conflicts and rollback.
+These tests use actual RPCs and synthetic data, not production or mocked database writes.
+Raw input/API/adapter and editor tests additionally cover original invalid numeric text,
+uncertain write outcomes, initial stock and draft-only inline collection membership.
+Native picker/provider, full migration replay and HTTP acceptance are separate gates.
+
 Tests describe what was actually exercised, not business acceptance by implication.
 
 | Area | Evidence | Limitation |

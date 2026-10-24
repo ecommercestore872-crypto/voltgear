@@ -1,5 +1,6 @@
 import { categoryIsAssignable } from "@/lib/db/category-rules";
 import { syncStockStatusWithQuantity } from "@/lib/db/stock-rules";
+import { ProductInputError, validateProductInput, type InventoryIntent } from "@/lib/admin-product-input";
 import {
   generateSellableVariants,
   parseVariantOptions,
@@ -16,7 +17,7 @@ export interface ProductDocument {
   sku?: string;
   category: string;
   price: number;
-  compareAtPrice?: number;
+  compareAtPrice?: number | null;
   images: string[];
   cloudinaryImages?: string[];
   shortDescription?: string;
@@ -31,7 +32,7 @@ export interface ProductDocument {
     name: string;
     sku?: string;
     price?: number;
-    compareAtPrice?: number;
+    compareAtPrice?: number | null;
     stockStatus: string;
     image?: string;
     isDefault?: boolean;
@@ -58,7 +59,9 @@ export interface ProductDocument {
   featured?: boolean;
   badge?: string;
   isDemo?: boolean;
-  costPrice?: number;
+  costPrice?: number | null;
+  inventoryIntent?: InventoryIntent;
+  _collectionIds?: string[] | null;
   tiktokUrl?: string;
   instagramUrl?: string;
   addons?: Array<{
@@ -124,36 +127,36 @@ export function mergeProductForm(
   existing: ProductDocument | undefined,
   form: ProductDocument
 ): ProductDocument {
+  validateProductInput(form);
+  if (form.price === undefined && existing?.price === undefined) throw new ProductInputError("Price is required.");
   const name = form.name?.trim() ?? "";
   const slug = form.slug?.trim() || slugify(name);
   const shortPatch = isShortProductFormPatch(form);
   const productVideo = mergeProductVideo(form, existing);
+  const quantity = form.quantity === undefined ? existing?.quantity ?? null : form.quantity;
+  const stockStatus = syncStockStatusWithQuantity(form.stockStatus ?? existing?.stockStatus, quantity);
+  // A new product has no live shelf to preserve. Retain its deliberately supplied
+  // initial availability as draft intent instead of silently dropping it at publish.
+  const inventoryIntent: InventoryIntent = !existing && form.inventoryIntent?.mode !== "adjust"
+    ? { mode: "adjust", expectedRevision: "0", quantity, stockStatus }
+    : form.inventoryIntent ?? existing?.inventoryIntent ?? { mode: "preserve" as const };
 
   return {
     name,
     slug,
     category: form.category?.trim() ?? "",
-    price: Number.isFinite(form.price) ? form.price : 0,
-    compareAtPrice: form.compareAtPrice ?? existing?.compareAtPrice,
-    images: form.images ?? [],
+    price: form.price === undefined ? existing?.price ?? 0 : form.price,
+    compareAtPrice: form.compareAtPrice === undefined ? existing?.compareAtPrice : form.compareAtPrice,
+    images: form.images ?? existing?.images ?? [],
     shortDescription: form.shortDescription ?? existing?.shortDescription,
-    description: form.description ?? existing?.description,
-    stockStatus: syncStockStatusWithQuantity(
-      form.stockStatus,
-      form.quantity != null && Number.isInteger(form.quantity) && form.quantity >= 0
-        ? form.quantity
-        : null,
-    ),
-    quantity:
-      form.quantity != null && Number.isInteger(form.quantity) && form.quantity >= 0
-        ? form.quantity
-        : null,
-    featured: Boolean(form.featured),
-    isDemo: Boolean(form.isDemo),
-    costPrice:
-      form.costPrice != null && Number.isFinite(form.costPrice) && form.costPrice >= 0
-        ? form.costPrice
-        : existing?.costPrice,
+    description: form.description === undefined ? existing?.description : form.description,
+    stockStatus,
+    quantity,
+    featured: form.featured ?? existing?.featured ?? false,
+    isDemo: form.isDemo ?? existing?.isDemo ?? false,
+    costPrice: form.costPrice === undefined ? existing?.costPrice : form.costPrice,
+    inventoryIntent: inventoryIntent.mode === "adjust" ? { ...inventoryIntent, stockStatus } : inventoryIntent,
+    _collectionIds: form._collectionIds === undefined ? existing?._collectionIds : form._collectionIds,
     productVideo,
     brand: form.brand ?? existing?.brand,
     sku: form.sku ?? existing?.sku,
@@ -169,9 +172,7 @@ export function mergeProductForm(
     colorOptions: form.colorOptions ?? existing?.colorOptions ?? [],
     sizeOptions: form.sizeOptions ?? existing?.sizeOptions ?? [],
     productFaq: mergeDetailList(form.productFaq, existing?.productFaq, shortPatch),
-    reviews: form.reviews ?? existing?.reviews,
-    rating: form.rating ?? existing?.rating,
-    reviewCount: form.reviewCount ?? existing?.reviewCount,
+    // Reviews and aggregates belong to moderation, never to catalog input.
     tiktokUrl: form.tiktokUrl ?? existing?.tiktokUrl,
     instagramUrl: form.instagramUrl ?? existing?.instagramUrl,
     addons: form.addons ?? existing?.addons ?? [],
@@ -188,6 +189,7 @@ export function canSaveDraft(
   },
   types: { slug: string }[]
 ): { ok: true } | { ok: false; error: string } {
+  try { validateProductInput(input); } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Invalid product document." }; }
   if (!input.name?.trim() || !input.slug?.trim()) {
     return { ok: false, error: "Name and slug are required to save a draft." };
   }
@@ -209,14 +211,18 @@ export function canPublish(
   },
   types: { slug: string }[]
 ): { ok: true } | { ok: false; error: string } {
+  try { validateProductInput(input); } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Invalid product document." }; }
   if (!input.name?.trim() || !input.slug?.trim()) {
     return { ok: false, error: "Name and slug are required to publish." };
   }
   const category = categoryIsAssignable(input.category, types);
   if (!category.ok) return category;
-  if (input.price == null || !Number.isFinite(input.price) || input.price < 0) {
-    return { ok: false, error: "A non-negative price is required to publish." };
+  if (input.price == null || !Number.isFinite(input.price) || input.price <= 0) {
+    return { ok: false, error: "A positive price is required to publish." };
   }
+  const document = input as ProductDocument;
+  if (document.variants?.some((variant) => variant.price != null && variant.price <= 0)) return { ok: false, error: "Variant selling prices must be positive." };
+  if (document.addons?.some((addon) => !addon.name?.trim())) return { ok: false, error: "Every add-on needs a name." };
   const axes = validateVariantAxes({
     colorEnabled: Boolean(input.colorEnabled),
     sizeEnabled: Boolean(input.sizeEnabled),
@@ -271,6 +277,7 @@ export function applySaveDraft<T extends Record<string, unknown>>(
 }
 
 export function toLiveProductRow(doc: ProductDocument) {
+  validateProductInput(doc);
   return {
     name: doc.name.trim(),
     slug: doc.slug.trim(),
@@ -292,8 +299,6 @@ export function toLiveProductRow(doc: ProductDocument) {
       doc.quantity != null && Number.isInteger(doc.quantity) && doc.quantity >= 0
         ? doc.quantity
         : null,
-    rating: doc.rating ?? null,
-    review_count: doc.reviewCount ?? doc.reviews?.length ?? 0,
     featured: Boolean(doc.featured),
     badge: doc.badge?.trim() || null,
     cloudinary_images: doc.cloudinaryImages ?? [],

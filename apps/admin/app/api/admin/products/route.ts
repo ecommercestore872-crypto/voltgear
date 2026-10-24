@@ -2,6 +2,7 @@ import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
+import { ProductInputError, productMutationRequest } from "@/lib/admin-product-input";
 import {
   ADMIN_PRODUCTS_PAGE_SIZE,
   createAdminProduct,
@@ -38,7 +39,10 @@ async function POSTHandler(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await createAdminProduct(body?.doc ?? body ?? {}, body?.collectionIds);
+  let input;
+  try { input = productMutationRequest(body, true); }
+  catch (error) { return NextResponse.json({ error: error instanceof ProductInputError ? error.message : "Invalid product request." }, { status: 400 }); }
+  const result = await createAdminProduct(input.document, input.collectionIds);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },

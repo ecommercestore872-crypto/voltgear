@@ -10,7 +10,7 @@ import {
   saveAdminProduct,
   unpublishAdminProduct,
 } from "@/lib/db/admin-store";
-import { setProductCollections } from "@/lib/db/collection-store";
+import { ProductInputError, productMutationRequest } from "@/lib/admin-product-input";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,28 +32,24 @@ async function PATCHHandler(request: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const action = String(body?.action ?? "save");
-  const doc = body?.doc;
+  let input;
+  try { input = productMutationRequest(body); }
+  catch (error) { return NextResponse.json({ error: error instanceof ProductInputError ? error.message : "Invalid product request." }, { status: 400 }); }
+  const { action, document: doc, collectionIds, expectedAdminRevision } = input;
   let result;
   if (action === "publish") {
-    result = await publishAdminProduct((await params).id, doc, body?.collectionIds);
+    result = await publishAdminProduct((await params).id, doc, collectionIds, expectedAdminRevision);
   }
   else if (action === "unpublish")
-    result = await unpublishAdminProduct((await params).id);
+    result = await unpublishAdminProduct((await params).id, expectedAdminRevision);
   else if (action === "discard")
-    result = await discardAdminProductDraft((await params).id);
-  else result = await saveAdminProduct((await params).id, doc);
+    result = await discardAdminProductDraft((await params).id, expectedAdminRevision);
+  else result = await saveAdminProduct((await params).id, doc, collectionIds, expectedAdminRevision);
   if (!result.ok)
     return NextResponse.json(
       { error: result.error },
       { status: result.status },
     );
-  if (action === "save") {
-    const membership = await setProductCollections((await params).id, body?.collectionIds);
-    if (!membership.ok) {
-      return NextResponse.json({ error: membership.error }, { status: membership.status });
-    }
-  }
   return NextResponse.json(result);
 }
 

@@ -1,12 +1,16 @@
 import { adminHeaders, clearAdminToken } from "@/lib/admin-token";
 import { validateAdminUploadMetadata } from "@/lib/admin-upload-rules";
+import { AdminRequestError } from "@/lib/admin-request-error";
+export { AdminRequestError } from "@/lib/admin-request-error";
 
 export class AdminAuthError extends Error {}
 
 export async function adminFetch(url: string, options: RequestInit = {}) {
   const isForm =
     typeof FormData !== "undefined" && options.body instanceof FormData;
-  const res = await fetch(url, {
+  const mutating = !["GET", "HEAD"].includes((options.method ?? "GET").toUpperCase());
+  let res: Response;
+  try { res = await fetch(url, {
     ...options,
     credentials: "include",
     headers: {
@@ -16,7 +20,9 @@ export async function adminFetch(url: string, options: RequestInit = {}) {
         : {}),
       ...options.headers,
     },
-  });
+  }); } catch {
+    throw new AdminRequestError(mutating ? "The request outcome is uncertain. Reload before retrying." : "Request failed. Please try again.", undefined, mutating);
+  }
   if (res.status === 401) {
     if (typeof window !== "undefined") {
       clearAdminToken();
@@ -25,7 +31,7 @@ export async function adminFetch(url: string, options: RequestInit = {}) {
     throw new AdminAuthError();
   }
   const json = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(json?.error ?? "Request failed");
+  if (!res.ok) throw new AdminRequestError(json?.error ?? "Request failed", res.status, mutating && (res.status === 408 || res.status >= 500));
   return json;
 }
 

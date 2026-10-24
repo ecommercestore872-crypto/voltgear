@@ -6,6 +6,7 @@ import { mapProduct } from "@/lib/db/map";
 import { type ProductDocument } from "@/lib/db/publish";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
+import { readProductRevision } from "@/lib/admin-product-input";
 
 const PRODUCT_EDITOR_EMBED = `
   *,
@@ -39,6 +40,8 @@ function toAdminProduct(row: Record<string, unknown> | null): AdminProduct | nul
     ...product,
     status: asStatus(row.status),
     draft: asDraft(row.draft),
+    adminRevision: readProductRevision(row.admin_revision),
+    inventoryRevision: readProductRevision(row.inventory_revision),
     costPrice:
       row.cost_price != null && Number.isFinite(Number(row.cost_price))
         ? Number(row.cost_price)
@@ -81,12 +84,14 @@ export function productToDocument(product: Product, costPrice?: number): Product
     badge: product.badge,
     isDemo: product.isDemo,
     costPrice,
+    addons: product.addons,
+    freeShipping: product.freeShipping,
   };
 }
 
 export function editorDocument(product: AdminProduct): ProductDocument {
   const doc = product.draft ?? productToDocument(product, product.costPrice);
-  return { ...doc, costPrice: doc.costPrice ?? product.costPrice };
+  return { ...doc, costPrice: doc.costPrice === undefined ? product.costPrice : doc.costPrice };
 }
 
 export async function isProductSlugTaken(slug: string, exceptId?: string): Promise<boolean> {

@@ -13,6 +13,7 @@ describe("buildProductActionRequest", () => {
       id: undefined,
       document,
       collectionIds,
+      expectedAdminRevision: "4",
     });
 
     assert.deepEqual(request, {
@@ -34,6 +35,7 @@ describe("buildProductActionRequest", () => {
         id: "product-123",
         document,
         collectionIds,
+        expectedAdminRevision: "9007199254740993",
       });
 
       assert.deepEqual(request, {
@@ -44,6 +46,7 @@ describe("buildProductActionRequest", () => {
             action,
             doc: document,
             collectionIds,
+            expectedAdminRevision: "9007199254740993",
           }),
         },
       });
@@ -56,6 +59,7 @@ describe("buildProductActionRequest", () => {
       id: "product-123",
       document,
       collectionIds,
+      expectedAdminRevision: "4",
     });
 
     assert.deepEqual(request, {

@@ -1,5 +1,14 @@
 # Release readiness
 
+## 2026-10-24 — PR29 product integrity follow-up
+
+See [product-integrity v2 evidence and rollout blockers](PRODUCT_INTEGRITY_V2.md).
+Prepared migration/RPC and matching source stay draft-only. The initial exact-head
+GitHub gate and real isolated PostgreSQL concurrency suite passed; final-head and
+browser acceptance are recorded in that report. This does not approve production.
+Mixed-version writers, concurrent explicit collection editing and isolated staging /
+HTTP acceptance remain release gates; no unsafe legacy publishing fallback is permitted.
+
 **Entire overhaul: NOT COMPLETE. Production release: NOT APPROVED.**
 
 Initial source improvements are isolated, reversible and intended for draft review only.

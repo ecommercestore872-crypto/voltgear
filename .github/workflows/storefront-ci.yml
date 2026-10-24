@@ -14,6 +14,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  product-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Prepare disposable PostgreSQL image
+        run: docker pull postgres:17-alpine
+      - name: Product integrity transactions and concurrency
+        run: node scripts/test-product-integrity.mjs
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 25

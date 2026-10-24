@@ -1,5 +1,14 @@
 # Security review
 
+## 2026-10-24 focused product-integrity review
+
+Independent read-only database/security findings and coordinator follow-up fixes are
+documented in [PRODUCT_INTEGRITY_V2.md](PRODUCT_INTEGRITY_V2.md). Catalog mutations use
+the versioned service-role-only RPC with CAS and no legacy fallback. Catalog publishing
+does not write moderation-owned reviews/aggregates. No production migration has run.
+Old direct-write admin versions must be drained before rollout; revoking old RPCs alone
+is insufficient. Concurrent explicit membership edits remain an identified release risk.
+
 Source-only initial review, 2026-10-22. No real provider/customer mutations or database SQL.
 
 ## Boundaries checked

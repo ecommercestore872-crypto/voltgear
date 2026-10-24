@@ -131,7 +131,7 @@ describe("mergeProductForm", () => {
       badge: "Sale",
       features: ["Fast charge"],
       brand: "VoltGear",
-      description: { type: "doc" },
+      description: [],
     });
     assert.equal(merged.badge, "Sale");
     assert.deepEqual(merged.features, ["Fast charge"]);

@@ -7,4 +7,6 @@ export type AdminProduct = Product & {
   /** Set on grid/search lists when draft JSON is omitted for payload size. */
   hasUnpublishedDraft?: boolean;
   costPrice?: number;
+  adminRevision?: string;
+  inventoryRevision?: string;
 };

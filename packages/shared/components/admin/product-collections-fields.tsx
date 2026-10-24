@@ -17,7 +17,6 @@ export function ProductCollectionsFields({
   collections,
   selectedIds,
   onChange,
-  productId,
 }: {
   collections: CollectionPickerItem[];
   selectedIds: string[];
@@ -49,7 +48,10 @@ export function ProductCollectionsFields({
         body: JSON.stringify({
           name: trimmed,
           mode: "manual",
-          productIds: productId ? [productId] : [],
+          homeSlot: null,
+          // Create the container only. Membership is pending product draft intent
+          // and must not become live before the product is published.
+          productIds: [],
         }),
       })) as { collection?: CollectionPickerItem };
       if (!data.collection) throw new Error("Could not create collection.");
@@ -69,8 +71,8 @@ export function ProductCollectionsFields({
     <fieldset className="space-y-3 rounded-md border border-input bg-background p-3">
       <legend className="px-1 text-sm font-medium">Collections</legend>
       <p className="text-xs text-muted-foreground">
-        Put this product on Featured, Best Sellers, or any collection. New
-        collections use the same home product rail as Best Sellers.
+        Choose manual collections for this product. Membership changes become live
+        when you publish. Configure homepage placement in Manage all collections.
       </p>
       {collections.length ? (
         <ul className="space-y-2">

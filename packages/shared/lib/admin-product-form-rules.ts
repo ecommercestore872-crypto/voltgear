@@ -71,8 +71,17 @@ export function productDocumentFromAdmin(
     ...emptyProductDocument(),
     ...document,
     isDemo: Boolean(document.isDemo ?? product.isDemo),
-    costPrice: document.costPrice ?? product.costPrice,
+    costPrice: document.costPrice === undefined ? product.costPrice : document.costPrice,
+    inventoryIntent: document.inventoryIntent ?? { mode: "preserve" as const },
   };
+  // Legacy drafts contain inventory snapshots, not an instruction to overwrite stock.
+  if (merged.inventoryIntent.mode === "preserve") {
+    merged.quantity = product.quantity ?? null;
+    merged.stockStatus = product.stockStatus;
+  } else {
+    merged.quantity = merged.inventoryIntent.quantity;
+    merged.stockStatus = merged.inventoryIntent.stockStatus;
+  }
   if (merged.category && !knownSlugs.includes(merged.category)) {
     merged.category = "";
   }
