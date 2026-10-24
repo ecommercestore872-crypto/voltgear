@@ -20,6 +20,7 @@ import {
   indexSiteUrl,
   organizationStructuredData,
   resolveOrgLogoUrl,
+  serializeJsonLd,
   websiteStructuredData,
 } from "@/lib/seo-rules";
 import {
@@ -187,7 +188,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
         {brandVars && (
           <style dangerouslySetInnerHTML={{ __html: `:root{${brandVars}}` }} />

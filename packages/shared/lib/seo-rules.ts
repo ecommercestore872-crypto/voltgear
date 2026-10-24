@@ -561,3 +561,10 @@ export function llmsTxt(input: {
   ];
   return lines.join("\n");
 }
+
+/**
+ * Safely serialize JSON-LD by escaping '<' to prevent '<script>' injection / early script termination.
+ */
+export function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}

@@ -15,6 +15,7 @@ import {
   organizationStructuredData,
   productStructuredData,
   resolveOrgLogoUrl,
+  serializeJsonLd,
   shopCatalogSearchMeta,
   shouldRedirectWwwHost,
   storeAlternatesLanguages,
@@ -318,5 +319,22 @@ describe("llmsTxt", () => {
     assert.match(text, /Store Information/);
     assert.match(text, /Cash on Delivery/);
     assert.equal(text.includes("Direct Bank Transfer"), false);
+  });
+});
+
+describe("serializeJsonLd", () => {
+  it("escapes '<' as '\\u003c' to prevent script breakout while preserving parseable JSON", () => {
+    const payload = {
+      name: "Buy n Try",
+      malicious: "</script><script>alert('xss')</script>",
+      htmlSnippet: '<span class="price">PKR 2,499</span>',
+      comparison: "10 < 20 && 30 > 25",
+    };
+    const serialized = serializeJsonLd(payload);
+    assert.equal(serialized.includes("<"), false);
+    assert.equal(serialized.includes("\\u003c/script>"), true);
+    assert.equal(serialized.includes("\\u003cscript>"), true);
+    assert.equal(serialized.includes("\\u003cspan"), true);
+    assert.deepEqual(JSON.parse(serialized), payload);
   });
 });
