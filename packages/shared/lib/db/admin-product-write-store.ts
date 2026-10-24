@@ -28,6 +28,7 @@ const invalid = (error: unknown): WriteFailure => ({ ok: false, error: error ins
 function validateWrite(doc: unknown, collections?: unknown, revision?: unknown, existing = true) {
   validateProductInput(doc);
   validateProductCollections(collections);
+  if (collections != null && doc.collectionIntent?.mode !== "adjust") throw new ProductInputError("An explicit versioned collection intent is required for membership changes.");
   if (existing && !isProductRevision(revision)) throw new ProductInputError("A valid editor revision is required. Reload this product before saving.");
 }
 
@@ -38,19 +39,22 @@ async function writeProduct(action: WriteAction, id: string | null, document: Pr
     p_collection_ids: collections ?? null, p_expected_admin_revision: revision ?? null,
   });
   if (error) {
-    if (error.code === "40001" || error.message?.startsWith("CONFLICT:")) return { ok: false as const, error: "This product or its inventory changed. Reload and review the latest values before trying again.", status: 409 };
-    if (error.code === "PGRST202" || error.code === "42501") return { ok: false as const, error: "Safe product writes are not available. The approved v2 database migration is required; no legacy write was attempted.", status: 503 };
+    if (["40001", "55P03", "40P01"].includes(error.code ?? "") || error.message?.startsWith("CONFLICT:")) return { ok: false as const, error: "This product, its inventory or collections changed. Reload and review the latest values before trying again.", status: 409 };
+    if (["PGRST202", "42501", "42883", "42703"].includes(error.code ?? "")) return { ok: false as const, error: "Safe product writes are not available. The approved product/collection migrations are required; no legacy write was attempted.", status: 503 };
     if (error.code === "23505") return { ok: false as const, error: "That product slug is already used.", status: 409 };
     if (error.message?.startsWith("BUSINESS_ERROR:")) return { ok: false as const, error: error.message.slice("BUSINESS_ERROR:".length).trim(), status: 400 };
     return { ok: false as const, error: "The product change could not be completed.", status: 500 };
   }
-  if (!isRecord(data) || data.ok !== true || typeof data.id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id) || (id !== null && data.id !== id) || !isProductRevision(data.admin_revision) || !isProductRevision(data.inventory_revision)
+  if (!isRecord(data) || data.ok !== true || typeof data.id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id) || (id !== null && data.id !== id) || !isProductRevision(data.admin_revision) || !isProductRevision(data.inventory_revision) || !isProductRevision(data.membership_revision)
       || (data.quantity !== null && (typeof data.quantity !== "number" || !Number.isInteger(data.quantity) || data.quantity < 0 || data.quantity > 2_147_483_647))
+      || !Array.isArray(data.manual_collection_ids)
       || !["in-stock", "low-stock", "out-of-stock"].includes(data.stock_status as string)) {
     return { ok: false as const, error: "The write outcome could not be confirmed. Reload before retrying.", status: 502 };
   }
-  return { ok: true as const, id: data.id, adminRevision: data.admin_revision, inventoryRevision: data.inventory_revision,
-    quantity: data.quantity as number | null, stockStatus: data.stock_status as string };
+  try { validateProductCollections(data.manual_collection_ids); }
+  catch { return { ok: false as const, error: "The write outcome could not be confirmed. Reload before retrying.", status: 502 }; }
+  return { ok: true as const, id: data.id, adminRevision: data.admin_revision, inventoryRevision: data.inventory_revision, membershipRevision: data.membership_revision,
+    quantity: data.quantity as number | null, stockStatus: data.stock_status as string, manualCollectionIds: data.manual_collection_ids as string[] };
 }
 
 export async function createAdminProduct(doc: unknown, rawCollectionIds?: unknown) {

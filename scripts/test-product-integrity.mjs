@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
 import { runCases } from '../tests/product-integrity/cases.mjs';
+import { runCollectionCases } from '../tests/product-integrity/collection-cases.mjs';
 
 const owner = randomUUID();
 const label = 'voltgear.product-integrity-owner';
@@ -109,18 +110,22 @@ try {
     'supabase/migrations/20260826140000_init_store.sql',
     'tests/product-integrity/schema.sql',
     'supabase/migrations/20260901040000_collections.sql',
+    'supabase/migrations/20260901050000_collection_home_slot.sql',
     'supabase/migrations/20261018000000_atomic_product_publish.sql',
     'supabase/migrations/20261019000000_atomic_promo_redemption.sql',
     'supabase/migrations/20261022000000_demo_sandbox_isolation.sql',
     'supabase/migrations/20261023000000_atomic_review_moderation.sql',
     'supabase/migrations/20261028000000_product_integrity_v2.sql',
+    'supabase/migrations/20261029000000_collection_integrity.sql',
   ];
   for (const path of migrations) {
     docker(['exec', '-i', container, 'psql', '-X', '-q', '-v', 'ON_ERROR_STOP=1', '-U', 'postgres', '-d', 'product_integrity'],
       await readFile(new URL(path, new URL('../', import.meta.url)), 'utf8'));
   }
   await sql('GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role; GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;', 'postgres');
+  await sql('REVOKE INSERT, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.collection_home_slots FROM service_role;', 'postgres');
   await runCases({ sql, openSession, sleep });
+  await runCollectionCases({ sql, openSession, sleep });
   console.log('PASS: product integrity PostgreSQL integration suite');
 } catch (error) {
   console.error(`FAIL: ${error.message}`);

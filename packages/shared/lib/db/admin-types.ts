@@ -9,4 +9,7 @@ export type AdminProduct = Product & {
   costPrice?: number;
   adminRevision?: string;
   inventoryRevision?: string;
+  membershipRevision?: string;
+  /** Loaded together with revision by the editor snapshot RPC, never a separate fallback read. */
+  manualCollectionIds?: string[];
 };

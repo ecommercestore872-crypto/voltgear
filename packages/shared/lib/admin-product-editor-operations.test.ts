@@ -8,6 +8,7 @@ import { productDocumentFromAdmin } from "./admin-product-form-rules";
 import { portableTextToPlain, slugify, textToPortableText } from "./db/publish";
 import { isAdminUploadUrl } from "./admin-upload-rules";
 import { AdminRequestError } from "./admin-request-error";
+import { collectionMutationRequest, confirmedCollection, validateCollectionInput } from "./collection-input";
 import { isProductRevision, productNumberText, validateProductInput } from "./admin-product-input";
 import type { AdminProduct } from "./db/admin-types";
 import type { ProductDocument } from "./db/publish";
@@ -98,8 +99,8 @@ function editor(overrides: Partial<AdminProduct> | null = {}) {
   const editorModule = load("../components/admin/product-form.tsx", dependencies, { setTimeout: (callback: () => void) => timers.push(callback), confirm: () => true });
   const component = editorModule.ProductForm as (props: unknown) => Tree;
   const product = overrides === null ? null : { _id: "fixture", name: "Synthetic", slug: "synthetic", category: "audio", price: 1200,
-    adminRevision: "4", inventoryRevision: "7", stockStatus: "in-stock", quantity: 2, images: [], status: "published", draft: null, addons: [{ name: "Case", price: 10 }], ...overrides };
-  function render() { return state.render(() => component({ product, shopTypes: [{ slug: "audio" }], collectionIds: ["saved-collection"] })); }
+    adminRevision: "4", inventoryRevision: "7", membershipRevision: "3", manualCollectionIds: ["10000000-0000-0000-0000-000000000001"], stockStatus: "in-stock", quantity: 2, images: [], status: "published", draft: null, addons: [{ name: "Case", price: 10 }], ...overrides };
+  function render() { return state.render(() => component({ product, shopTypes: [{ slug: "audio" }], collectionIds: ["10000000-0000-0000-0000-000000000001"] })); }
   function node(type: string) { return findAll(render(), (tree) => tree.type === type)[0]; }
   return {
     render, node, requests, baselines, dirtyStates, redirects,
@@ -112,22 +113,151 @@ function editor(overrides: Partial<AdminProduct> | null = {}) {
   };
 }
 const settle = () => new Promise((resolve) => setImmediate(resolve));
-const confirmed = (overrides: Record<string, unknown> = {}) => ({ ok: true, id: "fixture", adminRevision: "5", inventoryRevision: "7", quantity: 2, stockStatus: "in-stock", ...overrides });
+const confirmed = (overrides: Record<string, unknown> = {}) => ({ ok: true, id: "fixture", adminRevision: "5", inventoryRevision: "7", membershipRevision: "3", manualCollectionIds: ["10000000-0000-0000-0000-000000000001"], quantity: 2, stockStatus: "in-stock", ...overrides });
+
+const collectionId = "10000000-0000-0000-0000-000000000001";
+const firstProduct = "20000000-0000-0000-0000-000000000001";
+const secondProduct = "20000000-0000-0000-0000-000000000002";
+function collectionEditor(overrides: Record<string, unknown> = {}) {
+  const state = hooks(); const requests: RequestRecord[] = []; const baselines: unknown[] = []; const fingerprints: string[] = [];
+  const initial = { id: collectionId, name: "Synthetic", slug: "synthetic", description: null, mode: "manual", autoRule: null,
+    homeSlot: null, active: true, productIds: [firstProduct, secondProduct], revision: "4", slotRevisions: { featured: "8" }, ...overrides };
+  const component = load("../components/admin/collection-editor.tsx", {
+    react: state.react, "react/jsx-runtime": { jsx, jsxs: jsx }, "next/link": { default: "link" },
+    "@/components/admin/admin-sticky-publish-bar": { AdminStickyPublishBar: "sticky" },
+    "@/components/admin/admin-fetch": { AdminRequestError, adminFetch: (path: string, options: { body: string }) => new Promise((resolve, reject) => requests.push({ path, options, resolve, reject })) },
+    "@/lib/collection-input": { confirmedCollection, validateCollectionInput },
+    "@/lib/db/collection-rules": { COLLECTION_HOME_SLOTS: [{ id: "featured", label: "Featured" }] },
+    "@/components/admin/use-admin-form-dirty": { useAdminFormDirty: (value: unknown) => { fingerprints.push(JSON.stringify(value)); return { dirty: true, resetSaved: (value: unknown) => baselines.push(value) }; } },
+    "@/components/ui/button": { Button: "button" }, "@/components/ui/input": { Input: "input" },
+  }).CollectionEditor as (props: unknown) => Tree;
+  const render = () => state.render(() => component({ initial, selectedProducts: [] }));
+  const button = (label: string) => findAll(render(), (tree) => tree.type === "button" && tree.props.children === label)[0];
+  return { initial, requests, baselines, fingerprints, render, button, save: () => (button("Save").props.onClick as () => Promise<void>)() };
+}
+it("collection saves lock synchronously, send original revision and preserve selected order", async () => {
+  const subject = collectionEditor();
+  const save = subject.save(); const duplicate = subject.save();
+  assert.equal(subject.requests.length, 1);
+  assert.deepEqual(JSON.parse(subject.requests[0].options.body).productIds, [firstProduct, secondProduct]);
+  assert.equal(JSON.parse(subject.requests[0].options.body).expectedRevision, "4");
+  assert.equal(findAll(subject.render(), (node) => node.type === "fieldset")[0].props.disabled, true);
+  subject.requests[0].resolve({ collection: { ...subject.initial, revision: "5" } }); await Promise.all([save, duplicate]);
+  assert.equal(subject.baselines.length, 1);
+  const next = subject.save(); assert.equal(JSON.parse(subject.requests[1].options.body).expectedRevision, "5");
+  subject.requests[1].resolve({ collection: { ...subject.initial, revision: "6" } }); await next;
+});
+it("collection ordering changes remain dirty and are submitted in the visible order", async () => {
+  const subject = collectionEditor(); subject.render();
+  const moves = findAll(subject.render(), (node) => node.type === "button" && node.props.children === "Move up");
+  (moves[1].props.onClick as () => void)(); subject.render();
+  assert.notEqual(subject.fingerprints[0], subject.fingerprints.at(-1));
+  const save = subject.save(); assert.deepEqual(JSON.parse(subject.requests[0].options.body).productIds, [secondProduct, firstProduct]);
+  subject.requests[0].resolve({ collection: { ...subject.initial, revision: "5", productIds: [secondProduct, firstProduct] } }); await save;
+});
+it("collection slot saves carry the original shared slot revision", async () => {
+  const subject = collectionEditor({ homeSlot: "featured" }); const save = subject.save();
+  assert.equal(JSON.parse(subject.requests[0].options.body).expectedSlotRevision, "8");
+  subject.requests[0].resolve({ collection: { ...subject.initial, revision: "5", slotRevisions: { featured: "9" } } }); await save;
+});
+it("collection save refuses a missing revision before sending a write", async () => {
+  const subject = collectionEditor({ revision: undefined }); await subject.save(); assert.equal(subject.requests.length, 0);
+});
+for (const error of [new AdminRequestError("Ambiguous", 502, true), new AdminRequestError("Network lost", undefined, true)]) {
+  it(`collection ${error.message} requires reload and never marks edits saved`, async () => {
+    const subject = collectionEditor(); const save = subject.save(); subject.requests[0].reject(error); await save;
+    await subject.save(); assert.equal(subject.requests.length, 1); assert.equal(subject.baselines.length, 0);
+    assert.equal(findAll(subject.render(), (node) => node.type === "fieldset")[0].props.disabled, true);
+  });
+}
+it("collection conflict preserves edits and the original revision for an explicit retry", async () => {
+  const subject = collectionEditor(); const save = subject.save(); subject.requests[0].reject(new AdminRequestError("Conflict", 409)); await save;
+  assert.equal(subject.baselines.length, 0);
+  const retry = subject.save(); assert.equal(JSON.parse(subject.requests[1].options.body).expectedRevision, "4");
+  subject.requests[1].resolve({ collection: { ...subject.initial, revision: "5" } }); await retry;
+});
+it("a malformed confirmed collection response locks further writes", async () => {
+  const subject = collectionEditor(); const save = subject.save(); subject.requests[0].resolve({ collection: { ...subject.initial, revision: 5 } }); await save;
+  await subject.save(); assert.equal(subject.requests.length, 1); assert.equal(subject.baselines.length, 0);
+});
+it("an empty successful collection response is uncertain rather than retryable", async () => {
+  const subject = collectionEditor(); const save = subject.save(); subject.requests[0].resolve(null); await save;
+  await subject.save(); assert.equal(subject.requests.length, 1); assert.equal(subject.baselines.length, 0);
+});
+it("collection API rejects malformed original inputs before any store mutation", async () => {
+  const calls: unknown[] = [];
+  const dependencies = {
+    "next/server": { NextResponse: { json: (body: unknown, init?: { status?: number }) => ({ body, status: init?.status ?? 200 }) } },
+    "@/lib/admin-api-observability": { withAdminApiObservability: (_name: string, handler: unknown) => handler },
+    "@/lib/admin": { isAdminRequest: () => true },
+    "@/lib/collection-input": { collectionMutationRequest },
+    "@/lib/db/collection-store": { createAdminCollection: (input: unknown) => { calls.push(input); return { ok: true }; },
+      updateAdminCollection: (id: string, input: unknown) => { calls.push({ id, input }); return { ok: true }; },
+      deleteAdminCollection: (id: string, revision: string) => { calls.push({ id, revision }); return { ok: true }; } },
+  };
+  const createRoute = load("../../../apps/admin/app/api/admin/collections/route.ts", dependencies);
+  const itemRoute = load("../../../apps/admin/app/api/admin/collections/[id]/route.ts", dependencies);
+  const params = { params: Promise.resolve({ id: collectionId }) };
+  type Handler = (request: { json: () => Promise<unknown> }, params?: unknown) => Promise<{ status: number }>;
+  for (const [route, method, body] of [[createRoute, "POST", { name: 42, mode: "manual" }], [itemRoute, "PATCH", { expectedRevision: "4", productIds: "bad" }], [itemRoute, "DELETE", {}]] as const) {
+    const result = await (route[method] as Handler)({ json: async () => body }, params);
+    assert.equal(result.status, 400);
+  }
+  assert.equal(calls.length, 0);
+  await (itemRoute.DELETE as Handler)({ json: async () => ({ expectedRevision: "4" }) }, params);
+  assert.equal(JSON.stringify(calls), JSON.stringify([{ id: collectionId, revision: "4" }]));
+});
+function collectionManager(revision: string | null = "4") {
+  const state = hooks(); const requests: RequestRecord[] = []; const redirects: string[] = [];
+  const initial = { id: collectionId, name: "Synthetic", slug: "synthetic", description: null, mode: "manual", autoRule: null, homeSlot: null, active: true, productIds: [], revision: revision ?? undefined };
+  const component = load("../components/admin/collections-manager.tsx", {
+    react: state.react, "react/jsx-runtime": { jsx, jsxs: jsx }, "next/link": { default: "link" },
+    "next/navigation": { useRouter: () => ({ push: (path: string) => redirects.push(path) }) },
+    "@/components/admin/admin-fetch": { AdminRequestError, adminFetch: (path: string, options: { body: string }) => new Promise((resolve, reject) => requests.push({ path, options, resolve, reject })) },
+    "@/lib/collection-input": { confirmedCollection, validateCollectionInput },
+    "@/components/ui/button": { Button: "button" }, "@/components/ui/input": { Input: "input" },
+  }, { confirm: () => true }).CollectionsManager as (props: unknown) => Tree;
+  const render = () => state.render(() => component({ initial: [initial] }));
+  const button = (label: string) => findAll(render(), (node) => node.type === "button" && node.props.children === label)[0];
+  return { initial, requests, redirects, render, remove: () => (button("Remove").props.onClick as () => Promise<void>)(),
+    create: () => (button("Build Collection").props.onClick as () => Promise<void>)(),
+    name: (value: string) => (findAll(render(), (node) => node.type === "input")[0].props.onChange as (event: unknown) => void)({ target: { value } }) };
+}
+it("collection deletion sends CAS and locks duplicate clicks synchronously", async () => {
+  const subject = collectionManager(); const operation = subject.remove(); await subject.remove();
+  assert.equal(subject.requests.length, 1); assert.deepEqual(JSON.parse(subject.requests[0].options.body), { expectedRevision: "4" });
+  subject.requests[0].resolve({ ok: true }); await operation;
+  assert.equal(findAll(subject.render(), (node) => node.type === "button" && node.props.children === "Remove").length, 0);
+});
+it("collection deletion without a revision sends no write", async () => {
+  const subject = collectionManager(null); await subject.remove(); assert.equal(subject.requests.length, 0);
+});
+it("ambiguous collection deletion locks both removal and creation until reload", async () => {
+  const subject = collectionManager(); const operation = subject.remove(); subject.requests[0].resolve(null); await operation;
+  subject.name("New"); await subject.create(); await subject.remove(); assert.equal(subject.requests.length, 1);
+});
+it("inline collection manager creation never implicitly claims a home slot", async () => {
+  const subject = collectionManager(); subject.name("Featured"); const operation = subject.create();
+  assert.equal(JSON.parse(subject.requests[0].options.body).homeSlot, null);
+  subject.requests[0].resolve({ collection: { ...subject.initial, revision: "0" } }); await operation;
+  assert.equal(subject.redirects.length, 1);
+});
 
 it("creates inline collections without making draft product membership live", async () => {
   const state = hooks();
   const calls: { body: string }[] = [];
   const selections: string[][] = [];
-  const module = load("../components/admin/product-collections-fields.tsx", {
+  const fieldsModule = load("../components/admin/product-collections-fields.tsx", {
     react: state.react, "react/jsx-runtime": { jsx, jsxs: jsx }, "next/link": { default: "link" },
-    "@/components/admin/admin-fetch": { adminFetch: async (_path: string, options: { body: string }) => {
-      calls.push(options); return { collection: { id: "new-collection", name: "Synthetic", mode: "manual" } };
+    "@/components/admin/admin-fetch": { AdminRequestError, adminFetch: async (_path: string, options: { body: string }) => {
+      calls.push(options); return { collection: { id: "10000000-0000-0000-0000-000000000001", revision: "0", productIds: [], slug: "synthetic", name: "Synthetic", mode: "manual", active: true, autoRule: null, homeSlot: null } };
     } },
+    "@/lib/collection-input": { confirmedCollection },
     "@/components/ui/button": { Button: "button" }, "@/components/ui/input": { Input: "input" },
     "@/components/ui/label": { Label: "label" },
     "@/lib/db/collection-rules": { canAssignProductToCollection: () => true, collectionPickerHint: () => "" },
   });
-  const component = module.ProductCollectionsFields as (props: unknown) => Tree;
+  const component = fieldsModule.ProductCollectionsFields as (props: unknown) => Tree;
   const render = () => state.render(() => component({ collections: [], selectedIds: [], productId: "live-product",
     onChange: (ids: string[]) => selections.push(ids) }));
   const field = findAll(render(), (node) => node.props.id === "new-collection")[0];
@@ -136,7 +266,7 @@ it("creates inline collections without making draft product membership live", as
   (create.props.onClick as () => void)(); await settle();
   assert.deepEqual(JSON.parse(calls[0].body).productIds, []);
   assert.equal(JSON.parse(calls[0].body).homeSlot, null);
-  assert.deepEqual(JSON.parse(JSON.stringify(selections)), [["new-collection"]]);
+  assert.deepEqual(JSON.parse(JSON.stringify(selections)), [["10000000-0000-0000-0000-000000000001"]]);
 });
 
 for (const quantity of ["8", "0", ""]) {
@@ -167,16 +297,49 @@ it("leaves unchanged memberships alone and persists an explicit draft membership
   const save = subject.action("onSave"); subject.flush(); await settle();
   assert.equal(JSON.parse(subject.requests[0].options.body).collectionIds, null);
   subject.requests[0].resolve(confirmed()); await save;
-  (subject.node("collections").props.onChange as (ids: string[]) => void)(["draft-selection"]);
+  (subject.node("collections").props.onChange as (ids: string[]) => void)(["10000000-0000-0000-0000-000000000002"]);
   const edited = subject.action("onSave"); subject.flush(); await settle();
-  assert.deepEqual(JSON.parse(subject.requests[1].options.body).collectionIds, ["draft-selection"]);
+  assert.deepEqual(JSON.parse(subject.requests[1].options.body).collectionIds, ["10000000-0000-0000-0000-000000000002"]);
+  assert.deepEqual(JSON.parse(subject.requests[1].options.body).doc.collectionIntent, { mode: "adjust", expectedRevision: "3" });
   subject.requests[1].resolve(confirmed({ adminRevision: "6" })); await edited;
   const publish = subject.action("onPublish"); subject.flush(); await settle();
-  assert.deepEqual(JSON.parse(subject.requests[2].options.body).collectionIds, ["draft-selection"]);
+  assert.deepEqual(JSON.parse(subject.requests[2].options.body).collectionIds, ["10000000-0000-0000-0000-000000000002"]);
   subject.requests[2].resolve(confirmed({ adminRevision: "7" })); await publish;
   const subsequent = subject.action("onSave"); subject.flush(); await settle();
   assert.equal(JSON.parse(subject.requests[3].options.body).collectionIds, null);
   subject.requests[3].resolve(confirmed({ adminRevision: "8" })); await subsequent;
+});
+it("retains a saved collection adjustment's original revision across reload and content saves", async () => {
+  const desired = "10000000-0000-0000-0000-000000000002";
+  const subject = editor({ draft: { name: "Saved", slug: "synthetic", category: "audio", price: 100, images: [], stockStatus: "in-stock",
+    _collectionIds: [desired], collectionIntent: { mode: "adjust", expectedRevision: "1" } } });
+  const save = subject.action("onSave"); subject.flush(); await settle();
+  assert.deepEqual(JSON.parse(subject.requests[0].options.body).doc.collectionIntent, { mode: "adjust", expectedRevision: "1" });
+  subject.requests[0].resolve(confirmed({ membershipRevision: "9" })); await save;
+  const publish = subject.action("onPublish"); subject.flush(); await settle();
+  assert.deepEqual(JSON.parse(subject.requests[1].options.body).doc.collectionIntent, { mode: "adjust", expectedRevision: "1" });
+  subject.requests[1].reject(new AdminRequestError("Conflict", 409)); await publish;
+  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), JSON.stringify([desired]));
+});
+it("blocks legacy collection draft publication until explicitly reviewed or kept live", async () => {
+  const desired = "10000000-0000-0000-0000-000000000002";
+  const subject = editor({ draft: { name: "Legacy", slug: "synthetic", category: "audio", price: 100, images: [], stockStatus: "in-stock", _collectionIds: [desired] } });
+  const blocked = subject.action("onPublish"); subject.flush(); await blocked; assert.equal(subject.requests.length, 0);
+  (subject.button("Keep live collections").props.onClick as () => void)();
+  const publish = subject.action("onPublish"); subject.flush(); await settle();
+  assert.equal(JSON.parse(subject.requests[0].options.body).collectionIds, null);
+  assert.deepEqual(JSON.parse(subject.requests[0].options.body).doc.collectionIntent, { mode: "preserve" });
+  subject.requests[0].resolve(confirmed()); await publish;
+});
+it("refreshes current collection membership for preserve-only content saves", async () => {
+  const current = "10000000-0000-0000-0000-000000000003";
+  const subject = editor(); const save = subject.action("onSave"); subject.flush(); await settle();
+  subject.requests[0].resolve(confirmed({ membershipRevision: "8", manualCollectionIds: [current] })); await save;
+  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), JSON.stringify([current]));
+  (subject.node("collections").props.onChange as (ids: string[]) => void)([]);
+  const changed = subject.action("onSave"); subject.flush(); await settle();
+  assert.deepEqual(JSON.parse(subject.requests[1].options.body).doc.collectionIntent, { mode: "adjust", expectedRevision: "8" });
+  subject.requests[1].resolve(confirmed({ membershipRevision: "8", manualCollectionIds: [current] })); await changed;
 });
 
 it("uses a shrinkable explicit single-column editor grid before the desktop breakpoint", () => {
@@ -243,7 +406,7 @@ it("discards unsaved memberships and restores the editor's most recently publish
   subject.requests[1].resolve(confirmed({ adminRevision: "6" })); await discard;
   const input = findAll(subject.render(), (node) => node.props.id === "name")[0];
   assert.equal(input.props.value, "New published title");
-  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), '["saved-collection"]');
+  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), '["10000000-0000-0000-0000-000000000001"]');
 });
 
 for (const [field, raw] of [["price", ""], ["price", "-"], ["price", "-1"], ["price", "1.001"], ["price", "Infinity"], ["quantity", "-1"], ["quantity", "1.5"], ["quantity", "-"], ["quantity", "2147483648"], ["addon-price-0", ""], ["addon-price-0", "-4"], ["compare", "oops"], ["cost", "1.001"]]) {
@@ -371,19 +534,19 @@ it("hydrates draft collections but discards to live memberships even after savin
   assert.equal(JSON.stringify((subject.baselines.at(-1) as { collectionIds: string[] }).collectionIds), JSON.stringify([savedDraftCollection]));
   subject.change("price", "-"); subject.change("quantity", "1.5");
   const discard = subject.action("onDiscard"); subject.flush(); await settle(); subject.requests[1].resolve(confirmed({ adminRevision: "6" })); await discard;
-  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), '["saved-collection"]');
+  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), '["10000000-0000-0000-0000-000000000001"]');
   assert.equal(subject.field("price").props.value, "1200"); assert.equal(subject.field("cost").props.value, "100"); assert.equal(subject.field("quantity").props.value, "2");
   assert.equal(subject.node("publish").props.dirty, false);
 });
 
 it("discards saved draft collections to memberships from the latest successful publication", async () => {
   const subject = editor();
-  (subject.node("collections").props.onChange as (ids: string[]) => void)(["published-collection"]);
-  const publish = subject.action("onPublish"); subject.flush(); await settle(); subject.requests[0].resolve(confirmed()); await publish;
-  (subject.node("collections").props.onChange as (ids: string[]) => void)(["draft-collection"]);
-  const save = subject.action("onSave"); subject.flush(); await settle(); subject.requests[1].resolve(confirmed({ adminRevision: "6" })); await save;
-  const discard = subject.action("onDiscard"); subject.flush(); await settle(); subject.requests[2].resolve(confirmed({ adminRevision: "7" })); await discard;
-  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), '["published-collection"]');
+  (subject.node("collections").props.onChange as (ids: string[]) => void)(["10000000-0000-0000-0000-000000000002"]);
+  const publish = subject.action("onPublish"); subject.flush(); await settle(); subject.requests[0].resolve(confirmed({ manualCollectionIds: ["10000000-0000-0000-0000-000000000002"] })); await publish;
+  (subject.node("collections").props.onChange as (ids: string[]) => void)(["10000000-0000-0000-0000-000000000003"]);
+  const save = subject.action("onSave"); subject.flush(); await settle(); subject.requests[1].resolve(confirmed({ adminRevision: "6", manualCollectionIds: ["10000000-0000-0000-0000-000000000002"] })); await save;
+  const discard = subject.action("onDiscard"); subject.flush(); await settle(); subject.requests[2].resolve(confirmed({ adminRevision: "7", manualCollectionIds: ["10000000-0000-0000-0000-000000000002"] })); await discard;
+  assert.equal(JSON.stringify(subject.node("collections").props.selectedIds), '["10000000-0000-0000-0000-000000000002"]');
   assert.equal(subject.node("publish").props.dirty, false);
 });
 

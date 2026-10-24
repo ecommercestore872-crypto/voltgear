@@ -61,6 +61,7 @@ export interface ProductDocument {
   isDemo?: boolean;
   costPrice?: number | null;
   inventoryIntent?: InventoryIntent;
+  collectionIntent?: { mode: "preserve" } | { mode: "adjust"; expectedRevision: string };
   _collectionIds?: string[] | null;
   tiktokUrl?: string;
   instagramUrl?: string;
@@ -157,6 +158,7 @@ export function mergeProductForm(
     costPrice: form.costPrice === undefined ? existing?.costPrice : form.costPrice,
     inventoryIntent: inventoryIntent.mode === "adjust" ? { ...inventoryIntent, stockStatus } : inventoryIntent,
     _collectionIds: form._collectionIds === undefined ? existing?._collectionIds : form._collectionIds,
+    collectionIntent: form.collectionIntent ?? existing?.collectionIntent,
     productVideo,
     brand: form.brand ?? existing?.brand,
     sku: form.sku ?? existing?.sku,

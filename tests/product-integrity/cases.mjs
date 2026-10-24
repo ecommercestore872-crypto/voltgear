@@ -7,8 +7,10 @@ const document = (slug, extra = {}) => ({ name: `Synthetic ${slug}`, slug, categ
   price: 100, images: [], quantity: extra.inventoryIntent?.mode === 'adjust' ? extra.inventoryIntent.quantity : 999,
   stockStatus: extra.inventoryIntent?.mode === 'adjust' ? extra.inventoryIntent.stockStatus : 'in-stock',
   inventoryIntent: { mode: 'preserve' }, ...extra });
-const write = (action, id, doc, collections = null, expected = '0') =>
-  `SELECT public.admin_write_product_v2(${literal(action)}, ${literal(id)}::uuid, ${json(doc)}, ${json(collections)}, ${literal(expected)}::bigint);`;
+const write = (action, id, doc, collections = null, expected = '0', membership = '0') =>
+  `SELECT public.admin_write_product_v2(${literal(action)}, ${literal(id)}::uuid, ${json(
+    collections !== null && doc && !doc.collectionIntent ? { ...doc, collectionIntent: { mode: 'adjust', expectedRevision: membership } } : doc
+  )}, ${json(collections)}, ${literal(expected)}::bigint);`;
 const checkout = (slug, orderId, quantity = 1, variantKey) => `SELECT public.checkout_place_order(
   ${literal(orderId)}, '{"email":"synthetic@example.invalid"}', 'cod', 100, 0, 100, 0, NULL, false,
   ${json([{ slug, name: 'Synthetic fixture', price: 100, quantity, lineTotal: quantity * 100,
@@ -101,7 +103,7 @@ export async function runCases({ sql, openSession, sleep }) {
     assert.equal(first.draft.reviewCount, undefined);
     assert.deepEqual(first.draft._collectionIds, [manual]);
     assert.equal(await sql(`SELECT count(*) FROM collection_products WHERE product_id=${literal(created.id)};`), '0');
-    const saved = await result('save', created.id, { ...draft, _collectionIds: [automatic] }, null, '0');
+    const saved = await result('save', created.id, { ...draft, collectionIntent: { mode: 'adjust', expectedRevision: '0' }, _collectionIds: [automatic] }, null, '0');
     assert.equal(saved.admin_revision, '1');
     assert.equal((await row(created.id)).draft.inventoryIntent.expectedRevision, '0');
     const published = await result('publish', created.id, (await row(created.id)).draft, null, '1');
@@ -119,7 +121,7 @@ export async function runCases({ sql, openSession, sleep }) {
   await test('save/discard/unpublish preserve live inventory and separate draft membership', async () => {
     const { id, slug } = await seed();
     await sql(`INSERT INTO collection_products(collection_id,product_id) VALUES (${literal(manual)},${literal(id)}),(${literal(automatic)},${literal(id)});`);
-    const doc = document(slug, { costPrice: 99, isDemo: true });
+    const doc = document(slug, { costPrice: 99, isDemo: true, collectionIntent: { mode: 'adjust', expectedRevision: '1' } });
     await result('save', id, doc, [manual2], '0');
     let live = await row(id);
     assert.equal(live.cost_price, 20);
@@ -316,7 +318,7 @@ export async function runCases({ sql, openSession, sleep }) {
     await sql(`INSERT INTO collections(id,name,slug,mode) VALUES (${literal(deletedCollection)},'Synthetic deleted collection',${literal(`collection-${randomUUID()}`)},'manual');`);
     const before = await row(id);
     await overlap(`DELETE FROM collections WHERE id=${literal(deletedCollection)};`,
-      write('publish', id, document(slug), [deletedCollection], '1'), { secondFailure: /Collection must exist/ });
+      write('publish', id, document(slug), [deletedCollection], '1', String(before.membership_revision)), { secondFailure: /Collection must exist/ });
     assert.deepEqual(await row(id), before);
   });
 
@@ -387,7 +389,7 @@ export async function runCases({ sql, openSession, sleep }) {
     const before = await row(id);
     await expectFailure(write('publish', id, document(slug, { name: 'Must roll back', images: ['synthetic-fail'],
       inventoryIntent: { mode: 'adjust', expectedRevision: '0', quantity: 2, stockStatus: 'low-stock' },
-    }), [manual2], '1'), /SYNTHETIC_CHILD_FAILURE/);
+    }), [manual2], '1', '1'), /SYNTHETIC_CHILD_FAILURE/);
     assert.deepEqual(await row(id), before);
     assert.equal(await sql(`SELECT url FROM product_images WHERE product_id=${literal(id)};`), 'synthetic-original');
     assert.equal(await sql(`SELECT collection_id FROM collection_products WHERE product_id=${literal(id)};`), manual);

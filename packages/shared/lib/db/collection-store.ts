@@ -9,14 +9,8 @@ import {
 import { revalidateShopMerchandising } from "@/lib/revalidate-storefront";
 
 import {
-  canAssignProductToCollection,
-  canSaveCollection,
   extraHomeCollectionRails,
-  inferHomeSlotFromName,
-  missingGeneratedCollections,
-  parseCollectionIds,
   parseHomeSlot,
-  slugifyCollectionName,
   type CollectionAutoRule,
   type CollectionHomeSlot,
   type CollectionMode,
@@ -30,6 +24,8 @@ import { mapProduct } from "@/lib/db/map";
 import { CATALOG_PRODUCT_EMBED } from "@/lib/db/store";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
+import { isProductRevision, isRecord, ProductInputError, validateProductCollections } from "@/lib/admin-product-input";
+import { validateCollectionInput, confirmedCollection as isConfirmedCollection, type CollectionMutationInput } from "@/lib/collection-input";
 
 function db() {
   return getServiceClient();
@@ -50,6 +46,8 @@ export type AdminCollection = {
   sortOrder: number;
   active: boolean;
   productIds: string[];
+  revision?: string;
+  slotRevisions?: Record<string, string>;
 };
 
 function mapCollection(
@@ -73,28 +71,8 @@ function mapCollection(
   };
 }
 
-export async function ensureGeneratedHomeCollections() {
-  const { data, error } = await adminDb()
-    .from("collections")
-    .select("slug, home_slot");
-  if (error) throw error;
-  const missing = missingGeneratedCollections(
-    (data ?? []).map((row) => ({
-      slug: String((row as { slug?: string }).slug ?? ""),
-      homeSlot: parseHomeSlot((row as { home_slot?: unknown }).home_slot),
-    }))
-  );
-  for (const spec of missing) {
-    await createAdminCollection({
-      name: spec.name,
-      slug: spec.slug,
-      mode: spec.mode,
-      autoRule: spec.autoRule,
-      homeSlot: spec.homeSlot,
-      active: true,
-    });
-  }
-}
+// Reads never seed catalog data or claim homepage slots. Explicit atomic commands
+// are the only collection mutation surface.
 
 export async function fetchSitemapCollections(): Promise<
   { slug: string; _updatedAt?: string }[]
@@ -114,7 +92,6 @@ export async function fetchSitemapCollections(): Promise<
 
 /** Product editor — metadata only (no collection_products scan). */
 export async function listAdminCollectionPickers(): Promise<CollectionPickerItem[]> {
-  await ensureGeneratedHomeCollections();
   const { data, error } = await adminDb()
     .from("collections")
     .select("id, name, slug, mode, auto_rule, home_slot, sort_order, active")
@@ -158,234 +135,72 @@ export async function listManualCollectionIdsForProduct(
 }
 
 export async function listAdminCollections(): Promise<AdminCollection[]> {
-  await ensureGeneratedHomeCollections();
-  const { data, error } = await adminDb()
-    .from("collections")
-    .select("*")
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
+  const { data, error } = await adminDb().rpc("admin_collections_snapshot_v1");
   if (error) throw error;
-
-  const ids = (data ?? []).map((r) => String((r as { id: string }).id));
-  const productMap = new Map<string, string[]>();
-  if (ids.length) {
-    const { data: links, error: lErr } = await adminDb()
-      .from("collection_products")
-      .select("collection_id, product_id, sort_order")
-      .in("collection_id", ids)
-      .order("sort_order", { ascending: true });
-    if (lErr) throw lErr;
-    for (const link of links ?? []) {
-      const cid = String((link as { collection_id: string }).collection_id);
-      const pid = String((link as { product_id: string }).product_id);
-      const list = productMap.get(cid) ?? [];
-      list.push(pid);
-      productMap.set(cid, list);
-    }
-  }
-
-  return (data ?? []).map((row) =>
-    mapCollection(row as Record<string, unknown>, productMap.get(String((row as { id: string }).id)) ?? [])
-  );
+  if (!Array.isArray(data)) throw new Error("Safe collection snapshots are unavailable.");
+  return data.map(confirmedCollection);
 }
 
 export async function getAdminCollection(id: string): Promise<AdminCollection | null> {
-  const { data, error } = await adminDb()
-    .from("collections")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  const { data, error } = await adminDb().rpc("admin_collection_snapshot_v1", { p_id: id });
   if (error) throw error;
-  if (!data) return null;
-  const { data: links, error: lErr } = await adminDb()
-    .from("collection_products")
-    .select("product_id, sort_order")
-    .eq("collection_id", id)
-    .order("sort_order", { ascending: true });
-  if (lErr) throw lErr;
-  const productIds = (links ?? []).map((l) =>
-    String((l as { product_id: string }).product_id)
-  );
-  return mapCollection(data as Record<string, unknown>, productIds);
+  if (data === null) return null;
+  const collection = confirmedCollection(data);
+  if (collection.id !== id) throw new Error("Collection snapshot identity mismatch.");
+  return collection;
 }
 
-async function slugTaken(slug: string, exceptId?: string): Promise<boolean> {
-  let q = adminDb().from("collections").select("id").eq("slug", slug).limit(1);
-  if (exceptId) q = q.neq("id", exceptId);
-  const { data, error } = await q;
-  if (error) throw error;
-  return (data?.length ?? 0) > 0;
+function confirmedCollection(value: unknown): AdminCollection {
+  if (!isConfirmedCollection(value) || !isRecord(value) || !isRecord(value.slotRevisions)
+      || !Number.isInteger(value.sortOrder) || (value.sortOrder as number) < 0 || (value.sortOrder as number) > 2147483647
+      || (value.description !== null && typeof value.description !== "string")
+      || !["bestsellers", "featured", "offers"].every((slot) => isProductRevision((value.slotRevisions as Record<string, unknown>)[slot]))) {
+    throw new Error("The collection snapshot could not be confirmed.");
+  }
+  validateProductCollections([value.id]);
+  validateProductCollections(value.productIds);
+  if (value.homeSlot !== null && !parseHomeSlot(value.homeSlot)) throw new Error("Invalid collection home slot.");
+  return value as unknown as AdminCollection;
 }
 
-export async function createAdminCollection(input: {
-  name?: string;
-  slug?: string;
-  description?: string;
-  mode?: string;
-  autoRule?: string | null;
-  homeSlot?: string | null;
-  active?: boolean;
-  productIds?: string[];
-}) {
-  const mode = input.mode === "auto" ? "auto" : "manual";
-  const autoRule =
-    mode === "auto" &&
-    (input.autoRule === "featured" || input.autoRule === "bestsellers")
-      ? input.autoRule
-      : null;
-  const homeSlot =
-    input.homeSlot === undefined
-      ? inferHomeSlotFromName(String(input.name ?? ""))
-      : parseHomeSlot(input.homeSlot);
-  const check = canSaveCollection({
-    name: input.name,
-    slug: input.slug,
-    mode,
-    autoRule,
+async function writeCollection(action: "create" | "update" | "delete", id: string | null, input: unknown) {
+  try { validateCollectionInput(input, action); }
+  catch (error) { return { ok: false as const, error: error instanceof ProductInputError ? error.message : "Invalid collection input.", status: 400 }; }
+  const command = input as CollectionMutationInput;
+  const { expectedRevision, expectedSlotRevision, ...document } = command;
+  const { data, error } = await adminDb().rpc("admin_write_collection_v1", {
+    p_action: action, p_id: id, p_document: document,
+    p_expected_revision: expectedRevision ?? null, p_expected_slot_revision: expectedSlotRevision ?? null,
   });
-  if (!check.ok) return { ok: false as const, error: check.error, status: 400 };
-
-  const slug =
-    input.slug?.trim() || slugifyCollectionName(String(input.name));
-  if (await slugTaken(slug)) {
-    return { ok: false as const, error: "That slug is already used.", status: 409 };
+  if (error) {
+    if (["40001", "55P03", "40P01", "23505"].includes(error.code ?? "") || error.message?.startsWith("CONFLICT:")) return { ok: false as const, error: "The collection, membership or home placement changed or is busy. Reload and review before retrying.", status: 409 };
+    if (["PGRST202", "42501", "42703", "42883"].includes(error.code ?? "")) return { ok: false as const, error: "Safe collection writes are unavailable. The approved collection migration is required; no legacy write was attempted.", status: 503 };
+    if (error.message?.startsWith("BUSINESS_ERROR:")) return { ok: false as const, error: error.message.slice("BUSINESS_ERROR:".length).trim(), status: 400 };
+    return { ok: false as const, error: "The collection change could not be confirmed. Reload before retrying.", status: 500 };
   }
-
-  if (homeSlot) await clearHomeSlot(homeSlot);
-
-  const { data, error } = await adminDb()
-    .from("collections")
-    .insert({
-      name: String(input.name).trim(),
-      slug,
-      description: input.description?.trim() || null,
-      mode,
-      auto_rule: autoRule,
-      home_slot: homeSlot,
-      active: input.active !== false,
-      sort_order: 0,
-    })
-    .select("*")
-    .single();
-  if (error) return { ok: false as const, error: error.message, status: 500 };
-
-  const id = String(data.id);
-  if (mode === "manual" && input.productIds?.length) {
-    await replaceCollectionProducts(id, input.productIds);
-  }
-  void revalidateShopMerchandising(
-    "/admin/collections",
-    "/",
-    "/admin/home",
-    `/collections/${slug}`,
-  );
-  return { ok: true as const, collection: await getAdminCollection(id) };
+  let collection: AdminCollection | undefined;
+  try {
+    if (!isRecord(data) || data.ok !== true || typeof data.id !== "string" || (id !== null && id !== data.id)
+        || !isProductRevision(data.revision) || (data.previousSlug !== null && typeof data.previousSlug !== "string")) throw new Error("Unconfirmed result");
+    validateProductCollections([data.id]);
+    if (action === "delete") { if (data.deleted !== true) throw new Error("Unconfirmed deletion"); }
+    else {
+      collection = confirmedCollection(data.collection);
+      if (collection.id !== data.id || collection.revision !== data.revision) throw new Error("Snapshot mismatch");
+    }
+  } catch { return { ok: false as const, error: "The collection write outcome is uncertain. Reload before retrying.", status: 502 }; }
+  // The command returns its committed snapshot. No post-write fetch can replace
+  // this response with another editor's later changes or turn a commit into a 404.
+  const result = data as { id: string; revision: string; previousSlug: string | null };
+  void revalidateShopMerchandising("/", "/products", "/admin/home", "/admin/collections", `/admin/collections/${result.id}`,
+    ...(result.previousSlug ? [`/collections/${result.previousSlug}`] : []),
+    ...(collection ? [`/collections/${collection.slug}`] : []));
+  return { ok: true as const, id: result.id, revision: result.revision, collection, deleted: action === "delete" };
 }
 
-export async function updateAdminCollection(
-  id: string,
-  input: {
-    name?: string;
-    slug?: string;
-    description?: string;
-    mode?: string;
-    autoRule?: string | null;
-    homeSlot?: string | null;
-    active?: boolean;
-    productIds?: string[];
-  }
-) {
-  const existing = await getAdminCollection(id);
-  if (!existing) return { ok: false as const, error: "Not found.", status: 404 };
-
-  const mode = input.mode === "auto" ? "auto" : input.mode === "manual" ? "manual" : existing.mode;
-  const autoRule =
-    mode === "auto"
-      ? input.autoRule === "featured" || input.autoRule === "bestsellers"
-        ? input.autoRule
-        : existing.autoRule
-      : null;
-  const name = input.name?.trim() ?? existing.name;
-  const slug = (input.slug?.trim() || existing.slug).trim();
-  const homeSlot =
-    input.homeSlot === null || input.homeSlot === ""
-      ? null
-      : input.homeSlot !== undefined
-        ? parseHomeSlot(input.homeSlot)
-        : existing.homeSlot;
-  const check = canSaveCollection({ name, slug, mode, autoRule });
-  if (!check.ok) return { ok: false as const, error: check.error, status: 400 };
-  if (await slugTaken(slug, id)) {
-    return { ok: false as const, error: "That slug is already used.", status: 409 };
-  }
-
-  if (homeSlot && homeSlot !== existing.homeSlot) {
-    await clearHomeSlot(homeSlot);
-  }
-
-  const { error } = await adminDb()
-    .from("collections")
-    .update({
-      name,
-      slug,
-      description:
-        input.description !== undefined
-          ? input.description.trim() || null
-          : existing.description,
-      mode,
-      auto_rule: autoRule,
-      home_slot: homeSlot,
-      active: input.active !== undefined ? input.active : existing.active,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-  if (error) return { ok: false as const, error: error.message, status: 500 };
-
-  if (input.productIds !== undefined) {
-    // For both manual and auto collections, productIds represents the pinned set
-    await replaceCollectionProducts(id, input.productIds);
-  }
-
-  void revalidateShopMerchandising(
-    "/admin/collections",
-    `/admin/collections/${id}`,
-    "/",
-    "/admin/home",
-    `/collections/${slug}`,
-  );
-  return { ok: true as const, collection: await getAdminCollection(id) };
-}
-
-async function clearHomeSlot(slot: CollectionHomeSlot, exceptId?: string) {
-  let q = adminDb()
-    .from("collections")
-    .update({ home_slot: null })
-    .eq("home_slot", slot);
-  if (exceptId) q = q.neq("id", exceptId);
-  await q;
-}
-
-export async function deleteAdminCollection(id: string) {
-  const { error } = await adminDb().from("collections").delete().eq("id", id);
-  if (error) return { ok: false as const, error: error.message, status: 500 };
-  void revalidateShopMerchandising("/admin/collections", "/", "/products");
-  return { ok: true as const };
-}
-
-async function replaceCollectionProducts(collectionId: string, productIds: string[]) {
-  await adminDb().from("collection_products").delete().eq("collection_id", collectionId);
-  const rows = productIds
-    .map((pid) => pid.trim())
-    .filter(Boolean)
-    .map((product_id, sort_order) => ({
-      collection_id: collectionId,
-      product_id,
-      sort_order,
-    }));
-  if (!rows.length) return;
-  const { error } = await adminDb().from("collection_products").insert(rows);
-  if (error) throw error;
-}
+export async function createAdminCollection(input: unknown) { return writeCollection("create", null, input); }
+export async function updateAdminCollection(id: string, input: unknown) { return writeCollection("update", id, input); }
+export async function deleteAdminCollection(id: string, expectedRevision?: unknown) { return writeCollection("delete", id, { expectedRevision }); }
 
 /** Resolve product IDs for a collection.
  * - Manual: returns the explicit member list.
@@ -487,7 +302,6 @@ async function storefrontProductsForIds(
 async function loadHomeSlotCollections(): Promise<
   Map<CollectionHomeSlot, AdminCollection>
 > {
-  await ensureGeneratedHomeCollections();
   const { data, error } = await db()
     .from("collections")
     .select("*")
@@ -655,82 +469,4 @@ export async function getStorefrontCollectionBySlug(
   const ids = await resolveCollectionProductIds(collection);
   const products = await productsForIds(ids, includeDemo);
   return { collection, products };
-}
-
-export async function setProductCollections(
-  productId: string,
-  rawIds: unknown
-): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
-  const desired = parseCollectionIds(rawIds);
-  if (desired == null) return { ok: true };
-
-  let collections: AdminCollection[];
-  try {
-    collections = await listAdminCollections();
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Could not load collections.",
-      status: 500,
-    };
-  }
-  const assignable = new Set(
-    collections.filter((c) => canAssignProductToCollection(c.mode)).map((c) => c.id)
-  );
-  const wanted = new Set(desired.filter((id) => assignable.has(id)));
-
-  const { data: links, error } = await adminDb()
-    .from("collection_products")
-    .select("collection_id")
-    .eq("product_id", productId);
-  if (error) return { ok: false, error: error.message, status: 500 };
-
-  const current = new Set(
-    (links ?? [])
-      .map((row) => String((row as { collection_id: string }).collection_id))
-      .filter((id) => assignable.has(id))
-  );
-
-  const toAdd = Array.from(wanted).filter((id) => !current.has(id));
-  const toRemove = Array.from(current).filter((id) => !wanted.has(id));
-
-  if (toRemove.length) {
-    const { error: delErr } = await adminDb()
-      .from("collection_products")
-      .delete()
-      .eq("product_id", productId)
-      .in("collection_id", toRemove);
-    if (delErr) return { ok: false, error: delErr.message, status: 500 };
-  }
-
-  for (const collectionId of toAdd) {
-    const { data: last } = await adminDb()
-      .from("collection_products")
-      .select("sort_order")
-      .eq("collection_id", collectionId)
-      .order("sort_order", { ascending: false })
-      .limit(1);
-    const sortOrder = last?.[0]
-      ? Number((last[0] as { sort_order: number }).sort_order) + 1
-      : 0;
-    const { error: insErr } = await adminDb()
-      .from("collection_products")
-      .insert({
-        collection_id: collectionId,
-        product_id: productId,
-        sort_order: sortOrder,
-      });
-    if (insErr && insErr.code !== "23505") {
-      return { ok: false, error: insErr.message, status: 500 };
-    }
-  }
-
-  const publishPaths = ["/admin/collections", "/"];
-  for (const c of collections) {
-    if (wanted.has(c.id) || current.has(c.id)) {
-      publishPaths.push(`/admin/collections/${c.id}`, `/collections/${c.slug}`);
-    }
-  }
-  void revalidateShopMerchandising(...publishPaths);
-  return { ok: true };
 }

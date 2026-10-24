@@ -2,6 +2,7 @@ import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
+import { collectionMutationRequest } from "@/lib/collection-input";
 import {
   createAdminCollection,
   listAdminCollections,
@@ -34,7 +35,10 @@ async function POSTHandler(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await createAdminCollection(body ?? {});
+  let input;
+  try { input = collectionMutationRequest(body, "create"); }
+  catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid collection." }, { status: 400 }); }
+  const result = await createAdminCollection(input);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

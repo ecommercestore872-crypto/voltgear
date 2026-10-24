@@ -56,13 +56,15 @@ function numericText(document: ProductDocument) {
 }
 
 function confirmedMutation(value: unknown, id?: string): value is {
-  ok: true; id: string; adminRevision: string; inventoryRevision: string;
+  ok: true; id: string; adminRevision: string; inventoryRevision: string; membershipRevision: string; manualCollectionIds: string[];
   quantity: number | null; stockStatus: "in-stock" | "low-stock" | "out-of-stock";
 } {
   if (!value || typeof value !== "object") return false;
   const result = value as Record<string, unknown>;
   return result.ok === true && typeof result.id === "string" && result.id.length > 0 && (!id || result.id === id)
     && isProductRevision(result.adminRevision) && isProductRevision(result.inventoryRevision)
+    && isProductRevision(result.membershipRevision) && Array.isArray(result.manualCollectionIds)
+    && result.manualCollectionIds.every((value) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)) && new Set(result.manualCollectionIds).size === result.manualCollectionIds.length
     && (result.quantity === null || (typeof result.quantity === "number" && Number.isInteger(result.quantity) && result.quantity >= 0 && result.quantity <= 2147483647))
     && ["in-stock", "low-stock", "out-of-stock"].includes(result.stockStatus as string);
 }
@@ -107,14 +109,14 @@ export function ProductForm({
   );
   const [collectionList, setCollectionList] = useState(collections);
   const [selectedCollectionIds, setSelectedCollectionIds] =
-    useState(() => Array.isArray(product?.draft?._collectionIds) ? [...product.draft._collectionIds] : [...collectionIds]);
+    useState(() => product?.draft?.collectionIntent?.mode !== "preserve" && Array.isArray(product?.draft?._collectionIds) ? [...product.draft._collectionIds] : [...(product?.manualCollectionIds ?? collectionIds)]);
   const [activeUploads, setActiveUploads] = useState(0);
   const activeUploadsRef = useRef(0);
   const savingRef = useRef(false);
   const collectionIdsRef = useRef(selectedCollectionIds);
   collectionIdsRef.current = selectedCollectionIds;
-  const savedCollectionIdsRef = useRef([...collectionIds]);
-  const pendingMembershipRef = useRef(Array.isArray(product?.draft?._collectionIds));
+  const savedCollectionIdsRef = useRef([...(product?.manualCollectionIds ?? collectionIds)]);
+  const membershipRevisionRef = useRef(product ? product.membershipRevision : "0");
   const liveDocumentRef = useRef(product ? productDocumentFromAdmin({ ...product, draft: null }, knownSlugs) : null);
   const id = product?._id;
 
@@ -178,9 +180,12 @@ export function ProductForm({
       }
       let latestPayload = payloadRef.current;
       let submittedNumbers = numbersRef.current;
-      const submittedCollections = [...collectionIdsRef.current];
-      const membershipChanged = JSON.stringify([...submittedCollections].sort()) !== JSON.stringify([...savedCollectionIdsRef.current].sort());
-      const requestedCollections = membershipChanged || pendingMembershipRef.current ? submittedCollections : null;
+      let submittedCollections = [...collectionIdsRef.current];
+      const requestedCollections = latestPayload.collectionIntent?.mode === "adjust" ? submittedCollections : null;
+      if (action === "publish" && latestPayload.collectionIntent === undefined && Array.isArray(latestPayload._collectionIds)) {
+        setError("This older draft has collection selections without a revision. Review and use the selected collections, or keep live collections, before publishing.");
+        return;
+      }
       if (action === "create" || action === "save" || action === "publish") {
         const quantity = productNumberText(submittedNumbers.quantity, true, true);
         latestPayload = {
@@ -235,19 +240,25 @@ export function ProductForm({
         return;
       }
       adminRevisionRef.current = json.adminRevision;
+      membershipRevisionRef.current = json.membershipRevision;
+      savedCollectionIdsRef.current = [...json.manualCollectionIds];
+      if (latestPayload.collectionIntent?.mode === "preserve" || action === "publish") {
+        submittedCollections = [...json.manualCollectionIds];
+        collectionIdsRef.current = submittedCollections;
+        setSelectedCollectionIds(submittedCollections);
+      }
       liveInventoryRef.current = { revision: json.inventoryRevision, quantity: json.quantity, stockStatus: json.stockStatus };
       if (liveDocumentRef.current) liveDocumentRef.current = { ...liveDocumentRef.current, quantity: json.quantity, stockStatus: json.stockStatus, inventoryIntent: { mode: "preserve" } };
       if (action === "publish") {
         setStatus("published");
-        latestPayload = { ...latestPayload, quantity: json.quantity, stockStatus: json.stockStatus, inventoryIntent: { mode: "preserve" } };
+        latestPayload = { ...latestPayload, quantity: json.quantity, stockStatus: json.stockStatus, inventoryIntent: { mode: "preserve" }, collectionIntent: { mode: "preserve" } };
+        delete latestPayload._collectionIds;
         liveDocumentRef.current = latestPayload;
-        savedCollectionIdsRef.current = [...submittedCollections];
-        pendingMembershipRef.current = false;
       }
       if (action === "unpublish") setStatus("unpublished");
       if (action === "discard" && product) {
-        pendingMembershipRef.current = false;
-        const live = liveDocumentRef.current!;
+        const live = { ...liveDocumentRef.current!, collectionIntent: { mode: "preserve" as const } };
+        delete live._collectionIds;
         const restoredCollections = [...savedCollectionIdsRef.current];
         const liveDescription = portableTextToPlain(live.description);
         setDoc(live);
@@ -260,7 +271,6 @@ export function ProductForm({
           description: textToPortableText(liveDescription),
         }, restoredCollections);
       } else if (action === "save" || action === "publish") {
-        if (action === "save" && requestedCollections !== null) pendingMembershipRef.current = true;
         if (latestPayload.inventoryIntent?.mode !== "adjust") {
           latestPayload = { ...latestPayload, quantity: json.quantity, stockStatus: json.stockStatus };
           submittedNumbers = { ...submittedNumbers, quantity: json.quantity == null ? "" : String(json.quantity) };
@@ -300,6 +310,14 @@ export function ProductForm({
       mode: "adjust", expectedRevision: expectedRevision ?? "", quantity: current.quantity ?? null,
       stockStatus: stockStatus as "in-stock" | "low-stock" | "out-of-stock",
     } }));
+  }
+
+  function adjustCollections(ids: string[]) {
+    const expectedRevision = doc.collectionIntent?.mode === "adjust" ? doc.collectionIntent.expectedRevision : membershipRevisionRef.current;
+    if (!isProductRevision(expectedRevision)) { setError("Collection revision is missing. Reload before changing collections."); return; }
+    setSelectedCollectionIds(ids);
+    collectionIdsRef.current = ids;
+    setDoc((current) => ({ ...current, _collectionIds: ids, collectionIntent: { mode: "adjust", expectedRevision } }));
   }
 
   return (
@@ -746,10 +764,21 @@ export function ProductForm({
             selectedIds={selectedCollectionIds}
             productId={id}
             onChange={(ids, nextCollections) => {
-              setSelectedCollectionIds(ids);
+              adjustCollections(ids);
               if (nextCollections) setCollectionList(nextCollections);
             }}
           />
+          {doc.collectionIntent?.mode === "adjust" || Array.isArray(doc._collectionIds) ? (
+            <div className="space-y-2 text-xs text-muted-foreground">
+              <p>{doc.collectionIntent?.mode === "adjust" ? "Collection changes will be checked against their original revision when published." : "Older saved collection selections require explicit review before publishing."}</p>
+              {doc.collectionIntent === undefined ? <Button type="button" variant="outline" onClick={() => adjustCollections([...selectedCollectionIds])}>Use selected collections</Button> : null}
+              <Button type="button" variant="outline" onClick={() => {
+                const ids = [...savedCollectionIdsRef.current];
+                setSelectedCollectionIds(ids); collectionIdsRef.current = ids;
+                setDoc((current) => { const next = { ...current, collectionIntent: { mode: "preserve" as const } }; delete next._collectionIds; return next; });
+              }}>Keep live collections</Button>
+            </div>
+          ) : null}
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

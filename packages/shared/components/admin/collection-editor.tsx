@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
-import { adminFetch } from "@/components/admin/admin-fetch";
+import { adminFetch, AdminRequestError } from "@/components/admin/admin-fetch";
+import { confirmedCollection, validateCollectionInput } from "@/lib/collection-input";
 import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,8 @@ export function CollectionEditor({
   const [searchHits, setSearchHits] = useState<AdminProduct[]>([]);
   const [searching, setSearching] = useState(false);
   const [busy, setBusy] = useState(false);
+  const locked = useRef(false);
+  const [uncertain, setUncertain] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,11 +40,11 @@ export function CollectionEditor({
       description: doc.description ?? "",
       homeSlot: doc.homeSlot ?? null,
       active: doc.active,
-      productIds: [...selected].sort(),
+      productIds: [...selected],
     }),
     [doc, selected],
   );
-  const { dirty, resetSaved, syncSaved } = useAdminFormDirty(editSnapshot);
+  const { dirty, resetSaved } = useAdminFormDirty(editSnapshot);
 
   useEffect(() => {
     const needle = q.trim();
@@ -76,6 +79,7 @@ export function CollectionEditor({
   }, [q, searchHits, selectedProducts, selected]);
 
   function toggle(id: string) {
+    if (locked.current) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -85,13 +89,14 @@ export function CollectionEditor({
   }
 
   async function save() {
+    if (locked.current) return;
+    locked.current = true;
+    let unknownOutcome = false;
     setBusy(true);
     setError(null);
     setMsg(null);
     try {
-      const data = (await adminFetch(`/api/admin/collections/${doc.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
+      const input = {
           name: doc.name,
           slug: doc.slug,
           description: doc.description ?? "",
@@ -100,9 +105,16 @@ export function CollectionEditor({
           homeSlot: doc.homeSlot,
           active: doc.active,
           productIds: Array.from(selected),
-        }),
+          expectedRevision: doc.revision,
+          expectedSlotRevision: doc.active && doc.homeSlot ? doc.slotRevisions?.[doc.homeSlot] : undefined,
+        };
+      validateCollectionInput(input, "update");
+      const data = (await adminFetch(`/api/admin/collections/${doc.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
       })) as { collection?: AdminCollection };
-      if (!data.collection) throw new Error("Save failed");
+      if (!confirmedCollection(data?.collection, doc.id)) throw new AdminRequestError("Save outcome could not be confirmed. Reload before retrying.", 502, true);
+      if (!data.collection) return;
       setDoc(data.collection);
       setSelected(new Set(data.collection.productIds));
       resetSaved({
@@ -111,14 +123,16 @@ export function CollectionEditor({
         description: data.collection.description ?? "",
         homeSlot: data.collection.homeSlot ?? null,
         active: data.collection.active,
-        productIds: [...data.collection.productIds].sort(),
+        productIds: [...data.collection.productIds],
       });
-      syncSaved();
       setMsg("Saved.");
     } catch (e) {
+      if (e instanceof AdminRequestError && e.outcomeUncertain) { unknownOutcome = true; setUncertain(true); }
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setBusy(false);
+      // An ambiguous response is not permission to submit the same write again.
+      if (!unknownOutcome) locked.current = false;
     }
   }
 
@@ -132,7 +146,7 @@ export function CollectionEditor({
               {dirty ? "Unsaved changes" : "Up to date"}
             </span>
           </p>
-          <Button type="button" disabled={busy} onClick={save}>
+          <Button type="button" disabled={busy || uncertain} onClick={save}>
             Save
           </Button>
         </div>
@@ -151,20 +165,22 @@ export function CollectionEditor({
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {msg ? <p className="text-sm text-[var(--g-forest)]">{msg}</p> : null}
+      {uncertain ? <Button type="button" onClick={() => window.location.reload()}>Reload collection</Button> : null}
 
+      <fieldset disabled={busy || uncertain} className="space-y-6" aria-busy={busy}>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="space-y-1 text-sm">
           <span className="font-medium">Name</span>
           <Input
             value={doc.name}
-            onChange={(e) => setDoc((d) => ({ ...d, name: e.target.value }))}
+            onChange={(e) => { if (!locked.current) setDoc((d) => ({ ...d, name: e.target.value })); }}
           />
         </label>
         <label className="space-y-1 text-sm">
           <span className="font-medium">Slug</span>
           <Input
             value={doc.slug}
-            onChange={(e) => setDoc((d) => ({ ...d, slug: e.target.value }))}
+            onChange={(e) => { if (!locked.current) setDoc((d) => ({ ...d, slug: e.target.value })); }}
           />
         </label>
       </div>
@@ -172,7 +188,7 @@ export function CollectionEditor({
         <input
           type="checkbox"
           checked={doc.active}
-          onChange={(e) => setDoc((d) => ({ ...d, active: e.target.checked }))}
+          onChange={(e) => { if (!locked.current) setDoc((d) => ({ ...d, active: e.target.checked })); }}
         />
         Active on storefront
       </label>
@@ -181,12 +197,13 @@ export function CollectionEditor({
         <select
           className="w-full rounded-md border px-3 py-2"
           value={doc.homeSlot ?? ""}
-          onChange={(e) =>
+          onChange={(e) => {
+            if (locked.current) return;
             setDoc((d) => ({
               ...d,
               homeSlot: (e.target.value || null) as AdminCollection["homeSlot"],
-            }))
-          }
+            }));
+          }}
         >
           <option value="">Not on home (use Home layout only)</option>
           {COLLECTION_HOME_SLOTS.map((s) => (
@@ -255,13 +272,21 @@ export function CollectionEditor({
               <p className="font-medium">{selected.size} selected</p>
               <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-muted-foreground">
                 {[...selected].map((id) => (
-                  <li key={id}>{selectedById.get(id)?.name ?? id}</li>
+                  <li key={id} className="flex items-center gap-2">
+                    <span>{selectedById.get(id)?.name ?? id}</span>
+                    <Button type="button" variant="outline" size="sm" disabled={[...selected].indexOf(id) === 0} onClick={() => {
+                      if (locked.current) return;
+                      const ids = [...selected]; const index = ids.indexOf(id);
+                      if (index > 0) { [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]]; setSelected(new Set(ids)); }
+                    }}>Move up</Button>
+                  </li>
                 ))}
               </ul>
             </div>
           ) : null}
         </div>
       )}
+      </fieldset>
     </div>
   );
 }
