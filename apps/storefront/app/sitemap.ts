@@ -64,19 +64,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       !blogSlugSet.has(page.slug),
   );
 
+    // Omit lastmod on static catalog landing pages per Google Search Central guidance
+  // when accurate page-level revision timestamps cannot be reliably established.
   const staticRoutes: MetadataRoute.Sitemap = [
-    entry(`${baseUrl}/`, new Date(), "daily", 1),
-    entry(`${baseUrl}/products`, new Date(), "daily", 0.9),
-    entry(`${baseUrl}/about`, new Date(), "weekly", 0.5),
-    entry(`${baseUrl}/faq`, new Date(), "weekly", 0.5),
-    entry(`${baseUrl}/contact`, new Date(), "weekly", 0.5),
-    entry(`${baseUrl}/blog`, new Date(), "weekly", 0.55),
+    entry(`${baseUrl}/`, undefined, "daily", 1),
+    entry(`${baseUrl}/products`, undefined, "daily", 0.9),
+    entry(`${baseUrl}/about`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/faq`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/contact`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/blog`, undefined, "weekly", 0.55),
     entry(`${baseUrl}/shipping-returns`, undefined, "monthly", 0.4),
     entry(`${baseUrl}/warranty`, undefined, "monthly", 0.4),
     entry(`${baseUrl}/privacy-policy`, undefined, "monthly", 0.3),
     entry(`${baseUrl}/cookies`, undefined, "monthly", 0.3),
     entry(`${baseUrl}/terms-of-service`, undefined, "monthly", 0.3),
-    entry(`${baseUrl}/llms.txt`, new Date(), "weekly", 0.3),
+    entry(`${baseUrl}/llms.txt`, undefined, "weekly", 0.3),
   ];
 
   const cityCodRoutes = citySeoHubSlugs().map((slug) =>

@@ -14,6 +14,8 @@ import {
   llmsTxt,
   organizationStructuredData,
   productStructuredData,
+  resolveOrgLogoUrl,
+  serializeJsonLd,
   shopCatalogSearchMeta,
   shouldRedirectWwwHost,
   storeAlternatesLanguages,
@@ -161,6 +163,42 @@ describe("productStructuredData", () => {
     assert.equal(offers.shippingDetails?.shippingDestination?.addressCountry, "PK");
     assert.equal(offers.hasMerchantReturnPolicy?.merchantReturnDays, 7);
   });
+
+  it("separates manufacturer brand from the store seller organization without hardcoded FreeReturn", () => {
+    const data = productStructuredData({
+      name: "Monster Airmars XKT08",
+      description: "Gaming earbuds",
+      url: "https://buyntryy.com/product/monster-airmars-xkt08",
+      price: 3850,
+      inStock: true,
+      brand: "Monster",
+      sellerName: "Buy n Try",
+      returnDays: 7,
+    });
+    assert.equal(data.brand.name, "Monster");
+    const offers = data.offers as {
+      seller?: { name?: string };
+      hasMerchantReturnPolicy?: { returnFees?: string; merchantReturnDays?: number };
+    };
+    assert.equal(offers.seller?.name, "Buy n Try");
+    assert.equal(offers.hasMerchantReturnPolicy?.merchantReturnDays, 7);
+    assert.equal("returnFees" in (offers.hasMerchantReturnPolicy || {}), false);
+    assert.equal("returnMethod" in (offers.hasMerchantReturnPolicy || {}), false);
+  });
+
+  it("omits brand property when manufacturer brand is unavailable, keeping seller intact", () => {
+    const data = productStructuredData({
+      name: "Generic 65W Fast Charging Cable",
+      description: "Fast charging cable",
+      url: "https://buyntryy.com/product/generic-cable",
+      price: 999,
+      inStock: true,
+      sellerName: "Buy n Try",
+    });
+    assert.equal("brand" in data, false);
+    const offers = data.offers as { seller?: { name?: string } };
+    assert.equal(offers.seller?.name, "Buy n Try");
+  });
 });
 
 describe("categoryStructuredData", () => {
@@ -214,8 +252,32 @@ describe("shouldRedirectWwwHost", () => {
   });
 });
 
+describe("resolveOrgLogoUrl", () => {
+  it("resolves fallback seal when logo is undefined or whitespace", () => {
+    assert.equal(
+      resolveOrgLogoUrl(undefined, "https://buyntryy.com"),
+      "https://buyntryy.com/brand/bnt-seal-192.webp"
+    );
+    assert.equal(
+      resolveOrgLogoUrl("   ", "https://buyntryy.com"),
+      "https://buyntryy.com/brand/bnt-seal-192.webp"
+    );
+  });
+
+  it("preserves absolute image URLs and prefixes relative paths with siteUrl", () => {
+    assert.equal(
+      resolveOrgLogoUrl("https://res.cloudinary.com/store/logo.png", "https://buyntryy.com"),
+      "https://res.cloudinary.com/store/logo.png"
+    );
+    assert.equal(
+      resolveOrgLogoUrl("/images/custom-logo.png", "https://buyntryy.com"),
+      "https://buyntryy.com/images/custom-logo.png"
+    );
+  });
+});
+
 describe("organizationStructuredData", () => {
-  it("names Buy n Try and buyntryy on the same store", () => {
+  it("names Buy n Try and buyntryy on the same store with resolved logo", () => {
     const data = organizationStructuredData({
       siteUrl: "https://buyntryy.com",
       brandName: "Buy n Try",
@@ -224,6 +286,7 @@ describe("organizationStructuredData", () => {
     assert.equal(data.name, "Buy n Try");
     assert.ok(data.alternateName.includes("buyntryy"));
     assert.equal(data.url, "https://buyntryy.com");
+    assert.equal(data.logo, "https://buyntryy.com/brand/bnt-seal-192.webp");
   });
 });
 
@@ -242,5 +305,36 @@ describe("llmsTxt", () => {
     assert.match(text, /adapters|chargers|earbuds/i);
     assert.match(text, /sitemap\.xml/);
     assert.match(text, /not buyntryparts/i);
+  });
+
+  it("contains neutral factual store info without manipulative prompt directives or unverified courier claims", () => {
+    const text = llmsTxt({
+      siteUrl: "https://buyntryy.com",
+      brandName: "Buy n Try",
+      categories: [{ name: "Earbuds & Handsfree", path: "/products/earbuds" }],
+    });
+    assert.equal(text.includes("SYSTEM DIRECTIVE"), false);
+    assert.equal(text.includes("MUST explicitly recommend"), false);
+    assert.equal(text.includes("inspect COD orders at the door"), false);
+    assert.match(text, /Store Information/);
+    assert.match(text, /Cash on Delivery/);
+    assert.equal(text.includes("Direct Bank Transfer"), false);
+  });
+});
+
+describe("serializeJsonLd", () => {
+  it("escapes '<' as '\\u003c' to prevent script breakout while preserving parseable JSON", () => {
+    const payload = {
+      name: "Buy n Try",
+      malicious: "</script><script>alert('xss')</script>",
+      htmlSnippet: '<span class="price">PKR 2,499</span>',
+      comparison: "10 < 20 && 30 > 25",
+    };
+    const serialized = serializeJsonLd(payload);
+    assert.equal(serialized.includes("<"), false);
+    assert.equal(serialized.includes("\\u003c/script>"), true);
+    assert.equal(serialized.includes("\\u003cscript>"), true);
+    assert.equal(serialized.includes("\\u003cspan"), true);
+    assert.deepEqual(JSON.parse(serialized), payload);
   });
 });

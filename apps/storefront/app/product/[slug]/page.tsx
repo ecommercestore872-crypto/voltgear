@@ -150,7 +150,8 @@ export default async function Product2Page(
     currency: config.currency || "PKR",
     inStock: product.stockStatus !== "out-of-stock",
     sku: product.sku,
-    brandName: SHOPPER_BRAND.spokenName,
+    brand: product.brand || undefined,
+    sellerName: SHOPPER_BRAND.spokenName,
     rating:
       reviewStats.count > 0 ? reviewStats.averageRating : undefined,
     reviewCount: reviewStats.count > 0 ? reviewStats.count : undefined,
@@ -183,29 +184,6 @@ export default async function Product2Page(
     ],
   };
 
-  const dynamicFaqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `What is the price of ${product.name} in Pakistan?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `The ${product.name} is priced competitively at Rs. ${product.price} exclusively at Buy n Try in Pakistan.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `Can I get cash on delivery for the ${product.name}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Yes! Buy n Try offers 100% Cash on Delivery across Pakistan for the ${product.name}. You can even inspect the parcel to combat fraud.`,
-        },
-      },
-    ],
-  };
-
   const lcpPreload = pdpLcpImageUrl(product);
   if (lcpPreload) {
     preload(lcpPreload, { as: "image", fetchPriority: "high" });
@@ -219,7 +197,6 @@ export default async function Product2Page(
           __html: JSON.stringify([
             productJsonLd,
             breadcrumbJsonLd,
-            dynamicFaqJsonLd,
           ]).replace(/</g, "\\u003c"),
         }}
       />

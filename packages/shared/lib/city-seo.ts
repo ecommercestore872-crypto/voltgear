@@ -9,7 +9,7 @@ export type CitySeoHub = {
 
 export const CITY_SEO_HUBS: CitySeoHub[] = [
   { slug: "lahore", name: "Lahore", province: "Punjab", deliveryNote: "Typical courier delivery in Lahore is a few business days after dispatch. Pay cash on delivery when the parcel arrives." },
-  { slug: "karachi", name: "Karachi", province: "Sindh", deliveryNote: "We ship to Karachi nationwide via courier partners. Cash on delivery lets you inspect items before you pay." },
+  { slug: "karachi", name: "Karachi", province: "Sindh", deliveryNote: "We ship to Karachi nationwide via courier partners. Cash on delivery nationwide via courier partners." },
   { slug: "islamabad", name: "Islamabad", province: "Islamabad Capital Territory", deliveryNote: "Islamabad sectors receive COD parcels through nationwide couriers. Track your order after checkout." },
   { slug: "rawalpindi", name: "Rawalpindi", province: "Punjab", deliveryNote: "Rawalpindi deliveries follow the same COD flow as Lahore: order online, pay when your parcel arrives." },
 ];
