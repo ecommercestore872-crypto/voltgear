@@ -1,5 +1,14 @@
 # Implementation log
 
+## Final collection integrity/staging acceptance — draft PR30
+
+Continued PR29 without repeating prior fixes. Added atomic collection commands, coherent
+snapshot reads and shared membership/collection/home-slot conflicts. Preserved automatic
+pins, ordered members, checkout/cancellation/reviews and media deletion safeguards.
+Removed read-triggered seeding and unused direct membership writes. Full local gate and
+real PostgreSQL CI passed; [evidence and remaining acceptance gates](COLLECTION_INTEGRITY_ACCEPTANCE.md)
+explicitly distinguish source verification from blocked staging/native-provider testing.
+
 ## 2026-10-24 — Draft PR29 product-integrity boundaries
 
 Continued PR28 head 3866d0e without repeating completed PRs. Added raw server/client

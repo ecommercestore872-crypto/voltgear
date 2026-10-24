@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { adminFetch } from "@/components/admin/admin-fetch";
+import { adminFetch, AdminRequestError } from "@/components/admin/admin-fetch";
+import { confirmedCollection, validateCollectionInput } from "@/lib/collection-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { AdminCollection } from "@/lib/db/collection-store";
@@ -22,9 +23,14 @@ export function CollectionsManager({
     "bestsellers",
   );
   const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  const [uncertain, setUncertain] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function create() {
+    if (lock.current) return;
+    lock.current = true;
+    let unknownOutcome = false;
     setBusy(true);
     setError(null);
     try {
@@ -34,29 +40,41 @@ export function CollectionsManager({
           name,
           mode,
           autoRule: mode === "auto" ? autoRule : null,
+          homeSlot: null,
         }),
       })) as { collection?: AdminCollection };
-      if (!data.collection) throw new Error("Create failed");
+      if (!confirmedCollection(data?.collection)) throw new AdminRequestError("Create outcome could not be confirmed. Reload before retrying.", 502, true);
+      if (!data.collection) return;
       setItems((prev) => [...prev, data.collection!]);
       setName("");
       router.push(`/admin/collections/${data.collection.id}`);
     } catch (e) {
+      if (e instanceof AdminRequestError && e.outcomeUncertain) { unknownOutcome = true; setUncertain(true); }
       setError(e instanceof Error ? e.message : "Create failed");
     } finally {
       setBusy(false);
+      if (!unknownOutcome) lock.current = false;
     }
   }
 
   async function remove(id: string) {
+    if (lock.current) return;
     if (!confirm("Delete this collection?")) return;
+    lock.current = true;
+    let unknownOutcome = false;
     setBusy(true);
     try {
-      await adminFetch(`/api/admin/collections/${id}`, { method: "DELETE" });
+      const input = { expectedRevision: items.find((item) => item.id === id)?.revision };
+      validateCollectionInput(input, "delete");
+      const data = await adminFetch(`/api/admin/collections/${id}`, { method: "DELETE", body: JSON.stringify(input) });
+      if (!data || data.ok !== true) throw new AdminRequestError("Delete outcome could not be confirmed. Reload before retrying.", 502, true);
       setItems((prev) => prev.filter((c) => c.id !== id));
     } catch (e) {
+      if (e instanceof AdminRequestError && e.outcomeUncertain) { unknownOutcome = true; setUncertain(true); }
       setError(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setBusy(false);
+      if (!unknownOutcome) lock.current = false;
     }
   }
 
@@ -74,7 +92,7 @@ export function CollectionsManager({
 </span>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Curate "Best Sellers", "Featured", and "New Arrivals" directly from here. These collections dynamically populate your storefront sections, completely avoiding hardcoded categories.
+            Curate Best Sellers, Featured, and New Arrivals directly from here. These collections dynamically populate your storefront sections, completely avoiding hardcoded categories.
           </p>
         </div>
       </div>
@@ -84,7 +102,9 @@ export function CollectionsManager({
           {error}
         </div>
       ) : null}
+      {uncertain ? <Button type="button" onClick={() => window.location.reload()}>Reload collections</Button> : null}
 
+      <fieldset disabled={busy || uncertain} className="min-w-0" aria-busy={busy}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Creator Panel */}
         <div className="lg:col-span-1 h-fit bg-card border rounded-2xl p-6 shadow-sm sticky top-6">
@@ -237,6 +257,7 @@ export function CollectionsManager({
           )}
         </div>
       </div>
+      </fieldset>
     </div>
   );
 }

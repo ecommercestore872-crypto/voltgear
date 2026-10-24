@@ -2,6 +2,7 @@ import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest } from "@/lib/admin";
+import { collectionMutationRequest } from "@/lib/collection-input";
 import {
   deleteAdminCollection,
   getAdminCollection,
@@ -18,7 +19,9 @@ async function GETHandler(
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const collection = await getAdminCollection((await params).id).catch(() => null);
+  let collection;
+  try { collection = await getAdminCollection((await params).id); }
+  catch { return NextResponse.json({ error: "Collection snapshot unavailable. Reload before editing." }, { status: 503 }); }
   if (!collection)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   return NextResponse.json({ collection });
@@ -32,7 +35,10 @@ async function PATCHHandler(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const result = await updateAdminCollection((await params).id, body ?? {});
+  let input;
+  try { input = collectionMutationRequest(body, "update"); }
+  catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid collection." }, { status: 400 }); }
+  const result = await updateAdminCollection((await params).id, input);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },
@@ -49,7 +55,10 @@ async function DELETEHandler(
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deleteAdminCollection((await params).id);
+  let expectedRevision: string;
+  try { expectedRevision = collectionMutationRequest(await request.json().catch(() => null), "delete").expectedRevision as string; }
+  catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid collection revision." }, { status: 400 }); }
+  const result = await deleteAdminCollection((await params).id, expectedRevision);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

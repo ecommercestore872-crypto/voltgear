@@ -1,5 +1,15 @@
 # Security review
 
+## Atomic collection follow-up — draft PR30
+
+Independent read-only transaction review found and drove fixes for automatic-pin
+compatibility and product-delete cascade lock order. The latest inspected SQL core has
+no further identified source-level transaction blocker; actual isolated tests passed.
+[Release safety review and target manifest](COLLECTION_INTEGRITY_ACCEPTANCE.md) retain
+old-writer cutoff, separate exact migration approval and preservation of live order /
+courier services. No stage/provider acceptance or independent whole-system certification
+is implied. Production-connected previews must never be synthetic mutation targets.
+
 ## 2026-10-24 focused product-integrity review
 
 Independent read-only database/security findings and coordinator follow-up fixes are

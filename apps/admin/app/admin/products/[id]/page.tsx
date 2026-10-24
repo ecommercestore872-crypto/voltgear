@@ -12,7 +12,6 @@ const ProductForm = nextDynamic(
 import { getAdminProductForEditor, listAdminShopTypes } from "@/lib/db/admin-store";
 import {
   listAdminCollectionPickers,
-  listManualCollectionIdsForProduct,
 } from "@/lib/db/collection-store";
 
 export const metadata: Metadata = {
@@ -28,11 +27,10 @@ export default async function EditProductPage(
   }
 ) {
   const params = await props.params;
-  const [product, shopTypes, collections, collectionIds] = await Promise.all([
+  const [product, shopTypes, collections] = await Promise.all([
     getAdminProductForEditor(params.id),
     listAdminShopTypes().catch(() => []),
     listAdminCollectionPickers().catch(() => []),
-    listManualCollectionIdsForProduct(params.id).catch(() => []),
   ]);
   if (!product) notFound();
   return (
@@ -40,7 +38,7 @@ export default async function EditProductPage(
       product={product}
       shopTypes={shopTypes}
       collections={collections}
-      collectionIds={collectionIds}
+      collectionIds={product.manualCollectionIds!}
     />
   );
 }

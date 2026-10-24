@@ -20,11 +20,13 @@ The runner applies the exact checked-in initial schema, then `schema.sql` for
 the minimum later columns, then these **unchanged actual migration files**:
 
 - `20260901040000_collections.sql`
+- `20260901050000_collection_home_slot.sql`
 - `20261018000000_atomic_product_publish.sql` (legacy functions for revocation)
 - `20261019000000_atomic_promo_redemption.sql` (actual live checkout RPC)
 - `20261022000000_demo_sandbox_isolation.sql` (actual cancellation RPC)
 - `20261023000000_atomic_review_moderation.sql` (actual review moderation RPC)
 - `20261028000000_product_integrity_v2.sql` (the migration under test)
+- `20261029000000_collection_integrity.sql` (atomic collection/membership/slot protocol)
 
 The runner first checks all checked-in migration version prefixes for uniqueness
 (even if Docker is unavailable). The selected minimal migration chain verifies
@@ -65,3 +67,32 @@ unchanged. No new catalog data constraints or historical cleanup are required.
 
 Do not describe this suite as passing unless an actual run has completed. A
 stopped engine or missing image is a prerequisite failure, not a passing test.
+
+## Collection protocol acceptance
+
+`collection-cases.mjs` supplements the original product cases with actual
+collection/product RPC overlap, UUID-ordered deletion cascades, NOWAIT
+membership conflicts, stale collection tabs, manual-set ABA, ordered automatic
+pins, slot ownership and release/claim ABA, coherent snapshots, exact revision
+strings, product-deletion cascade invalidation, and injected insert/delete
+rollback on both collection editing and product publishing. All fixture names,
+UUIDs and customer addresses are synthetic. No production service is contacted.
+
+The prepared product v2 definition now depends on migration29's intent guard
+and snapshots; apply both prepared migrations together only after approval.
+Collection commands lock persistent slots first, then affected products in UUID
+order using NOWAIT, then the collection row with revision CAS. Product commands
+already own their product row and lock affected collection rows in UUID order
+only for explicit membership adjustment. Content-only publishing preserves
+membership without collection locks. Product deletion prelocks its collections
+in the same UUID order before FK cascades. The NOWAIT conflict prevents a
+UUID-versus-checkout-slug ordering cycle; it is tested as a real 40001 error,
+not disguised as a successful update.
+
+Legacy saved membership arrays without an original membership revision fail
+closed until the merchant explicitly chooses keep-live or reviews a new
+selection. Saving a well-formed stale intent never rebases it. Existing
+automatic collection pins remain ordered, but do not become manual membership.
+The rollout must drain every legacy collection/product membership writer;
+triggers maintain revisions for direct deletes but do not make arbitrary
+multi-statement legacy service-role commands transactionally safe.

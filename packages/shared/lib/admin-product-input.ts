@@ -5,6 +5,7 @@ export type InventoryIntent = { mode: "preserve" } | {
   mode: "adjust"; expectedRevision: string; quantity: number | null;
   stockStatus: "in-stock" | "low-stock" | "out-of-stock";
 };
+export type CollectionIntent = { mode: "preserve" } | { mode: "adjust"; expectedRevision: string };
 export class ProductInputError extends Error {}
 const fail = (field: string, detail = "has an invalid value"): never => { throw new ProductInputError(`${field} ${detail}.`); };
 export const isRecord = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -113,6 +114,14 @@ export function validateProductInput(value: unknown): asserts value is ProductDo
       if (row.stockStatus !== undefined && row.stockStatus !== intent.stockStatus) fail("inventoryIntent", "availability must match the editor value");
     } else fail("inventoryIntent.mode");
   }
+  if (row.collectionIntent !== undefined) {
+    const intent = record(row.collectionIntent, "collectionIntent");
+    if (intent.mode === "preserve") {
+      if (Object.keys(intent).some((key) => key !== "mode")) fail("collectionIntent");
+    } else if (intent.mode === "adjust") {
+      if (!isProductRevision(intent.expectedRevision) || Object.keys(intent).some((key) => !["mode", "expectedRevision"].includes(key))) fail("collectionIntent");
+    } else fail("collectionIntent.mode");
+  }
   if (row._collectionIds !== undefined) validateProductCollections(row._collectionIds);
 }
 
@@ -133,6 +142,11 @@ export function productMutationRequest(body: unknown, create = false) {
   if (action === "create" || action === "save" || action === "publish") validateProductInput(document);
   else if (document !== undefined && !isRecord(document)) fail("Product document", "must be an object");
   validateProductCollections(envelope.collectionIds);
+  if (action === "create" || action === "save" || action === "publish") {
+    const intent = (document as ProductDocument).collectionIntent;
+    if (envelope.collectionIds != null && intent?.mode !== "adjust") fail("collectionIds", "requires an explicit collection adjustment intent");
+    if (intent?.mode === "adjust" && !Array.isArray(envelope.collectionIds)) fail("collectionIds", "must provide the reviewed selection for an adjustment");
+  }
   if (!create && !isProductRevision(envelope.expectedAdminRevision)) fail("Editor revision", "is missing or invalid; reload the product");
   return { action: action as "create" | "save" | "publish" | "unpublish" | "discard", document: document as ProductDocument,
     collectionIds: envelope.collectionIds as string[] | null | undefined, expectedAdminRevision: envelope.expectedAdminRevision as string | undefined };

@@ -22,6 +22,7 @@ export function emptyProductDocument(): ProductDocument {
     reviews: [],
     addons: [],
     freeShipping: false,
+    collectionIntent: { mode: "preserve" },
   };
 }
 
@@ -73,6 +74,9 @@ export function productDocumentFromAdmin(
     isDemo: Boolean(document.isDemo ?? product.isDemo),
     costPrice: document.costPrice === undefined ? product.costPrice : document.costPrice,
     inventoryIntent: document.inventoryIntent ?? { mode: "preserve" as const },
+    // A legacy saved selection has no trustworthy CAS baseline. Keep it visible,
+    // but require explicit review rather than attaching today's revision to it.
+    collectionIntent: document.collectionIntent ?? (Array.isArray(document._collectionIds) ? undefined : { mode: "preserve" as const }),
   };
   // Legacy drafts contain inventory snapshots, not an instruction to overwrite stock.
   if (merged.inventoryIntent.mode === "preserve") {

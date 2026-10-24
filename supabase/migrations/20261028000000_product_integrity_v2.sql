@@ -94,7 +94,9 @@ BEGIN
     INTO v_product_id, v_admin_revision, v_inventory_revision, v_quantity, v_stock_status;
     RETURN jsonb_build_object('ok', true, 'id', v_product_id,
       'admin_revision', v_admin_revision::text, 'inventory_revision', v_inventory_revision::text,
-      'quantity', v_quantity, 'stock_status', v_stock_status);
+      'quantity', v_quantity, 'stock_status', v_stock_status,
+      'membership_revision', (SELECT membership_revision::text FROM products WHERE id=v_product_id),
+      'manual_collection_ids', admin_product_editor_snapshot_v1(v_product_id)->'manual_collection_ids');
   END IF;
 
   IF jsonb_typeof(p_document) IS DISTINCT FROM 'object' THEN
@@ -344,34 +346,9 @@ BEGIN
   -- draft never silently rebases an adjustment against subsequent inventory.
   v_document := jsonb_set(v_document, '{inventoryIntent}', v_intent, true);
 
-  v_collections := coalesce(p_collection_ids, v_current.draft->'_collectionIds');
-  IF v_collections IS NOT NULL THEN
-    IF jsonb_typeof(v_collections) IS DISTINCT FROM 'array' THEN
-      RAISE EXCEPTION 'BUSINESS_ERROR: Invalid collection membership';
-    END IF;
-    IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_collections) e WHERE jsonb_typeof(e) <> 'string') THEN
-      RAISE EXCEPTION 'BUSINESS_ERROR: Invalid collection ID';
-    END IF;
-    SELECT coalesce(jsonb_agg(lower(e #>> '{}')), '[]') INTO v_collections
-    FROM jsonb_array_elements(v_collections) e;
-    v_seen := ARRAY[]::text[];
-    FOR v_item IN SELECT value FROM jsonb_array_elements(v_collections) LOOP
-      IF jsonb_typeof(v_item) IS DISTINCT FROM 'string' THEN
-        RAISE EXCEPTION 'BUSINESS_ERROR: Invalid collection ID';
-      END IF;
-      v_key := v_item #>> '{}';
-      IF v_key = ANY(v_seen) THEN
-        RAISE EXCEPTION 'BUSINESS_ERROR: Collection must exist and be manual (no duplicate IDs)';
-      END IF;
-      -- Hold mode/existence stable until the membership transaction completes.
-      PERFORM 1 FROM public.collections WHERE id::text = v_key AND mode = 'manual' FOR SHARE;
-      IF NOT FOUND THEN
-        RAISE EXCEPTION 'BUSINESS_ERROR: Collection must exist and be manual (no duplicate IDs)';
-      END IF;
-      v_seen := array_append(v_seen, v_key);
-    END LOOP;
-    v_document := jsonb_set(v_document, '{_collectionIds}', v_collections, true);
-  END IF;
+  v_document := admin_product_collection_intent_v1(p_action,p_product_id,v_document,
+    p_collection_ids,v_current.draft,coalesce(v_current.membership_revision,0));
+  v_collections := v_document->'_collectionIds';
 
   IF p_action = 'create' THEN
     INSERT INTO public.products (name, slug, category, price, quantity, stock_status, status, draft, cost_price, is_demo)
@@ -388,10 +365,8 @@ BEGIN
       AND EXISTS (SELECT 1 FROM public.order_items WHERE slug = v_current.slug) THEN
       RAISE EXCEPTION 'BUSINESS_ERROR: Cannot rename slug referenced by an order';
     END IF;
-    -- Keep existing automatic/manual classification stable while reconciling.
-    PERFORM 1 FROM public.collections c WHERE EXISTS (
-      SELECT 1 FROM public.collection_products m WHERE m.collection_id = c.id AND m.product_id = p_product_id
-    ) ORDER BY c.id FOR SHARE;
+    -- Membership-adjust locks were acquired above. Content-only publish takes
+    -- no collection locks and cannot replace an independent membership edit.
     v_axes := coalesce((v_document->>'colorEnabled')::boolean, false)
       OR coalesce((v_document->>'sizeEnabled')::boolean, false);
     UPDATE public.products SET
@@ -468,7 +443,9 @@ BEGIN
   SELECT quantity, stock_status INTO v_quantity, v_stock_status FROM public.products WHERE id = v_product_id;
   RETURN jsonb_build_object('ok', true, 'id', v_product_id,
     'admin_revision', v_admin_revision::text, 'inventory_revision', v_inventory_revision::text,
-    'quantity', v_quantity, 'stock_status', v_stock_status);
+    'quantity', v_quantity, 'stock_status', v_stock_status,
+    'membership_revision', (SELECT membership_revision::text FROM products WHERE id=v_product_id),
+    'manual_collection_ids', admin_product_editor_snapshot_v1(v_product_id)->'manual_collection_ids');
 END;
 $$;
 

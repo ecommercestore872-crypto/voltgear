@@ -74,7 +74,7 @@ describe("product request and numeric text boundaries", () => {
     const parsed = input.productMutationRequest({ doc: document, expectedAdminRevision: "3" });
     assert.equal(parsed.action, "save"); assert.equal(parsed.collectionIds, undefined);
     assert.equal(input.productMutationRequest({ doc: document, expectedAdminRevision: "3", collectionIds: null }).collectionIds, null);
-    assert.deepEqual(input.productMutationRequest({ doc: document, expectedAdminRevision: "3", collectionIds: [] }).collectionIds, []);
+    assert.deepEqual(input.productMutationRequest({ doc: { ...document, collectionIntent: { mode: "adjust", expectedRevision: "0" } }, expectedAdminRevision: "3", collectionIds: [] }).collectionIds, []);
   });
   for (const ids of ["wrong", [null], [3], [collection, collection], ["not-a-uuid"]]) it(`rejects malformed membership ${JSON.stringify(ids)}`, () => assert.throws(() => input.productMutationRequest({ doc: document, expectedAdminRevision: "3", collectionIds: ids })));
   it("does not convert empty required amounts or malformed optional quantities into zero/null", () => {
@@ -110,7 +110,7 @@ function adapter(options: { error?: { code?: string; message: string }; response
     "@/lib/supabase/server": { getServiceClient: () => ({
       from() { throw new Error("Direct mutation forbidden"); },
       async rpc(name: string, args: Record<string, unknown>) { calls.push({ name, args }); return {
-        data: options.response === undefined ? { ok: true, id, admin_revision: "4", inventory_revision: "2", quantity: 8, stock_status: "in-stock" } : options.response,
+        data: options.response === undefined ? { ok: true, id, admin_revision: "4", inventory_revision: "2", membership_revision: "0", manual_collection_ids: [], quantity: 8, stock_status: "in-stock" } : options.response,
         error: options.error ?? null,
       }; },
     }) },
@@ -132,7 +132,7 @@ describe("actual product adapter fails closed", () => {
     assert.equal(subject.reads(), 0); assert.equal(subject.calls.length, 0);
   });
   it("uses a single v2 transaction for draft content and memberships, without moderation data", async () => {
-    const subject = adapter(); const result = await subject.module.saveAdminProduct(id, { ...document, costPrice: 50, isDemo: true, reviews: [] }, [collection], "3");
+    const subject = adapter(); const result = await subject.module.saveAdminProduct(id, { ...document, costPrice: 50, isDemo: true, reviews: [], collectionIntent: { mode: "adjust", expectedRevision: "0" } }, [collection], "3");
     assert.equal(result.ok, true); assert.equal(subject.calls.length, 1);
     assert.equal(subject.calls[0].name, "admin_write_product_v2");
     assert.equal(subject.calls[0].args.p_expected_admin_revision, "3");

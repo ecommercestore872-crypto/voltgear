@@ -6,7 +6,7 @@ import { mapProduct } from "@/lib/db/map";
 import { type ProductDocument } from "@/lib/db/publish";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
-import { readProductRevision } from "@/lib/admin-product-input";
+import { readProductRevision, isRecord, validateProductCollections } from "@/lib/admin-product-input";
 
 const PRODUCT_EDITOR_EMBED = `
   *,
@@ -42,6 +42,8 @@ function toAdminProduct(row: Record<string, unknown> | null): AdminProduct | nul
     draft: asDraft(row.draft),
     adminRevision: readProductRevision(row.admin_revision),
     inventoryRevision: readProductRevision(row.inventory_revision),
+    membershipRevision: readProductRevision(row.membership_revision),
+    manualCollectionIds: Array.isArray(row.manual_collection_ids) ? row.manual_collection_ids as string[] : undefined,
     costPrice:
       row.cost_price != null && Number.isFinite(Number(row.cost_price))
         ? Number(row.cost_price)
@@ -414,13 +416,14 @@ export async function getAdminProduct(id: string): Promise<AdminProduct | null> 
 }
 
 export async function getAdminProductForEditor(id: string): Promise<AdminProduct | null> {
-  const { data, error } = await db()
-    .from("products")
-    .select(PRODUCT_EDITOR_EMBED)
-    .eq("id", id)
-    .maybeSingle();
+  const { data, error } = await db().rpc("admin_product_editor_snapshot_v1", { p_id: id });
   if (error) throw error;
-  return toAdminProduct(data as Record<string, unknown> | null);
+  if (data === null) return null;
+  if (!isRecord(data) || data.id !== id || !readProductRevision(data.membership_revision)
+      || !readProductRevision(data.admin_revision) || !readProductRevision(data.inventory_revision)
+      || !Array.isArray(data.manual_collection_ids)) throw new Error("A complete safe product editor snapshot is unavailable.");
+  validateProductCollections(data.manual_collection_ids);
+  return toAdminProduct(data);
 }
 
 export async function getAdminProductForDraftSave(id: string): Promise<AdminProduct | null> {

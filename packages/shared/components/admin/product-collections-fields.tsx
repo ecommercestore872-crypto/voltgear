@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { adminFetch } from "@/components/admin/admin-fetch";
+import { adminFetch, AdminRequestError } from "@/components/admin/admin-fetch";
+import { confirmedCollection } from "@/lib/collection-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,8 @@ export function ProductCollectionsFields({
 }) {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  const [uncertain, setUncertain] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selected = new Set(selectedIds);
@@ -39,7 +42,9 @@ export function ProductCollectionsFields({
 
   async function createCollection() {
     const trimmed = name.trim();
-    if (!trimmed || busy) return;
+    if (!trimmed || lock.current) return;
+    lock.current = true;
+    let unknownOutcome = false;
     setBusy(true);
     setError(null);
     try {
@@ -54,21 +59,24 @@ export function ProductCollectionsFields({
           productIds: [],
         }),
       })) as { collection?: CollectionPickerItem };
-      if (!data.collection) throw new Error("Could not create collection.");
+      if (!confirmedCollection(data?.collection)) throw new AdminRequestError("Create outcome could not be confirmed. Reload before trying again.", 502, true);
+      if (!data.collection) return;
       setName("");
       onChange(
         [...selectedIds, data.collection.id],
         [...collections, data.collection],
       );
     } catch (e) {
+      if (e instanceof AdminRequestError && e.outcomeUncertain) { unknownOutcome = true; setUncertain(true); }
       setError(e instanceof Error ? e.message : "Could not create collection.");
     } finally {
       setBusy(false);
+      if (!unknownOutcome) lock.current = false;
     }
   }
 
   return (
-    <fieldset className="space-y-3 rounded-md border border-input bg-background p-3">
+    <fieldset disabled={busy || uncertain} className="space-y-3 rounded-md border border-input bg-background p-3">
       <legend className="px-1 text-sm font-medium">Collections</legend>
       <p className="text-xs text-muted-foreground">
         Choose manual collections for this product. Membership changes become live
@@ -143,6 +151,7 @@ export function ProductCollectionsFields({
         </div>
       </div>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {uncertain ? <p className="text-xs text-destructive">Reload this product before creating another collection.</p> : null}
       <p className="text-xs text-muted-foreground">
         <Link href="/admin/collections" className="underline">
           Manage all collections
