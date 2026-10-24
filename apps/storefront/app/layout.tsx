@@ -16,7 +16,6 @@ import {
 import { StorefrontAnnouncementBar } from "@/components/promotions/announcement-bar";
 import { StorefrontPromoPopup } from "@/components/promotions/storefront-promo-popup";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
-import { SHOPPER_BRAND } from "@/lib/brand";
 import {
   indexSiteUrl,
   organizationStructuredData,

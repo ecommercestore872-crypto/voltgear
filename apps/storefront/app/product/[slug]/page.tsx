@@ -184,29 +184,6 @@ export default async function Product2Page(
     ],
   };
 
-  const dynamicFaqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `What is the price of ${product.name} in Pakistan?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `The ${product.name} is priced competitively at Rs. ${product.price} exclusively at Buy n Try in Pakistan.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `Can I get cash on delivery for the ${product.name}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Yes! Buy n Try offers Cash on Delivery across Pakistan for the ${product.name}.`,
-        },
-      },
-    ],
-  };
-
   const lcpPreload = pdpLcpImageUrl(product);
   if (lcpPreload) {
     preload(lcpPreload, { as: "image", fetchPriority: "high" });
@@ -220,7 +197,6 @@ export default async function Product2Page(
           __html: JSON.stringify([
             productJsonLd,
             breadcrumbJsonLd,
-            dynamicFaqJsonLd,
           ]).replace(/</g, "\\u003c"),
         }}
       />
