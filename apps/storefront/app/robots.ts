@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
           "/icon.png",
           "/apple-icon.png",
           "/brand/",
+          "/api/logo",
         ],
         disallow: [...SEARCH_CRAWL_DISALLOW],
       },

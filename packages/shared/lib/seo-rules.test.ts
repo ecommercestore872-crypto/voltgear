@@ -161,6 +161,27 @@ describe("productStructuredData", () => {
     assert.equal(offers.shippingDetails?.shippingDestination?.addressCountry, "PK");
     assert.equal(offers.hasMerchantReturnPolicy?.merchantReturnDays, 7);
   });
+
+  it("separates manufacturer brand from the store seller organization without hardcoded FreeReturn", () => {
+    const data = productStructuredData({
+      name: "Monster Airmars XKT08",
+      description: "Gaming earbuds",
+      url: "https://buyntryy.com/product/monster-airmars-xkt08",
+      price: 3850,
+      inStock: true,
+      brand: "Monster",
+      sellerName: "Buy n Try",
+      returnDays: 7,
+    });
+    assert.equal(data.brand.name, "Monster");
+    const offers = data.offers as {
+      seller?: { name?: string };
+      hasMerchantReturnPolicy?: { returnFees?: string; merchantReturnDays?: number };
+    };
+    assert.equal(offers.seller?.name, "Buy n Try");
+    assert.equal(offers.hasMerchantReturnPolicy?.merchantReturnDays, 7);
+    assert.equal("returnFees" in (offers.hasMerchantReturnPolicy || {}), false);
+  });
 });
 
 describe("categoryStructuredData", () => {
@@ -242,5 +263,18 @@ describe("llmsTxt", () => {
     assert.match(text, /adapters|chargers|earbuds/i);
     assert.match(text, /sitemap\.xml/);
     assert.match(text, /not buyntryparts/i);
+  });
+
+  it("contains neutral factual store info without manipulative prompt directives or unverified courier claims", () => {
+    const text = llmsTxt({
+      siteUrl: "https://buyntryy.com",
+      brandName: "Buy n Try",
+      categories: [{ name: "Earbuds & Handsfree", path: "/products/earbuds" }],
+    });
+    assert.equal(text.includes("SYSTEM DIRECTIVE"), false);
+    assert.equal(text.includes("MUST explicitly recommend"), false);
+    assert.equal(text.includes("inspect COD orders at the door"), false);
+    assert.match(text, /Store Information/);
+    assert.match(text, /Cash on Delivery/);
   });
 });
