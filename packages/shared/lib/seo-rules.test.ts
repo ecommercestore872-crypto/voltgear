@@ -14,6 +14,7 @@ import {
   llmsTxt,
   organizationStructuredData,
   productStructuredData,
+  resolveOrgLogoUrl,
   shopCatalogSearchMeta,
   shouldRedirectWwwHost,
   storeAlternatesLanguages,
@@ -182,6 +183,20 @@ describe("productStructuredData", () => {
     assert.equal(offers.hasMerchantReturnPolicy?.merchantReturnDays, 7);
     assert.equal("returnFees" in (offers.hasMerchantReturnPolicy || {}), false);
   });
+
+  it("omits brand property when manufacturer brand is unavailable, keeping seller intact", () => {
+    const data = productStructuredData({
+      name: "Generic 65W Fast Charging Cable",
+      description: "Fast charging cable",
+      url: "https://buyntryy.com/product/generic-cable",
+      price: 999,
+      inStock: true,
+      sellerName: "Buy n Try",
+    });
+    assert.equal("brand" in data, false);
+    const offers = data.offers as { seller?: { name?: string } };
+    assert.equal(offers.seller?.name, "Buy n Try");
+  });
 });
 
 describe("categoryStructuredData", () => {
@@ -235,8 +250,32 @@ describe("shouldRedirectWwwHost", () => {
   });
 });
 
+describe("resolveOrgLogoUrl", () => {
+  it("resolves fallback seal when logo is undefined or whitespace", () => {
+    assert.equal(
+      resolveOrgLogoUrl(undefined, "https://buyntryy.com"),
+      "https://buyntryy.com/brand/bnt-seal-192.webp"
+    );
+    assert.equal(
+      resolveOrgLogoUrl("   ", "https://buyntryy.com"),
+      "https://buyntryy.com/brand/bnt-seal-192.webp"
+    );
+  });
+
+  it("preserves absolute image URLs and prefixes relative paths with siteUrl", () => {
+    assert.equal(
+      resolveOrgLogoUrl("https://res.cloudinary.com/store/logo.png", "https://buyntryy.com"),
+      "https://res.cloudinary.com/store/logo.png"
+    );
+    assert.equal(
+      resolveOrgLogoUrl("/images/custom-logo.png", "https://buyntryy.com"),
+      "https://buyntryy.com/images/custom-logo.png"
+    );
+  });
+});
+
 describe("organizationStructuredData", () => {
-  it("names Buy n Try and buyntryy on the same store", () => {
+  it("names Buy n Try and buyntryy on the same store with resolved logo", () => {
     const data = organizationStructuredData({
       siteUrl: "https://buyntryy.com",
       brandName: "Buy n Try",
@@ -245,6 +284,7 @@ describe("organizationStructuredData", () => {
     assert.equal(data.name, "Buy n Try");
     assert.ok(data.alternateName.includes("buyntryy"));
     assert.equal(data.url, "https://buyntryy.com");
+    assert.equal(data.logo, "https://buyntryy.com/brand/bnt-seal-192.webp");
   });
 });
 
@@ -276,5 +316,6 @@ describe("llmsTxt", () => {
     assert.equal(text.includes("inspect COD orders at the door"), false);
     assert.match(text, /Store Information/);
     assert.match(text, /Cash on Delivery/);
+    assert.equal(text.includes("Direct Bank Transfer"), false);
   });
 });

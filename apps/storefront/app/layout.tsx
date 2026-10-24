@@ -20,6 +20,7 @@ import { SHOPPER_BRAND } from "@/lib/brand";
 import {
   indexSiteUrl,
   organizationStructuredData,
+  resolveOrgLogoUrl,
   websiteStructuredData,
 } from "@/lib/seo-rules";
 import {
@@ -172,9 +173,7 @@ export default async function RootLayout({
     organizationStructuredData({
       siteUrl: SITE_URL,
       brandName,
-      logo: settings?.logo
-        ? `${SITE_URL}/api/logo`
-        : `${SITE_URL}${SHOPPER_BRAND.sealSrc}`,
+      logo: resolveOrgLogoUrl(settings?.logo, SITE_URL),
       phone: settings?.phone || settings?.whatsappNumber,
       email: settings?.email,
       returnDays: settings?.returnWindowDays,

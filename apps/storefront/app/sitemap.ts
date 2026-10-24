@@ -64,16 +64,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       !blogSlugSet.has(page.slug),
   );
 
-    // Use the latest product update timestamp for catalog hubs if available, without dynamic new Date() churn
-  const latestProductUpdate = products
-    .map((p) => p._updatedAt)
-    .filter(Boolean)
-    .sort()
-    .pop();
-
+    // Omit lastmod on static catalog landing pages per Google Search Central guidance
+  // when accurate page-level revision timestamps cannot be reliably established.
   const staticRoutes: MetadataRoute.Sitemap = [
-    entry(`${baseUrl}/`, latestProductUpdate, "daily", 1),
-    entry(`${baseUrl}/products`, latestProductUpdate, "daily", 0.9),
+    entry(`${baseUrl}/`, undefined, "daily", 1),
+    entry(`${baseUrl}/products`, undefined, "daily", 0.9),
     entry(`${baseUrl}/about`, undefined, "weekly", 0.5),
     entry(`${baseUrl}/faq`, undefined, "weekly", 0.5),
     entry(`${baseUrl}/contact`, undefined, "weekly", 0.5),

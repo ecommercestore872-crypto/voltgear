@@ -201,7 +201,7 @@ export default async function Product2Page(
         name: `Can I get cash on delivery for the ${product.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! Buy n Try offers 100% Cash on Delivery across Pakistan for the ${product.name}. You can even inspect the parcel to combat fraud.`,
+          text: `Yes! Buy n Try offers Cash on Delivery across Pakistan for the ${product.name}.`,
         },
       },
     ],

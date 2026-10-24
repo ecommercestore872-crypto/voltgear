@@ -70,7 +70,7 @@ export default async function CityCodHubPage(props: { params: Promise<{ city: st
             <ol className="gadget-body mt-3 list-decimal space-y-2 pl-5 text-sm sm:text-base">
               <li>Pick a category or product and add it to cart.</li>
               <li>Checkout with cash on delivery if offered for your address.</li>
-              <li>Inspect the parcel when the courier arrives, then pay.</li>
+              <li>Receive your parcel when the courier arrives, then pay.</li>
             </ol>
           </GadgetSupportCard>
           <GadgetSupportCard icon={<Package className="h-5 w-5" aria-hidden />} title="Shop by category">

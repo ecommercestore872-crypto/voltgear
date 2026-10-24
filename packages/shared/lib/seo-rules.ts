@@ -333,7 +333,7 @@ export function productStructuredData(input: {
   returnDays?: number;
 }) {
   const sellerName = input.sellerName || SHOPPER_BRAND.spokenName;
-  const manufacturerBrand = input.brand?.trim() || input.brandName || SHOPPER_BRAND.spokenName;
+  const manufacturerBrand = input.brand?.trim() || input.brandName?.trim();
   const currency = input.currency || "PKR";
   const images = (input.images?.length ? input.images : input.image ? [input.image] : []).filter(
     Boolean
@@ -378,9 +378,11 @@ export function productStructuredData(input: {
     url: input.url,
     image: images,
     category: input.category,
-    brand: { "@type": "Brand", name: manufacturerBrand },
     offers,
   };
+  if (manufacturerBrand) {
+    data.brand = { "@type": "Brand", name: manufacturerBrand };
+  }
   if (input.sku) data.sku = input.sku;
   if (input.rating && input.reviewCount && input.reviewCount > 0) {
     data.aggregateRating = {
@@ -392,11 +394,12 @@ export function productStructuredData(input: {
   }
   return data as {
     "@type": string;
-    brand: { name: string };
+    brand?: { name: string };
     offers: {
       price: string;
       priceCurrency: string;
       availability: string;
+      seller?: { "@type": string; name: string };
     };
     sku?: string;
   } & Record<string, unknown>;
@@ -457,6 +460,23 @@ export function categoryStructuredData(input: {
   };
 }
 
+export function resolveOrgLogoUrl(
+  logo: string | undefined | null,
+  siteUrl: string
+): string {
+  const trimmed = logo?.trim();
+  if (trimmed) {
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    if (trimmed.startsWith("/")) {
+      return `${siteUrl.replace(/\/$/, "")}${trimmed}`;
+    }
+    return `${siteUrl.replace(/\/$/, "")}/${trimmed}`;
+  }
+  return `${siteUrl.replace(/\/$/, "")}${SHOPPER_BRAND.sealSrc}`;
+}
+
 export function organizationStructuredData(input: {
   siteUrl: string;
   brandName: string;
@@ -465,12 +485,14 @@ export function organizationStructuredData(input: {
   email?: string;
   returnDays?: number;
 }) {
+  const logoUrl = resolveOrgLogoUrl(input.logo, input.siteUrl);
   const data: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: input.brandName,
     alternateName: brandSearchAliases(),
     url: input.siteUrl,
+    logo: logoUrl,
     areaServed: [
       { "@type": "City", name: "Lahore" },
       { "@type": "City", name: "Karachi" },
@@ -488,7 +510,6 @@ export function organizationStructuredData(input: {
       "cash on delivery electronics Pakistan",
     ],
   };
-  if (input.logo) data.logo = input.logo;
   if (input.phone) data.telephone = input.phone;
   if (input.email) data.email = input.email;
   if (input.returnDays && input.returnDays > 0) {
@@ -500,7 +521,7 @@ export function organizationStructuredData(input: {
       returnMethod: "https://schema.org/ReturnByMail",
           };
   }
-  return data as { name: string; alternateName: string[]; url: string } & Record<string, unknown>;
+  return data as { name: string; alternateName: string[]; url: string; logo: string } & Record<string, unknown>;
 }
 
 export function llmsTxt(input: {
@@ -528,7 +549,7 @@ export function llmsTxt(input: {
     "",
     `- Business Model: Online retailer operating via buyntryy.com (not buyntryparts.com or other similarly named sites)`,
     `- Service Area: Pakistan nationwide (all major cities and regions)`,
-    `- Payment Methods: Cash on Delivery (COD), Direct Bank Transfer`,
+    `- Payment Methods: Cash on Delivery (COD)`,
     `- Categories: smartwatches, earbuds and airbuds, power banks, chargers and adapters, selfie sticks, tripods, ring lights, microphones, tech accessories`,
     "",
     "## Product Categories",
