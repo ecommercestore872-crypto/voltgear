@@ -30,6 +30,7 @@ function harness(options: {
       bumpAdminProductsCache: () => { events.cache++; },
     },
     "@/lib/db/publish": {},
+    "@/lib/admin-product-input": {},
     "@/lib/supabase/server": {
       getServiceClient: (configuration: { admin?: boolean }) => {
         events.clients++;

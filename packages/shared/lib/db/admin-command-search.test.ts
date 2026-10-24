@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
+import * as productInput from "../admin-product-input";
 
 import { scoreAdminSearchHits } from "./admin-search-rules";
 
@@ -20,6 +21,7 @@ function loadModule<T>(file: string, dependencies: Record<string, unknown>): T {
       exports,
       require: (name: string) => {
         if (Object.hasOwn(dependencies, name)) return dependencies[name];
+        if (name === "@/lib/admin-product-input") return productInput;
         throw new Error(`Unexpected dependency: ${name}`);
       },
       URL,

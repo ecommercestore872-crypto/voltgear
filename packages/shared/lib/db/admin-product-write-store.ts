@@ -1,129 +1,109 @@
 import { revalidateAfterPublish, revalidateShopMerchandising } from "@/lib/revalidate-storefront";
 import { assignableCategoryRefs } from "@/lib/db/admin-category-store";
 import { extraCategoryPathsToRevalidate } from "@/lib/db/category-rules";
-import { parseCollectionIds } from "@/lib/db/collection-rules";
 import {
   bumpAdminProductsCache,
   editorDocument,
   getAdminProduct,
-  getAdminProductForDraftSave,
   isProductSlugTaken,
 } from "@/lib/db/admin-product-read-store";
 import {
   canPublish,
   canSaveDraft,
   mergeProductForm,
-  toImageRows,
-  toLiveProductRow,
-  toReviewRows,
-  toVariantRows,
   withGeneratedVariants,
   type ProductDocument,
 } from "@/lib/db/publish";
 import { getServiceClient } from "@/lib/supabase/server";
+import { isProductRevision, isRecord, ProductInputError, validateProductCollections, validateProductInput } from "@/lib/admin-product-input";
 
 function db() {
   return getServiceClient({ admin: true });
 }
 
-export async function createAdminProduct(doc: ProductDocument, rawCollectionIds?: unknown) {
-  const merged = mergeProductForm(undefined, doc);
+type WriteAction = "create" | "save" | "publish" | "unpublish" | "discard";
+type WriteFailure = { ok: false; error: string; status: number };
+const invalid = (error: unknown): WriteFailure => ({ ok: false, error: error instanceof ProductInputError ? error.message : "Invalid product input.", status: 400 });
+
+function validateWrite(doc: unknown, collections?: unknown, revision?: unknown, existing = true) {
+  validateProductInput(doc);
+  validateProductCollections(collections);
+  if (existing && !isProductRevision(revision)) throw new ProductInputError("A valid editor revision is required. Reload this product before saving.");
+}
+
+/** No fallback: v2 is the only catalog mutation path, and must be installed first. */
+async function writeProduct(action: WriteAction, id: string | null, document: ProductDocument | null, collections?: unknown, revision?: unknown) {
+  const { data, error } = await db().rpc("admin_write_product_v2", {
+    p_action: action, p_product_id: id, p_document: document ?? {},
+    p_collection_ids: collections ?? null, p_expected_admin_revision: revision ?? null,
+  });
+  if (error) {
+    if (error.code === "40001" || error.message?.startsWith("CONFLICT:")) return { ok: false as const, error: "This product or its inventory changed. Reload and review the latest values before trying again.", status: 409 };
+    if (error.code === "PGRST202" || error.code === "42501") return { ok: false as const, error: "Safe product writes are not available. The approved v2 database migration is required; no legacy write was attempted.", status: 503 };
+    if (error.code === "23505") return { ok: false as const, error: "That product slug is already used.", status: 409 };
+    if (error.message?.startsWith("BUSINESS_ERROR:")) return { ok: false as const, error: error.message.slice("BUSINESS_ERROR:".length).trim(), status: 400 };
+    return { ok: false as const, error: "The product change could not be completed.", status: 500 };
+  }
+  if (!isRecord(data) || data.ok !== true || typeof data.id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id) || (id !== null && data.id !== id) || !isProductRevision(data.admin_revision) || !isProductRevision(data.inventory_revision)
+      || (data.quantity !== null && (typeof data.quantity !== "number" || !Number.isInteger(data.quantity) || data.quantity < 0 || data.quantity > 2_147_483_647))
+      || !["in-stock", "low-stock", "out-of-stock"].includes(data.stock_status as string)) {
+    return { ok: false as const, error: "The write outcome could not be confirmed. Reload before retrying.", status: 502 };
+  }
+  return { ok: true as const, id: data.id, adminRevision: data.admin_revision, inventoryRevision: data.inventory_revision,
+    quantity: data.quantity as number | null, stockStatus: data.stock_status as string };
+}
+
+export async function createAdminProduct(doc: unknown, rawCollectionIds?: unknown) {
+  let merged: ProductDocument;
+  try { validateWrite(doc, rawCollectionIds, undefined, false); merged = mergeProductForm(undefined, doc as ProductDocument); }
+  catch (error) { return invalid(error); }
   const save = canSaveDraft(merged, await assignableCategoryRefs());
   if (!save.ok) return { ok: false as const, error: save.error, status: 400 };
   if (await isProductSlugTaken(merged.slug)) {
     return { ok: false as const, error: "That product name is already used.", status: 409 };
   }
-  const { data, error } = await db().rpc("admin_create_product_draft", {
-    p_draft: merged,
-    p_collection_ids: parseCollectionIds(rawCollectionIds),
-  });
-  if (error) {
-    if (error.code === "23505" || /duplicate key|unique constraint/i.test(error.message)) {
-      return { ok: false as const, error: "That slug is already used.", status: 409 };
-    }
-    if (error.code === "PGRST202" || /admin_create_product_draft/i.test(error.message)) {
-      return {
-        ok: false as const,
-        error: "Atomic product creation is not installed. Apply the latest database migrations.",
-        status: 503,
-      };
-    }
-    return { ok: false as const, error: error.message, status: 500 };
-  }
+  const result = await writeProduct("create", null, merged, rawCollectionIds);
+  if (!result.ok) return result;
   bumpAdminProductsCache();
   void revalidateAfterPublish("/admin/products");
-  return { ok: true as const, id: String(data) };
+  return result;
 }
 
-export async function saveAdminProduct(id: string, doc: ProductDocument) {
-  const current = await getAdminProductForDraftSave(id);
+export async function saveAdminProduct(id: string, doc: unknown, collectionIds?: unknown, expectedRevision?: unknown) {
+  try { validateWrite(doc, collectionIds, expectedRevision); } catch (error) { return invalid(error); }
+  const current = await getAdminProduct(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
-  const merged = mergeProductForm(editorDocument(current), doc);
+  let merged: ProductDocument;
+  try { merged = mergeProductForm(editorDocument(current), doc as ProductDocument); validateProductInput(merged); } catch (error) { return invalid(error); }
   const save = canSaveDraft(merged, await assignableCategoryRefs());
   if (!save.ok) return { ok: false as const, error: save.error, status: 400 };
   if (await isProductSlugTaken(merged.slug, id)) {
     return { ok: false as const, error: "That product name is already used.", status: 409 };
   }
-  const { error } = await db()
-    .from("products")
-    .update({
-      draft: merged,
-      is_demo: Boolean(merged.isDemo),
-      cost_price:
-        merged.costPrice != null && Number.isFinite(merged.costPrice) && merged.costPrice >= 0
-          ? merged.costPrice
-          : null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-  if (error) return { ok: false as const, error: error.message, status: 500 };
+  const result = await writeProduct("save", id, merged, collectionIds, expectedRevision);
+  if (!result.ok) return result;
   bumpAdminProductsCache();
   void revalidateAfterPublish(`/admin/products/${id}`, "/admin/products");
-  return { ok: true as const };
-}
-
-async function publishProductTransaction(
-  id: string,
-  doc: ProductDocument,
-  rawCollectionIds?: unknown,
-) {
-  const collectionIds = parseCollectionIds(rawCollectionIds);
-  const { error } = await db().rpc("admin_publish_product", {
-    p_product_id: id,
-    p_live_row: toLiveProductRow(doc),
-    p_images: toImageRows(id, doc.images ?? []),
-    p_variants: toVariantRows(id, doc.variants),
-    p_reviews: toReviewRows(id, doc.reviews),
-    p_collection_ids: collectionIds,
-  });
-  if (!error) return { ok: true as const };
-  if (error.code === "23505" || /duplicate key|unique constraint/i.test(error.message)) {
-    return { ok: false as const, error: "That slug is already used.", status: 409 };
-  }
-  if (error.code === "PGRST202" || /admin_publish_product/i.test(error.message)) {
-    return {
-      ok: false as const,
-      error: "Atomic product publishing is not installed. Apply the latest database migrations.",
-      status: 503,
-    };
-  }
-  return { ok: false as const, error: error.message, status: 500 };
+  return result;
 }
 
 export async function publishAdminProduct(
   id: string,
-  doc: ProductDocument,
+  doc: unknown,
   collectionIds?: unknown,
+  expectedRevision?: unknown,
 ) {
+  try { validateWrite(doc, collectionIds, expectedRevision); } catch (error) { return invalid(error); }
   const current = await getAdminProduct(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
-  const merged = withGeneratedVariants(mergeProductForm(editorDocument(current), doc));
+  let merged: ProductDocument;
+  try { merged = mergeProductForm(editorDocument(current), doc as ProductDocument); validateProductInput(merged); } catch (error) { return invalid(error); }
   const gate = canPublish(merged, await assignableCategoryRefs());
   if (!gate.ok) return { ok: false as const, error: gate.error, status: 400 };
   if (await isProductSlugTaken(merged.slug, id)) {
     return { ok: false as const, error: "That product name is already used.", status: 409 };
   }
-  const written = await publishProductTransaction(id, merged, collectionIds);
+  const written = await writeProduct("publish", id, withGeneratedVariants(merged), collectionIds, expectedRevision);
   if (!written.ok) return written;
   void revalidateShopMerchandising(
     "/",
@@ -137,17 +117,15 @@ export async function publishAdminProduct(
     ...(current.slug !== merged.slug ? [`/product/${current.slug}`] : []),
   );
   bumpAdminProductsCache();
-  return { ok: true as const };
+  return written;
 }
 
-export async function unpublishAdminProduct(id: string) {
+export async function unpublishAdminProduct(id: string, expectedRevision?: unknown) {
+  if (!isProductRevision(expectedRevision)) return invalid(new ProductInputError("A valid editor revision is required. Reload this product."));
   const current = await getAdminProduct(id);
   if (!current) return { ok: false as const, error: "Product not found.", status: 404 };
-  const { error } = await db()
-    .from("products")
-    .update({ status: "unpublished", updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) return { ok: false as const, error: error.message, status: 500 };
+  const result = await writeProduct("unpublish", id, null, null, expectedRevision);
+  if (!result.ok) return result;
   void revalidateShopMerchandising(
     "/",
     "/products",
@@ -158,18 +136,16 @@ export async function unpublishAdminProduct(id: string) {
     "/admin/products",
   );
   bumpAdminProductsCache();
-  return { ok: true as const };
+  return result;
 }
 
-export async function discardAdminProductDraft(id: string) {
-  const { error } = await db()
-    .from("products")
-    .update({ draft: null, updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) return { ok: false as const, error: error.message, status: 500 };
+export async function discardAdminProductDraft(id: string, expectedRevision?: unknown) {
+  if (!isProductRevision(expectedRevision)) return invalid(new ProductInputError("A valid editor revision is required. Reload this product."));
+  const result = await writeProduct("discard", id, null, null, expectedRevision);
+  if (!result.ok) return result;
   bumpAdminProductsCache();
   void revalidateAfterPublish(`/admin/products/${id}`, "/admin/products");
-  return { ok: true as const };
+  return result;
 }
 
 export async function deleteAdminProduct(id: string) {

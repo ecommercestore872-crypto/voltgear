@@ -13,7 +13,7 @@ const MediaField = dynamic(
   { ssr: false },
 );
 import { PublishBar } from "@/components/admin/publish-bar";
-import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
+import { adminFetch, AdminAuthError, AdminRequestError } from "@/components/admin/admin-fetch";
 import { AdminStickyPublishBar } from "@/components/admin/admin-sticky-publish-bar";
 import { useAdminFormDirty } from "@/components/admin/use-admin-form-dirty";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ import {
   type ProductAction,
 } from "@/lib/admin-product-action-rules";
 import { productDocumentFromAdmin } from "@/lib/admin-product-form-rules";
+import { isProductRevision, productNumberText, validateProductInput, type InventoryIntent } from "@/lib/admin-product-input";
 import {
   portableTextToPlain,
   slugify,
@@ -43,6 +44,28 @@ import {
   type ProductDocument,
   type PublishStatus,
 } from "@/lib/db/publish";
+
+function numericText(document: ProductDocument) {
+  return {
+    price: String(document.price),
+    compare: document.compareAtPrice == null ? "" : String(document.compareAtPrice),
+    cost: document.costPrice == null ? "" : String(document.costPrice),
+    quantity: document.quantity == null ? "" : String(document.quantity),
+    addons: (document.addons ?? []).map((addon) => String(addon.price)),
+  };
+}
+
+function confirmedMutation(value: unknown, id?: string): value is {
+  ok: true; id: string; adminRevision: string; inventoryRevision: string;
+  quantity: number | null; stockStatus: "in-stock" | "low-stock" | "out-of-stock";
+} {
+  if (!value || typeof value !== "object") return false;
+  const result = value as Record<string, unknown>;
+  return result.ok === true && typeof result.id === "string" && result.id.length > 0 && (!id || result.id === id)
+    && isProductRevision(result.adminRevision) && isProductRevision(result.inventoryRevision)
+    && (result.quantity === null || (typeof result.quantity === "number" && Number.isInteger(result.quantity) && result.quantity >= 0 && result.quantity <= 2147483647))
+    && ["in-stock", "low-stock", "out-of-stock"].includes(result.stockStatus as string);
+}
 
 export function ProductForm({
   product,
@@ -61,6 +84,17 @@ export function ProductForm({
   const [doc, setDoc] = useState<ProductDocument>(() =>
     productDocumentFromAdmin(product, knownSlugs),
   );
+  const [numbers, setNumbers] = useState(() => numericText(productDocumentFromAdmin(product, knownSlugs)));
+  const numbersRef = useRef(numbers);
+  numbersRef.current = numbers;
+  const adminRevisionRef = useRef(product?.adminRevision);
+  const liveInventoryRef = useRef({
+    revision: product ? product.inventoryRevision : "0",
+    quantity: product?.quantity ?? null,
+    stockStatus: product?.stockStatus ?? "in-stock",
+  });
+  const [uncertain, setUncertain] = useState(false);
+  const uncertainRef = useRef(false);
   const [status, setStatus] = useState<PublishStatus>(
     product?.status ?? "draft",
   );
@@ -73,13 +107,14 @@ export function ProductForm({
   );
   const [collectionList, setCollectionList] = useState(collections);
   const [selectedCollectionIds, setSelectedCollectionIds] =
-    useState(collectionIds);
+    useState(() => Array.isArray(product?.draft?._collectionIds) ? [...product.draft._collectionIds] : [...collectionIds]);
   const [activeUploads, setActiveUploads] = useState(0);
   const activeUploadsRef = useRef(0);
   const savingRef = useRef(false);
   const collectionIdsRef = useRef(selectedCollectionIds);
   collectionIdsRef.current = selectedCollectionIds;
   const savedCollectionIdsRef = useRef([...collectionIds]);
+  const pendingMembershipRef = useRef(Array.isArray(product?.draft?._collectionIds));
   const liveDocumentRef = useRef(product ? productDocumentFromAdmin({ ...product, draft: null }, knownSlugs) : null);
   const id = product?._id;
 
@@ -103,13 +138,14 @@ export function ProductForm({
   const dirtyState = useMemo(
     () => ({
       payload,
+      numbers,
       collectionIds: [...selectedCollectionIds].sort(),
     }),
-    [payload, selectedCollectionIds],
+    [payload, numbers, selectedCollectionIds],
   );
   const { dirty, resetSaved } = useAdminFormDirty(dirtyState, true, activeUploads > 0 || saving);
 
-  function commitSavedBaseline(latest: ProductDocument, submittedCollections: string[]) {
+  function commitSavedBaseline(latest: ProductDocument, submittedCollections: string[], latestNumbers = numericText(latest)) {
     resetSaved({
       payload: {
         ...latest,
@@ -117,12 +153,13 @@ export function ProductForm({
           portableTextToPlain(latest.description),
         ),
       },
+      numbers: latestNumbers,
       collectionIds: [...submittedCollections].sort(),
     });
   }
 
   async function run(action: ProductAction) {
-    if (savingRef.current) return;
+    if (savingRef.current || uncertainRef.current) return;
     if (activeUploadsRef.current > 0) {
       setError("Please wait for media uploads to finish before saving.");
       return;
@@ -139,43 +176,82 @@ export function ProductForm({
         setError("Please wait for media uploads to finish before saving.");
         return;
       }
-      const latestPayload = payloadRef.current;
+      let latestPayload = payloadRef.current;
+      let submittedNumbers = numbersRef.current;
       const submittedCollections = [...collectionIdsRef.current];
+      const membershipChanged = JSON.stringify([...submittedCollections].sort()) !== JSON.stringify([...savedCollectionIdsRef.current].sort());
+      const requestedCollections = membershipChanged || pendingMembershipRef.current ? submittedCollections : null;
       if (action === "create" || action === "save" || action === "publish") {
+        const quantity = productNumberText(submittedNumbers.quantity, true, true);
+        latestPayload = {
+          ...latestPayload,
+          price: productNumberText(submittedNumbers.price)!,
+          compareAtPrice: productNumberText(submittedNumbers.compare, true),
+          costPrice: productNumberText(submittedNumbers.cost, true),
+          quantity,
+          addons: (latestPayload.addons ?? []).map((addon, index) => ({ ...addon, price: productNumberText(submittedNumbers.addons[index] ?? "")! })),
+          inventoryIntent: latestPayload.inventoryIntent?.mode === "adjust"
+            ? { ...latestPayload.inventoryIntent, quantity, stockStatus: latestPayload.stockStatus as Extract<InventoryIntent, { mode: "adjust" }>["stockStatus"] }
+            : { mode: "preserve" },
+        };
+        validateProductInput(latestPayload);
+        if (action === "publish" && latestPayload.price <= 0) {
+          setError("Selling price must be greater than zero before publishing.");
+          return;
+        }
         if (!shopTypes.some((t) => t.slug === latestPayload.category)) {
           setError("Pick a category.");
           return;
         }
       }
+      if (action !== "create" && action !== "delete" && !isProductRevision(adminRevisionRef.current)) {
+        setError("Editor revision is missing. Reload the product before saving.");
+        return;
+      }
       const request = buildProductActionRequest({
         action,
         id,
         document: latestPayload,
-        collectionIds: submittedCollections,
+        collectionIds: requestedCollections,
+        expectedAdminRevision: adminRevisionRef.current,
       });
       if (!request) return;
       if (action === "delete") {
         if (!confirm("Delete this product? This cannot be undone.")) return;
       }
       const json = await adminFetch(request.path, request.init);
-      if (action === "create") {
-        router.replace(`/admin/products/${json.id}`);
-        return;
-      }
       if (action === "delete") {
         router.replace("/admin/products");
         return;
       }
+      if (!confirmedMutation(json, id)) {
+        uncertainRef.current = true;
+        setUncertain(true);
+        setError("The product may have changed, but the response could not be confirmed. Reload the product before taking another action.");
+        return;
+      }
+      if (action === "create") {
+        router.replace(`/admin/products/${json.id}`);
+        return;
+      }
+      adminRevisionRef.current = json.adminRevision;
+      liveInventoryRef.current = { revision: json.inventoryRevision, quantity: json.quantity, stockStatus: json.stockStatus };
+      if (liveDocumentRef.current) liveDocumentRef.current = { ...liveDocumentRef.current, quantity: json.quantity, stockStatus: json.stockStatus, inventoryIntent: { mode: "preserve" } };
       if (action === "publish") {
         setStatus("published");
+        latestPayload = { ...latestPayload, quantity: json.quantity, stockStatus: json.stockStatus, inventoryIntent: { mode: "preserve" } };
         liveDocumentRef.current = latestPayload;
+        savedCollectionIdsRef.current = [...submittedCollections];
+        pendingMembershipRef.current = false;
       }
       if (action === "unpublish") setStatus("unpublished");
       if (action === "discard" && product) {
+        pendingMembershipRef.current = false;
         const live = liveDocumentRef.current!;
         const restoredCollections = [...savedCollectionIdsRef.current];
         const liveDescription = portableTextToPlain(live.description);
         setDoc(live);
+        setNumbers(numericText(live));
         setDescription(liveDescription);
         setSelectedCollectionIds(restoredCollections);
         collectionIdsRef.current = restoredCollections;
@@ -184,13 +260,23 @@ export function ProductForm({
           description: textToPortableText(liveDescription),
         }, restoredCollections);
       } else if (action === "save" || action === "publish") {
-        savedCollectionIdsRef.current = [...submittedCollections];
-        commitSavedBaseline(latestPayload, submittedCollections);
+        if (action === "save" && requestedCollections !== null) pendingMembershipRef.current = true;
+        if (latestPayload.inventoryIntent?.mode !== "adjust") {
+          latestPayload = { ...latestPayload, quantity: json.quantity, stockStatus: json.stockStatus };
+          submittedNumbers = { ...submittedNumbers, quantity: json.quantity == null ? "" : String(json.quantity) };
+        }
+        setDoc(latestPayload);
+        setNumbers(submittedNumbers);
+        commitSavedBaseline(latestPayload, submittedCollections, submittedNumbers);
       }
     } catch (err) {
       if (err instanceof AdminAuthError) {
         router.replace("/admin/login");
         return;
+      }
+      if (err instanceof AdminRequestError && err.outcomeUncertain) {
+        uncertainRef.current = true;
+        setUncertain(true);
       }
       setError(err instanceof Error ? err.message : "Could not save.");
     } finally {
@@ -203,6 +289,18 @@ export function ProductForm({
     activeUploadsRef.current = Math.max(0, activeUploadsRef.current + (busy ? 1 : -1));
     setActiveUploads(activeUploadsRef.current);
   }, []);
+
+  function adjustInventory(stockStatus = doc.stockStatus) {
+    const expectedRevision = doc.inventoryIntent?.mode === "adjust"
+      ? doc.inventoryIntent.expectedRevision : isNew ? "0" : liveInventoryRef.current.revision;
+    if (!isProductRevision(expectedRevision)) {
+      setError("Inventory revision is missing. Reload the product before adjusting stock.");
+    }
+    setDoc((current) => ({ ...current, stockStatus, inventoryIntent: {
+      mode: "adjust", expectedRevision: expectedRevision ?? "", quantity: current.quantity ?? null,
+      stockStatus: stockStatus as "in-stock" | "low-stock" | "out-of-stock",
+    } }));
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -237,7 +335,7 @@ export function ProductForm({
               variant="destructive"
               onClick={() => run("delete")}
               className="shrink-0 shadow-sm"
-              disabled={saving || activeUploads > 0}
+              disabled={saving || activeUploads > 0 || uncertain}
             >
               Delete Product
             </Button>
@@ -247,7 +345,7 @@ export function ProductForm({
 
       {isNew ? (
         <AdminStickyPublishBar>
-          <Button type="button" onClick={() => run("create")} disabled={saving || activeUploads > 0}>
+          <Button type="button" onClick={() => run("create")} disabled={saving || activeUploads > 0 || uncertain}>
             Save draft {activeUploads > 0 && "(Uploading...)"}
           </Button>
         </AdminStickyPublishBar>
@@ -256,7 +354,7 @@ export function ProductForm({
           <PublishBar
             status={status}
             dirty={dirty}
-            saving={saving || activeUploads > 0}
+            saving={saving || activeUploads > 0 || uncertain}
             onSave={() => run("save")}
             onPublish={() => run("publish")}
             onUnpublish={() => run("unpublish")}
@@ -264,10 +362,10 @@ export function ProductForm({
           />
         </AdminStickyPublishBar>
       )}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <div role="alert" className="space-y-2 text-sm text-destructive"><p>{error}</p><Button type="button" variant="outline" onClick={() => window.location.reload()}>Reload product</Button></div> : null}
 
       {activeUploads > 0 ? <p role="status" className="text-sm text-muted-foreground">Uploading media. Editing and saving are paused until the upload finishes.</p> : null}
-      <fieldset disabled={saving || activeUploads > 0} aria-busy={saving || activeUploads > 0} className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
+      <fieldset disabled={saving || activeUploads > 0 || uncertain} aria-busy={saving || activeUploads > 0} className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="min-w-0 space-y-6 lg:col-span-2">
           <div className="space-y-1.5">
             <Label htmlFor="name">Product name</Label>
@@ -386,12 +484,13 @@ export function ProductForm({
                     <button
                       type="button"
                       className="text-xs text-destructive hover:underline"
-                      onClick={() =>
+                      onClick={() => {
+                        setNumbers((current) => ({ ...current, addons: current.addons.filter((_, i) => i !== idx) }));
                         set(
                           "addons",
                           (doc.addons ?? []).filter((_, i) => i !== idx),
-                        )
-                      }
+                        );
+                      }}
                     >
                       Remove
                     </button>
@@ -416,17 +515,13 @@ export function ProductForm({
                       </Label>
                       <Input
                         id={`addon-price-${idx}`}
-                        type="number"
-                        min={0}
-                        value={addon.price ?? ""}
+                        type="text"
+                        inputMode="decimal"
+                        value={numbers.addons[idx] ?? ""}
                         placeholder="e.g. 299"
                         onChange={(e) => {
-                          const next = [...(doc.addons ?? [])];
-                          next[idx] = {
-                            ...next[idx],
-                            price: Number(e.target.value),
-                          };
-                          set("addons", next);
+                          const raw = e.target.value;
+                          setNumbers((current) => ({ ...current, addons: current.addons.map((value, index) => index === idx ? raw : value) }));
                         }}
                       />
                     </div>
@@ -483,7 +578,8 @@ export function ProductForm({
               <button
                 type="button"
                 className="inline-flex h-9 items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-4 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                onClick={() =>
+                onClick={() => {
+                  setNumbers((current) => ({ ...current, addons: [...current.addons, "0"] }));
                   set("addons", [
                     ...(doc.addons ?? []),
                     {
@@ -493,8 +589,8 @@ export function ProductForm({
                       description: "",
                       image: "",
                     },
-                  ])
-                }
+                  ]);
+                }}
               >
                 + Add an add-on
               </button>
@@ -507,40 +603,30 @@ export function ProductForm({
             <Label htmlFor="price">Selling price (PKR)</Label>
             <Input
               id="price"
-              type="number"
-              min={0}
-              value={doc.price}
-              onChange={(e) => set("price", Number(e.target.value))}
+              type="text"
+              inputMode="decimal"
+              value={numbers.price}
+              onChange={(e) => setNumbers((current) => ({ ...current, price: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="compare">Compare-at price (PKR, optional)</Label>
             <Input
               id="compare"
-              type="number"
-              min={0}
-              value={doc.compareAtPrice ?? ""}
-              onChange={(e) =>
-                set(
-                  "compareAtPrice",
-                  e.target.value === "" ? undefined : Number(e.target.value),
-                )
-              }
+              type="text"
+              inputMode="decimal"
+              value={numbers.compare}
+              onChange={(e) => setNumbers((current) => ({ ...current, compare: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="cost">Your cost (hidden from shop)</Label>
             <Input
               id="cost"
-              type="number"
-              min={0}
-              value={doc.costPrice ?? ""}
-              onChange={(e) =>
-                set(
-                  "costPrice",
-                  e.target.value === "" ? undefined : Number(e.target.value),
-                )
-              }
+              type="text"
+              inputMode="decimal"
+              value={numbers.cost}
+              onChange={(e) => setNumbers((current) => ({ ...current, cost: e.target.value }))}
             />
             <p className="text-xs text-muted-foreground">
               Internal cost (not shown on the shop).
@@ -577,7 +663,7 @@ export function ProductForm({
               id="stock"
               className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={doc.stockStatus}
-              onChange={(e) => set("stockStatus", e.target.value)}
+              onChange={(e) => adjustInventory(e.target.value)}
             >
               <option value="in-stock">In stock</option>
               <option value="low-stock">Low stock</option>
@@ -588,27 +674,27 @@ export function ProductForm({
             <Label htmlFor="quantity">Units on hand</Label>
             <Input
               id="quantity"
-              type="number"
-              min={0}
-              step={1}
-              value={doc.quantity ?? ""}
+              type="text"
+              inputMode="numeric"
+              value={numbers.quantity}
               onChange={(e) => {
                 const raw = e.target.value;
-                if (raw === "") {
-                  set("quantity", null);
-                  return;
-                }
-                const n = Number(raw);
-                set(
-                  "quantity",
-                  Number.isInteger(n) && n >= 0 ? n : (doc.quantity ?? null),
-                );
+                setNumbers((current) => ({ ...current, quantity: raw }));
+                adjustInventory();
               }}
             />
             <p className="text-xs text-muted-foreground">
               Leave empty for untracked quantity; availability still applies.
               Zero marks the product sold out. Units are shared across all variants.
             </p>
+            {doc.inventoryIntent?.mode === "adjust" ? <div className="space-y-2 text-sm">
+              <p>Stock adjustment pending publication. If live inventory changed, reload to review it before choosing an adjustment.</p>
+              <Button type="button" variant="outline" onClick={() => {
+                const live = liveInventoryRef.current;
+                setDoc((current) => ({ ...current, quantity: live.quantity, stockStatus: live.stockStatus, inventoryIntent: { mode: "preserve" } }));
+                setNumbers((current) => ({ ...current, quantity: live.quantity == null ? "" : String(live.quantity) }));
+              }}>Keep live inventory</Button>
+            </div> : null}
           </div>
           <VariantAxesFields
             disabled={saving || activeUploads > 0}

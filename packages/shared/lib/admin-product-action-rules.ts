@@ -6,7 +6,7 @@ export type ProductAction =
   | "discard"
   | "delete";
 
-export type ProductActionRequest<TDocument> = {
+export type ProductActionRequest = {
   path: string;
   init: {
     method: "POST" | "PATCH" | "DELETE";
@@ -19,12 +19,14 @@ export function buildProductActionRequest<TDocument>({
   id,
   document,
   collectionIds,
+  expectedAdminRevision,
 }: {
   action: ProductAction;
   id?: string;
   document: TDocument;
-  collectionIds: string[];
-}): ProductActionRequest<TDocument> | null {
+  collectionIds: string[] | null;
+  expectedAdminRevision?: string;
+}): ProductActionRequest | null {
   if (action === "create") {
     return {
       path: "/api/admin/products",
@@ -32,7 +34,7 @@ export function buildProductActionRequest<TDocument>({
         method: "POST",
         body: JSON.stringify({
           doc: document,
-          collectionIds: [...collectionIds],
+          collectionIds: collectionIds === null ? null : [...collectionIds],
         }),
       },
     };
@@ -54,7 +56,8 @@ export function buildProductActionRequest<TDocument>({
       body: JSON.stringify({
         action,
         doc: document,
-        collectionIds: [...collectionIds],
+        collectionIds: collectionIds === null ? null : [...collectionIds],
+        expectedAdminRevision,
       }),
     },
   };

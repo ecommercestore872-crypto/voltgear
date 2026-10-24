@@ -83,6 +83,32 @@ describe("productDocumentFromAdmin", () => {
     assert.equal(result.category, "");
   });
 
+  it("preserves deliberately cleared optional cost and compare-at prices", () => {
+    const result = productDocumentFromAdmin(adminProduct({ costPrice: 3000, compareAtPrice: 6000,
+      draft: document({ costPrice: null, compareAtPrice: null }),
+    }), ["watches"]);
+    assert.equal(result.costPrice, null); assert.equal(result.compareAtPrice, null);
+  });
+
+  it("hydrates current inventory for legacy and preserve drafts, regardless of stale snapshots", () => {
+    for (const inventoryIntent of [undefined, { mode: "preserve" as const }]) {
+      const result = productDocumentFromAdmin(adminProduct({ quantity: 2, stockStatus: "low-stock",
+        draft: document({ quantity: 99, stockStatus: "in-stock", inventoryIntent }),
+      }), ["watches"]);
+      assert.equal(result.quantity, 2); assert.equal(result.stockStatus, "low-stock");
+      assert.deepEqual(result.inventoryIntent, { mode: "preserve" });
+    }
+  });
+
+  it("retains explicit adjustment values and the original revision when reloading a draft", () => {
+    const inventoryIntent = { mode: "adjust" as const, expectedRevision: "2", quantity: 9, stockStatus: "out-of-stock" as const };
+    const result = productDocumentFromAdmin(adminProduct({ quantity: 1, inventoryRevision: "10",
+      draft: document({ quantity: 999, stockStatus: "in-stock", inventoryIntent }),
+    }), ["watches"]);
+    assert.equal(result.quantity, 9); assert.equal(result.stockStatus, "out-of-stock");
+    assert.deepEqual(result.inventoryIntent, inventoryIntent);
+  });
+
   it("returns new-product defaults when no product exists", () => {
     assert.deepEqual(productDocumentFromAdmin(null, ["watches"]), emptyProductDocument());
   });
