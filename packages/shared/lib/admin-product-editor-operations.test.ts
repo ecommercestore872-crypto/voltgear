@@ -114,6 +114,31 @@ function editor(overrides: Partial<AdminProduct> | null = {}) {
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 const confirmed = (overrides: Record<string, unknown> = {}) => ({ ok: true, id: "fixture", adminRevision: "5", inventoryRevision: "7", quantity: 2, stockStatus: "in-stock", ...overrides });
 
+it("creates inline collections without making draft product membership live", async () => {
+  const state = hooks();
+  const calls: { body: string }[] = [];
+  const selections: string[][] = [];
+  const module = load("../components/admin/product-collections-fields.tsx", {
+    react: state.react, "react/jsx-runtime": { jsx, jsxs: jsx }, "next/link": { default: "link" },
+    "@/components/admin/admin-fetch": { adminFetch: async (_path: string, options: { body: string }) => {
+      calls.push(options); return { collection: { id: "new-collection", name: "Synthetic", mode: "manual" } };
+    } },
+    "@/components/ui/button": { Button: "button" }, "@/components/ui/input": { Input: "input" },
+    "@/components/ui/label": { Label: "label" },
+    "@/lib/db/collection-rules": { canAssignProductToCollection: () => true, collectionPickerHint: () => "" },
+  });
+  const component = module.ProductCollectionsFields as (props: unknown) => Tree;
+  const render = () => state.render(() => component({ collections: [], selectedIds: [], productId: "live-product",
+    onChange: (ids: string[]) => selections.push(ids) }));
+  const field = findAll(render(), (node) => node.props.id === "new-collection")[0];
+  (field.props.onChange as (event: unknown) => void)({ target: { value: "Synthetic" } });
+  const create = findAll(render(), (node) => node.type === "button")[0];
+  (create.props.onClick as () => void)(); await settle();
+  assert.deepEqual(JSON.parse(calls[0].body).productIds, []);
+  assert.equal(JSON.parse(calls[0].body).homeSlot, null);
+  assert.deepEqual(JSON.parse(JSON.stringify(selections)), [["new-collection"]]);
+});
+
 for (const quantity of ["8", "0", ""]) {
   it(`keeps explicit initial inventory ${JSON.stringify(quantity)} across create and reload`, async () => {
     const subject = editor(null); subject.change("name", "New item"); subject.change("category", "audio"); subject.change("price", "100");

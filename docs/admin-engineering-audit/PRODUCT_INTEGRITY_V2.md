@@ -53,6 +53,37 @@ GitHub CI job runs the same harness. Runtime results must be recorded after comp
 The minimal synthetic schema is not a complete historical migration replay or PostgREST
 HTTP/schema-cache acceptance test.
 
+Initial draft head `67823ecea2c96c8bb55ddfc3e9e3ff194a0e74cd`: GitHub run
+`40071607953` completed successfully (both verify and product-integrity jobs).
+The PostgreSQL job passed 22 behavioral scenarios plus migration-version uniqueness;
+this establishes real isolated database execution, not local Docker success.
+Later final-head verification must supersede this checkpoint before acceptance.
+
+## Local quality and browser evidence (2026-10-24)
+
+- Complete local `npm run ci` exited 0: 1003/1003 tests at that checkpoint,
+  both app linters (no ESLint warnings/errors), both typechecks and both builds.
+  Next 15 prints its existing `next lint` deprecation notice; no claim of zero
+  CLI informational/deprecation messages. All ten storefront bundle budgets passed.
+- After the final inline-collection and strict-decimal fixes, the focused product /
+  editor suite passed 114/114 tests. Exact final-head GitHub CI must include these
+  later tests as well as the full gate and unchanged PostgreSQL suite.
+- Actual Chromium in a dedicated isolated browser context rendered the real product
+  form with synthetic local data at 390px and 1440px. No horizontal page overflow.
+  Native form typing preserved `oops` price / `1.5` quantity and blocked Save with
+  zero mutation events. Fixing quantity still rejected the invalid price.
+- Simulated HTTP 502 set the reload-required state and disabled editing/writes.
+  Confirmed synthetic saves advanced expected admin revisions `0` then `1`, kept
+  inventory intent `preserve`, omitted unchanged membership (`null`) and reset dirtiness.
+  Console error/warning checks were empty. Fetch/XHR network checks were empty because
+  the fixture intercepted synthetic product responses; these are not backend HTTP tests.
+- Native upload was attempted through the actual Photos Upload File control with the
+  existing local `public/favicon-512.png` fixture. The browser tool rejected its canonical
+  workspace path as outside configured roots. No file was selected/uploaded. No bypass
+  was attempted; real picker-to-provider acceptance remains BLOCKED, not passed.
+- Temporary fixture routes, local server and their exact generated cache were removed;
+  Next-generated config/type changes were restored. No fixture is committed or deployed.
+
 ## Remaining release blockers and next approval
 
 1. Do not run this migration in production or merge/deploy this draft stack yet.

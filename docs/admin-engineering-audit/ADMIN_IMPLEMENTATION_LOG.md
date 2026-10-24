@@ -1,5 +1,14 @@
 # Implementation log
 
+## 2026-10-24 — Draft PR29 product-integrity boundaries
+
+Continued PR28 head 3866d0e without repeating completed PRs. Added raw server/client
+validation, versioned atomic writes, inventory/admin CAS, review-preserving publication,
+draft cost/demo/membership isolation, initial stock intent, uncertain-response lockout and
+networkless PostgreSQL concurrency/rollback CI. Inline collection creation no longer links
+the live product or infers/replaces a homepage slot. See [the focused report](PRODUCT_INTEGRITY_V2.md)
+for exact verification, unresolved collection concurrency and separate migration approval.
+
 ## 2026-10-22 — Initial isolated batches
 
 This log describes the combined review worktree. Correctness/security/navigation

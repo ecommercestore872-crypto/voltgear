@@ -11,7 +11,7 @@ const collection = "22222222-2222-4222-8222-222222222222";
 const document: publish.ProductDocument = { name: "Fixture", slug: "fixture", category: "charger", price: 1200, images: [], quantity: 8, stockStatus: "in-stock", brand: "Fixture" };
 
 describe("raw product integrity validation", () => {
-  for (const price of ["12", "broken", null, true, -1, NaN, Infinity, 0.001, Number.MAX_SAFE_INTEGER]) {
+  for (const price of ["12", "broken", null, true, -1, NaN, Infinity, 0.001, 1.00000000001, Number.MAX_SAFE_INTEGER]) {
     it(`rejects malformed price ${String(price)} before normalization`, () => assert.throws(() => publish.mergeProductForm(document, { ...document, price } as unknown as publish.ProductDocument), input.ProductInputError));
   }
   for (const quantity of ["5", true, -1, 1.5, NaN, Infinity, 2_147_483_648]) {

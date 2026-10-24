@@ -20,7 +20,7 @@ function text(value: unknown, field: string) { if (typeof value !== "string" || 
 function bool(value: unknown, field: string) { if (typeof value !== "boolean") fail(field, "must be true or false"); }
 function money(value: unknown, field: string, nullable = false) {
   if (nullable && value === null) return;
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > Number.MAX_SAFE_INTEGER / 100 || Math.abs(value * 100 - Math.round(value * 100)) > 0.000001) fail(field, "must be a finite, non-negative amount with at most two decimals");
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > Number.MAX_SAFE_INTEGER / 100 || !/^\d+(?:\.\d{1,2})?$/.test(String(value))) fail(field, "must be a finite, non-negative amount with at most two decimals");
 }
 function units(value: unknown, field: string) {
   if (value !== null && (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 2_147_483_647)) fail(field, "must be a whole number from 0 to 2147483647, or explicit null");
