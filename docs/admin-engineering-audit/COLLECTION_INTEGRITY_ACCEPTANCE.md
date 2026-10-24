@@ -163,6 +163,58 @@ order reconciliation. No compatible rollback deployment has yet been certified.
 
 ## Evidence ledger
 
-Exact final test/build/CI counts, concurrent transaction results, browser findings and
-actual READY deployment checks will be attached to the final draft PR. Do not interpret
-prepared tests, source review or a stopped local Docker engine as passing execution.
+- Full local `npm run ci`: exit 0, **1056/1056** tests, both linters (no ESLint
+  warnings/errors), both typechecks and both builds. All ten storefront JS/CSS budgets
+  passed separately. Existing Next 15 CLI deprecation notices are not hidden.
+- Source checkpoint `0c9612b6a888df6142eb8527b97b2be9d461d167`: [GitHub run
+  40075325934](https://github.com/ecommercestore872-crypto/voltgear/actions/runs/40075325934)
+  succeeded with the full application gate and **44 real PostgreSQL scenarios** plus
+  migration-version uniqueness. The first disposable run caught a migration parser
+  ambiguity; it was corrected before this successful run. Local Docker remains stopped,
+  so no local PostgreSQL success is claimed.
+- The 22 retained PR29 scenarios cover real checkout/cancel/review approval versus
+  publication. The 22 added scenarios exercise real independent connections/observed
+  lock waits or explicit NOWAIT conflicts, same-collection stale tabs, reordered member
+  sets, concurrent deletion, inverse physical child order, slot ownership/vacancy ABA,
+  auto pins, role grants, revision spoof prevention and injected INSERT/DELETE rollback.
+  Transaction-returned ordered snapshots are checked against committed state.
+- Actual Chromium in an isolated context at **390px mobile** rendered the real collection
+  and product components with synthetic, intercepted transport. Collection reorder made
+  the form dirty; Save retained order and advanced expected revisions `0` then `1`.
+  Product membership removal sent `collectionIntent.adjust.expectedRevision=0` with the
+  desired empty set. Both pages had scroll width 390px, no page overflow. Console
+  error/warning checks were empty. These are client regressions, not HTTP/provider proof.
+- Native Photos Upload File was attempted with existing `public/favicon-512.png`;
+  canonical path access was denied by the browser tool. SHA256:
+  `1DECBAC21D8C934CC3B7D4502D59CACCCB76399C5D95F823CA64E1DAD5E2ECDF`.
+  No selection or upload occurred. Further browser checks were interrupted by the
+  approval service's usage limit; after resumption, browser transport was closed.
+  Current desktop, Keep live button, browser conflict/reload and provider acceptance
+  are not claimed from this run (unit tests cover their client logic).
+- The owned localhost fixture server was stopped, the fixture source/cache removed,
+  and Next-generated config/type edits restored. No fixture was committed or deployed.
+- Vercel's green GitHub checks were independently inspected: both SQL-only checkpoint
+  previews were actually **CANCELED** by ignored-build scope. This is not READY evidence.
+  Exact-final-commit preview-only rebuilds and actual readiness must be recorded on the
+  draft PR; do not mistake a skipped/canceled check for acceptance.
+
+### Approval manifest (not approval itself)
+
+Read-only migration metadata on 2026-10-24 shows production history through
+`20261027000000_storefront_read_indexes`; neither prepared migration28 nor29 is listed.
+Only migration metadata was read; no production migration or data mutation ran.
+Recheck immediately before any separately approved rollout; if migration28 has since
+been applied, do not amend/reapply it—prepare a forward migration and repeat verification.
+
+- Database: Supabase Final-store, `zeuhfqevqjkbzwdaxjuv`.
+- Vercel team: `team_fcsXz74VGCxgnrYKGnOsSfLG` (`hassaans-projects-e3451522`).
+- Storefront: `voltgear`, `prj_gHAuBl5SMG1FnJ45GeinQN2gNGnB`, root `apps/storefront`.
+- Admin: `voltgear-admin`, `prj_LgVWqruDirgQKMPgDgH0zpHtrC6K`, root `apps/admin`.
+- Ordered migration28 SHA256:
+  `3ED0B3A4CB7DB6C5ACCEF962A3696CA46A035DCAF528C699761F884D000E8577`.
+- Ordered migration29 SHA256:
+  `C54B95DEEF2FA84E4B73A96E6243B7A638F8BC5EDD4921E742ABCE7F2406725A`.
+- Draft dependency order: PR29 → PR30; all earlier draft dependencies must be reviewed.
+  The final source SHA, exact-head CI run and immutable preview build IDs are recorded
+  on PR30's final verification note. No production rollout approval is requested until
+  isolated staging, upload and compatible recovery gates have passed.

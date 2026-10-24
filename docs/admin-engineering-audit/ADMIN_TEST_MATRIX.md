@@ -1,5 +1,14 @@
 # Verification matrix
 
+## Atomic collection follow-up — draft PR30
+
+[Evidence ledger](COLLECTION_INTEGRITY_ACCEPTANCE.md): 1056 local/full-CI application tests
+and 44 real PostgreSQL scenarios at the recorded source checkpoint. Covers collection /
+product conflicts, reorder, deletion, home-slot ABA, reverse child lock order and injected
+rollback, preserving PR29 checkout/cancellation/review tests. Mobile browser evidence is
+synthetic client-only. Native picker, current desktop and isolated HTTP/Auth/Storage
+acceptance remain unverified/blocked; READY previews are a separate exact-head check.
+
 ## 2026-10-24 product integrity extension
 
 See [exact evidence and limitations](PRODUCT_INTEGRITY_V2.md). Real disposable PostgreSQL

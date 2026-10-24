@@ -1,5 +1,14 @@
 # Release readiness
 
+## Final collection/staging follow-up — draft PR30
+
+The collection writer's source concurrency/atomicity gaps are addressed and verified
+with real disposable PostgreSQL interleavings. See [exact evidence, isolation blockers,
+rollout and rollback](COLLECTION_INTEGRITY_ACCEPTANCE.md). This supersedes the unresolved
+collection-source item in PR29's checkpoint, not the staging/upload/production gates.
+**NOT READY — BLOCKERS REMAIN.** Production previews share credentials; no mutation or
+native upload acceptance may run there. No migration, merge or production change occurred.
+
 ## 2026-10-24 — PR29 product integrity follow-up
 
 See [product-integrity v2 evidence and rollout blockers](PRODUCT_INTEGRITY_V2.md).
