@@ -182,6 +182,7 @@ describe("productStructuredData", () => {
     assert.equal(offers.seller?.name, "Buy n Try");
     assert.equal(offers.hasMerchantReturnPolicy?.merchantReturnDays, 7);
     assert.equal("returnFees" in (offers.hasMerchantReturnPolicy || {}), false);
+    assert.equal("returnMethod" in (offers.hasMerchantReturnPolicy || {}), false);
   });
 
   it("omits brand property when manufacturer brand is unavailable, keeping seller intact", () => {

@@ -367,8 +367,7 @@ export function productStructuredData(input: {
       applicableCountry: "PK",
       returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
       merchantReturnDays: input.returnDays,
-      returnMethod: "https://schema.org/ReturnByMail",
-          };
+    };
   }
   const data: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -518,8 +517,7 @@ export function organizationStructuredData(input: {
       applicableCountry: "PK",
       returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
       merchantReturnDays: input.returnDays,
-      returnMethod: "https://schema.org/ReturnByMail",
-          };
+    };
   }
   return data as { name: string; alternateName: string[]; url: string; logo: string } & Record<string, unknown>;
 }
