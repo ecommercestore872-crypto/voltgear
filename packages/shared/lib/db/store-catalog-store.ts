@@ -3,6 +3,7 @@ import { cache } from "react";
 
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
+import { filterProductsForSitemap } from "@/lib/sitemap-rules";
 import { categoryIsStorefrontVisible } from "@/lib/catalog-visibility-rules";
 import { ensureFallbackShopTypes } from "@/lib/db/admin-store";
 import { pickBestsellers } from "@/lib/db/bestsellers-rules";
@@ -413,21 +414,50 @@ export async function fetchCatalogProductsBySlugs(
 }
 
 export async function fetchProductSlugs(): Promise<{ slug: string }[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(db().from("products").select("slug, updated_at").eq("status", LIVE), false)
-  );
+  const [queryResult, activeCategories] = await Promise.all([
+    execDemoQuery(() =>
+      demoFilter(
+        db().from("products").select("slug, updated_at, category").eq("status", LIVE),
+        false,
+      ),
+    ),
+    loadActiveCategorySlugSet(),
+  ]);
+  const { data, error } = queryResult;
   if (error) throw error;
-  return (data ?? []).map((r) => ({ slug: String(r.slug) }));
+  const filtered = filterProductsForSitemap(
+    (data ?? []).map((r) => ({
+      slug: String(r.slug),
+      category: r.category ? String(r.category) : null,
+    })),
+    activeCategories,
+  );
+  return filtered.map((r) => ({ slug: r.slug }));
 }
 
 export async function fetchSitemapProducts(): Promise<{ slug: string; _updatedAt?: string }[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(db().from("products").select("slug, updated_at").eq("status", LIVE), false)
-  );
+  const [queryResult, activeCategories] = await Promise.all([
+    execDemoQuery(() =>
+      demoFilter(
+        db().from("products").select("slug, updated_at, category").eq("status", LIVE),
+        false,
+      ),
+    ),
+    loadActiveCategorySlugSet(),
+  ]);
+  const { data, error } = queryResult;
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    slug: String(r.slug),
-    _updatedAt: r.updated_at ? String(r.updated_at) : undefined,
+  const filtered = filterProductsForSitemap(
+    (data ?? []).map((r) => ({
+      slug: String(r.slug),
+      category: r.category ? String(r.category) : null,
+      _updatedAt: r.updated_at ? String(r.updated_at) : undefined,
+    })),
+    activeCategories,
+  );
+  return filtered.map((r) => ({
+    slug: r.slug,
+    _updatedAt: r._updatedAt,
   }));
 }
 
