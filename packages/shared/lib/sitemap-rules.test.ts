@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import {
+  categoryIsStorefrontVisible,
+  resolveCategoryVisibility,
+} from "./catalog-visibility-rules";
 import { filterProductsForSitemap } from "./sitemap-rules";
 
 describe("filterProductsForSitemap", () => {
@@ -42,11 +46,56 @@ describe("filterProductsForSitemap", () => {
     assert.equal(slugs.includes("no-category-product"), false);
   });
 
-  it("fails open and includes all valid products when activeCategorySlugs is null (fallback mode)", () => {
-    const result = filterProductsForSitemap(sampleProducts, null);
-    // Should include all products that have non-empty slugs
-    assert.equal(result.length, 11);
-    assert.equal(result.some((p) => p.slug.trim() === ""), false);
+  it("excludes ALL products when all categories are disabled (zero active categories)", () => {
+    // Configured categories exist in DB, but all active: false
+    const state = resolveCategoryVisibility([
+      { slug: "earbuds", active: false },
+      { slug: "smartwatch", active: false },
+      { slug: "microphones", active: false },
+      { slug: "tripod", active: false },
+    ]);
+
+    const result = filterProductsForSitemap(sampleProducts, state);
+    assert.deepEqual(result, []);
+
+    // Also verify when passed an explicit empty Set
+    const emptySetResult = filterProductsForSitemap(sampleProducts, new Set());
+    assert.deepEqual(emptySetResult, []);
+  });
+
+  it("correctly filters mixed active and inactive categories using CategoryVisibilityResolution", () => {
+    const state = resolveCategoryVisibility([
+      { slug: "earbuds", active: true },
+      { slug: "smartwatch", active: true },
+      { slug: "microphones", active: false },
+      { slug: "tripod", active: false },
+    ]);
+
+    const result = filterProductsForSitemap(sampleProducts, state);
+    const slugs = result.map((p) => p.slug);
+    assert.deepEqual(slugs, ["buds-pro-16", "sk-42-smartwatch"]);
+
+    // Strictly excludes inactive categories
+    assert.equal(slugs.includes("jmary-v30-pro-wireless-microphone"), false);
+    assert.equal(slugs.includes("vt-200-tripod"), false);
+  });
+
+  it("fails safe and excludes all products on database/query failure", () => {
+    const state = resolveCategoryVisibility(null, new Error("Supabase connection timeout"));
+    const result = filterProductsForSitemap(sampleProducts, state);
+    // Never leaks unverified or inactive categories during outages
+    assert.deepEqual(result, []);
+  });
+
+  it("fails open and includes all valid products when unconfigured or null fallback", () => {
+    const unconfiguredState = resolveCategoryVisibility([]);
+    const resultFromState = filterProductsForSitemap(sampleProducts, unconfiguredState);
+    assert.equal(resultFromState.length, 11);
+    assert.equal(resultFromState.some((p) => p.slug.trim() === ""), false);
+
+    const resultFromNull = filterProductsForSitemap(sampleProducts, null);
+    assert.equal(resultFromNull.length, 11);
+    assert.equal(resultFromNull.some((p) => p.slug.trim() === ""), false);
   });
 
   it("handles whitespace in categories cleanly", () => {
@@ -63,5 +112,51 @@ describe("filterProductsForSitemap", () => {
   it("returns empty array when given empty inputs or non-arrays", () => {
     assert.deepEqual(filterProductsForSitemap([], new Set(["earbuds"])), []);
     assert.deepEqual(filterProductsForSitemap(null as unknown as [], new Set(["earbuds"])), []);
+  });
+
+  it("maintains 100% consistency between filterProductsForSitemap and categoryIsStorefrontVisible predicate", () => {
+    const scenarios = [
+      resolveCategoryVisibility([
+        { slug: "earbuds", active: true },
+        { slug: "microphones", active: false },
+      ]),
+      resolveCategoryVisibility([
+        { slug: "earbuds", active: false },
+        { slug: "microphones", active: false },
+      ]),
+      resolveCategoryVisibility([]),
+      resolveCategoryVisibility(null, new Error("Failed query")),
+    ];
+
+    for (const scenario of scenarios) {
+      const sitemapResult = filterProductsForSitemap(sampleProducts, scenario);
+      const sitemapSlugs = new Set(sitemapResult.map((p) => p.slug));
+
+      for (const product of sampleProducts) {
+        if (!product.slug || !product.slug.trim()) continue;
+        const visibleOnPdp = categoryIsStorefrontVisible(product.category, scenario);
+        const inSitemap = sitemapSlugs.has(product.slug);
+
+        if (scenario.status === "configured" && scenario.activeSlugs.size === 0) {
+          // When all categories are disabled, neither sitemap nor PDP exposes the product
+          assert.equal(inSitemap, false);
+          assert.equal(visibleOnPdp, false);
+        } else if (scenario.status === "query_failure") {
+          // Fail safe: neither exposes unverified categories
+          assert.equal(inSitemap, false);
+          assert.equal(visibleOnPdp, false);
+        } else if (scenario.status === "configured") {
+          // For valid products, sitemap inclusion matches PDP category visibility
+          const cat = product.category ? product.category.trim().toLowerCase() : "";
+          if (cat && scenario.activeSlugs.has(cat)) {
+            assert.equal(inSitemap, true);
+            assert.equal(visibleOnPdp, true);
+          } else {
+            assert.equal(inSitemap, false);
+            assert.equal(visibleOnPdp, false);
+          }
+        }
+      }
+    }
   });
 });

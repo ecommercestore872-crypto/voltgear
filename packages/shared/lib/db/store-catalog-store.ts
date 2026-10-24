@@ -4,7 +4,12 @@ import { cache } from "react";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
 import { filterProductsForSitemap } from "@/lib/sitemap-rules";
-import { categoryIsStorefrontVisible } from "@/lib/catalog-visibility-rules";
+import {
+  categoryIsStorefrontVisible,
+  parseRawCategoryVisibility,
+  type CategoryVisibilityResolution,
+  type RawCategoryVisibilityData,
+} from "@/lib/catalog-visibility-rules";
 import { ensureFallbackShopTypes } from "@/lib/db/admin-store";
 import { pickBestsellers } from "@/lib/db/bestsellers-rules";
 import {
@@ -55,32 +60,80 @@ export function mapStoreProduct(
   return mapProduct(row, { ...opts, storefront: true });
 }
 
-async function queryActiveCategorySlugs(): Promise<string[] | null> {
+async function queryCategoryVisibility(): Promise<RawCategoryVisibilityData> {
   const { data, error } = await db()
     .from("categories")
-    .select("slug")
-    .eq("active", true);
-  if (error) throw error;
-  if (!data?.length) return null;
-  const slugs = data.map((r) => String(r.slug ?? "").trim()).filter(Boolean);
-  return slugs.length > 0 ? slugs : null;
+    .select("slug, active");
+
+  if (error) {
+    return {
+      status: "query_failure",
+      errorMessage: error.message || "Failed to query categories",
+    };
+  }
+
+  if (!data || data.length === 0) {
+    return { status: "unconfigured" };
+  }
+
+  const activeSlugs: string[] = [];
+  const allConfiguredSlugs: string[] = [];
+
+  for (const row of data) {
+    const slug = String(row.slug ?? "").trim().toLowerCase();
+    if (!slug) continue;
+    allConfiguredSlugs.push(slug);
+    if (row.active === true) {
+      activeSlugs.push(slug);
+    }
+  }
+
+  if (allConfiguredSlugs.length === 0) {
+    return { status: "unconfigured" };
+  }
+
+  return {
+    status: "configured",
+    activeSlugs,
+    allConfiguredSlugs,
+  };
 }
 
-const getActiveCategorySlugsCached = unstable_cache(
-  queryActiveCategorySlugs,
-  ["storefront-active-category-slugs-v1"],
+const getCategoryVisibilityCached = unstable_cache(
+  queryCategoryVisibility,
+  ["storefront-category-visibility-v2"],
   {
     revalidate: STOREFRONT_CATALOG_REVALIDATE,
     tags: [STOREFRONT_SHOP_TYPES_CACHE_TAG],
   },
 );
 
-/** Active shop categories from CMS; null = no rows (do not filter by category). */
-const loadActiveCategorySlugSet = cache(async (): Promise<Set<string> | null> => {
-  const slugs = await getActiveCategorySlugsCached();
-  if (!slugs) return null;
-  return new Set(slugs);
-});
+/** Full category visibility resolution in request scope. */
+export const loadCategoryVisibility = cache(
+  async (): Promise<CategoryVisibilityResolution> => {
+    try {
+      const raw = await getCategoryVisibilityCached();
+      return parseRawCategoryVisibility(raw);
+    } catch (error) {
+      return { status: "query_failure", error };
+    }
+  },
+);
+
+/** Active shop categories from CMS; empty Set if configured with 0 active, null if unconfigured. */
+export const loadActiveCategorySlugSet = cache(
+  async (): Promise<Set<string> | null> => {
+    const visibility = await loadCategoryVisibility();
+    if (visibility.status === "configured") {
+      return new Set(visibility.activeSlugs);
+    }
+    if (visibility.status === "unconfigured") {
+      return null;
+    }
+    // query_failure -> fail-safe empty set to prevent leaking inactive products
+    return new Set();
+  },
+);
 
 function sanitizeCatalogSearchQuery(raw: string): string {
   return raw.replace(/[%_,]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
@@ -90,8 +143,12 @@ function filterForActiveCategories(
   products: Product[],
   active: Set<string> | null,
 ): Product[] {
-  if (!active) return products;
-  return products.filter((p) => active.has(p.category));
+  if (active === null) return products;
+  if (active.size === 0) return [];
+  return products.filter((p) => {
+    const cat = String(p.category ?? "").trim().toLowerCase();
+    return Boolean(cat && active.has(cat));
+  });
 }
 
 export async function fetchAllProducts(includeDemo = false): Promise<Product[]> {
@@ -231,8 +288,8 @@ export async function fetchProductBySlug(slug: string, includeDemo = false): Pro
     includeDemoReviews: includeDemo,
   });
   if (!product) return null;
-  const active = await loadActiveCategorySlugSet();
-  if (active && !active.has(product.category)) return null;
+  const visibility = await loadCategoryVisibility();
+  if (!categoryIsStorefrontVisible(product.category, visibility)) return null;
   return product;
 }
 
@@ -255,8 +312,8 @@ async function loadPdpProductRow(slug: string): Promise<Product | null> {
     includeDemoReviews: false,
   });
   if (!product) return null;
-  const active = await loadActiveCategorySlugSet();
-  if (active && !active.has(product.category)) return null;
+  const visibility = await loadCategoryVisibility();
+  if (!categoryIsStorefrontVisible(product.category, visibility)) return null;
   return product;
 }
 
@@ -336,23 +393,20 @@ async function loadRelatedCatalogProducts(
 async function loadCatalogProductsByCategory(category: string): Promise<Product[]> {
   const cat = category.trim();
   if (!cat) return [];
-  const [queryResult, activeCategories] = await Promise.all([
-    execDemoQuery(() =>
-      demoFilter(
-        db()
-          .from("products")
-          .select(CATALOG_PRODUCT_EMBED as "*")
-          .eq("status", LIVE)
-          .eq("category", cat)
-          .order("featured", { ascending: false })
-          .order("created_at", { ascending: false }),
-        false,
-      ),
+  const visibility = await loadCategoryVisibility();
+  if (!categoryIsStorefrontVisible(cat, visibility)) return [];
+  const { data, error } = await execDemoQuery(() =>
+    demoFilter(
+      db()
+        .from("products")
+        .select(CATALOG_PRODUCT_EMBED as "*")
+        .eq("status", LIVE)
+        .eq("category", cat)
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false }),
+      false,
     ),
-    loadActiveCategorySlugSet(),
-  ]);
-  if (activeCategories && !activeCategories.has(cat)) return [];
-  const { data, error } = queryResult;
+  );
   if (error) throw error;
   return (data ?? [])
     .map((row) => mapStoreProduct(row as Record<string, unknown>))
@@ -414,14 +468,14 @@ export async function fetchCatalogProductsBySlugs(
 }
 
 export async function fetchProductSlugs(): Promise<{ slug: string }[]> {
-  const [queryResult, activeCategories] = await Promise.all([
+  const [queryResult, visibility] = await Promise.all([
     execDemoQuery(() =>
       demoFilter(
         db().from("products").select("slug, updated_at, category").eq("status", LIVE),
         false,
       ),
     ),
-    loadActiveCategorySlugSet(),
+    loadCategoryVisibility(),
   ]);
   const { data, error } = queryResult;
   if (error) throw error;
@@ -430,20 +484,20 @@ export async function fetchProductSlugs(): Promise<{ slug: string }[]> {
       slug: String(r.slug),
       category: r.category ? String(r.category) : null,
     })),
-    activeCategories,
+    visibility,
   );
   return filtered.map((r) => ({ slug: r.slug }));
 }
 
 export async function fetchSitemapProducts(): Promise<{ slug: string; _updatedAt?: string }[]> {
-  const [queryResult, activeCategories] = await Promise.all([
+  const [queryResult, visibility] = await Promise.all([
     execDemoQuery(() =>
       demoFilter(
         db().from("products").select("slug, updated_at, category").eq("status", LIVE),
         false,
       ),
     ),
-    loadActiveCategorySlugSet(),
+    loadCategoryVisibility(),
   ]);
   const { data, error } = queryResult;
   if (error) throw error;
@@ -453,7 +507,7 @@ export async function fetchSitemapProducts(): Promise<{ slug: string; _updatedAt
       category: r.category ? String(r.category) : null,
       _updatedAt: r.updated_at ? String(r.updated_at) : undefined,
     })),
-    activeCategories,
+    visibility,
   );
   return filtered.map((r) => ({
     slug: r.slug,
@@ -491,10 +545,10 @@ export async function fetchCatalogFromDb(f: {
   pageSize: number;
   totalPages: number;
 }> {
-  const active = await loadActiveCategorySlugSet();
+  const visibility = await loadCategoryVisibility();
   const page = Math.max(1, f.page);
 
-  if (!categoryIsStorefrontVisible(f.category, active)) {
+  if (!categoryIsStorefrontVisible(f.category, visibility)) {
     return { items: [], total: 0, page: 1, pageSize: PAGE_SIZE, totalPages: 1 };
   }
 
@@ -508,8 +562,8 @@ export async function fetchCatalogFromDb(f: {
 
   if (f.category) {
     query = query.eq("category", f.category);
-  } else if (active && active.size > 0) {
-    query = query.in("category", [...active]);
+  } else if (visibility.status === "configured" && visibility.activeSlugs.size > 0) {
+    query = query.in("category", [...visibility.activeSlugs]);
   }
   if (f.availability === "in-stock") {
     query = query.neq("stock_status", "out-of-stock");
@@ -653,8 +707,9 @@ export async function fetchCatalogFeaturedByCategory(
       .limit(cap),
   );
   if (error) throw error;
-  const active = await loadActiveCategorySlugSet();
-  if (active && !active.has(cat)) return [];
+  const visibility = await loadCategoryVisibility();
+  if (!categoryIsStorefrontVisible(cat, visibility)) return [];
+  const active = visibility.status === "configured" ? new Set(visibility.activeSlugs) : null;
   return filterForActiveCategories(
     (data ?? [])
       .map((row) => mapStoreProduct(row as Record<string, unknown>, { includeDemoReviews: includeDemo }))
