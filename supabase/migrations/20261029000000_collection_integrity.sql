@@ -252,7 +252,7 @@ BEGIN
   -- by clearing another owner, and never accept an ABA-reused empty slot token.
   PERFORM 1 FROM collection_home_slots WHERE slot IN (CASE WHEN v_before.active THEN v_before.home_slot END,v_claim)
     ORDER BY slot FOR UPDATE;
-  IF v_claim IS NOT NULL AND v_claim IS DISTINCT FROM CASE WHEN v_before.active THEN v_before.home_slot END THEN
+  IF v_claim IS NOT NULL AND v_claim IS DISTINCT FROM (CASE WHEN v_before.active THEN v_before.home_slot END) THEN
     SELECT revision INTO v_revision FROM collection_home_slots WHERE slot=v_claim;
     IF p_expected_slot_revision IS NULL OR p_expected_slot_revision IS DISTINCT FROM v_revision THEN
       RAISE EXCEPTION USING ERRCODE='40001', MESSAGE='CONFLICT: Home slot changed; reload'; END IF;
