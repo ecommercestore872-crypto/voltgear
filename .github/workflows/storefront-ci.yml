@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, "codex/admin-*", "codex/product-*"]
+    branches: [main, "codex/admin-*", "codex/product-*", "codex/collection-*", "codex/isolated-staging-certification"]
 
 concurrency:
   group: storefront-ci-${{ github.ref }}
@@ -48,6 +48,12 @@ jobs:
         run: npm ci
       - name: Unit tests
         run: npm run test
+      - name: Admin streaming dependency and behavior contracts
+        run: node --import tsx --test scripts/check-admin-streaming-compatibility.test.mjs
+      - name: Local staging safety contracts
+        run: node --test scripts/local-staging/isolation.test.mjs scripts/local-staging/browser-https.test.mjs scripts/local-staging/browser-pki.test.mjs scripts/local-staging/browser-https-recover.test.mjs scripts/local-staging/browser-debug-cleanup.test.mjs
+      - name: Reviewed migration runner plan contracts
+        run: node --test scripts/local-staging/release-migration-plan.test.mjs
       - name: Lint storefront and admin
         run: npm run lint:all
       - name: Type-check storefront

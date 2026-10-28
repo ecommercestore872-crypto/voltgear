@@ -5,7 +5,7 @@ export { AdminRequestError } from "@/lib/admin-request-error";
 
 export class AdminAuthError extends Error {}
 
-export async function adminFetch(url: string, options: RequestInit = {}) {
+export async function adminFetch(url: string, options: RequestInit = {}, behavior: { redirectOnUnauthorized?: boolean } = {}) {
   const isForm =
     typeof FormData !== "undefined" && options.body instanceof FormData;
   const mutating = !["GET", "HEAD"].includes((options.method ?? "GET").toUpperCase());
@@ -24,7 +24,7 @@ export async function adminFetch(url: string, options: RequestInit = {}) {
     throw new AdminRequestError(mutating ? "The request outcome is uncertain. Reload before retrying." : "Request failed. Please try again.", undefined, mutating);
   }
   if (res.status === 401) {
-    if (typeof window !== "undefined") {
+    if (behavior.redirectOnUnauthorized !== false && typeof window !== "undefined") {
       clearAdminToken();
       window.location.assign("/admin/login");
     }

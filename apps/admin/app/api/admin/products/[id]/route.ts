@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
 
 async function GETHandler(request: Request, { params }: Ctx) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const product = await getAdminProductForEditor((await params).id);
@@ -28,7 +28,7 @@ async function GETHandler(request: Request, { params }: Ctx) {
 }
 
 async function PATCHHandler(request: Request, { params }: Ctx) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
@@ -54,7 +54,7 @@ async function PATCHHandler(request: Request, { params }: Ctx) {
 }
 
 async function DELETEHandler(request: Request, { params }: Ctx) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const result = await deleteAdminProduct((await params).id);

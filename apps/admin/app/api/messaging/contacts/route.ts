@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
  * All endpoints require: Authorization: Bearer <ADMIN_TOKEN>
  */
 async function GETHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const data = await getContacts();
@@ -28,7 +28,7 @@ async function GETHandler(request: Request) {
 }
 
 async function POSTHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
@@ -54,7 +54,7 @@ async function POSTHandler(request: Request) {
 }
 
 async function DELETEHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const phone = new URL(request.url).searchParams.get("phone");

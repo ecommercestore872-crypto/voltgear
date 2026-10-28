@@ -203,13 +203,13 @@ describe("runPostExAirwayBillForOrderId", () => {
 });
 
 describe("admin authentication for airway bill route", () => {
-  it("requires admin credentials", () => {
+  it("requires admin credentials", async () => {
     const secret = "test-admin-secret";
     const prev = process.env.ADMIN_TOKEN;
     process.env.ADMIN_TOKEN = secret;
     try {
       assert.equal(
-        isAdminRequest(
+        await isAdminRequest(
           new Request("http://localhost/api/admin/postex/airway-bill/BNT-1032", {
             headers: { Authorization: `Bearer ${secret}` },
           }),
@@ -217,7 +217,7 @@ describe("admin authentication for airway bill route", () => {
         true,
       );
       assert.equal(
-        isAdminRequest(
+        await isAdminRequest(
           new Request("http://localhost/api/admin/postex/airway-bill/BNT-1032"),
         ),
         false,

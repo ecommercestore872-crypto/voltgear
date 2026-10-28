@@ -14,7 +14,7 @@ async function PATCHHandler(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
@@ -36,7 +36,7 @@ async function DELETEHandler(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  if (!isAdminRequest(_request)) {
+  if (!(await isAdminRequest(_request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const result = await deleteEmailTemplate((await params).id);

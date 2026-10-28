@@ -1,15 +1,19 @@
-import { hmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 
-const ADMIN_SESSION_CONTEXT = "voltgear-admin-session-v1";
+export const ADMIN_SESSION_MAX_AGE = 8 * 60 * 60;
 
-/**
- * Derive the browser-session credential without exposing the master admin token.
- * Web Crypto keeps this helper compatible with both Next.js middleware and Node routes.
- */
-export function deriveAdminSessionToken(secret: string): string {
-  return bytesToHex(hmac(sha256, utf8ToBytes(secret), utf8ToBytes(ADMIN_SESSION_CONTEXT)));
+/** A random per-login credential. No shared integration secret enters this cookie. */
+export function createAdminSessionToken(): string {
+  return `v2.${bytesToHex(crypto.getRandomValues(new Uint8Array(32)))}`;
+}
+
+export function isAdminSessionToken(token: string): boolean {
+  return /^v2\.[a-f0-9]{64}$/.test(token);
+}
+
+export function hashAdminSessionToken(token: string): string {
+  return bytesToHex(sha256(utf8ToBytes(token)));
 }
 
 /** Constant-work comparison for the fixed-length session digest used at the edge. */

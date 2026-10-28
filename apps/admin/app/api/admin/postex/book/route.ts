@@ -18,7 +18,7 @@ import { getServiceClient } from "@/lib/supabase/server";
 import { createPostExOrder } from "@/lib/postex";
 
 async function POSTHandler(req: NextRequest) {
-  if (!isAdminRequest(req)) {
+  if (!(await isAdminRequest(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

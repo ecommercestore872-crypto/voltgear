@@ -9,7 +9,7 @@ import { indexSiteUrl } from "@/lib/seo-rules";
 export const dynamic = "force-dynamic";
 
 async function POSTHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

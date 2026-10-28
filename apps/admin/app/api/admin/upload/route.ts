@@ -12,6 +12,7 @@ import {
   isAdminUploadUrl, validateAdminUploadMetadata, validateAdminUploadSignature,
 } from "@/lib/admin-upload-rules";
 import { getServiceClient } from "@/lib/supabase/server";
+import { isDefiniteStorageRejection, UncertainStorageUploadError } from "@/lib/admin-upload-outcome";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,17 +29,29 @@ async function uploadToStorage(file: File, buffer: Buffer, folder: string, mimeT
   const client = getServiceClient();
   const ext = file.name.split(".").pop()!.toLowerCase();
   const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await client.storage.from("product-images").upload(path, buffer, {
-    contentType: mimeType, upsert: false,
-  });
-  if (error) throw new Error("Storage unavailable");
-  const { data } = client.storage.from("product-images").getPublicUrl(path);
-  if (!isAdminUploadUrl(data?.publicUrl)) throw new Error("Invalid Storage response");
-  return { secureUrl: data.publicUrl, publicId: path };
+  let result;
+  try {
+    result = await client.storage.from("product-images").upload(path, buffer, {
+      contentType: mimeType, upsert: false,
+    });
+  } catch { throw new UncertainStorageUploadError(); }
+  if (!result || typeof result !== "object" || !("error" in result)) {
+    throw new UncertainStorageUploadError();
+  }
+  if (result.error) {
+    if (isDefiniteStorageRejection(result.error)) throw new Error("Storage rejected upload");
+    throw new UncertainStorageUploadError();
+  }
+  // Bytes have committed. A malformed URL/response must not invite a blind retry.
+  try {
+    const { data } = client.storage.from("product-images").getPublicUrl(path);
+    if (!isAdminUploadUrl(data?.publicUrl)) throw new UncertainStorageUploadError();
+    return { secureUrl: data.publicUrl, publicId: path };
+  } catch { throw new UncertainStorageUploadError(); }
 }
 
 async function POSTHandler(request: Request) {
-  if (!isAdminRequest(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // Early transport check is advisory; File.size is checked after parsing too.
   const contentLength = request.headers.get("content-length");
   if (contentLength && Number(contentLength) > ADMIN_UPLOAD_MAX_BYTES + 256_000) {
@@ -111,14 +124,17 @@ async function POSTHandler(request: Request) {
     return NextResponse.json({ error: "HEIC/HEIF requires the image conversion provider. Export JPEG, PNG or WebP and try again." }, { status: 503 });
   }
   try { return NextResponse.json({ ...await uploadToStorage(file, buffer, folder, image.mimeType), ...dimensions }); }
-  catch {
+  catch (error) {
+    if (error instanceof UncertainStorageUploadError) {
+      return NextResponse.json({ error: "Upload outcome is uncertain. Check Storage before retrying." }, { status: 502 });
+    }
     console.error("[admin/upload] Storage upload unavailable");
     return NextResponse.json({ error: "Upload failed. Check Cloudinary or Storage settings." }, { status: 503 });
   }
 }
 
 async function DELETEHandler(request: Request) {
-  if (!isAdminRequest(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   return NextResponse.json({
     error: "Removing media only unlinks it from the form. Permanent deletion is disabled until reference-safe cleanup is available.",
   }, { status: 409 });
