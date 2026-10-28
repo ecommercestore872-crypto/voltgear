@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function DELETEHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {

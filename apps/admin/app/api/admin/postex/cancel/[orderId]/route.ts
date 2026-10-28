@@ -11,7 +11,7 @@ async function PUTHandler(
   req: NextRequest,
   context: { params: Promise<{ orderId: string }> },
 ) {
-  if (!isAdminRequest(req)) {
+  if (!(await isAdminRequest(req))) {
     return NextResponse.json(
       { success: false, error: "Unauthorized" },
       { status: 401 },

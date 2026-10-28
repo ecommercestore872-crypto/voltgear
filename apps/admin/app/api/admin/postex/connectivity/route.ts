@@ -7,7 +7,7 @@ import { runPostExConnectivityTest } from "@/lib/postex-connectivity";
 export const dynamic = "force-dynamic";
 
 async function GETHandler(req: NextRequest) {
-  if (!isAdminRequest(req)) {
+  if (!(await isAdminRequest(req))) {
     return NextResponse.json(
       { success: false, error: "Unauthorized" },
       { status: 401 },

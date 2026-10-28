@@ -16,7 +16,7 @@ async function POSTHandler(
   request: Request,
   { params }: { params: Promise<{ orderId: string }> },
 ) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

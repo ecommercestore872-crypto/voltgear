@@ -66,8 +66,9 @@ export async function runCollectionCases({ sql, openSession, sleep }) {
 
   await test('partial collection updates preserve omitted fields and automatic pinned order', async () => {
     const a = await seed(); const b = await seed();
-    const c = (await write('create', null, { name: 'Synthetic defaults', mode: 'manual', productIds: [a.id,b.id] })).collection;
-    assert.equal(c.slug,'synthetic-defaults'); assert.equal(c.active,true); assert.equal(c.sortOrder,0);
+    const defaultName = `Synthetic defaults ${randomUUID()}`;
+    const c = (await write('create', null, { name: defaultName, mode: 'manual', productIds: [a.id,b.id] })).collection;
+    assert.equal(c.slug,defaultName.toLowerCase().replaceAll(' ','-')); assert.equal(c.active,true); assert.equal(c.sortOrder,0);
     const changed = (await write('update',c.id,{ name:'Only name changed' },c.revision)).collection;
     assert.equal(changed.slug,c.slug); assert.deepEqual(changed.productIds,[a.id,b.id]);
     const auto = (await write('update',c.id,{ mode:'auto',autoRule:'featured' },changed.revision)).collection;
@@ -221,15 +222,21 @@ export async function runCollectionCases({ sql, openSession, sleep }) {
   }
 
   await test('home slot claims are exclusive, versioned across release/claim ABA, and independently serialized', async () => {
+    const slot = await sql(`SELECT slot FROM collection_home_slots s WHERE NOT EXISTS
+      (SELECT 1 FROM collections c WHERE c.active AND c.home_slot=s.slot) ORDER BY slot LIMIT 1;`);
+    assert.ok(slot, 'An unclaimed home slot is required; never displace an existing fixture');
     const before = JSON.parse(await sql(`SELECT jsonb_object_agg(slot,revision::text) FROM collection_home_slots;`));
-    const a = (await write('create', null, doc([], { homeSlot: 'offers' }), null, before.offers)).collection;
-    const current = a.slotRevisions.offers;
-    await failure(command('create', null, doc([], { homeSlot: 'offers' }), null, current));
-    const released = (await write('update', a.id, { ...doc(), slug: a.slug, homeSlot: 'offers', active: false }, a.revision)).collection;
-    await failure(command('create', null, doc([], { homeSlot: 'offers' }), null, before.offers));
-    await overlap(command('create', null, doc([], { homeSlot: 'offers' }), null, released.slotRevisions.offers),
-      command('create', null, doc([], { homeSlot: 'offers' }), null, released.slotRevisions.offers), true);
-    assert.equal(await sql("SELECT count(*) FROM collections WHERE active AND home_slot='offers';"), '1');
+    const a = (await write('create', null, doc([], { homeSlot: slot }), null, before[slot])).collection;
+    const current = a.slotRevisions[slot];
+    await failure(command('create', null, doc([], { homeSlot: slot }), null, current));
+    const released = (await write('update', a.id, { ...doc(), slug: a.slug, homeSlot: slot, active: false }, a.revision)).collection;
+    await failure(command('create', null, doc([], { homeSlot: slot }), null, before[slot]));
+    await overlap(command('create', null, doc([], { homeSlot: slot }), null, released.slotRevisions[slot]),
+      command('create', null, doc([], { homeSlot: slot }), null, released.slotRevisions[slot]), true);
+    assert.equal(await sql(`SELECT count(*) FROM collections WHERE active AND home_slot=${literal(slot)};`), '1');
+    const winner = await snapshot(await sql(`SELECT id FROM collections WHERE active AND home_slot=${literal(slot)};`));
+    // Release only this run's winning claim while retaining the collection row.
+    await write('update', winner.id, { active: false }, winner.revision);
   });
 
   for (const operation of ['INSERT', 'DELETE']) {

@@ -27,7 +27,7 @@ function docFromBody(body: { doc?: Record<string, unknown> } | null) {
 }
 
 async function PATCHHandler(request: Request, ctx: Ctx) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;
@@ -47,7 +47,7 @@ async function PATCHHandler(request: Request, ctx: Ctx) {
 }
 
 async function DELETEHandler(request: Request, ctx: Ctx) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;

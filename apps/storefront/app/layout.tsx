@@ -182,7 +182,7 @@ export default async function RootLayout({
   ];
 
   return (
-    <html lang="en-PK" className={gadgetFontClass}>
+    <html lang="en-PK" className={gadgetFontClass} data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
         <link rel="dns-prefetch" href="https://zeuhfqevqjkbzwdaxjuv.supabase.co" />

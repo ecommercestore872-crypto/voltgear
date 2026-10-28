@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const GET = withAdminApiObservability(
   "GET /api/admin/orders",
   async (request: Request) => {
-    if (!isAdminRequest(request)) {
+    if (!(await isAdminRequest(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const url = new URL(request.url);

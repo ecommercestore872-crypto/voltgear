@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function GETHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const row = await getAdminSettings();
@@ -25,7 +25,7 @@ async function GETHandler(request: Request) {
 }
 
 async function PATCHHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);

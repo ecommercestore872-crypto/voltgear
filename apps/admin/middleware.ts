@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAdminApiPublicPath } from "@/lib/admin-api-public-paths";
 import { isAdminPublicPath } from "@/lib/admin-public-paths";
 import { ADMIN_COOKIE } from "@/lib/admin-cookie";
-import { deriveAdminSessionToken, sessionTokensEqual } from "@/lib/admin-session";
+import { sessionTokensEqual } from "@/lib/admin-session";
+import { readAdminBrowserSession } from "@/lib/admin-session-store";
 import { resolveAdminSecretForMiddleware } from "@/lib/deploy-rules";
 
 function requiresAdminSession(pathname: string): boolean {
@@ -30,11 +31,10 @@ export async function middleware(request: NextRequest) {
 
   const cookie = request.cookies.get(ADMIN_COOKIE)?.value;
   const secret = resolveAdminSecretForMiddleware();
-  const expectedSession = secret ? await deriveAdminSessionToken(secret) : "";
   const authorization = request.headers.get("authorization") ?? "";
   const bearer = authorization.replace(/^Bearer\s+/i, "");
-  const hasCookieSession = Boolean(cookie) && sessionTokensEqual(cookie ?? "", expectedSession);
-  const hasBearerSession = Boolean(secret && bearer) && sessionTokensEqual(bearer, secret);
+  const hasBearerSession = /^Bearer\s+/i.test(authorization) && Boolean(secret && bearer) && sessionTokensEqual(bearer, secret);
+  const hasCookieSession = !hasBearerSession && Boolean(cookie) && Boolean(await readAdminBrowserSession(cookie ?? ""));
   if (!hasCookieSession && !hasBearerSession) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -45,7 +45,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set("Cache-Control", "private, no-store");
+  return response;
 }
 
 export const config = {

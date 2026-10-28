@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const GET = withAdminApiObservability(
   "GET /api/admin/settings",
   async (request: Request) => {
-    if (!isAdminRequest(request)) {
+    if (!(await isAdminRequest(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const settings = await getAdminSettings();
@@ -26,7 +26,7 @@ export const GET = withAdminApiObservability(
 export const PATCH = withAdminApiObservability(
   "PATCH /api/admin/settings",
   async (request: Request) => {
-    if (!isAdminRequest(request)) {
+    if (!(await isAdminRequest(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = await request.json().catch(() => null);

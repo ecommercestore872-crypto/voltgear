@@ -1,7 +1,7 @@
 import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
-import { isAdminRequest } from "@/lib/admin";
+import { adminRequestAuthorization } from "@/lib/admin";
 import { adminAuthEmailAllowlist } from "@/lib/admin-auth-email";
 import { findAuthUserByEmail } from "@/lib/admin-auth-supabase";
 import { getServiceClient } from "@/lib/supabase/server";
@@ -9,23 +9,28 @@ import { getServiceClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 
 async function POSTHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  const authorization = await adminRequestAuthorization(request);
+  if (!authorization) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const password = body?.password?.trim();
+  const password = typeof body?.password === "string" ? body.password.trim() : "";
   
   if (!password || password.length < 12) {
     return NextResponse.json({ error: "Password must be at least 12 characters." }, { status: 400 });
   }
 
   const supabase = getServiceClient({ admin: true });
-  let userId: string | null = null;
-  for (const email of adminAuthEmailAllowlist()) {
-    const user = await findAuthUserByEmail(supabase, email);
-    if (user) {
-      userId = user.id;
-      break;
+  let userId: string | null = authorization.kind === "browser" ? authorization.identity.userId : null;
+  // Preserve the existing machine workflow; browser self-service targets the
+  // authenticated person, never the first account in a configured allowlist.
+  if (authorization.kind === "bearer") {
+    for (const email of adminAuthEmailAllowlist()) {
+      const user = await findAuthUserByEmail(supabase, email);
+      if (user) {
+        userId = user.id;
+        break;
+      }
     }
   }
   if (!userId) {

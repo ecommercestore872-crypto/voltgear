@@ -2,12 +2,13 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LogOut, Menu, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { clearAdminToken } from "@/lib/admin-token";
+import { completeAdminLogout } from "@/lib/admin-logout";
 import { isAdminLoginPath } from "@/lib/storefront-layout-rules";
 import { cn } from "@/lib/utils";
 
@@ -88,8 +89,10 @@ function linkActive(pathname: string, item: NavLink) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const logoutInFlight = useRef(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchMounted, setSearchMounted] = useState(false);
   const searchReturnFocus = useRef<HTMLElement | null>(null);
@@ -117,13 +120,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
+    if (logoutInFlight.current) return;
+    logoutInFlight.current = true;
+    setLoggingOut(true);
+    setLogoutError(null);
     try {
-      await adminFetch("/api/admin/logout", { method: "POST" });
+      await completeAdminLogout({
+        request: () => adminFetch("/api/admin/logout", { method: "POST", signal: AbortSignal.timeout(30_000) }, { redirectOnUnauthorized: false }),
+        clearLocalToken: clearAdminToken,
+        // A full navigation discards Next's cached protected route payloads.
+        navigate: () => window.location.replace("/admin/login"),
+      });
     } catch {
-      // still clear local token
+      setLogoutError("Sign-out could not be confirmed. Please try again.");
+      logoutInFlight.current = false;
+      setLoggingOut(false);
     }
-    clearAdminToken();
-    router.replace("/admin/login");
   }
 
   return (
@@ -182,10 +194,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           size="sm"
           className="admin-sign-out mt-2 w-full justify-start hover:bg-transparent"
           onClick={logout}
+          disabled={loggingOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Sign out
+          {loggingOut ? "Signing out…" : "Sign out"}
         </Button>
+        {logoutError ? <p role="alert" className="mt-2 text-xs text-destructive">{logoutError}</p> : null}
       </aside>
       <div className="admin-main flex min-w-0 flex-1 flex-col">
         <header className="admin-mobile-bar flex items-center gap-2 border-b px-4 py-3 md:hidden">

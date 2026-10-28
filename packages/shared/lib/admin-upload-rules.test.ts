@@ -7,6 +7,7 @@ import ts from "typescript";
 import sharp from "sharp";
 import * as rules from "./admin-upload-rules";
 import { AdminRequestError } from "./admin-request-error";
+import * as outcomes from "./admin-upload-outcome";
 
 function loadModule<T>(file: string, dependencies: Record<string, unknown>, globals: Record<string, unknown> = {}): T {
   const exports = {};
@@ -34,7 +35,7 @@ function heicBytes(brand = "heic") {
 
 type ProviderOptions = {
   auth?: boolean; configured?: boolean; cloudError?: boolean; cloudErrorCode?: number; storageError?: boolean;
-  cloudResult?: unknown; storageUrl?: unknown;
+  cloudResult?: unknown; storageUrl?: unknown; storageStatusCode?: number; storageThrow?: boolean; storageResult?: unknown;
 };
 function routeHarness(options: ProviderOptions = {}) {
   const calls: { cloud: { data: string; options: unknown }[]; storage: { path: string; buffer: Buffer; options: unknown }[]; deletes: number } = {
@@ -46,7 +47,9 @@ function routeHarness(options: ProviderOptions = {}) {
   const bucket = {
     async upload(path: string, buffer: Buffer, uploadOptions: unknown) {
       calls.storage.push({ path, buffer, options: uploadOptions });
-      return { error: options.storageError ? new Error("private-provider-secret") : null };
+      if (options.storageThrow) throw new Error("private-provider-secret");
+      if (Object.hasOwn(options, "storageResult")) return options.storageResult;
+      return { error: options.storageError ? Object.assign(new Error("private-provider-secret"), { statusCode: options.storageStatusCode }) : null };
     },
     getPublicUrl: () => ({ data: { publicUrl: Object.hasOwn(options, "storageUrl") ? options.storageUrl : "https://fixture.supabase.co/storage/v1/object/public/product-images/photo.png" } }),
     remove() { calls.deletes++; throw new Error("Deletion forbidden"); },
@@ -56,6 +59,7 @@ function routeHarness(options: ProviderOptions = {}) {
       "@/lib/admin-api-observability": { withAdminApiObservability: (_name: string, handler: unknown) => handler },
       "@/lib/admin": { isAdminRequest: () => options.auth !== false },
       "@/lib/admin-upload-rules": rules,
+      "@/lib/admin-upload-outcome": outcomes,
       "@/lib/cloudinary": {
         CLOUDINARY_CLOUD_NAME: options.configured === false ? undefined : "fixture", CLOUDINARY_API_KEY: "fixture-key",
         CLOUDINARY_API_SECRET: "fixture-secret", CLOUDINARY_FOLDER: "ecommerce-store/products",
@@ -216,12 +220,33 @@ describe("admin upload API boundary with real raster decoding and mocked provide
       }
     }
   });
-  it("reports Storage failure and malformed URLs without leaking provider errors", async () => {
-    for (const options of [{ storageError: true }, { storageUrl: "javascript:alert(1)" }]) {
+  it("reports uncertain Storage failures and malformed post-commit URLs without leaking provider errors", async () => {
+    for (const options of [{ storageError: true }, { storageThrow: true }, { storageError: true, storageStatusCode: 503 }, { storageUrl: "javascript:alert(1)" }]) {
       const subject = routeHarness({ configured: false, ...options });
       const response = await subject.route.POST(subject.request(new File([await png()], "a.png", { type: "image/png" })));
+      assert.equal(response.status, 502);
+      const body = await response.text();
+      assert.match(body, /uncertain.*before retrying/);
+      assert.doesNotMatch(body, /private-provider-secret|javascript/);
+      assert.equal(subject.calls.storage.length, 1);
+    }
+  });
+  it("keeps explicit pre-commit Storage rejections distinct from uncertain outcomes", async () => {
+    for (const storageStatusCode of [400, 401, 403, 404, 409, 413, 415, 422, 429]) {
+      const subject = routeHarness({ configured: false, storageError: true, storageStatusCode });
+      const response = await subject.route.POST(subject.request(new File([await png()], "a.png", { type: "image/png" })));
       assert.equal(response.status, 503);
-      assert.doesNotMatch(await response.text(), /private-provider-secret|javascript/);
+      assert.doesNotMatch(await response.text(), /private-provider-secret/);
+      assert.equal(subject.calls.storage.length, 1);
+    }
+  });
+  it("treats malformed resolved Storage results as uncertain without retrying", async () => {
+    for (const storageResult of [undefined, null, {}, "unexpected"]) {
+      const subject = routeHarness({ configured: false, storageResult });
+      const response = await subject.route.POST(subject.request(new File([await png()], "a.png", { type: "image/png" })));
+      assert.equal(response.status, 502);
+      assert.match(await response.text(), /uncertain/);
+      assert.equal(subject.calls.storage.length, 1);
     }
   });
   it("fails authenticated DELETE closed for every identifier without touching providers", async () => {

@@ -26,7 +26,7 @@ const DEFAULT_PATHS = [
  *     -H "Content-Type: application/json" -d '{"paths":["/","/products"]}'
  */
 async function POSTHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

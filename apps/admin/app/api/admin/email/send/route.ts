@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
  * POST { to: string | string[], subject, text, html?, confirmPermission?: boolean }
  */
 async function POSTHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

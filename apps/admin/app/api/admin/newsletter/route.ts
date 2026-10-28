@@ -9,7 +9,7 @@ import { newsletterListFilters } from "@/lib/newsletter-pagination-rules";
 export const dynamic = "force-dynamic";
 
 async function GETHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const url = new URL(request.url);
@@ -76,7 +76,7 @@ async function GETHandler(request: Request) {
 export const GET = withAdminApiObservability("GET /api/admin/newsletter", GETHandler);
 
 async function PATCHHandler(request: Request) {
-  if (!isAdminRequest(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
