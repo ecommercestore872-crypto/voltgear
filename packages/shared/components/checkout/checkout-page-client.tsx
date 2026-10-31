@@ -45,6 +45,7 @@ import {
   readGadgetPreviewSession,
 } from "@/lib/gadget-preview";
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
+import { CheckoutIntroHeader } from "@/components/checkout/checkout-intro-header";
 import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
 import { CheckoutDesktopSidebar } from "@/components/checkout/checkout-desktop-sidebar";
@@ -543,7 +544,8 @@ export default function CheckoutPageClient() {
   }, [step, items, subtotal]);
 
   return (
-    <div className="premium-royal-page-bg min-h-dvh overflow-x-clip font-sans">
+    <div className="min-h-dvh overflow-x-clip bg-[var(--g-cream)] font-sans">
+      <CheckoutIntroHeader />
       <div
         className={cn(
           "relative z-20 mx-auto max-w-6xl px-4 py-4 sm:py-6 lg:px-8 lg:pb-16",

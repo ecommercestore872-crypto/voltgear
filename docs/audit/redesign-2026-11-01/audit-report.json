@@ -1,0 +1,247 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "startedAt": "2026-10-31T22:26:24.389Z",
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Warning: Extra attributes from the server: %s%s style \n    at input\n    at div\n    at GadgetSearchInput (webpack-internal:///(app-pages-browser)/../../packages/shared/components/gadget/gadget-search-input.tsx:18:11)\n    at form\n    at div\n    at div\n    at header\n    at GadgetNavbar (webpack-internal:///(app-pages-browser)/../../packages/shared/components/gadget/gadget-navbar.tsx:68:11)\n    at div"
+  ],
+  "failedRequests": [
+    "500 http://127.0.0.1:3000/products"
+  ],
+  "pages": [
+    {
+      "viewport": "mobile",
+      "id": "home",
+      "path": "/",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-home.png",
+      "menuFile": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-home-nav-open.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "products",
+      "path": "/products",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-products.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "category-earbuds",
+      "path": "/products/earbuds",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-category-earbuds.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "category-smartwatch",
+      "path": "/products/smartwatch",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-category-smartwatch.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "cart",
+      "path": "/cart",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-cart.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "checkout",
+      "path": "/checkout",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-checkout.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "contact",
+      "path": "/contact",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-contact.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "about",
+      "path": "/about",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-about.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "shipping-returns",
+      "path": "/shipping-returns",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-shipping-returns.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "warranty",
+      "path": "/warranty",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-warranty.png"
+    },
+    {
+      "viewport": "mobile",
+      "id": "track",
+      "path": "/track",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\mobile-track.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "home",
+      "path": "/",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-home.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "products",
+      "path": "/products",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-products.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "category-earbuds",
+      "path": "/products/earbuds",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-category-earbuds.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "category-smartwatch",
+      "path": "/products/smartwatch",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-category-smartwatch.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "cart",
+      "path": "/cart",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-cart.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "checkout",
+      "path": "/checkout",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-checkout.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "contact",
+      "path": "/contact",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-contact.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "about",
+      "path": "/about",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-about.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "shipping-returns",
+      "path": "/shipping-returns",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-shipping-returns.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "warranty",
+      "path": "/warranty",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-warranty.png"
+    },
+    {
+      "viewport": "tablet",
+      "id": "track",
+      "path": "/track",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\tablet-track.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "home",
+      "path": "/",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-home.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "products",
+      "path": "/products",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-products.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "category-earbuds",
+      "path": "/products/earbuds",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-category-earbuds.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "category-smartwatch",
+      "path": "/products/smartwatch",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-category-smartwatch.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "cart",
+      "path": "/cart",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-cart.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "checkout",
+      "path": "/checkout",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-checkout.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "contact",
+      "path": "/contact",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-contact.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "about",
+      "path": "/about",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-about.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "shipping-returns",
+      "path": "/shipping-returns",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-shipping-returns.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "warranty",
+      "path": "/warranty",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-warranty.png"
+    },
+    {
+      "viewport": "desktop",
+      "id": "track",
+      "path": "/track",
+      "status": 200,
+      "file": "C:\\Users\\pc\\Documents\\ALi\\BUYNTRYY\\e commerce store (1)\\e commerce store (1)\\e commerce store\\docs\\audit\\redesign-2026-11-01\\desktop-track.png"
+    }
+  ],
+  "productSlugs": [],
+  "finishedAt": "2026-10-31T22:28:10.346Z"
+}
