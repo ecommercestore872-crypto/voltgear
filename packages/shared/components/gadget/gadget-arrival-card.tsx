@@ -11,6 +11,7 @@ import { gadgetImageSrc } from "@/lib/gadget-image";
 import { product2Href } from "@/lib/gadget-preview";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { getStockState } from "@/lib/stock";
@@ -49,6 +50,7 @@ export function GadgetArrivalCard({
       ? formatPrice(product.compareAtPrice)
       : null;
   const stock = getStockState(product.stockStatus);
+  const canBuy = isPurchasablePrice(price) && !stock.soldOut;
   const tag = badgeTag || product.badge;
   const off = computeDiscountPercent(product.price, product.compareAtPrice);
   const hasRealReviews =
@@ -60,7 +62,7 @@ export function GadgetArrivalCard({
   function handleBuy(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (stock.soldOut) return;
+    if (!canBuy) return;
 
     addItem({
       slug: product.slug,
@@ -88,23 +90,23 @@ export function GadgetArrivalCard({
           href={href}
           prefetch={false}
           className={cn(
-            "gadget-studio-stage relative block overflow-hidden rounded-2xl",
+            "gadget-studio-stage relative block overflow-hidden rounded-[10px]",
             isGrid ? "aspect-square" : "aspect-square",
           )}
         >
           <div className="pointer-events-none absolute inset-x-2.5 top-2.5 z-10 flex items-start gap-1.5 flex-wrap pr-11">
             {stock.soldOut ? (
-              <span className="shrink-0 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm z-20">
+              <span className="shrink-0 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white z-20">
                 Out of Stock
               </span>
             ) : null}
             {!stock.soldOut && off ? (
-              <span className="gadget-sale-badge shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm z-20">
+              <span className="gadget-sale-badge shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide z-20">
                 −{off}%
               </span>
             ) : null}
-            {tag ? (
-              <span className="max-w-[70%] text-shadow-sm truncate rounded-md border border-[var(--g-line)] bg-white/95 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-black shadow-sm dark:border-white/20 dark:bg-black/80 dark:text-white z-20">
+            {!off && tag ? (
+              <span className="max-w-[70%] truncate rounded-md border border-[var(--g-line)] bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-black z-20">
                 {tag}
               </span>
             ) : null}
@@ -120,7 +122,7 @@ export function GadgetArrivalCard({
                   ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
                   : "260px"
               }
-              className="object-cover object-center transition duration-500 ease-out group-hover:scale-[1.03]"
+              className="object-contain object-center p-2 transition duration-500 ease-out group-hover:scale-[1.02]"
             />
           ) : (
             <span className="flex h-full items-center justify-center text-sm text-[var(--g-taupe)]">
@@ -176,12 +178,16 @@ export function GadgetArrivalCard({
           </div>
 
           <div className="mt-3">
-            {stock.soldOut ? (
+            {!canBuy ? (
               <Link
                 href={href}
-                className="flex h-11 w-full items-center justify-center rounded-xl bg-[var(--g-cream-deep)] text-[13px] font-semibold text-[var(--g-taupe)] transition hover:bg-[var(--g-line)]"
+                className="flex h-11 w-full items-center justify-center rounded-[10px] bg-[var(--g-cream-deep)] text-[13px] font-semibold text-[var(--g-taupe)] transition hover:bg-[var(--g-line)]"
               >
-                View product
+                {stock.soldOut
+                  ? "View product"
+                  : isPurchasablePrice(price)
+                    ? "View product"
+                    : "Unavailable"}
               </Link>
             ) : (
               <button
@@ -194,7 +200,7 @@ export function GadgetArrivalCard({
                     ? `Added to cart: ${product.name}`
                     : `Add to cart: ${product.name}`
                 }
-                className="gadget-buy-cta flex h-12 w-full items-center justify-center gap-1.5 rounded-xl text-[13px] font-semibold transition duration-200 active:scale-[0.99]"
+                className="gadget-buy-cta flex h-12 w-full items-center justify-center gap-1.5 rounded-[10px] text-[13px] font-semibold transition duration-200 active:scale-[0.99]"
               >
                 {added ? (
                   <>

@@ -53,8 +53,8 @@ function IconHit({
     <button
       type="button"
       className={cn(
-        "relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors",
-        "hover:border-[var(--g-gold)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] hover:shadow-[0_8px_20px_var(--g-glow-forest)]",
+        "relative flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors",
+        "hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest)]",
         className,
       )}

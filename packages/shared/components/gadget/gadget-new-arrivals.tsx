@@ -7,24 +7,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { GadgetArrivalCard } from "@/components/gadget/gadget-arrival-card";
 import type { Product } from "@/lib/types";
 
-function TitleWithAccent({ title }: { title: string }) {
-  const parts = title.trim().split(/\s+/);
-  const accent = parts.pop() || title;
-  const lead = parts.join(" ");
-  return (
-    <>
-      {lead ? <>{lead} </> : null}
-      <span className="relative inline-block text-[var(--g-charcoal)]">
-        {accent}
-        <span
-          className="absolute -bottom-1 left-0 h-[2.5px] w-full rounded-full bg-[var(--g-amber)]"
-          aria-hidden
-        />
-      </span>
-    </>
-  );
-}
-
 export function GadgetNewArrivals({
   products,
   title = "Best Sellers",
@@ -98,7 +80,7 @@ export function GadgetNewArrivals({
             id={heading}
             className="text-2xl font-bold tracking-tight text-[var(--g-charcoal)] sm:text-3xl"
           >
-            <TitleWithAccent title={title} />
+            {title}
           </h2>
           <div className="flex items-center gap-2">
             <button
@@ -106,7 +88,7 @@ export function GadgetNewArrivals({
               aria-label={`Previous ${title}`}
               disabled={!canPrev}
               onClick={() => scrollByDir(-1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/80 text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
+              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -115,15 +97,15 @@ export function GadgetNewArrivals({
               aria-label={`Next ${title}`}
               disabled={!canNext}
               onClick={() => scrollByDir(1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/80 text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
+              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
             <Link
               href={viewAllHref}
-              className="inline-flex min-h-10 items-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/70 px-3.5 text-sm font-semibold text-[var(--g-forest)] transition hover:border-[var(--g-forest)]/30 hover:bg-[var(--g-white)]"
+              className="inline-flex min-h-10 items-center rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] px-3.5 text-sm font-semibold text-[var(--g-forest)] transition hover:border-[var(--g-forest)]/30"
             >
-              View all {title}
+              View all
             </Link>
           </div>
         </div>
