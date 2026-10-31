@@ -1,34 +1,14 @@
 {
-  "base": "http://127.0.0.1:3000",
-  "startedAt": "2026-10-31T22:36:51.448Z",
-  "steps": [
+  "base": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app",
+  "startedAt": "2026-10-31T23:10:08.608Z",
+  "steps": [],
+  "ok": false,
+  "assertions": [
     {
-      "name": "pdp-price-visible",
-      "priceText": "Price: Rs 1,999 PKR",
-      "at": "2026-10-31T22:36:55.015Z"
-    },
-    {
-      "name": "add-to-cart",
-      "at": "2026-10-31T22:36:56.476Z"
-    },
-    {
-      "name": "cart-filled",
-      "cartHasItem": true,
-      "at": "2026-10-31T22:37:04.997Z"
-    },
-    {
-      "name": "validation-click",
-      "posts": 0,
-      "at": "2026-10-31T22:37:13.652Z"
-    },
-    {
-      "name": "submit-mocked",
-      "posts": 0,
-      "delta": 0,
-      "at": "2026-10-31T22:37:18.940Z"
+      "ok": false,
+      "message": "PDP price visible",
+      "priceText": null
     }
   ],
-  "ok": true,
-  "checkoutPosts": 0,
-  "finishedAt": "2026-10-31T22:37:18.940Z"
+  "error": "Error: ASSERT: PDP price visible {\"priceText\":null}"
 }
