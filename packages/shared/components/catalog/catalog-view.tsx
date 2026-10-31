@@ -212,18 +212,18 @@ export function CatalogView({
           <div className="flex items-center gap-3">
             <ShieldCheck className="h-6 w-6 text-primary" />
             <div>
-              <p className="text-sm font-bold">Secure Payments</p>
+              <p className="text-sm font-bold">Pay on delivery</p>
               <p className="text-xs text-muted-foreground">
-                100% Safe Checkout
+                Cash when the courier arrives
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Banknote className="h-6 w-6 text-primary" />
             <div>
-              <p className="text-sm font-bold">Cash on Delivery</p>
+              <p className="text-sm font-bold">Inspect at the door</p>
               <p className="text-xs text-muted-foreground">
-                Pay when your order arrives
+                Check the parcel before paying
               </p>
             </div>
           </div>

@@ -15,7 +15,7 @@ export async function CheckoutStaticShell() {
     <div className="premium-royal-header-band">
       <div className="mx-auto max-w-6xl px-4 py-3 sm:py-5 lg:px-8 lg:py-6">
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--g-forest,#123d2b)] sm:text-[11px]">
-          Premium · original · nationwide COD
+          Cash on delivery · nationwide
         </p>
         <h1 className="gadget-display mt-1 text-2xl font-semibold leading-tight tracking-tight text-[var(--g-charcoal)] sm:mt-1.5 lg:text-3xl">
           <span className="sm:hidden">Secure cash on delivery checkout</span>

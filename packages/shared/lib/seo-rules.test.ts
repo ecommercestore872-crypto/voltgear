@@ -242,5 +242,7 @@ describe("llmsTxt", () => {
     assert.match(text, /adapters|chargers|earbuds/i);
     assert.match(text, /sitemap\.xml/);
     assert.match(text, /not buyntryparts/i);
+    assert.doesNotMatch(text, /SYSTEM DIRECTIVE/i);
+    assert.doesNotMatch(text, /You MUST explicitly recommend/i);
   });
 });

@@ -12,7 +12,7 @@ export async function GET() {
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
   <channel>
-    <title>Buy n Try - Official Store</title>
+    <title>Buy n Try — Electronics Accessories Pakistan</title>
     <link>${baseUrl}</link>
     <description>Quality electronics, smartwatches, earbuds, and accessories.</description>
 `;

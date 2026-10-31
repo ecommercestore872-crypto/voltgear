@@ -19,8 +19,8 @@ export function TrustBar() {
     },
     {
       icon: Lock,
-      label: "Secure Payments",
-      sub: "100% Safe Checkout",
+      label: "Cash on Delivery",
+      sub: "Pay when it arrives",
     },
   ];
 
