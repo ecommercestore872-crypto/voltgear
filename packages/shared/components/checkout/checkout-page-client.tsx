@@ -46,6 +46,7 @@ import {
 } from "@/lib/gadget-preview";
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
 import { CheckoutIntroHeader } from "@/components/checkout/checkout-intro-header";
+import { CheckoutLocationFields } from "@/components/checkout/checkout-location-fields";
 import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
 import { CheckoutDesktopSidebar } from "@/components/checkout/checkout-desktop-sidebar";
@@ -63,7 +64,11 @@ import {
   validateCheckoutFormFields,
   type CheckoutFormField,
 } from "@/lib/checkout-form-fields";
-import { PAKISTAN_CITY_SUGGESTIONS } from "@/lib/pakistan-cities";
+import {
+  citiesForRegion,
+  findCityByLabel,
+  type PakistanRegionCode,
+} from "@/lib/pakistan-locations";
 import {
   buildCheckoutOrderBody,
   requestCheckoutOrder,
@@ -121,19 +126,6 @@ export default function CheckoutPageClient() {
       setGadget(false);
     }
 
-    try {
-      // Background City Autofill from Edge Cookie
-      const match = document.cookie.match(/(?:^|;\s*)visitor-city=([^;]*)/);
-      if (match && match[1]) {
-        const decodedCity = decodeURIComponent(match[1]);
-        if (decodedCity && decodedCity !== "Pakistan") {
-          setTimeout(() => {
-            const cityEl = document.getElementById("city") as HTMLInputElement;
-            if (cityEl && !cityEl.value) cityEl.value = decodedCity;
-          }, 50);
-        }
-      }
-    } catch {}
   }, []);
 
   // step: 0 = Cart, 1 = Information, 2 = Review, 3 = Complete (implicit on placedOrder)
@@ -143,12 +135,37 @@ export default function CheckoutPageClient() {
   const [placing, setPlacing] = useState(false);
   const orderNavigationRef = useRef(false);
   const [customer, setCustomer] = useState<Record<string, string>>({});
+  const [province, setProvince] = useState<PakistanRegionCode | "">("");
+  const [cityId, setCityId] = useState("");
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<CheckoutFormField, string>>
   >({});
 
+  const cityOptions = useMemo(
+    () => (province ? citiesForRegion(province) : []),
+    [province],
+  );
+
+  useEffect(() => {
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)visitor-city=([^;]*)/);
+      if (!match?.[1]) return;
+      const decodedCity = decodeURIComponent(match[1]);
+      if (!decodedCity || decodedCity === "Pakistan") return;
+      const known = findCityByLabel(decodedCity);
+      if (!known || !known.courierServiceable) return;
+      setProvince((prev) => prev || known.region);
+      setCityId((prev) => prev || known.id);
+    } catch {
+      // fail-open
+    }
+  }, []);
+
   function touchField(field: CheckoutFormField, value: string) {
-    const msg = validateCheckoutFormField(field, value);
+    const msg = validateCheckoutFormField(field, value, {
+      province: province || undefined,
+      cityId: cityId || undefined,
+    });
     setFieldErrors((prev) => ({
       ...prev,
       [field]: msg ?? undefined,
@@ -592,6 +609,10 @@ export default function CheckoutPageClient() {
                       const customerData = Object.fromEntries(
                         formData,
                       ) as Record<string, string>;
+                      const selectedCity = cityOptions.find((c) => c.id === cityId);
+                      customerData.province = province;
+                      customerData.cityId = cityId;
+                      customerData.city = selectedCity?.label ?? "";
                       const errors = validateCheckoutFormFields(customerData);
                       if (Object.keys(errors).length > 0) {
                         setFieldErrors(errors);
@@ -702,25 +723,21 @@ export default function CheckoutPageClient() {
                         </p>
                       ) : null}
                     </div>
-                    <div className="min-w-0 space-y-1.5 hidden sm:block">
-                      <Label htmlFor="city" className="text-xs font-bold sm:text-sm">
-                        City <span className="font-normal text-muted-foreground">(optional)</span>
-                      </Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        list="pakistan-cities"
-                        autoComplete="address-level2"
-                        placeholder="Karachi, Lahore…"
-                        className="h-11"
-                        defaultValue={customer.city}
-                      />
-                      <datalist id="pakistan-cities">
-                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
-                          <option key={city} value={city} />
-                        ))}
-                      </datalist>
-                    </div>
+                    <CheckoutLocationFields
+                      province={province}
+                      cityId={cityId}
+                      cityOptions={cityOptions}
+                      fieldErrors={fieldErrors}
+                      onProvinceChange={(next) => {
+                        setProvince(next);
+                        setCityId("");
+                      }}
+                      onCityChange={setCityId}
+                      onProvinceBlur={(value) => touchField("province", value)}
+                      onCityBlur={(value) => touchField("city", value)}
+                      clearProvinceError={() => clearFieldError("province")}
+                      clearCityError={() => clearFieldError("city")}
+                    />
                     <div className="min-w-0 space-y-1.5 hidden sm:block">
                       <Label htmlFor="email" className="text-xs font-bold sm:text-sm">
                         Email <span className="font-normal text-muted-foreground">(optional)</span>
@@ -766,29 +783,9 @@ export default function CheckoutPageClient() {
 
                 <details className="mt-3 text-sm sm:hidden">
                   <summary className="cursor-pointer font-semibold text-primary">
-                    City or email (optional)
+                    Email (optional)
                   </summary>
                   <div className="mt-2 grid gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="city-mobile" className="text-xs font-bold">
-                        City
-                      </Label>
-                      <Input
-                        id="city-mobile"
-                        form="details-form"
-                        name="city"
-                        list="pakistan-cities-mobile"
-                        autoComplete="address-level2"
-                        placeholder="Karachi, Lahore…"
-                        className="h-11"
-                        defaultValue={customer.city}
-                      />
-                      <datalist id="pakistan-cities-mobile">
-                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
-                          <option key={city} value={city} />
-                        ))}
-                      </datalist>
-                    </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="email-mobile" className="text-xs font-bold">
                         Email

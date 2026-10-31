@@ -205,8 +205,8 @@ export function CatalogView({
           <div className="flex items-center gap-3">
             <Truck className="h-6 w-6 text-primary" />
             <div>
-              <p className="text-sm font-bold">Fast Delivery</p>
-              <p className="text-xs text-muted-foreground">Across Pakistan</p>
+              <p className="text-sm font-bold">Courier delivery</p>
+              <p className="text-xs text-muted-foreground">Major cities nationwide</p>
             </div>
           </div>
           <div className="flex items-center gap-3">

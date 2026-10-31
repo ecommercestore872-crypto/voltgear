@@ -1,11 +1,14 @@
 import { normalizePhone } from "@/lib/messaging";
+import { resolveCheckoutLocation } from "@/lib/pakistan-locations";
 
 export type CheckoutCustomerInput = {
   name?: string;
   email?: string;
   phone?: string;
   address?: string;
+  province?: string;
   city?: string;
+  cityId?: string;
   postal?: string;
   note?: string;
 };
@@ -15,12 +18,14 @@ export type NormalizedCheckoutCustomer = {
   email: string;
   phone: string;
   address: string;
+  province: string;
   city: string;
+  cityId: string;
   postal?: string;
   note?: string;
 };
 
-/** COD-friendly: phone + address matter most; email/city optional. */
+/** COD-friendly: phone + address + delivery location required. */
 export function normalizePhoneForCheckout(raw: string): string | null {
   const strict = normalizePhone(raw);
   if (strict) return strict;
@@ -54,7 +59,6 @@ export function normalizeCheckoutCustomer(
   | { ok: false; error: string } {
   const name = raw?.name?.trim() ?? "";
   const address = raw?.address?.trim() ?? "";
-  const city = raw?.city?.trim() ?? "";
   const phoneRaw = raw?.phone?.trim() ?? "";
 
   if (name.length < 2) {
@@ -79,6 +83,15 @@ export function normalizeCheckoutCustomer(
     };
   }
 
+  const location = resolveCheckoutLocation({
+    province: raw?.province,
+    city: raw?.city,
+    cityId: raw?.cityId,
+  });
+  if (!location.ok) {
+    return { ok: false, error: location.error };
+  }
+
   const email = resolveCheckoutEmail(raw?.email, phone);
   const postal = raw?.postal?.trim() || undefined;
   const note = raw?.note?.trim() || undefined;
@@ -90,7 +103,9 @@ export function normalizeCheckoutCustomer(
       email,
       phone,
       address,
-      city: city || "—",
+      province: location.province,
+      city: location.cityLabel,
+      cityId: location.cityId,
       postal,
       note,
     },

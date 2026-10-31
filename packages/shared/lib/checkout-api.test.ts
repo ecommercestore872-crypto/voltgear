@@ -11,6 +11,8 @@ describe("Checkout API Flow Regression", () => {
         name: "Ali Khan",
         phone: "03001234567",
         address: "House 12, Street 4, Gulberg",
+        province: "PB",
+        cityId: "lahore",
       }).ok,
       true,
     );

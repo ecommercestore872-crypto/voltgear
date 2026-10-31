@@ -1,11 +1,17 @@
 import crypto from "crypto";
 
+import { normalizePhoneForCheckout } from "@/lib/checkout-customer-rules";
 import { purchaseTrackLog } from "@/lib/purchase-track-observability";
 
 export const TIKTOK_CURRENCY = "PKR";
 
 function sha256Hex(value: string): string {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+/** TikTok requires normalized phone before SHA-256 (E.164-style +92…). */
+export function normalizeTikTokPhoneForHash(raw: string): string | null {
+  return normalizePhoneForCheckout(raw);
 }
 
 export async function trackTikTokServerPurchase(input: {
@@ -50,7 +56,7 @@ export async function trackTikTokServerPurchase(input: {
     if (cleanEmail) userPayload.email = sha256Hex(cleanEmail);
   }
   if (input.phone) {
-    const cleanPhone = input.phone.trim();
+    const cleanPhone = normalizeTikTokPhoneForHash(input.phone);
     if (cleanPhone) userPayload.phone_number = sha256Hex(cleanPhone);
   }
 
@@ -102,13 +108,31 @@ export async function trackTikTokServerPurchase(input: {
       signal: AbortSignal.timeout(5000),
     });
     
-    if (!res.ok) {
-      let message = await res.text();
-      try { message = JSON.parse(message).message || message; } catch {}
-      console.error("[tiktok-events-api] API response error:", message);
+    let responseBody: { code?: number; message?: string; request_id?: string } =
+      {};
+    try {
+      responseBody = (await res.json()) as typeof responseBody;
+    } catch {
+      // non-JSON body
+    }
+
+    const requestId = responseBody.request_id;
+    if (!res.ok || (typeof responseBody.code === "number" && responseBody.code !== 0)) {
+      console.error("[tiktok-events-api] API response error:", {
+        httpStatus: res.status,
+        code: responseBody.code,
+        message: responseBody.message,
+        requestId,
+      });
       purchaseTrackLog({ channel: "tiktok", outcome: "failed" });
       return;
     }
+    console.info("[tiktok-events-api] Purchase accepted", {
+      httpStatus: res.status,
+      code: responseBody.code ?? 0,
+      requestId,
+      event_id,
+    });
     purchaseTrackLog({ channel: "tiktok", outcome: "sent" });
   } catch (error) {
     purchaseTrackLog({ channel: "tiktok", outcome: "failed" });

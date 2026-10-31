@@ -20,11 +20,23 @@ describe("checkout-form-fields", () => {
     assert.equal(validateCheckoutFormField("phone", "03001234567"), null);
   });
 
+  it("requires province and city", () => {
+    const errors = validateCheckoutFormFields({
+      name: "Ali Khan",
+      phone: "03001234567",
+      address: "House 12, Street 4, DHA",
+    });
+    assert.ok(errors.province || errors.city);
+  });
+
   it("validateCheckoutFormFields returns empty for good COD payload", () => {
     const errors = validateCheckoutFormFields({
       name: "Ali Khan",
       phone: "03001234567",
       address: "House 12, Street 4, DHA",
+      province: "PB",
+      cityId: "lahore",
+      city: "Lahore",
     });
     assert.deepEqual(errors, {});
   });

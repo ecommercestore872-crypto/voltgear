@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import { describe, it } from "node:test";
-import { trackTikTokServerPurchase } from "./tiktok-events-api";
+import {
+  normalizeTikTokPhoneForHash,
+  trackTikTokServerPurchase,
+} from "./tiktok-events-api";
 
 describe("trackTikTokServerPurchase Click ID mapping", () => {
   it("maps ttclid to context.ad.callback and retains fail-open behavior", async () => {
@@ -12,7 +16,7 @@ describe("trackTikTokServerPurchase Click ID mapping", () => {
       if (init && init.body) {
         payloadStr = init.body.toString();
       }
-      return new Response(JSON.stringify({ code: 0, message: "OK" }), { status: 200, statusText: "OK" });
+      return new Response(JSON.stringify({ code: 0, message: "OK", request_id: "req-1" }), { status: 200, statusText: "OK" });
     };
 
     try {
@@ -27,6 +31,7 @@ describe("trackTikTokServerPurchase Click ID mapping", () => {
         total: 100,
         consent: "all",
         ttclid: "qa-test-123",
+        phone: "0300-1234567",
         lines: [
           { slug: "test-product", quantity: 1, price: 100 }
         ]
@@ -36,6 +41,15 @@ describe("trackTikTokServerPurchase Click ID mapping", () => {
       const payload = JSON.parse(payloadStr);
       assert.equal(payload.context.ad.callback, "qa-test-123", "ttclid mapped incorrectly to TikTok Click ID field");
       assert.equal(payload.event_id, "purchase_TEST-01", "event ID mismatch");
+      const expectedPhoneHash = crypto
+        .createHash("sha256")
+        .update("+923001234567")
+        .digest("hex");
+      assert.equal(
+        payload.context.user.phone_number,
+        expectedPhoneHash,
+        "phone must be E.164-normalized before hash",
+      );
 
       // 2. Execute without ttclid
       payloadStr = "";
@@ -53,5 +67,11 @@ describe("trackTikTokServerPurchase Click ID mapping", () => {
     } finally {
       global.fetch = originalFetch;
     }
+  });
+
+  it("normalizes Pakistani phone variants before hashing", () => {
+    assert.equal(normalizeTikTokPhoneForHash("03001234567"), "+923001234567");
+    assert.equal(normalizeTikTokPhoneForHash("+92 300 1234567"), "+923001234567");
+    assert.equal(normalizeTikTokPhoneForHash("00923001234567"), "+923001234567");
   });
 });

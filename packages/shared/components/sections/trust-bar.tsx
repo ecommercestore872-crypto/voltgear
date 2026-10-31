@@ -14,8 +14,8 @@ export function TrustBar() {
     },
     {
       icon: ShieldCheck,
-      label: "Premium Quality",
-      sub: "Built to last",
+      label: "Inspect at the door",
+      sub: "Open before you pay",
     },
     {
       icon: Lock,

@@ -3,12 +3,23 @@ import {
   normalizePhoneForCheckout,
   type CheckoutCustomerInput,
 } from "@/lib/checkout-customer-rules";
+import {
+  isPakistanRegionCode,
+  resolveCheckoutLocation,
+} from "@/lib/pakistan-locations";
 
-export type CheckoutFormField = "name" | "phone" | "address" | "email";
+export type CheckoutFormField =
+  | "name"
+  | "phone"
+  | "address"
+  | "email"
+  | "province"
+  | "city";
 
 export function validateCheckoutFormField(
   field: CheckoutFormField,
   value: string,
+  ctx?: { province?: string; cityId?: string },
 ): string | null {
   const v = value.trim();
   switch (field) {
@@ -32,6 +43,20 @@ export function validateCheckoutFormField(
       if (!v) return null;
       if (v.includes("@") && v.length >= 5) return null;
       return "Enter a valid email or leave blank.";
+    case "province":
+      if (!v || !isPakistanRegionCode(v.toUpperCase())) {
+        return "Select your province / region.";
+      }
+      return null;
+    case "city": {
+      const location = resolveCheckoutLocation({
+        province: ctx?.province || undefined,
+        city: v,
+        cityId: ctx?.cityId || v,
+      });
+      if (!location.ok) return location.error;
+      return null;
+    }
     default:
       return null;
   }
@@ -42,10 +67,22 @@ export function validateCheckoutFormFields(
   raw: CheckoutCustomerInput,
 ): Partial<Record<CheckoutFormField, string>> {
   const errors: Partial<Record<CheckoutFormField, string>> = {};
-  for (const field of ["name", "phone", "address", "email"] as const) {
+  for (const field of [
+    "name",
+    "phone",
+    "address",
+    "email",
+    "province",
+  ] as const) {
     const msg = validateCheckoutFormField(field, String(raw[field] ?? ""));
     if (msg) errors[field] = msg;
   }
+  const cityMsg = validateCheckoutFormField("city", String(raw.city ?? ""), {
+    province: raw.province,
+    cityId: raw.cityId,
+  });
+  if (cityMsg) errors.city = cityMsg;
+
   if (Object.keys(errors).length === 0) {
     const full = normalizeCheckoutCustomer(raw);
     if (!full.ok) {
