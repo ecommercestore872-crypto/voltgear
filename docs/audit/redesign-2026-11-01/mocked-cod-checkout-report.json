@@ -1,14 +1,38 @@
 {
   "base": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app",
-  "startedAt": "2026-10-31T23:10:08.608Z",
+  "allowedOrigin": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app",
+  "startedAt": "2026-10-31T23:26:51.218Z",
+  "commitHint": null,
   "steps": [],
-  "ok": false,
   "assertions": [
     {
       "ok": false,
-      "message": "PDP price visible",
-      "priceText": null
+      "message": "Protected Preview requires VERCEL_AUTOMATION_BYPASS_SECRET (origin-scoped). Secret absent.",
+      "host": "voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
     }
   ],
-  "error": "Error: ASSERT: PDP price visible {\"priceText\":null}"
+  "facts": {
+    "previewAccess": false,
+    "ssoDetected": false,
+    "bypassConfigured": false,
+    "bypassAppliedOriginScoped": false,
+    "invalidCheckoutPosts": 0,
+    "validCheckoutPosts": 0,
+    "duplicateCheckoutPosts": 0,
+    "errorPosts": {
+      "409": 0,
+      "429": 0,
+      "500": 0
+    },
+    "provincePresent": false,
+    "cityPresent": false,
+    "confirmationVisible": false,
+    "runtimeErrors": 0,
+    "results409": "UNTESTED",
+    "results429": "UNTESTED",
+    "results500": "UNTESTED",
+    "exitCode": 1
+  },
+  "ok": false,
+  "error": "Error: ASSERT: Protected Preview requires VERCEL_AUTOMATION_BYPASS_SECRET (origin-scoped). Secret absent. {\"host\":\"voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app\"}"
 }

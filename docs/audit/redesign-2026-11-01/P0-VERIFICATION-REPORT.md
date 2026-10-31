@@ -1,96 +1,115 @@
 # P0 verification report — PR #34
 
-**Status: NO-GO for merge and paid TikTok traffic**
+**Status: NO-GO** (Draft remains Draft)
 
 | Field | Value |
 | --- | --- |
-| Date (UTC) | 2026-10-31 |
-| Commit SHA | `b4d02a6f78134f65c1464c6fce44765924845779` |
+| Report updated (UTC) | 2026-10-31 |
 | Branch | `redesign/storefront-production-polish` |
-| PR | https://github.com/ecommercestore872-crypto/voltgear/pull/34 (Draft — remains Draft) |
-| Storefront Preview URL | https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app |
-| Vercel deployment | Ready — https://vercel.com/hassaans-projects-e3451522/voltgear/7RbvcVBfLDxp4tf3Kyg1oFRB7nLG |
-| Unit tests | 783 pass (local) |
-| Storefront `next build` | pass (local, prior to this report) |
+| Latest HEAD (docs/script) | see git after push |
+| Code under test (prior harden) | `b4d02a6` / later docs commits |
+| PR | https://github.com/ecommercestore872-crypto/voltgear/pull/34 (Draft) |
+| Vercel storefront project | **voltgear** — `prj_gHAuBl5SMG1FnJ45GeinQN2gNGnB` |
+| Admin project | **OUT OF SCOPE** (`voltgear-admin` / `prj_LgVWqru…`) |
+| Preview URL | https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app |
+| Local bypass env | **`VERCEL_AUTOMATION_BYPASS_SECRET` absent** at last agent check |
+| Playwright exit code (last Preview attempt) | `1` |
 
-Release rule applied: any P0 untested, failed, or ambiguous → **NO-GO**.
-
----
-
-## Gate results
-
-| Priority | Gate | Result | Evidence |
-| --- | --- | --- | --- |
-| P0 | Preview mocked COD checkout | **FAIL** | Script exit `1`. Assert `PDP price visible` failed (`priceText: null`). Root cause: Preview behind Vercel Deployment Protection SSO — browser never reached storefront PDP. |
-| P0 | 390px mobile checkout (province→city, 409/429/500) | **UNTESTED** | Blocked by SSO; no checkout UI reached. |
-| P0 | Preview environment safety (mocked courier, no real booking, no secret leak) | **PARTIAL / UNVERIFIED live** | Code path: `courier-booking-mode` defaults Preview → `mock`; Playwright always intercepts `/api/checkout`. Live Preview env vars / secret exposure not inspected in this run (no secret dumping). |
-| P0 | TikTok Pixel + Events API Purchase dedup | **UNTESTED** | Requires consented Preview session + Events Manager Test Events access. Not exercised. |
-| P0 | CMS claims scrub | **PARTIAL** | Code-side scrub + checklist in `CMS-CLAIM-SCRUB.md`. Admin CMS content sign-off not completed against live Preview. |
-| P1 | Final visual smoke | **UNTESTED** | Blocked by SSO. |
+Release rule: UNTESTED / UNVERIFIED / FAIL / PARTIAL → **NO-GO**.
 
 ---
 
-## Command run (Preview)
+## Gate table
+
+| Check | Result | Evidence | Reason | Next action |
+| --- | --- | --- | --- | --- |
+| Project identity (storefront) | **PASS** | `apps/storefront/.vercel/project.json` | Linked to `voltgear` / `prj_gHAuBl5…` | Keep using `--cwd apps/storefront` |
+| Root Vercel link | **INFO** | `.vercel/project.json` → `voltgear-admin` | Root is admin; do not run unqualified CLI from root | Never `vercel` from root for storefront |
+| Preview SSO / access | **FAIL** | `preview-sso-block-390.png`, `preview-access-evidence.json` | Deployment Protection → Vercel login; bypass secret not in agent env | Create Protection Bypass on **voltgear only**; set local `VERCEL_AUTOMATION_BYPASS_SECRET` (never commit) |
+| Playwright runner harden | **PASS** (code) | `scripts/playwright-mocked-cod-checkout.mjs` | Origin-scoped bypass headers; fail-closed POST/confirmation math; 409/429/500 mocks | Re-run once secret present |
+| Preview mocked COD journey | **FAIL / blocked** | `mocked-cod-checkout-report.json` | Cannot reach storefront without bypass | Re-run Preview with secret |
+| Invalid POST count = 0 | **UNTESTED** on Preview | — | Blocked by access | Re-run |
+| Valid POST count = 1 | **UNTESTED** on Preview | — | Blocked by access | Re-run |
+| Duplicate POST = 0 | **UNTESTED** on Preview | — | Blocked by access | Re-run |
+| Province + city in payload | **UNTESTED** on Preview | — | Blocked by access | Re-run |
+| Confirmation visible | **UNTESTED** on Preview | — | Blocked by access | Re-run |
+| 409 / 429 / 500 UI (390px) | **UNTESTED** on Preview | Script ready | Blocked by access | Re-run |
+| Preview courier safety | **PARTIAL code / UNVERIFIED live env** | `courier-booking-mode.ts` | Code defaults non-production → `mock`; live Preview env vars not inspected (no secret dump) | Read-only Dashboard check: `COURIER_BOOKING_MODE` / `POSTEX_BOOKING_MODE` on Preview |
+| Playwright cannot create real order | **PASS** (design) | script intercepts `**/api/checkout**` | Fulfill mock only | Keep intercept |
+| TikTok Purchase dedup | **UNTESTED** | — | Needs consented Preview + Events Manager | After access; no live Purchase without approval |
+| CMS claims | **PARTIAL** | `CMS-CLAIM-SCRUB.md` | Code scrub done; admin CMS sign-off pending | Manual Preview copy pass |
+
+---
+
+## Playwright runner changes (this cycle)
+
+`scripts/playwright-mocked-cod-checkout.mjs` now:
+
+1. Reads bypass **only** from `process.env.VERCEL_AUTOMATION_BYPASS_SECRET`.
+2. Injects `x-vercel-protection-bypass` + `x-vercel-set-bypass-cookie: true` **only** when `request.url` origin === approved Preview origin (route-based; not context-wide extra headers).
+3. Blocks service workers in the verification context.
+4. Fails immediately on Vercel SSO/login or wrong origin.
+5. Requires invalid → 0 POSTs; success → exactly 1 success POST; confirmationVisible; province+city; COD; idempotency; double-submit → no second success POST.
+6. Mocks 409 / 429 / 500 before success and asserts recovery UI + field retention.
+7. Never writes the secret into the JSON report.
+
+---
+
+## Preview environment safety (separate from mocked checkout)
+
+| Variable / control | Target | Assessment |
+| --- | --- | --- |
+| `COURIER_BOOKING_MODE` / `POSTEX_BOOKING_MODE` | Preview | **UNVERIFIED** live value; code default when unset + `VERCEL_ENV!==production` → `mock` |
+| `courierBookingAllowed()` | Runtime | **PASS** (code): false unless mode `live` |
+| Playwright `/api/checkout` intercept | Test runner | **PASS**: no real order creation during this script |
+| Production customer mutation by opening Preview | — | **UNVERIFIED** without live DB probe (not attempted) |
+| `TIKTOK_TEST_EVENT_CODE` / pixel enabled | Preview | **UNVERIFIED** live; server skips Purchase unless consent=`all` + enabled |
+| Secret values | — | **Not printed** |
+
+---
+
+## Command to run after secret is set (local shell only)
 
 ```powershell
-node .\scripts\playwright-mocked-cod-checkout.mjs "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+# Set VERCEL_AUTOMATION_BYPASS_SECRET in this session (do not echo / commit).
+# Prefer SecureString paste (see prior brief).
+
+node .\scripts\playwright-mocked-cod-checkout.mjs `
+  "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
 $LASTEXITCODE
-# => 1
 ```
 
-### Report artifact
+Expected GO facts:
 
-`docs/audit/redesign-2026-11-01/mocked-cod-checkout-report.json`
-
-```json
-{
-  "base": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app",
-  "ok": false,
-  "assertions": [
-    { "ok": false, "message": "PDP price visible", "priceText": null }
-  ],
-  "error": "Error: ASSERT: PDP price visible {\"priceText\":null}"
-}
+```text
+ssoDetected: false
+invalidCheckoutPosts: 0
+validCheckoutPosts: 1
+duplicateCheckoutPosts: 0
+provincePresent: true
+cityPresent: true
+confirmationVisible: true
+results409/429/500: PASS
+exitCode: 0
 ```
 
-No intercepted `/api/checkout` POSTs (journey never reached checkout).  
-No confirmation URL. No checkout/confirmation screenshots from the COD script (failed at PDP).
+Anything else → remain **NO-GO**.
 
 ---
 
-## Access / SSO evidence
+## Manual Dashboard steps (voltgear only)
 
-HTTP HEAD to Preview PDP returns `302` → `https://vercel.com/sso-api?...`  
-Playwright diagnostic:
+If the bypass secret does not exist yet:
 
-| Field | Observed |
-| --- | --- |
-| Requested | `…/product/universal-active-stylus-pen` |
-| Final URL | `https://vercel.com/login?next=…sso-api…` |
-| Title | `Login – Vercel` |
-| Body | “Log in to Vercel” |
-| Screenshot | `docs/audit/redesign-2026-11-01/preview-sso-block-390.png` |
-| JSON | `docs/audit/redesign-2026-11-01/preview-access-evidence.json` |
-
-**Conclusion:** The fail-closed script correctly refused a green result. The failure is **deployment protection access**, not a proven checkout regression. Checkout behavior on Preview remains **unproven**.
+1. Vercel → Project **voltgear** (`prj_gHAuBl5SMG1FnJ45GeinQN2gNGnB`) → Settings → Deployment Protection.
+2. Keep Deployment Protection **enabled**.
+3. Protection Bypass for Automation → Create (note e.g. `PR34 Playwright`).
+4. Copy secret into local session env only — never into git/PR/screenshots.
+5. Do **not** change `voltgear-admin`, `buyntryy.com`, or production env.
 
 ---
 
-## What is still required before GO
+## Final release rule
 
-1. **Make Preview reachable for automated smoke** without exposing secrets in the report:
-   - Temporary disable Vercel Deployment Protection for this Preview, **or**
-   - Provide `VERCEL_AUTOMATION_BYPASS_SECRET` to CI/local runners only (never commit; never paste into PR text).
-2. Re-run:
-
-   ```powershell
-   node .\scripts\playwright-mocked-cod-checkout.mjs "<reachable-preview-url>"
-   ```
-
-   Pass only if: invalid → 0 POSTs; valid → exactly 1 POST; payload includes province/city + COD + idempotency; screenshots show **checkout** and **confirmation** (not login/search/unstyled).
-3. Manual 390px pass: province→city; mock/simulate 409 / 429 / 500 recovery; no duplicate orders.
-4. TikTok Events Manager Test Events: browser + server `Purchase` with identical `purchase_${orderId}`; confirm dedup metrics. Do not weaken consent.
-5. Admin CMS claim sign-off per `CMS-CLAIM-SCRUB.md`.
-6. Confirm Preview courier mode is mock/disabled and no real PostEx bookings from tests.
-
-Until all P0 rows are **PASS** with unambiguous evidence, **do not merge PR #34** and **do not start paid TikTok traffic**.
+**GO** only when every P0 row is **PASS** with direct evidence.  
+Do not merge PR #34. Do not deploy production. Do not start paid TikTok traffic.
