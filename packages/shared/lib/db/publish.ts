@@ -214,8 +214,8 @@ export function canPublish(
   }
   const category = categoryIsAssignable(input.category, types);
   if (!category.ok) return category;
-  if (input.price == null || !Number.isFinite(input.price) || input.price < 0) {
-    return { ok: false, error: "A non-negative price is required to publish." };
+  if (input.price == null || !Number.isFinite(input.price) || input.price <= 0) {
+    return { ok: false, error: "A price greater than zero is required to publish." };
   }
   const axes = validateVariantAxes({
     colorEnabled: Boolean(input.colorEnabled),

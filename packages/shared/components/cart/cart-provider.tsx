@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { mergeRetainedSku } from "@/lib/cart-sku-rules";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { trackTikTokAddToCart } from "@/lib/tiktok-browser-events";
 import { trackMetaAddToCart } from "@/lib/meta-pixel-events";
 
@@ -90,6 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Hydration/restoration uses setItems from localStorage — never this path.
       const qty = Number(quantity);
       if (!Number.isFinite(qty) || qty <= 0) return;
+      if (!isPurchasablePrice(item.price)) return;
       setItems((prev) => {
         const key = cartLineKey(item);
         const existing = prev.find((i) => cartLineKey(i) === key);
