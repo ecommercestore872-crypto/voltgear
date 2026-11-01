@@ -1,115 +1,90 @@
 # P0 verification report — PR #34
 
-**Status: NO-GO** (Draft remains Draft)
+**Storefront mocked-COD gate:** code fix landed; prior Preview journey was functionally complete and failed only on misclassified mocked HTTP console noise.  
+**Overall release status: NO-GO** until TikTok dedup, CMS claims, and Preview backend safety have independent evidence. PR remains **Draft**.
 
 | Field | Value |
 | --- | --- |
-| Report updated (UTC) | 2026-10-31 |
 | Branch | `redesign/storefront-production-polish` |
-| Latest HEAD (docs/script) | see git after push |
-| Code under test (prior harden) | `b4d02a6` / later docs commits |
 | PR | https://github.com/ecommercestore872-crypto/voltgear/pull/34 (Draft) |
-| Vercel storefront project | **voltgear** — `prj_gHAuBl5SMG1FnJ45GeinQN2gNGnB` |
-| Admin project | **OUT OF SCOPE** (`voltgear-admin` / `prj_LgVWqru…`) |
-| Preview URL | https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app |
-| Local bypass env | **`VERCEL_AUTOMATION_BYPASS_SECRET` absent** at last agent check |
-| Playwright exit code (last Preview attempt) | `1` |
+| Vercel project | `voltgear` / `prj_gHAuBl5SMG1FnJ45GeinQN2gNGnB` |
+| Preview URL used | https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app |
+| App deploy SHA (Ready Preview) | `b4d02a6` (docs/script commits after this were Ignored Build Step) |
+| Gate fix commit | (this push) |
+| Unit tests | **789 pass** (includes new console-error classifier tests) |
 
-Release rule: UNTESTED / UNVERIFIED / FAIL / PARTIAL → **NO-GO**.
+---
+
+## Latest real Preview run (before assertion fix)
+
+Command (user shell with bypass; secret not recorded):
+
+```powershell
+node .\scripts\playwright-mocked-cod-checkout.mjs "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+```
+
+| Fact | Observed |
+| --- | --- |
+| SSO | false (storefront reached) |
+| Invalid checkout POSTs | **0** |
+| Valid success POSTs | **1** |
+| Duplicate success POSTs | **0** |
+| Province / city | **PB / Lahore** (`cityId: lahore`) |
+| results409 / 429 / 500 | **PASS** |
+| Confirmation visible | **true** (`/order/MOCK-001?phone=…`) |
+| Exit code | **1** (incorrect) |
+| Failure | Classified three intentional mocked resource console lines (409/429/500) as `criticalPageErrors` |
+
+Evidence artifact: `docs/audit/redesign-2026-11-01/mocked-cod-checkout-report.json` (pre-fix run).  
+Screenshots present: `mobile-mock-checkout-409.png`, `429`, `500`, `confirmation.png`, cart/checkout fills.
+
+---
+
+## Fix applied
+
+| Change | Purpose |
+| --- | --- |
+| `packages/shared/lib/playwright-checkout-console-errors.mjs` | Match Chromium “Failed to load resource … status of N” **1:1** against recorded intercepted `/api/checkout` mock statuses only |
+| `packages/shared/lib/playwright-checkout-console-errors.test.mjs` | Regression: intended 409/429/500 → no unexpected; extra 500 → fail; JS/`TypeError` → fail |
+| `scripts/playwright-mocked-cod-checkout.mjs` | Record `{status,url}` on each error fulfill; separate `jsExceptions` vs console; use classifier; still fail on unmatched noise |
+
+Does **not** globally ignore all HTTP 409/429/500 console messages.
 
 ---
 
 ## Gate table
 
-| Check | Result | Evidence | Reason | Next action |
-| --- | --- | --- | --- | --- |
-| Project identity (storefront) | **PASS** | `apps/storefront/.vercel/project.json` | Linked to `voltgear` / `prj_gHAuBl5…` | Keep using `--cwd apps/storefront` |
-| Root Vercel link | **INFO** | `.vercel/project.json` → `voltgear-admin` | Root is admin; do not run unqualified CLI from root | Never `vercel` from root for storefront |
-| Preview SSO / access | **FAIL** | `preview-sso-block-390.png`, `preview-access-evidence.json` | Deployment Protection → Vercel login; bypass secret not in agent env | Create Protection Bypass on **voltgear only**; set local `VERCEL_AUTOMATION_BYPASS_SECRET` (never commit) |
-| Playwright runner harden | **PASS** (code) | `scripts/playwright-mocked-cod-checkout.mjs` | Origin-scoped bypass headers; fail-closed POST/confirmation math; 409/429/500 mocks | Re-run once secret present |
-| Preview mocked COD journey | **FAIL / blocked** | `mocked-cod-checkout-report.json` | Cannot reach storefront without bypass | Re-run Preview with secret |
-| Invalid POST count = 0 | **UNTESTED** on Preview | — | Blocked by access | Re-run |
-| Valid POST count = 1 | **UNTESTED** on Preview | — | Blocked by access | Re-run |
-| Duplicate POST = 0 | **UNTESTED** on Preview | — | Blocked by access | Re-run |
-| Province + city in payload | **UNTESTED** on Preview | — | Blocked by access | Re-run |
-| Confirmation visible | **UNTESTED** on Preview | — | Blocked by access | Re-run |
-| 409 / 429 / 500 UI (390px) | **UNTESTED** on Preview | Script ready | Blocked by access | Re-run |
-| Preview courier safety | **PARTIAL code / UNVERIFIED live env** | `courier-booking-mode.ts` | Code defaults non-production → `mock`; live Preview env vars not inspected (no secret dump) | Read-only Dashboard check: `COURIER_BOOKING_MODE` / `POSTEX_BOOKING_MODE` on Preview |
-| Playwright cannot create real order | **PASS** (design) | script intercepts `**/api/checkout**` | Fulfill mock only | Keep intercept |
-| TikTok Purchase dedup | **UNTESTED** | — | Needs consented Preview + Events Manager | After access; no live Purchase without approval |
-| CMS claims | **PARTIAL** | `CMS-CLAIM-SCRUB.md` | Code scrub done; admin CMS sign-off pending | Manual Preview copy pass |
+| Check | Result | Evidence | Notes |
+| --- | --- | --- | --- |
+| Preview access (SSO bypass) | **PASS** (prior run) | report JSON, confirmation URL | Bypass used in user shell only |
+| Invalid POST count = 0 | **PASS** | report | |
+| Valid POST count = 1 | **PASS** | report | |
+| Duplicate success POST = 0 | **PASS** | report | |
+| Province + city in payload | **PASS** | report | |
+| Confirmation visible | **PASS** | screenshot + URL | |
+| 409 / 429 / 500 recovery | **PASS** | screenshots + steps | |
+| Unexpected console/JS gate | **FIXED in code**; **re-run pending in agent** | unit tests PASS | Agent shell lacks `VERCEL_AUTOMATION_BYPASS_SECRET` — re-run required for exit `0` evidence |
+| Preview courier live env | **UNVERIFIED** | code defaults mock | Separate from mocked intercept |
+| TikTok Purchase dedup | **UNTESTED** | — | Do not GO |
+| CMS claims admin sign-off | **PARTIAL** | `CMS-CLAIM-SCRUB.md` | Do not GO |
 
 ---
 
-## Playwright runner changes (this cycle)
+## Re-run (required for exit-code evidence)
 
-`scripts/playwright-mocked-cod-checkout.mjs` now:
-
-1. Reads bypass **only** from `process.env.VERCEL_AUTOMATION_BYPASS_SECRET`.
-2. Injects `x-vercel-protection-bypass` + `x-vercel-set-bypass-cookie: true` **only** when `request.url` origin === approved Preview origin (route-based; not context-wide extra headers).
-3. Blocks service workers in the verification context.
-4. Fails immediately on Vercel SSO/login or wrong origin.
-5. Requires invalid → 0 POSTs; success → exactly 1 success POST; confirmationVisible; province+city; COD; idempotency; double-submit → no second success POST.
-6. Mocks 409 / 429 / 500 before success and asserts recovery UI + field retention.
-7. Never writes the secret into the JSON report.
-
----
-
-## Preview environment safety (separate from mocked checkout)
-
-| Variable / control | Target | Assessment |
-| --- | --- | --- |
-| `COURIER_BOOKING_MODE` / `POSTEX_BOOKING_MODE` | Preview | **UNVERIFIED** live value; code default when unset + `VERCEL_ENV!==production` → `mock` |
-| `courierBookingAllowed()` | Runtime | **PASS** (code): false unless mode `live` |
-| Playwright `/api/checkout` intercept | Test runner | **PASS**: no real order creation during this script |
-| Production customer mutation by opening Preview | — | **UNVERIFIED** without live DB probe (not attempted) |
-| `TIKTOK_TEST_EVENT_CODE` / pixel enabled | Preview | **UNVERIFIED** live; server skips Purchase unless consent=`all` + enabled |
-| Secret values | — | **Not printed** |
-
----
-
-## Command to run after secret is set (local shell only)
+In the shell that already has the bypass secret (do not paste secret into chat/git):
 
 ```powershell
-# Set VERCEL_AUTOMATION_BYPASS_SECRET in this session (do not echo / commit).
-# Prefer SecureString paste (see prior brief).
-
-node .\scripts\playwright-mocked-cod-checkout.mjs `
-  "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+node .\scripts\playwright-mocked-cod-checkout.mjs "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
 $LASTEXITCODE
 ```
 
-Expected GO facts:
-
-```text
-ssoDetected: false
-invalidCheckoutPosts: 0
-validCheckoutPosts: 1
-duplicateCheckoutPosts: 0
-provincePresent: true
-cityPresent: true
-confirmationVisible: true
-results409/429/500: PASS
-exitCode: 0
-```
-
-Anything else → remain **NO-GO**.
+Expect: `exitCode: 0`, `runtimeErrors: 0`, `matchedExpectedConsoleStatuses: [409,429,500]`.
 
 ---
 
-## Manual Dashboard steps (voltgear only)
+## Release rule
 
-If the bypass secret does not exist yet:
-
-1. Vercel → Project **voltgear** (`prj_gHAuBl5SMG1FnJ45GeinQN2gNGnB`) → Settings → Deployment Protection.
-2. Keep Deployment Protection **enabled**.
-3. Protection Bypass for Automation → Create (note e.g. `PR34 Playwright`).
-4. Copy secret into local session env only — never into git/PR/screenshots.
-5. Do **not** change `voltgear-admin`, `buyntryy.com`, or production env.
-
----
-
-## Final release rule
-
-**GO** only when every P0 row is **PASS** with direct evidence.  
-Do not merge PR #34. Do not deploy production. Do not start paid TikTok traffic.
+Mocked COD UI gate may become PASS after exit-`0` re-run.  
+**Full PR GO** still requires TikTok deduplication, CMS claims, and Preview backend safety with independent evidence.  
+Do not merge. Do not start paid traffic.

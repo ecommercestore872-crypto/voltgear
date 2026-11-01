@@ -8,6 +8,7 @@
 import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
+import { classifyCheckoutConsoleErrors } from "../packages/shared/lib/playwright-checkout-console-errors.mjs";
 
 const BASE = (process.argv[2] || "http://127.0.0.1:3000").replace(/\/$/, "");
 const OUT = path.resolve("docs/audit/redesign-2026-11-01");
@@ -32,6 +33,7 @@ const facts = {
   cityPresent: false,
   confirmationVisible: false,
   runtimeErrors: 0,
+  matchedExpectedConsoleStatuses: [],
   results409: "UNTESTED",
   results429: "UNTESTED",
   results500: "UNTESTED",
@@ -112,6 +114,8 @@ let checkoutMode = "success";
 const checkoutPosts = [];
 /** @type {unknown[]} */
 const successPosts = [];
+/** @type {{ status: 409|429|500, url: string }[]} */
+const expectedCheckoutHttpErrors = [];
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
@@ -120,12 +124,15 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 
-const pageErrors = [];
+/** Uncaught JS exceptions — never treated as expected HTTP mock noise. */
+const jsExceptions = [];
+/** Console error strings (may include Chromium failed-resource noise). */
+const consoleErrors = [];
 page.on("pageerror", (error) =>
-  pageErrors.push(String(error.message || error)),
+  jsExceptions.push(String(error.message || error)),
 );
 page.on("console", (msg) => {
-  if (msg.type() === "error") pageErrors.push(msg.text());
+  if (msg.type() === "error") consoleErrors.push(msg.text());
 });
 
 // Origin-scoped bypass — never attach secret to third-party origins.
@@ -159,8 +166,11 @@ await page.route("**/api/checkout**", async (route) => {
   }
   checkoutPosts.push({ mode: checkoutMode, body });
 
+  const requestUrl = route.request().url();
+
   if (checkoutMode === "409") {
     facts.errorPosts["409"] += 1;
+    expectedCheckoutHttpErrors.push({ status: 409, url: requestUrl });
     await route.fulfill({
       status: 409,
       contentType: "application/json",
@@ -179,6 +189,7 @@ await page.route("**/api/checkout**", async (route) => {
   }
   if (checkoutMode === "429") {
     facts.errorPosts["429"] += 1;
+    expectedCheckoutHttpErrors.push({ status: 429, url: requestUrl });
     await route.fulfill({
       status: 429,
       contentType: "application/json",
@@ -191,6 +202,7 @@ await page.route("**/api/checkout**", async (route) => {
   }
   if (checkoutMode === "500") {
     facts.errorPosts["500"] += 1;
+    expectedCheckoutHttpErrors.push({ status: 500, url: requestUrl });
     await route.fulfill({
       status: 500,
       contentType: "application/json",
@@ -465,13 +477,31 @@ try {
   await readyShot(page, "mobile-mock-checkout-confirmation.png");
   step("confirmation", { url: page.url() });
 
-  const criticalPageErrors = pageErrors.filter(
-    (e) =>
-      !/favicon|third-party|tiktok|facebook|clarity|gtag|ads|vercel/i.test(e),
+  assert(
+    expectedCheckoutHttpErrors.length === 3 &&
+      expectedCheckoutHttpErrors.map((e) => e.status).join(",") ===
+        "409,429,500",
+    "Recorded intercepted checkout error statuses must be 409,429,500",
+    {
+      expectedCheckoutHttpErrors: expectedCheckoutHttpErrors.map((e) => ({
+        status: e.status,
+        path: new URL(e.url).pathname,
+      })),
+    },
   );
-  facts.runtimeErrors = criticalPageErrors.length;
-  assert(facts.runtimeErrors === 0, "No unexpected page errors", {
-    criticalPageErrors,
+
+  const classified = classifyCheckoutConsoleErrors(
+    consoleErrors,
+    expectedCheckoutHttpErrors,
+  );
+  const unexpected = [...jsExceptions, ...classified.unexpected];
+  facts.runtimeErrors = unexpected.length;
+  facts.matchedExpectedConsoleStatuses = classified.matchedExpectedStatuses;
+  assert(unexpected.length === 0, "No unexpected page errors", {
+    unexpected,
+    jsExceptions,
+    matchedExpectedConsoleStatuses: classified.matchedExpectedStatuses,
+    expectedCheckoutHttpErrors: expectedCheckoutHttpErrors.map((e) => e.status),
   });
 
   // Mathematical fail-closed gate

@@ -1,38 +1,276 @@
 {
   "base": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app",
   "allowedOrigin": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app",
-  "startedAt": "2026-10-31T23:26:51.218Z",
+  "startedAt": "2026-11-01T01:59:05.997Z",
   "commitHint": null,
-  "steps": [],
+  "steps": [
+    {
+      "name": "pdp-price-visible",
+      "priceText": "Price: Rs 1,999 PKR",
+      "priceNum": 1999,
+      "at": "2026-11-01T01:59:12.625Z"
+    },
+    {
+      "name": "add-to-cart",
+      "at": "2026-11-01T01:59:13.149Z"
+    },
+    {
+      "name": "cart-filled",
+      "cartHasItem": true,
+      "at": "2026-11-01T01:59:14.216Z"
+    },
+    {
+      "name": "validation-zero-posts",
+      "at": "2026-11-01T01:59:17.980Z"
+    },
+    {
+      "name": "error-409",
+      "at": "2026-11-01T01:59:19.499Z"
+    },
+    {
+      "name": "error-429",
+      "at": "2026-11-01T01:59:19.854Z"
+    },
+    {
+      "name": "error-500",
+      "at": "2026-11-01T01:59:20.132Z"
+    },
+    {
+      "name": "confirmation",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/order/MOCK-001?phone=03001234567",
+      "at": "2026-11-01T01:59:23.044Z"
+    }
+  ],
   "assertions": [
     {
+      "ok": true,
+      "message": "Must not land on Vercel SSO/login",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/product/universal-active-stylus-pen",
+      "title": "Universal Active Stylus Pen – iPad, Android, iPhone & Touchscreen Price in Pakis"
+    },
+    {
+      "ok": true,
+      "message": "Must stay on approved Preview origin",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/product/universal-active-stylus-pen",
+      "allowedOrigin": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+    },
+    {
+      "ok": true,
+      "message": "Expected path prefix /product/",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/product/universal-active-stylus-pen"
+    },
+    {
+      "ok": true,
+      "message": "PDP positive price visible",
+      "priceText": "Price: Rs 1,999 PKR",
+      "priceNum": 1999
+    },
+    {
+      "ok": true,
+      "message": "Add to cart enabled"
+    },
+    {
+      "ok": true,
+      "message": "Must not land on Vercel SSO/login",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/cart",
+      "title": "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan"
+    },
+    {
+      "ok": true,
+      "message": "Must stay on approved Preview origin",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/cart",
+      "allowedOrigin": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+    },
+    {
+      "ok": true,
+      "message": "Expected path prefix /cart",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/cart"
+    },
+    {
+      "ok": true,
+      "message": "Cart retains expected item"
+    },
+    {
+      "ok": true,
+      "message": "Must not land on Vercel SSO/login",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/checkout",
+      "title": "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan"
+    },
+    {
+      "ok": true,
+      "message": "Must stay on approved Preview origin",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/checkout",
+      "allowedOrigin": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+    },
+    {
+      "ok": true,
+      "message": "Expected path prefix /checkout",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/checkout"
+    },
+    {
+      "ok": true,
+      "message": "Checkout phone field visible"
+    },
+    {
+      "ok": true,
+      "message": "Invalid form must produce zero checkout POSTs",
+      "posts": 0
+    },
+    {
+      "ok": true,
+      "message": "Province select present"
+    },
+    {
+      "ok": true,
+      "message": "City options populated after province",
+      "cityOptions": 16
+    },
+    {
+      "ok": true,
+      "message": "409 must keep user on checkout",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/checkout"
+    },
+    {
+      "ok": true,
+      "message": "409 must not produce success order"
+    },
+    {
+      "ok": true,
+      "message": "Name retained after error",
+      "nameVal": "Test Shopper"
+    },
+    {
+      "ok": true,
+      "message": "Phone retained after error",
+      "phoneVal": "03001234567"
+    },
+    {
+      "ok": true,
+      "message": "429 stays on checkout"
+    },
+    {
+      "ok": true,
+      "message": "429 must not produce success order"
+    },
+    {
+      "ok": true,
+      "message": "Name retained after error",
+      "nameVal": "Test Shopper"
+    },
+    {
+      "ok": true,
+      "message": "Phone retained after error",
+      "phoneVal": "03001234567"
+    },
+    {
+      "ok": true,
+      "message": "500 stays on checkout"
+    },
+    {
+      "ok": true,
+      "message": "500 must not produce success order"
+    },
+    {
+      "ok": true,
+      "message": "Name retained after error",
+      "nameVal": "Test Shopper"
+    },
+    {
+      "ok": true,
+      "message": "Phone retained after error",
+      "phoneVal": "03001234567"
+    },
+    {
+      "ok": true,
+      "message": "Valid submit must produce exactly one success checkout POST",
+      "successPosts": 1,
+      "beforeSuccess": 0
+    },
+    {
+      "ok": true,
+      "message": "Double submit must not create second success POST",
+      "successPosts": 1
+    },
+    {
+      "ok": true,
+      "message": "Payment method is COD",
+      "payment": {
+        "method": "cod"
+      }
+    },
+    {
+      "ok": true,
+      "message": "Payload includes cart items",
+      "items": 1
+    },
+    {
+      "ok": true,
+      "message": "Payload includes province",
+      "province": "PB"
+    },
+    {
+      "ok": true,
+      "message": "Payload includes city",
+      "city": "Lahore",
+      "cityId": "lahore"
+    },
+    {
+      "ok": true,
+      "message": "Payload includes customer name/phone"
+    },
+    {
+      "ok": true,
+      "message": "Payload includes idempotency key"
+    },
+    {
+      "ok": true,
+      "message": "Must not land on Vercel SSO/login",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/order/MOCK-001?phone=03001234567",
+      "title": ""
+    },
+    {
+      "ok": true,
+      "message": "Must stay on approved Preview origin",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/order/MOCK-001?phone=03001234567",
+      "allowedOrigin": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+    },
+    {
+      "ok": true,
+      "message": "Expected path prefix /order/",
+      "url": "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app/order/MOCK-001?phone=03001234567"
+    },
+    {
       "ok": false,
-      "message": "Protected Preview requires VERCEL_AUTOMATION_BYPASS_SECRET (origin-scoped). Secret absent.",
-      "host": "voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+      "message": "No unexpected page errors",
+      "criticalPageErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ]
     }
   ],
   "facts": {
-    "previewAccess": false,
+    "previewAccess": true,
     "ssoDetected": false,
-    "bypassConfigured": false,
-    "bypassAppliedOriginScoped": false,
+    "bypassConfigured": true,
+    "bypassAppliedOriginScoped": true,
     "invalidCheckoutPosts": 0,
-    "validCheckoutPosts": 0,
+    "validCheckoutPosts": 1,
     "duplicateCheckoutPosts": 0,
     "errorPosts": {
-      "409": 0,
-      "429": 0,
-      "500": 0
+      "409": 1,
+      "429": 1,
+      "500": 1
     },
-    "provincePresent": false,
-    "cityPresent": false,
-    "confirmationVisible": false,
-    "runtimeErrors": 0,
-    "results409": "UNTESTED",
-    "results429": "UNTESTED",
-    "results500": "UNTESTED",
+    "provincePresent": true,
+    "cityPresent": true,
+    "confirmationVisible": true,
+    "runtimeErrors": 3,
+    "results409": "PASS",
+    "results429": "PASS",
+    "results500": "PASS",
     "exitCode": 1
   },
   "ok": false,
-  "error": "Error: ASSERT: Protected Preview requires VERCEL_AUTOMATION_BYPASS_SECRET (origin-scoped). Secret absent. {\"host\":\"voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app\"}"
+  "error": "Error: ASSERT: No unexpected page errors {\"criticalPageErrors\":[\"Failed to load resource: the server responded with a status of 409 (Conflict)\",\"Failed to load resource: the server responded with a status of 429 (Too Many Requests)\",\"Failed to load resource: the server responded with a status of 500 (Internal Server Error)\"]}"
 }
