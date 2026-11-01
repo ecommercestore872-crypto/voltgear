@@ -1,90 +1,63 @@
 # P0 verification report — PR #34
 
-**Storefront mocked-COD gate:** code fix landed; prior Preview journey was functionally complete and failed only on misclassified mocked HTTP console noise.  
-**Overall release status: NO-GO** until TikTok dedup, CMS claims, and Preview backend safety have independent evidence. PR remains **Draft**.
+**Status: NO-GO for paid traffic / merge** until TikTok dedup, CMS claims, Preview backend safety, and a green exit-`0` Preview COD run on a deployment that includes the cart hydration fix.
+
+PR #34 remains **Draft**.
 
 | Field | Value |
 | --- | --- |
 | Branch | `redesign/storefront-production-polish` |
-| PR | https://github.com/ecommercestore872-crypto/voltgear/pull/34 (Draft) |
-| Vercel project | `voltgear` / `prj_gHAuBl5SMG1FnJ45GeinQN2gNGnB` |
-| Preview URL used | https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app |
-| App deploy SHA (Ready Preview) | `b4d02a6` (docs/script commits after this were Ignored Build Step) |
-| Gate fix commit | (this push) |
-| Unit tests | **789 pass** (includes new console-error classifier tests) |
+| Cart race fix | `packages/shared/lib/cart-hydration-rules.ts` + `cart-provider.tsx` |
+| Playwright harden | `scripts/playwright-mocked-cod-checkout.mjs` (storage + UI + checkout-link path) |
+| Unit tests | **794 pass** |
 
 ---
 
-## Latest real Preview run (before assertion fix)
+## Root cause (cart empty at checkout)
 
-Command (user shell with bypass; secret not recorded):
+`CartProvider` hydrated with:
 
-```powershell
-node .\scripts\playwright-mocked-cod-checkout.mjs "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
+```ts
+if (raw) setItems(JSON.parse(raw));
 ```
 
-| Fact | Observed |
-| --- | --- |
-| SSO | false (storefront reached) |
-| Invalid checkout POSTs | **0** |
-| Valid success POSTs | **1** |
-| Duplicate success POSTs | **0** |
-| Province / city | **PB / Lahore** (`cityId: lahore`) |
-| results409 / 429 / 500 | **PASS** |
-| Confirmation visible | **true** (`/order/MOCK-001?phone=…`) |
-| Exit code | **1** (incorrect) |
-| Failure | Classified three intentional mocked resource console lines (409/429/500) as `criticalPageErrors` |
+When `localStorage["ecomm-cart"]` was `"[]"` (truthy), a hydrate that ran **after** a fast `addItem` could **replace** the in-memory cart with `[]`. Combined with Playwright’s weak cart check (`text=/stylus|Rs/i`), the script could report `cartHasItem: true` from PDP residue while checkout correctly showed **Your cart is empty**.
 
-Evidence artifact: `docs/audit/redesign-2026-11-01/mocked-cod-checkout-report.json` (pre-fix run).  
-Screenshots present: `mobile-mock-checkout-409.png`, `429`, `500`, `confirmation.png`, cart/checkout fills.
+### Production fix
 
----
+1. `mergeCartHydration(current, stored)` — if memory already has lines, keep them (do not let empty storage wipe a prior add).
+2. Sync `localStorage` write inside `addItem` / qty / remove / clear when hydrated, so rapid navigation cannot skip the persist effect.
+3. `data-cart-hydrated` / `data-cart-count` on `<html>` for deterministic waits.
 
-## Fix applied
+### Playwright fix
 
-| Change | Purpose |
-| --- | --- |
-| `packages/shared/lib/playwright-checkout-console-errors.mjs` | Match Chromium “Failed to load resource … status of N” **1:1** against recorded intercepted `/api/checkout` mock statuses only |
-| `packages/shared/lib/playwright-checkout-console-errors.test.mjs` | Regression: intended 409/429/500 → no unexpected; extra 500 → fail; JS/`TypeError` → fail |
-| `scripts/playwright-mocked-cod-checkout.mjs` | Record `{status,url}` on each error fulfill; separate `jsExceptions` vs console; use classifier; still fail on unmatched noise |
+- Wait for `dataset.cartHydrated === "true"` before add.
+- Assert `localStorage["ecomm-cart"]` contains expected **slug**, **qty > 0**, **price > 0**.
+- Assert cart UI product link for the slug (not generic `Rs`).
+- Reload cart and re-assert persistence.
+- Use **Proceed to Checkout** link; also re-check direct `/checkout`.
+- Fail if checkout shows empty-cart heading.
 
-Does **not** globally ignore all HTTP 409/429/500 console messages.
+Regression unit tests: `cart-hydration-rules.test.ts`.
 
 ---
 
 ## Gate table
 
-| Check | Result | Evidence | Notes |
-| --- | --- | --- | --- |
-| Preview access (SSO bypass) | **PASS** (prior run) | report JSON, confirmation URL | Bypass used in user shell only |
-| Invalid POST count = 0 | **PASS** | report | |
-| Valid POST count = 1 | **PASS** | report | |
-| Duplicate success POST = 0 | **PASS** | report | |
-| Province + city in payload | **PASS** | report | |
-| Confirmation visible | **PASS** | screenshot + URL | |
-| 409 / 429 / 500 recovery | **PASS** | screenshots + steps | |
-| Unexpected console/JS gate | **FIXED in code**; **re-run pending in agent** | unit tests PASS | Agent shell lacks `VERCEL_AUTOMATION_BYPASS_SECRET` — re-run required for exit `0` evidence |
-| Preview courier live env | **UNVERIFIED** | code defaults mock | Separate from mocked intercept |
-| TikTok Purchase dedup | **UNTESTED** | — | Do not GO |
-| CMS claims admin sign-off | **PARTIAL** | `CMS-CLAIM-SCRUB.md` | Do not GO |
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Root cause identified | **PASS** | hydrate wipe + weak assertion |
+| Production cart fix | **PASS** (code) | cart-provider + hydration rules |
+| Playwright assertions | **PASS** (code) | storage/UI/checkout-link |
+| Unit tests | **PASS** | 794 |
+| Storefront build | (run in CI / local this session) | |
+| Preview COD exit 0 on fixed deploy | **PENDING** | Needs Ready Preview of this commit + bypass in runner |
+| TikTok / CMS / Preview courier env | **UNTESTED / UNVERIFIED** | Release still NO-GO |
 
 ---
 
-## Re-run (required for exit-code evidence)
+## Safety
 
-In the shell that already has the bypass secret (do not paste secret into chat/git):
-
-```powershell
-node .\scripts\playwright-mocked-cod-checkout.mjs "https://voltgear-git-redesign-storefr-bcd7ea-hassaans-projects-e3451522.vercel.app"
-$LASTEXITCODE
-```
-
-Expect: `exitCode: 0`, `runtimeErrors: 0`, `matchedExpectedConsoleStatuses: [409,429,500]`.
-
----
-
-## Release rule
-
-Mocked COD UI gate may become PASS after exit-`0` re-run.  
-**Full PR GO** still requires TikTok deduplication, CMS claims, and Preview backend safety with independent evidence.  
-Do not merge. Do not start paid traffic.
+- No fake cart preload to pass tests.
+- Checkout still intercepts `/api/checkout` (no real orders).
+- Admin / production / Supabase untouched.

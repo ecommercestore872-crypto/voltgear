@@ -15,6 +15,8 @@ const OUT = path.resolve("docs/audit/redesign-2026-11-01");
 fs.mkdirSync(OUT, { recursive: true });
 
 const PDP = "/product/universal-active-stylus-pen";
+const EXPECTED_SLUG = "universal-active-stylus-pen";
+const CART_STORAGE_KEY = "ecomm-cart";
 const BYPASS = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "";
 const preview = new URL(BASE);
 const allowedOrigin = preview.origin;
@@ -106,6 +108,69 @@ async function readyShot(page, fileName) {
   await page.evaluate(() => document.fonts.ready).catch(() => {});
   await page.locator("main, body").first().waitFor({ state: "visible" });
   await page.screenshot({ path: path.join(OUT, fileName), fullPage: true });
+}
+
+async function waitCartHydrated(page) {
+  await page.waitForFunction(
+    () => document.documentElement.dataset.cartHydrated === "true",
+    null,
+    { timeout: 20000 },
+  );
+}
+
+async function waitCartStorageHasSlug(page, slug) {
+  await page.waitForFunction(
+    ({ key, expectedSlug }) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+        const items = JSON.parse(raw);
+        if (!Array.isArray(items)) return false;
+        return items.some(
+          (i) =>
+            i &&
+            i.slug === expectedSlug &&
+            Number(i.quantity) > 0 &&
+            Number(i.price) > 0,
+        );
+      } catch {
+        return false;
+      }
+    },
+    { key: CART_STORAGE_KEY, expectedSlug: slug },
+    { timeout: 15000 },
+  );
+}
+
+async function readCartStorage(page) {
+  return page.evaluate((key) => {
+    try {
+      return JSON.parse(localStorage.getItem(key) || "[]");
+    } catch {
+      return [];
+    }
+  }, CART_STORAGE_KEY);
+}
+
+async function assertCartUiHasProduct(page, slug) {
+  const empty = page.getByRole("heading", { name: /your cart is empty/i });
+  assert(
+    (await empty.count()) === 0 || !(await empty.isVisible().catch(() => false)),
+    "Cart page must not show empty state",
+  );
+  const productLink = page.locator(`a[href*="/product/${slug}"]`).first();
+  await productLink.waitFor({ state: "visible", timeout: 15000 });
+  assert(await productLink.isVisible(), "Cart renders expected product link", {
+    slug,
+  });
+}
+
+async function assertCheckoutNotEmpty(page) {
+  const empty = page.getByRole("heading", { name: /your cart is empty/i });
+  const emptyVisible = await empty.isVisible().catch(() => false);
+  assert(!emptyVisible, "Checkout must not show empty cart", {
+    url: page.url(),
+  });
 }
 
 /** @type {"success"|"409"|"429"|"500"} */
@@ -261,6 +326,7 @@ try {
   });
   await assertStorefrontAccess(page, "/product/");
   await page.evaluate(() => document.fonts.ready).catch(() => {});
+  await waitCartHydrated(page);
 
   const priceText = await page
     .locator("text=/Rs\\s*[0-9]/")
@@ -280,31 +346,67 @@ try {
   await add.waitFor({ state: "visible", timeout: 15000 });
   assert(!(await add.isDisabled()), "Add to cart enabled");
   await add.click();
-  await page
-    .getByRole("button", { name: /add to cart|order with cod/i })
-    .first()
-    .waitFor({ state: "visible", timeout: 5000 })
-    .catch(() => {});
+  await waitCartStorageHasSlug(page, EXPECTED_SLUG);
+  const storedAfterAdd = await readCartStorage(page);
+  const line = storedAfterAdd.find((i) => i.slug === EXPECTED_SLUG);
+  assert(
+    line && line.quantity > 0 && Number(line.price) > 0,
+    "localStorage ecomm-cart has expected slug with qty/price",
+    { line, storedAfterAdd },
+  );
   await readyShot(page, "mobile-mock-after-add.png");
-  step("add-to-cart");
+  step("add-to-cart", {
+    slug: EXPECTED_SLUG,
+    quantity: line.quantity,
+    price: line.price,
+  });
 
+  // Customer journey: open cart, confirm UI + storage, reload persistence
   await page.goto(`${BASE}/cart`, { waitUntil: "domcontentloaded" });
   await assertStorefrontAccess(page, "/cart");
-  const cartHasItem =
-    (await page.locator("text=/stylus|Rs/i").count()) > 0 ||
-    (await page.getByRole("link", { name: /stylus/i }).count()) > 0;
-  assert(cartHasItem, "Cart retains expected item");
+  await waitCartHydrated(page);
+  await waitCartStorageHasSlug(page, EXPECTED_SLUG);
+  await assertCartUiHasProduct(page, EXPECTED_SLUG);
   await readyShot(page, "mobile-mock-cart-filled.png");
-  step("cart-filled", { cartHasItem });
+  step("cart-filled", { slug: EXPECTED_SLUG });
 
-  await page.goto(`${BASE}/checkout`, { waitUntil: "domcontentloaded" });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await waitCartHydrated(page);
+  await waitCartStorageHasSlug(page, EXPECTED_SLUG);
+  await assertCartUiHasProduct(page, EXPECTED_SLUG);
+  step("cart-reload-persisted", { slug: EXPECTED_SLUG });
+
+  // Normal path: Checkout link from cart (not only direct URL)
+  const checkoutCta = page
+    .getByRole("link", { name: /proceed to checkout|^checkout$/i })
+    .first();
+  await checkoutCta.waitFor({ state: "visible", timeout: 15000 });
+  await checkoutCta.click();
+  await page.waitForURL(/\/checkout\/?$/, { timeout: 20000 });
   await assertStorefrontAccess(page, "/checkout");
+  await waitCartHydrated(page);
+  await waitCartStorageHasSlug(page, EXPECTED_SLUG);
+  await assertCheckoutNotEmpty(page);
   await page.evaluate(() => document.fonts.ready).catch(() => {});
 
-  const phone = page.locator('input[name="phone"], #phone, input[type="tel"]').first();
-  await phone.waitFor({ state: "visible", timeout: 20000 });
-  assert((await phone.count()) > 0, "Checkout phone field visible");
+  let phoneField = page
+    .locator('input[name="phone"], #phone, input[type="tel"]')
+    .first();
+  await phoneField.waitFor({ state: "visible", timeout: 20000 });
+  assert((await phoneField.count()) > 0, "Checkout delivery form (phone) visible");
   await readyShot(page, "mobile-mock-checkout-empty-fields.png");
+  step("checkout-form-visible", { slug: EXPECTED_SLUG });
+
+  // Separate check: direct /checkout navigation still sees cart
+  await page.goto(`${BASE}/checkout`, { waitUntil: "domcontentloaded" });
+  await waitCartHydrated(page);
+  await waitCartStorageHasSlug(page, EXPECTED_SLUG);
+  await assertCheckoutNotEmpty(page);
+  phoneField = page
+    .locator('input[name="phone"], #phone, input[type="tel"]')
+    .first();
+  await phoneField.waitFor({ state: "visible", timeout: 20000 });
+  step("checkout-direct-nav-persisted");
 
   const submit = page
     .getByRole("button", { name: /place order|confirm order/i })
@@ -329,7 +431,7 @@ try {
   step("validation-zero-posts");
 
   await page.locator('input[name="name"], #name').first().fill("Test Shopper");
-  await phone.fill("03001234567");
+  await phoneField.fill("03001234567");
   await page
     .locator('input[name="address"], #address')
     .first()
@@ -354,7 +456,7 @@ try {
   // Preserve field values across error recoveries
   async function assertFieldsRetained() {
     const nameVal = await page.locator("#name").inputValue();
-    const phoneVal = await phone.inputValue();
+    const phoneVal = await phoneField.inputValue();
     assert(/Test Shopper/i.test(nameVal), "Name retained after error", {
       nameVal,
     });
