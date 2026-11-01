@@ -173,6 +173,16 @@ async function assertCheckoutNotEmpty(page) {
   });
 }
 
+async function dismissCookieBannerIfPresent(page) {
+  const banner = page.getByRole("dialog", { name: /cookie consent/i });
+  if (!(await banner.isVisible().catch(() => false))) return;
+  const essentials = banner.getByRole("button", { name: /essentials/i });
+  if (await essentials.isVisible().catch(() => false)) {
+    await essentials.click();
+    await banner.waitFor({ state: "hidden", timeout: 5000 }).catch(() => {});
+  }
+}
+
 /** @type {"success"|"409"|"429"|"500"} */
 let checkoutMode = "success";
 /** @type {unknown[]} */
@@ -186,6 +196,14 @@ const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
   serviceWorkers: "block",
+});
+// Consent only — never seed cart. Prevents cookie banner from intercepting Checkout CTA.
+await context.addInitScript(() => {
+  try {
+    window.localStorage.setItem("bnt-cookie-consent", "essential");
+  } catch {
+    // ignore
+  }
 });
 const page = await context.newPage();
 
@@ -377,12 +395,13 @@ try {
   step("cart-reload-persisted", { slug: EXPECTED_SLUG });
 
   // Normal path: Checkout link from cart (not only direct URL)
+  await dismissCookieBannerIfPresent(page);
   const checkoutCta = page
     .getByRole("link", { name: /proceed to checkout|^checkout$/i })
     .first();
   await checkoutCta.waitFor({ state: "visible", timeout: 15000 });
-  await checkoutCta.click();
-  await page.waitForURL(/\/checkout\/?$/, { timeout: 20000 });
+  await checkoutCta.click({ timeout: 15000 });
+  await page.waitForURL(/\/checkout/, { timeout: 20000 });
   await assertStorefrontAccess(page, "/checkout");
   await waitCartHydrated(page);
   await waitCartStorageHasSlug(page, EXPECTED_SLUG);
