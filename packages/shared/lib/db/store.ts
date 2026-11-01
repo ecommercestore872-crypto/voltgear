@@ -19,6 +19,7 @@ export {
   getDeliveredOrdersWithItemsForDeals,
   getLightweightOrders,
   getOrderByPublicId,
+  getOrderByIdempotencyKey,
   getOrdersByEmail,
   getOrdersByPhone,
   listDeliveredOrdersForDealSuggestions,

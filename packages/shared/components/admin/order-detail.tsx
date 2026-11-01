@@ -19,6 +19,7 @@ import {
 } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+import { pakistanProvinceLabel } from "@/lib/pakistan-locations";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   new: "New",
@@ -360,6 +361,11 @@ export function OrderDetail({
                 PostEx tracking: {postexTracking}
               </p>
             ) : null}
+            {!postexTracking && customer.province ? (
+              <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+                Verify PostEx coverage for {customer.city || "this city"} before dispatch. Unlisted towns need manual review or a delivery alternative.
+              </p>
+            ) : null}
           </div>
 
           {/* PostEx Dispatch Actions */}
@@ -471,6 +477,12 @@ export function OrderDetail({
             <dt className="text-muted-foreground">City</dt>
             <dd>{customer.city || "—"}</dd>
           </div>
+          {customer.province ? (
+            <div>
+              <dt className="text-muted-foreground">Province / region</dt>
+              <dd>{pakistanProvinceLabel(customer.province) ?? customer.province}</dd>
+            </div>
+          ) : null}
           <div className="sm:col-span-2">
             <dt className="text-muted-foreground">Address</dt>
             <dd>{customer.address || "—"}</dd>

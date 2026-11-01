@@ -46,6 +46,13 @@ describe("resolvePostExOperationalCityName", () => {
     assert.equal(result.cityName, "Lahore");
   });
 
+  it("maps a known province-specific alias to the courier city", () => {
+    assert.deepEqual(
+      resolvePostExOperationalCityName("Pindi", ["Rawalpindi"], "punjab"),
+      { ok: true, cityName: "Rawalpindi" },
+    );
+  });
+
   it("rejects an unsupported city", () => {
     assert.equal(
       resolvePostExOperationalCityName("Quetta", OPERATIONAL_CITIES).ok,

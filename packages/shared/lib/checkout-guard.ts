@@ -18,7 +18,7 @@ const checkoutEmailLimiter = createMemoryRateLimiter({
  * This map is strictly a fast local optimization for rapid-fire clicks
  * and does NOT represent strict distributed idempotency.
  */
-const idempotencyCache = new Map<string, { orderId: string; at: number }>();
+const idempotencyCache = new Map<string, { orderId: string; fingerprint: string; at: number }>();
 const IDEMPOTENCY_TTL_MS = 15 * 60_000;
 
 function pruneIdempotency(now: number) {
@@ -64,7 +64,7 @@ export function readIdempotencyKey(
   return null;
 }
 
-export function getCachedCheckoutOrder(key: string): string | null {
+export function getCachedCheckoutOrder(key: string): { orderId: string; fingerprint: string } | null {
   const now = Date.now();
   pruneIdempotency(now);
   const hit = idempotencyCache.get(key);
@@ -73,10 +73,10 @@ export function getCachedCheckoutOrder(key: string): string | null {
     idempotencyCache.delete(key);
     return null;
   }
-  return hit.orderId;
+  return { orderId: hit.orderId, fingerprint: hit.fingerprint };
 }
 
-export function cacheCheckoutOrder(key: string, orderId: string) {
+export function cacheCheckoutOrder(key: string, orderId: string, fingerprint: string) {
   pruneIdempotency(Date.now());
-  idempotencyCache.set(key, { orderId, at: Date.now() });
+  idempotencyCache.set(key, { orderId, fingerprint, at: Date.now() });
 }

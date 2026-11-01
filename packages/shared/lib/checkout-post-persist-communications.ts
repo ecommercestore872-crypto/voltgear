@@ -3,6 +3,7 @@ import { GIFT_WRAP_FEE } from "@/lib/checkout-server";
 import { fetchSiteSettings } from "@/lib/db/store";
 import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
 import { appendOrderNote, enqueueEmailEvent } from "@/lib/order-store";
+import { pakistanProvinceLabel } from "@/lib/pakistan-locations";
 
 export async function runCheckoutCommunications(
   input: CheckoutPostPersistInput,
@@ -29,6 +30,7 @@ export async function runCheckoutCommunications(
     total: input.finalTotal,
     phone: input.customer.phone,
     address: input.customer.address,
+    province: pakistanProvinceLabel(input.customer.province) ?? undefined,
     city: input.customer.city,
     postal: input.customer.postal,
   };

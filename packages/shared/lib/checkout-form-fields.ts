@@ -3,8 +3,9 @@ import {
   normalizePhoneForCheckout,
   type CheckoutCustomerInput,
 } from "@/lib/checkout-customer-rules";
+import { normalizePakistanProvinceCode, validatePakistanDeliveryLocation } from "@/lib/pakistan-locations";
 
-export type CheckoutFormField = "name" | "phone" | "address" | "email";
+export type CheckoutFormField = "name" | "phone" | "address" | "province" | "city" | "email";
 
 export function validateCheckoutFormField(
   field: CheckoutFormField,
@@ -28,6 +29,13 @@ export function validateCheckoutFormField(
         return "Add house, street, and area (at least 5 characters).";
       }
       return null;
+    case "province":
+      return normalizePakistanProvinceCode(v) ? null : "Select a province or region.";
+    case "city":
+      if (v.length < 2 || v.length > 80 || !/[\p{L}]/u.test(v) || /[\p{C}<>]/u.test(v) || /^other city\b/i.test(v)) {
+        return "Enter a valid city or town name.";
+      }
+      return null;
     case "email":
       if (!v) return null;
       if (v.includes("@") && v.length >= 5) return null;
@@ -42,9 +50,13 @@ export function validateCheckoutFormFields(
   raw: CheckoutCustomerInput,
 ): Partial<Record<CheckoutFormField, string>> {
   const errors: Partial<Record<CheckoutFormField, string>> = {};
-  for (const field of ["name", "phone", "address", "email"] as const) {
+  for (const field of ["name", "phone", "address", "province", "city", "email"] as const) {
     const msg = validateCheckoutFormField(field, String(raw[field] ?? ""));
     if (msg) errors[field] = msg;
+  }
+  if (!errors.province && !errors.city) {
+    const location = validatePakistanDeliveryLocation(raw.province, raw.city);
+    if (!location.ok) errors[location.field] = location.error;
   }
   if (Object.keys(errors).length === 0) {
     const full = normalizeCheckoutCustomer(raw);

@@ -33,8 +33,8 @@ describe("readIdempotencyKey", () => {
 describe("checkout idempotency cache", () => {
   it("returns cached order id for the same key", () => {
     const key = `test-${Date.now()}-idem-key-1`;
-    cacheCheckoutOrder(key, "VG-TEST001");
-    assert.equal(getCachedCheckoutOrder(key), "VG-TEST001");
+    cacheCheckoutOrder(key, "VG-TEST001", "fingerprint-a");
+    assert.deepEqual(getCachedCheckoutOrder(key), { orderId: "VG-TEST001", fingerprint: "fingerprint-a" });
   });
 });
 

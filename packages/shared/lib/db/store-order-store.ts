@@ -234,6 +234,16 @@ export async function getOrderByPublicId(orderId: string): Promise<Order | null>
   return loadOrderBundle(data as Record<string, unknown>);
 }
 
+export async function getOrderByIdempotencyKey(key: string): Promise<Order | null> {
+  const { data, error } = await db()
+    .from("orders")
+    .select("*, order_items(*), order_status_history(*)")
+    .eq("idempotency_key", key)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? loadOrderBundle(data as Record<string, unknown>) : null;
+}
+
 export async function getOrdersByEmail(
   email: string,
   options?: { demo?: boolean },

@@ -12,8 +12,10 @@ export const ADSENSE_READY_EVENT = "bnt-adsense-ready";
 
 function readConsent(): CookieConsentChoice | null {
   if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-  return value === "all" || value === "essential" ? value : null;
+  try {
+    const value = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+    return value === "all" || value === "essential" ? value : null;
+  } catch { return null; }
 }
 
 /** Loads the site-wide AdSense tag only after optional-cookie consent. */

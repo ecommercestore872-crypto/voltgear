@@ -79,7 +79,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {
+      // Keep the cart usable in this tab when storage is blocked.
+    }
   }, [items, hydrated]);
 
   const openCart = useCallback(() => setIsOpen(true), []);

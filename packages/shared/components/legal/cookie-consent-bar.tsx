@@ -12,8 +12,12 @@ export type CookieConsentChoice = "all" | "essential";
 
 function readChoice(): CookieConsentChoice | null {
   if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-  return raw === "all" || raw === "essential" ? raw : null;
+  try {
+    const raw = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+    return raw === "all" || raw === "essential" ? raw : null;
+  } catch {
+    return null;
+  }
 }
 
 export function CookieConsentBar() {
@@ -36,7 +40,7 @@ export function CookieConsentBar() {
   if (choice === "unknown" || choice) return null;
 
   function save(next: CookieConsentChoice) {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, next);
+    try { window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, next); } catch {}
     setChoice(next);
     window.dispatchEvent(
       new CustomEvent(COOKIE_CONSENT_CHANGE_EVENT, { detail: next }),
@@ -63,6 +67,7 @@ export function CookieConsentBar() {
             We use cookies to personalize content and ads, provide social media features, and analyze traffic to improve your experience. Read our{" "}
             <Link
               href="/privacy-policy"
+              prefetch={false}
               className="font-semibold text-primary underline underline-offset-[3px] decoration-1 transition-colors hover:text-foreground"
             >
               Privacy Policy
@@ -70,6 +75,7 @@ export function CookieConsentBar() {
             and{" "}
             <Link
               href="/cookies"
+              prefetch={false}
               className="font-semibold text-primary underline underline-offset-[3px] decoration-1 transition-colors hover:text-foreground"
             >
               Cookie Policy

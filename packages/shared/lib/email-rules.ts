@@ -50,6 +50,7 @@ export interface OrderEmailPayload {
   phone?: string;
   address?: string;
   city?: string;
+  province?: string;
   postal?: string;
 }
 
@@ -318,7 +319,7 @@ export function buildAdminNewOrderEmail(
   const origin = publicSiteUrl();
   const emailHref = p.email ? `mailto:${escapeHtml(p.email)}` : "";
   const phoneHref = p.phone ? `tel:${escapeHtml(p.phone.replace(/[^\d+]/g, ""))}` : "";
-  const addressLine = [p.address, p.city, p.postal].filter(Boolean).join(", ");
+  const addressLine = [p.address, p.city, p.province, p.postal].filter(Boolean).join(", ");
   const contact = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;background:${EMAIL_PALETTE.sand};border:1px solid ${EMAIL_PALETTE.line};border-radius:14px"><tr><td style="padding:18px 20px">
 ${emailSectionLabel("Customer")}
 <p style="margin:0 0 10px;font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:700;color:${EMAIL_PALETTE.forest}">${name}</p>
@@ -410,7 +411,7 @@ export function buildOrderConfirmationEmail(
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 14px"><tr><td style="background:${EMAIL_PALETTE.forest};border-radius:999px;padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${EMAIL_PALETTE.white}">PAY CASH ON DELIVERY</td></tr></table>
 <p style="margin:0 0 20px">Please check the items and the address. If anything looks wrong, reply to this email before we dispatch.</p>`;
 
-  const addressBits = [p.address, [p.city, p.postal].filter(Boolean).join(" "), p.phone].filter(
+  const addressBits = [p.address, [p.city, p.province, p.postal].filter(Boolean).join(" "), p.phone].filter(
     (part) => Boolean(part && String(part).trim())
   ) as string[];
   const addressHtml = addressBits.length

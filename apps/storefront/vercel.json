@@ -4,6 +4,11 @@
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w @voltgear/storefront",
   "ignoreCommand": "node ../../scripts/vercel-ignore-build.mjs storefront",
+  "git": {
+    "deploymentEnabled": {
+      "codex/buyntry-tiktok-release-20261101": false
+    }
+  },
   "regions": ["syd1"],
   "crons": [
     {

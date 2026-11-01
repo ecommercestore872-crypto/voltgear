@@ -17,7 +17,8 @@ export function MetaPixel() {
   const [consent, setConsent] = useState<CookieConsentChoice | null>(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+    let stored: string | null = null;
+    try { stored = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY); } catch {}
     setConsent(stored === "all" || stored === "essential" ? stored : null);
 
     function onConsent(event: Event) {

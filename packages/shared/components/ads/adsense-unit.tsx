@@ -33,9 +33,9 @@ export function AdSenseUnit({
 
   useEffect(() => {
     const syncConsent = () => {
-      setAdsAllowed(
-        window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all",
-      );
+      try {
+        setAdsAllowed(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all");
+      } catch { setAdsAllowed(false); }
     };
     const onConsent = (event: Event) => {
       const choice = (event as CustomEvent<CookieConsentChoice>).detail;

@@ -8,16 +8,19 @@ import {
 } from "./checkout-customer-rules";
 
 describe("checkout-customer-rules", () => {
-  it("accepts COD payload without email or city", () => {
+  it("accepts COD payload without email when delivery location is complete", () => {
     const r = normalizeCheckoutCustomer({
       name: "Ali Khan",
       phone: "03001234567",
       address: "House 12, Street 4, DHA Phase 5",
+      province: "punjab",
+      city: "Lahore",
     });
     assert.equal(r.ok, true);
     if (!r.ok) return;
     assert.match(r.customer.email, /^cod\./);
-    assert.equal(r.customer.city, "—");
+    assert.equal(r.customer.city, "Lahore");
+    assert.equal(r.customer.province, "punjab");
     assert.equal(r.customer.phone, "+923001234567");
   });
 
@@ -37,5 +40,11 @@ describe("checkout-customer-rules", () => {
       address: "123",
     });
     assert.equal(r.ok, false);
+  });
+
+  it("rejects missing province or city", () => {
+    const base = { name: "Ali Khan", phone: "03001234567", address: "House 12, Street 4" };
+    assert.equal(normalizeCheckoutCustomer({ ...base, city: "Lahore" }).ok, false);
+    assert.equal(normalizeCheckoutCustomer({ ...base, province: "punjab" }).ok, false);
   });
 });

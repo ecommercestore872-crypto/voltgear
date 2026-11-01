@@ -25,6 +25,11 @@ export async function runCheckoutTracking(
   }
 
   try {
+    const ttp = input.request.headers.get("cookie")
+      ?.split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith("_ttp="))
+      ?.slice("_ttp=".length);
     await trackTikTokServerPurchase({
       orderId: input.orderId,
       total: input.finalTotal,
@@ -38,6 +43,7 @@ export async function runCheckoutTracking(
       lines: input.lines,
       consent: input.consent,
       ttclid,
+      ttp,
     });
   } catch (error) {
     console.error("[tiktok-server] root error", error);

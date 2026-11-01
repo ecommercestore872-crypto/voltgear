@@ -33,6 +33,7 @@ import {
   resolveOrderSubtotal,
 } from "@/lib/order-bill-rules";
 import { formatPrice } from "@/lib/utils";
+import { pakistanProvinceLabel } from "@/lib/pakistan-locations";
 import type { OrderStatus } from "@/lib/types";
 
 const STEP_ICON: Partial<Record<OrderStatus, typeof Check>> = {
@@ -278,7 +279,7 @@ export default async function OrderSuccessPage(
                 icon={<MapPin className="h-4 w-4" />}
                 label="Shipping address"
                 value={customer?.name || ""}
-                hint={[customer?.address, customer?.city, "Pakistan"]
+                hint={[customer?.address, customer?.city, pakistanProvinceLabel(customer?.province), "Pakistan"]
                   .filter(Boolean)
                   .join(", ")}
               />
