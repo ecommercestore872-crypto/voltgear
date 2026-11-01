@@ -51,7 +51,8 @@ Regression unit tests: `cart-hydration-rules.test.ts`.
 | Playwright assertions | **PASS** (code) | storage/UI/checkout-link |
 | Unit tests | **PASS** | 794 |
 | Storefront build | (run in CI / local this session) | |
-| Preview COD exit 0 on fixed deploy | **PENDING** | Needs Ready Preview of this commit + bypass in runner |
+| Preview deploy `8d972f7` (voltgear) | **Ready** | `43MaZiWj2SfFDG7wQ9S2hvB7q2ti` — includes cart fix |
+| Preview COD exit 0 on fixed deploy | **PENDING** | Agent could not load a valid bypass secret (clipboard was not the 32-char token). Re-run in shell where `VERCEL_AUTOMATION_BYPASS_SECRET` is set. |
 | TikTok / CMS / Preview courier env | **UNTESTED / UNVERIFIED** | Release still NO-GO |
 
 ---
