@@ -5,8 +5,8 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -79,25 +79,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const hydratedRef = useRef(false);
-
-  useEffect(() => {
-    hydratedRef.current = hydrated;
-  }, [hydrated]);
 
   useEffect(() => {
     const stored = parseCartStorage(
       localStorage.getItem(CART_STORAGE_KEY),
     ) as CartItem[];
-    setItems((current) => {
-      const merged = mergeCartHydration(current, stored) as CartItem[];
-      writeCartStorage(merged);
-      return merged;
-    });
+    // Pure updater only — persist via useLayoutEffect after commit.
+    setItems((current) => mergeCartHydration(current, stored) as CartItem[]);
     setHydrated(true);
   }, []);
 
-  useEffect(() => {
+  // Layout persist: flush before paint / before Playwright navigates away.
+  useLayoutEffect(() => {
     if (!hydrated) return;
     writeCartStorage(items);
   }, [items, hydrated]);
@@ -122,24 +115,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems((prev) => {
         const key = cartLineKey(item);
         const existing = prev.find((i) => cartLineKey(i) === key);
-        const next = existing
-          ? prev.map((i) =>
-              cartLineKey(i) === key
-                ? {
-                    ...i,
-                    quantity: i.quantity + qty,
-                    productId: i.productId ?? item.productId,
-                    variantId: i.variantId ?? item.variantId,
-                    sku: mergeRetainedSku(i.sku, item.sku),
-                    variantSku: mergeRetainedSku(i.variantSku, item.variantSku),
-                  }
-                : i,
-            )
-          : [...prev, { ...item, quantity: qty }];
-        // Sync persist when already hydrated so a rapid navigation cannot
-        // drop the line before the React persist effect runs.
-        if (hydratedRef.current) writeCartStorage(next);
-        return next;
+        if (existing) {
+          return prev.map((i) =>
+            cartLineKey(i) === key
+              ? {
+                  ...i,
+                  quantity: i.quantity + qty,
+                  productId: i.productId ?? item.productId,
+                  variantId: i.variantId ?? item.variantId,
+                  sku: mergeRetainedSku(i.sku, item.sku),
+                  variantSku: mergeRetainedSku(i.variantSku, item.variantSku),
+                }
+              : i,
+          );
+        }
+        return [...prev, { ...item, quantity: qty }];
       });
       try {
         trackMetaAddToCart({
@@ -170,37 +160,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const removeItem = useCallback((key: string) => {
-    setItems((prev) => {
-      const next = prev.filter((i) => cartLineKey(i) !== key);
-      if (hydratedRef.current) writeCartStorage(next);
-      return next;
-    });
+    setItems((prev) => prev.filter((i) => cartLineKey(i) !== key));
   }, []);
 
   const updateQuantity = useCallback((key: string, quantity: number) => {
-    setItems((prev) => {
-      const next =
-        quantity <= 0
-          ? prev.filter((i) => cartLineKey(i) !== key)
-          : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i));
-      if (hydratedRef.current) writeCartStorage(next);
-      return next;
-    });
+    setItems((prev) =>
+      quantity <= 0
+        ? prev.filter((i) => cartLineKey(i) !== key)
+        : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i)),
+    );
   }, []);
 
   const updateItemPrice = useCallback((key: string, price: number) => {
-    setItems((prev) => {
-      const next = prev.map((i) =>
-        cartLineKey(i) === key ? { ...i, price } : i,
-      );
-      if (hydratedRef.current) writeCartStorage(next);
-      return next;
-    });
+    setItems((prev) =>
+      prev.map((i) => (cartLineKey(i) === key ? { ...i, price } : i)),
+    );
   }, []);
 
   const clearCart = useCallback(() => {
     setItems([]);
-    if (hydratedRef.current) writeCartStorage([]);
   }, []);
 
   const { count, subtotal } = useMemo(() => {
