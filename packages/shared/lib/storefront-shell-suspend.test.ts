@@ -55,7 +55,7 @@ describe("storefront shell must not suspend on ad query strings", () => {
     );
   });
 
-  it("checkout keeps a server-rendered shell and does not disable SSR", () => {
+  it("checkout page stays a server entry and does not disable SSR", () => {
     const pagePath = join(
       sharedRoot,
       "../../apps/storefront/app/checkout/page.tsx",
@@ -63,12 +63,12 @@ describe("storefront shell must not suspend on ad query strings", () => {
     const src = readFileSync(pagePath, "utf8");
     assert.doesNotMatch(src, /^\s*["']use client["']/);
     assert.doesNotMatch(src, /ssr\s*:\s*false/);
-    assert.match(src, /<CheckoutStaticShell\s*\/>/);
-    assert.match(src, /<CheckoutPageGate\s*\/>/);
+    assert.match(src, /CheckoutPageGate/);
+    assert.doesNotMatch(src, /CheckoutStaticShell/);
 
-    const shell = readShared("components/checkout/checkout-static-shell.tsx");
-    assert.doesNotMatch(shell, /premium-royal-header-band premium-royal-enter/);
-    assert.match(shell, /Secure cash on delivery checkout/);
+    const intro = readShared("components/checkout/checkout-intro-header.tsx");
+    assert.match(intro, /Checkout/);
+    assert.match(intro, /Cash on delivery/i);
   });
 
   it("checkout reserves layout space until local cart state is hydrated", () => {

@@ -283,7 +283,9 @@ export async function fetchPublicHomepageSections(): Promise<HomepageSection[]> 
 
         const map = new Map<string, Product>();
         for (const p of prods ?? []) {
-          const mapped = mapProduct(p as Record<string, unknown>);
+          const mapped = mapProduct(p as Record<string, unknown>, {
+            storefront: true,
+          });
           if (mapped) map.set(mapped._id, mapped);
         }
 
@@ -305,7 +307,9 @@ export async function fetchPublicHomepageSections(): Promise<HomepageSection[]> 
           .limit(limit);
 
         resolvedProducts = (prods ?? [])
-          .map((p) => mapProduct(p as Record<string, unknown>))
+          .map((p) =>
+            mapProduct(p as Record<string, unknown>, { storefront: true }),
+          )
           .filter((p): p is Product => Boolean(p));
       }
     } else if (sourceType === "newest") {
@@ -318,7 +322,9 @@ export async function fetchPublicHomepageSections(): Promise<HomepageSection[]> 
         .limit(limit);
 
       resolvedProducts = (prods ?? [])
-        .map((p) => mapProduct(p as Record<string, unknown>))
+        .map((p) =>
+          mapProduct(p as Record<string, unknown>, { storefront: true }),
+        )
         .filter((p): p is Product => Boolean(p));
     } else if (sourceType === "sale") {
       const { data: prods } = await db()
@@ -330,7 +336,9 @@ export async function fetchPublicHomepageSections(): Promise<HomepageSection[]> 
         .limit(limit);
 
       resolvedProducts = (prods ?? [])
-        .map((p) => mapProduct(p as Record<string, unknown>))
+        .map((p) =>
+          mapProduct(p as Record<string, unknown>, { storefront: true }),
+        )
         .filter((p): p is Product => Boolean(p))
         .filter((p) => Boolean(p.compareAtPrice && p.compareAtPrice > p.price));
     }

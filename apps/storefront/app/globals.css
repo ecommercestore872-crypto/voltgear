@@ -496,10 +496,13 @@
   --ring: 150 32% 15%;
   color: var(--g-charcoal);
   font-family: var(--font-gadget-sans), system-ui, sans-serif;
+  /* Single quiet wash — product imagery carries the visual weight */
   background:
-    radial-gradient(ellipse 95% 55% at 0% -10%, color-mix(in srgb, var(--g-sage) 32%, var(--g-cream)) 0%, transparent 58%),
-    radial-gradient(ellipse 75% 48% at 100% 0%, color-mix(in srgb, var(--g-gold) 22%, var(--g-cream)) 0%, transparent 52%),
-    radial-gradient(ellipse 80% 40% at 50% 100%, color-mix(in srgb, var(--g-forest) 12%, var(--g-cream)) 0%, transparent 55%),
+    radial-gradient(
+      ellipse 90% 50% at 0% -5%,
+      color-mix(in srgb, var(--g-sage) 14%, var(--g-cream)) 0%,
+      transparent 60%
+    ),
     var(--g-cream);
   min-width: 0;
   overflow-x: clip;
@@ -668,21 +671,15 @@
 }
 
 .gadget-theme .gadget-band-leaf {
-  background:
-    radial-gradient(ellipse 85% 75% at 0% 0%, color-mix(in srgb, var(--g-sage) 38%, transparent) 0%, transparent 58%),
-    color-mix(in srgb, var(--g-sage) 18%, var(--g-cream));
+  background: color-mix(in srgb, var(--g-sage) 8%, var(--g-cream));
 }
 
 .gadget-theme .gadget-band-clay {
-  background:
-    radial-gradient(ellipse 85% 75% at 100% 0%, color-mix(in srgb, var(--g-gold) 28%, transparent) 0%, transparent 55%),
-    color-mix(in srgb, var(--g-terracotta) 14%, var(--g-cream));
+  background: color-mix(in srgb, var(--g-terracotta) 6%, var(--g-cream));
 }
 
 .gadget-theme .gadget-band-forest {
-  background:
-    radial-gradient(ellipse 75% 65% at 50% 100%, color-mix(in srgb, var(--g-forest) 22%, transparent) 0%, transparent 58%),
-    color-mix(in srgb, var(--g-forest) 12%, var(--g-cream));
+  background: color-mix(in srgb, var(--g-forest) 5%, var(--g-cream));
 }
 
 .gadget-theme .gadget-ticket-well {
@@ -821,19 +818,12 @@
 }
 
 .gadget-theme .gadget-hover-lift {
-  transition:
-    transform var(--g-dur-med) var(--g-ease),
-    box-shadow var(--g-dur-med) var(--g-ease),
-    border-color var(--g-dur-fast) ease;
+  transition: opacity var(--g-dur-fast) var(--g-ease);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .gadget-theme .gadget-hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 18px 40px rgba(31, 54, 38, 0.12),
-      0 1px 0 rgba(255, 255, 255, 0.7) inset;
-    border-color: color-mix(in srgb, var(--g-forest) 28%, var(--g-line));
+    opacity: 0.96;
   }
 }
 
@@ -851,50 +841,30 @@
 .gadget-theme .gadget-buy-cta {
   position: relative;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--g-gold) 32%, var(--g-forest));
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--g-sage) 55%, #2a5c3a) 0%,
-    var(--g-forest-mid) 42%,
-    var(--g-forest) 100%
-  );
+  border: 1px solid var(--g-forest);
+  background: var(--g-forest);
   color: var(--g-cream);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.2) inset,
-    0 12px 28px rgba(14, 36, 25, 0.35);
+  box-shadow: none;
   transition:
-    transform var(--g-dur-fast) var(--g-ease),
-    box-shadow var(--g-dur-med) var(--g-ease),
-    filter var(--g-dur-fast) ease;
+    background var(--g-dur-fast) var(--g-ease),
+    transform var(--g-dur-fast) var(--g-ease);
 }
 
 .gadget-theme .gadget-btn-primary::after,
 .gadget-theme .gadget-buy-cta::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.16) 50%, transparent 65%);
-  transform: translateX(-120%);
-  transition: transform 0.55s var(--g-ease);
-  pointer-events: none;
+  content: none;
 }
 
 .gadget-theme .gadget-btn-primary:hover,
 .gadget-theme .gadget-buy-cta:hover {
-  filter: brightness(1.06);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.24) inset,
-    0 16px 32px rgba(14, 36, 25, 0.4);
-}
-
-.gadget-theme .gadget-btn-primary:hover::after,
-.gadget-theme .gadget-buy-cta:hover::after {
-  transform: translateX(120%);
+  background: var(--g-forest-mid);
+  filter: none;
+  box-shadow: none;
 }
 
 .gadget-theme .gadget-btn-primary:active,
 .gadget-theme .gadget-buy-cta:active {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(0.99);
 }
 
 .gadget-theme .gadget-icon-btn {
@@ -940,56 +910,38 @@
 }
 
 .gadget-theme .gadget-section-rule::after {
-  content: "";
-  display: block;
-  width: 2.25rem;
-  height: 2px;
-  margin-top: 0.45rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--g-forest), var(--g-gold));
+  content: none;
 }
 
 .gadget-theme .gadget-hero-cta {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--g-gold) 88%, white) 0%,
-    var(--g-gold) 100%
-  );
-  color: var(--g-forest);
-  border: 1px solid color-mix(in srgb, var(--g-forest) 25%, var(--g-gold));
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.45) inset,
-    0 10px 28px color-mix(in srgb, var(--g-gold) 50%, transparent);
-  transition:
-    transform var(--g-dur-fast) var(--g-ease),
-    box-shadow var(--g-dur-med) var(--g-ease),
-    filter var(--g-dur-fast) ease;
+  background: var(--g-forest);
+  color: var(--g-cream);
+  border: 1px solid var(--g-forest);
+  box-shadow: none;
+  transition: background var(--g-dur-fast) var(--g-ease);
 }
 
 .gadget-theme .gadget-hero-cta:hover {
-  filter: brightness(1.04);
-  transform: scale(1.03);
+  background: var(--g-forest-mid);
+  filter: none;
+  transform: none;
 }
 
 .gadget-theme .gadget-sale-badge {
-  background: linear-gradient(135deg, var(--g-sale) 0%, color-mix(in srgb, var(--g-gold) 35%, var(--g-sale)) 100%);
+  background: var(--g-sale);
   color: var(--g-cream);
 }
 
 .gadget-theme .bg-primary.text-primary-foreground {
-  border: 1px solid color-mix(in srgb, var(--g-gold) 28%, var(--g-forest));
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--g-sage) 50%, #2a5c3a) 0%,
-    var(--g-forest-mid) 45%,
-    var(--g-forest) 100%
-  );
+  border: 1px solid var(--g-forest);
+  background: var(--g-forest);
   color: var(--g-cream);
-  box-shadow: 0 10px 24px rgba(14, 36, 25, 0.3);
+  box-shadow: none;
 }
 
 .gadget-theme .bg-primary.text-primary-foreground:hover {
-  filter: brightness(1.05);
+  background: var(--g-forest-mid);
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -18,7 +18,9 @@ export type CheckoutPostPersistInput = {
     email: string;
     phone: string;
     address: string;
+    province?: string;
     city: string;
+    cityId?: string;
     postal?: string;
   };
 };

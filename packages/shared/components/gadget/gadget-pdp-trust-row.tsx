@@ -32,7 +32,7 @@ export function GadgetPdpTrustRow({ config }: { config: PublicSiteConfig }) {
       {items.map(({ icon: Icon, label }) => (
         <li
           key={label}
-          className="flex items-center gap-2 rounded-xl border border-[var(--g-line)]/80 bg-[var(--g-cream-deep)] px-2.5 py-2 text-[13px] font-medium leading-snug text-[var(--g-charcoal)]"
+          className="flex items-center gap-2 rounded-[10px] border border-[var(--g-line)] bg-[var(--g-cream-deep)] px-2.5 py-2 text-[13px] font-medium leading-snug text-[var(--g-charcoal)]"
         >
           <Icon
             className="h-4 w-4 shrink-0 text-[var(--g-forest)]"

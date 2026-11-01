@@ -21,7 +21,7 @@ export const DEFAULT_FOOTER_COMPANY_LINKS: ChromeLink[] = [
   { href: "/cookies", label: "Cookie Policy" },
   { href: "/terms-of-service", label: "Terms and Conditions" },
   { href: "/bulk-order", label: "Corporate Orders" },
-  { href: "/", label: "Official Brand Outlet" },
+  { href: "/", label: "Shop Home" },
 ];
 
 export const DEFAULT_FOOTER_CARE_LINKS: ChromeLink[] = [

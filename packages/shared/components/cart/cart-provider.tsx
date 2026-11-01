@@ -5,12 +5,19 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 
+import {
+  CART_STORAGE_KEY,
+  mergeCartHydration,
+  parseCartStorage,
+} from "@/lib/cart-hydration-rules";
 import { mergeRetainedSku } from "@/lib/cart-sku-rules";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { trackTikTokAddToCart } from "@/lib/tiktok-browser-events";
 import { trackMetaAddToCart } from "@/lib/meta-pixel-events";
 
@@ -60,7 +67,13 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-const STORAGE_KEY = "ecomm-cart";
+function writeCartStorage(next: CartItem[]) {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // private mode / quota — fail open
+  }
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -68,19 +81,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch {
-      // ignore corrupted storage
-    }
+    const stored = parseCartStorage(
+      localStorage.getItem(CART_STORAGE_KEY),
+    ) as CartItem[];
+    // Pure updater only — persist via useLayoutEffect after commit.
+    setItems((current) => mergeCartHydration(current, stored) as CartItem[]);
     setHydrated(true);
   }, []);
 
-  useEffect(() => {
+  // Layout persist: flush before paint / before Playwright navigates away.
+  useLayoutEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    writeCartStorage(items);
   }, [items, hydrated]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.dataset.cartHydrated = hydrated ? "true" : "false";
+    document.documentElement.dataset.cartCount = String(
+      items.reduce((n, i) => n + i.quantity, 0),
+    );
+  }, [hydrated, items]);
 
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
@@ -90,6 +111,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Hydration/restoration uses setItems from localStorage — never this path.
       const qty = Number(quantity);
       if (!Number.isFinite(qty) || qty <= 0) return;
+      if (!isPurchasablePrice(item.price)) return;
       setItems((prev) => {
         const key = cartLineKey(item);
         const existing = prev.find((i) => cartLineKey(i) === key);
@@ -137,25 +159,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const removeItem = useCallback(
-    (key: string) => {
-      const existing = items.find((i) => cartLineKey(i) === key);
-      setItems((prev) => prev.filter((i) => cartLineKey(i) !== key));
-    },
-    [items],
-  );
+  const removeItem = useCallback((key: string) => {
+    setItems((prev) => prev.filter((i) => cartLineKey(i) !== key));
+  }, []);
 
-  const updateQuantity = useCallback(
-    (key: string, quantity: number) => {
-      const existing = items.find((i) => cartLineKey(i) === key);
-      setItems((prev) =>
-        quantity <= 0
-          ? prev.filter((i) => cartLineKey(i) !== key)
-          : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i)),
-      );
-    },
-    [items],
-  );
+  const updateQuantity = useCallback((key: string, quantity: number) => {
+    setItems((prev) =>
+      quantity <= 0
+        ? prev.filter((i) => cartLineKey(i) !== key)
+        : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i)),
+    );
+  }, []);
 
   const updateItemPrice = useCallback((key: string, price: number) => {
     setItems((prev) =>
@@ -163,7 +177,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => {
+    setItems([]);
+  }, []);
 
   const { count, subtotal } = useMemo(() => {
     return items.reduce(

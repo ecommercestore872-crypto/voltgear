@@ -198,32 +198,32 @@ export async function GadgetHomeSections() {
   const trust = [
     {
       key: "shipping",
-      title: threshold > 0 ? "Free Shipping" : "Fast Shipping",
-      detail: threshold > 0 ? `Over ${formatPrice(threshold)}` : "Nationwide",
+      title: threshold > 0 ? "Free shipping" : "Shipping",
+      detail: threshold > 0 ? `Over ${formatPrice(threshold)}` : "Across Pakistan",
       icon: "shipping" as const,
       show: true,
     },
     {
       key: "cod",
-      title: "Cash on Delivery",
-      detail: "Pay on arrival",
+      title: "Cash on delivery",
+      detail: "Pay when you receive",
       icon: "cod" as const,
       show: Boolean(config.codEnabled),
     },
     {
       key: "returns",
-      title: "Easy Returns",
+      title: "Returns",
       detail: config.returnWindowDays
-        ? `${config.returnWindowDays}-day policy`
+        ? `${config.returnWindowDays}-day window`
         : "",
       icon: "returns" as const,
       show: Boolean(config.returnWindowDays),
     },
     {
       key: "curated",
-      title: "Quality Covered",
+      title: "Warranty",
       detail: config.warrantyMonths
-        ? `${config.warrantyMonths}-month warranty`
+        ? `${config.warrantyMonths}-month coverage`
         : "",
       icon: "curated" as const,
       show: Boolean(config.warrantyMonths),

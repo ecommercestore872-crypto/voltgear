@@ -14,13 +14,13 @@ export function TrustBar() {
     },
     {
       icon: ShieldCheck,
-      label: "Premium Quality",
-      sub: "Built to last",
+      label: "Inspect at the door",
+      sub: "Open before you pay",
     },
     {
       icon: Lock,
-      label: "Secure Payments",
-      sub: "100% Safe Checkout",
+      label: "Cash on Delivery",
+      sub: "Pay when it arrives",
     },
   ];
 

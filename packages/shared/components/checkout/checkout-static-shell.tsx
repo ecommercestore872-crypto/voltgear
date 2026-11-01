@@ -12,41 +12,36 @@ export async function CheckoutStaticShell() {
   const threshold = Number(config.freeShippingThreshold ?? 0);
 
   return (
-    <div className="premium-royal-header-band">
-      <div className="mx-auto max-w-6xl px-4 py-3 sm:py-5 lg:px-8 lg:py-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--g-forest,#123d2b)] sm:text-[11px]">
-          Premium · original · nationwide COD
+    <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)]">
+      <div className="mx-auto max-w-6xl px-4 py-4 sm:py-5 lg:px-8">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--g-forest)]">
+          Cash on delivery
         </p>
-        <h1 className="gadget-display mt-1 text-2xl font-semibold leading-tight tracking-tight text-[var(--g-charcoal)] sm:mt-1.5 lg:text-3xl">
-          <span className="sm:hidden">Secure cash on delivery checkout</span>
-          <span className="hidden sm:inline">Checkout — cash on delivery</span>
+        <h1 className="mt-1 text-2xl font-semibold leading-tight tracking-tight text-[var(--g-charcoal)] lg:text-3xl">
+          Checkout
         </h1>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--g-taupe)]">
-          <span className="sm:hidden">
-            Enter your name, mobile number and delivery address. Pay cash when
-            your order arrives.
-          </span>
-          <span className="hidden sm:inline">Enter your details below. Pay when your order arrives.</span>
+          Enter delivery details. Pay cash when your order arrives.
         </p>
-        <ul className="mt-2 hidden flex-wrap gap-2 text-xs text-[var(--g-charcoal)] sm:flex sm:mt-4 sm:gap-3 sm:text-sm">
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--g-charcoal)]/80 sm:text-sm">
           {config.codEnabled !== false ? (
-            <li className="premium-royal-pill inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5">
-              <Banknote className="h-4 w-4 text-[var(--g-forest)]" aria-hidden />
+            <li className="inline-flex items-center gap-1.5">
+              <Banknote className="h-3.5 w-3.5 text-[var(--g-forest)]" aria-hidden />
               Cash on delivery
             </li>
           ) : null}
-          <li className="premium-royal-pill inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5">
-            <Truck className="h-4 w-4 text-[var(--g-forest)]" aria-hidden />
+          <li className="inline-flex items-center gap-1.5">
+            <Truck className="h-3.5 w-3.5 text-[var(--g-forest)]" aria-hidden />
             {threshold > 0
               ? `Free shipping over ${formatPrice(threshold)}`
               : "Nationwide delivery"}
           </li>
-          <li className="premium-royal-pill inline-flex items-center gap-2 rounded-full bg-[var(--g-white)] px-3 py-1.5">
-            <ShieldCheck className="h-4 w-4 text-[var(--g-forest)]" aria-hidden />
-            Secure checkout
+          <li className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-[var(--g-forest)]" aria-hidden />
+            Inspect at the door
           </li>
         </ul>
-        <p className="mt-2 hidden text-xs text-[var(--g-taupe)] sm:block">
+        <p className="mt-2 text-xs text-[var(--g-taupe)]">
           <Link href="/shipping-returns" className="underline hover:text-[var(--g-forest)]">
             Shipping &amp; returns
           </Link>

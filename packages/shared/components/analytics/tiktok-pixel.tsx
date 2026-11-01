@@ -65,8 +65,11 @@ export function TikTokPixel() {
   useEffect(() => {
     if (!load || !pixelId.trim()) return;
 
+    let cancelled = false;
+    let delayTimer: number | undefined;
+
     function inject() {
-      if (document.getElementById("tiktok-pixel-base")) return;
+      if (cancelled || document.getElementById("tiktok-pixel-base")) return;
       const s = document.createElement("script");
       s.id = "tiktok-pixel-base";
       s.async = true;
@@ -74,9 +77,23 @@ export function TikTokPixel() {
       document.head.appendChild(s);
     }
 
-    window.addEventListener("load", () => window.setTimeout(inject, 2500), {
-      once: true,
-    });
+    function scheduleInject() {
+      // Short defer after load so first paint / consent UI settle; still fire
+      // if the React effect mounts after window "load" already happened.
+      delayTimer = window.setTimeout(inject, 2500);
+    }
+
+    if (document.readyState === "complete") {
+      scheduleInject();
+    } else {
+      window.addEventListener("load", scheduleInject, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      if (delayTimer !== undefined) window.clearTimeout(delayTimer);
+      window.removeEventListener("load", scheduleInject);
+    };
   }, [load, pixelId]);
 
   return null;
