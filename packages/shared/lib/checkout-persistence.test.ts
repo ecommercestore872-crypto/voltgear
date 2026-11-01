@@ -40,4 +40,21 @@ describe("buildCheckoutIdempotencyFingerprint", () => {
       buildCheckoutIdempotencyFingerprint({ ...order, total: 3300 }),
     );
   });
+
+  test("changes when delivery address or city changes", () => {
+    assert.notEqual(
+      buildCheckoutIdempotencyFingerprint(order),
+      buildCheckoutIdempotencyFingerprint({
+        ...order,
+        customer: { ...order.customer, address: "Another Street 456" },
+      }),
+    );
+    assert.notEqual(
+      buildCheckoutIdempotencyFingerprint(order),
+      buildCheckoutIdempotencyFingerprint({
+        ...order,
+        customer: { ...order.customer, city: "Karachi" },
+      }),
+    );
+  });
 });

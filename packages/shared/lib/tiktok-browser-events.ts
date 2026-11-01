@@ -12,14 +12,16 @@ export type TikTokConsent = "all" | "essential" | null;
 
 export type TikTokContentItem = {
   content_id: string;
-  content_type: "product";
   content_name: string;
   content_category?: string;
   price?: number;
-  num_items?: number;
+  quantity?: number;
 };
 
 type Ttq = {
+  page?: () => void;
+  grantConsent?: () => void;
+  revokeConsent?: () => void;
   track?: (event: string, payload?: Record<string, unknown>, options?: { event_id?: string }) => void;
   identify?: (payload: Record<string, string>) => void;
 };
@@ -132,20 +134,19 @@ export function buildViewContentPayload(input: {
   sku?: string;
   variantSku?: string;
   variantKey?: string;
-}): { contents: TikTokContentItem[]; value: number; currency: typeof TIKTOK_CURRENCY } | null {
+}): { contents: TikTokContentItem[]; content_type: "product"; value: number; currency: typeof TIKTOK_CURRENCY } | null {
   const content_id = resolveTikTokContentId(input);
   const name = (input.name ?? "").trim();
   if (!content_id || !name || !isPositiveFinite(input.price)) return null;
   const category = (input.category ?? "").trim();
   const item: TikTokContentItem = {
     content_id,
-    content_type: "product",
     content_name: name,
     price: input.price,
-    num_items: 1,
+    quantity: 1,
   };
   if (category) item.content_category = category;
-  return { contents: [item], value: input.price, currency: TIKTOK_CURRENCY };
+  return { contents: [item], content_type: "product", value: input.price, currency: TIKTOK_CURRENCY };
 }
 
 export function buildWishlistPayload(input: {
@@ -160,10 +161,10 @@ export function buildWishlistPayload(input: {
 
 export function buildSearchPayload(
   searchString: string
-): { search_string: string } | null {
+): { query: string } | null {
   const q = (searchString ?? "").trim();
   if (!q) return null;
-  return { search_string: q };
+  return { query: q };
 }
 
 export function buildAddToCartPayload(input: {
@@ -175,7 +176,7 @@ export function buildAddToCartPayload(input: {
   sku?: string;
   variantSku?: string;
   variantKey?: string;
-}): { contents: TikTokContentItem[]; value: number; currency: typeof TIKTOK_CURRENCY } | null {
+}): { contents: TikTokContentItem[]; content_type: "product"; value: number; currency: typeof TIKTOK_CURRENCY } | null {
   const content_id = resolveTikTokContentId(input);
   const name = (input.name ?? "").trim();
   const quantity = input.quantity;
@@ -185,14 +186,14 @@ export function buildAddToCartPayload(input: {
   const category = (input.category ?? "").trim();
   const item: TikTokContentItem = {
     content_id,
-    content_type: "product",
     content_name: name,
     price: input.price,
-    num_items: quantity,
+    quantity,
   };
   if (category) item.content_category = category;
   return {
     contents: [item],
+    content_type: "product",
     value: input.price * quantity,
     currency: TIKTOK_CURRENCY,
   };
@@ -210,7 +211,7 @@ export function buildInitiateCheckoutPayload(
   }>,
   /** Prefer checkout page customer-facing total when known; else merchandise sum. */
   valueOverride?: number
-): { contents: TikTokContentItem[]; value: number; currency: typeof TIKTOK_CURRENCY } | null {
+): { contents: TikTokContentItem[]; content_type: "product"; value: number; currency: typeof TIKTOK_CURRENCY } | null {
   if (!items.length) return null;
   const contents: TikTokContentItem[] = [];
   let merchandise = 0;
@@ -222,15 +223,15 @@ export function buildInitiateCheckoutPayload(
     }
     contents.push({
       content_id,
-      content_type: "product",
       content_name: name,
-      num_items: line.quantity,
+      price: line.price,
+      quantity: line.quantity,
     });
     merchandise += line.price * line.quantity;
   }
   const value = isNonNegFinite(valueOverride) ? valueOverride : merchandise;
   if (!contents.length || !isNonNegFinite(value)) return null;
-  return { contents, value, currency: TIKTOK_CURRENCY };
+  return { contents, content_type: "product", value, currency: TIKTOK_CURRENCY };
 }
 
 export function buildPurchasePayload(input: {
@@ -244,8 +245,9 @@ export function buildPurchasePayload(input: {
     variantKey?: string;
     sku?: string;
     category?: string;
+    price?: number;
   }>;
-}): { contents: TikTokContentItem[]; value: number; currency: typeof TIKTOK_CURRENCY } | null {
+}): { contents: TikTokContentItem[]; content_type: "product"; value: number; currency: typeof TIKTOK_CURRENCY } | null {
   const orderId = (input.orderId ?? "").trim();
   if (!orderId || !isNonNegFinite(input.total) || !Number.isFinite(input.total)) return null;
   if (!input.lines?.length) return null;
@@ -263,16 +265,16 @@ export function buildPurchasePayload(input: {
     if (!content_id || !name || !isPositiveFinite(quantity)) return null;
     const item: TikTokContentItem = {
       content_id,
-      content_type: "product",
       content_name: name,
-      num_items: quantity,
+      quantity,
     };
+    if (isPositiveFinite(line.price)) item.price = line.price;
     const category = (line.category ?? "").trim();
     if (category) item.content_category = category;
     contents.push(item);
   }
   if (!contents.length) return null;
-  return { contents, value: input.total, currency: TIKTOK_CURRENCY };
+  return { contents, content_type: "product", value: input.total, currency: TIKTOK_CURRENCY };
 }
 
 export function checkoutCartFingerprint(
@@ -374,6 +376,8 @@ function memoryStore(): StringStore & Map<string, string> {
 }
 
 const viewContentRecent = new Map<string, number>();
+const pendingCheckout = new Set<string>();
+const pendingPurchase = new Set<string>();
 const VIEW_CONTENT_WINDOW_MS = 2000;
 
 export function shouldFireViewContentOnce(contentId: string): boolean {
@@ -491,10 +495,14 @@ function safeTrack(
   event: string,
   payload: Record<string, unknown>,
   eventId: string,
-  onSuccess?: () => void
+  onSuccess?: () => void,
+  onFailure?: () => void
 ): string | null {
   try {
-    if (!readBrowserGate()) return null;
+    if (!readBrowserGate()) {
+      onFailure?.();
+      return null;
+    }
 
     const send = (): boolean => {
       if (!readBrowserGate()) return false;
@@ -518,15 +526,20 @@ function safeTrack(
     const timer = window.setInterval(() => {
       attempts += 1;
       try {
-        if (send() || attempts >= maxAttempts || !readBrowserGate()) {
+        if (send()) {
           window.clearInterval(timer);
+        } else if (attempts >= maxAttempts || !readBrowserGate()) {
+          window.clearInterval(timer);
+          onFailure?.();
         }
       } catch {
         window.clearInterval(timer);
+        onFailure?.();
       }
     }, 100);
     return eventId;
   } catch {
+    onFailure?.();
     return null;
   }
 }
@@ -542,6 +555,7 @@ export function trackTikTokViewContent(input: {
 }): string | null {
   const payload = buildViewContentPayload(input);
   if (!payload) return null;
+  if (!readBrowserGate()) return null;
   const contentId = payload.contents[0]?.content_id;
   if (!contentId || !shouldFireViewContentOnce(contentId)) return null;
   return safeTrack("ViewContent", payload, newTikTokEventId());
@@ -603,12 +617,15 @@ export function trackTikTokInitiateCheckout(
     return null;
   }
   const fingerprint = checkoutCartFingerprint(items);
-  if (isInitiateCheckoutMarked(fingerprint)) return null;
+  if (isInitiateCheckoutMarked(fingerprint) || pendingCheckout.has(fingerprint)) return null;
   const payload = buildInitiateCheckoutPayload(items, valueOverride);
   if (!payload) return null;
-  return safeTrack("InitiateCheckout", payload, newTikTokEventId(), () => {
-    markInitiateCheckout(fingerprint);
-  });
+  pendingCheckout.add(fingerprint);
+  return safeTrack(
+    "InitiateCheckout", payload, newTikTokEventId(),
+    () => { pendingCheckout.delete(fingerprint); markInitiateCheckout(fingerprint); },
+    () => pendingCheckout.delete(fingerprint),
+  );
 }
 
 export function trackTikTokPurchase(input: {
@@ -622,16 +639,19 @@ export function trackTikTokPurchase(input: {
     variantKey?: string;
     sku?: string;
     category?: string;
+    price?: number;
   }>;
 }): string | null {
   const payload = buildPurchasePayload(input);
   if (!payload) return null;
-  if (isPurchaseMarked(input.orderId)) return null;
+  if (isPurchaseMarked(input.orderId) || pendingPurchase.has(input.orderId)) return null;
+  pendingPurchase.add(input.orderId);
   return safeTrack(
     "Purchase",
     payload,
     purchaseEventId(input.orderId),
-    () => markPurchase(input.orderId)
+    () => { pendingPurchase.delete(input.orderId); markPurchase(input.orderId); },
+    () => pendingPurchase.delete(input.orderId),
   );
 }
 

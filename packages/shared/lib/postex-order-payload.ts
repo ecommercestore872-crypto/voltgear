@@ -1,5 +1,6 @@
 import { normalizePhoneForCheckout } from "@/lib/checkout-customer-rules";
 import { normalizePhone } from "@/lib/messaging";
+import { resolvePostExListedCity } from "@/lib/pakistan-locations";
 import type { PostExBaseEnv, PostExOrderPayload } from "@/lib/postex";
 import type { Order, OrderItem } from "@/lib/types";
 
@@ -73,22 +74,21 @@ function readPickupAddressCode(
 const POSTEX_CITY_NOT_OPERATIONAL = "customer.city (not a PostEx operational city)";
 
 /**
- * Match order city to PostEx operational city list (case-insensitive, trimmed).
+ * Match order city to the current PostEx list, including safe city aliases when province is known.
  * Returns the canonical name from PostEx when matched.
  */
 export function resolvePostExOperationalCityName(
   raw: string | undefined | null,
   operationalCities: string[],
+  province?: string | null,
 ): { ok: true; cityName: string } | { ok: false } {
   const needle = raw?.trim();
   if (!needle || !operationalCities.length) return { ok: false };
 
-  const match = operationalCities.find(
-    (city) => city.trim().toLowerCase() === needle.toLowerCase(),
-  );
+  const match = resolvePostExListedCity(needle, operationalCities, province);
   if (!match) return { ok: false };
 
-  return { ok: true, cityName: match.trim() };
+  return { ok: true, cityName: match };
 }
 
 /**
@@ -120,6 +120,7 @@ export function buildPostExOrderPayloadFromOrder(
     const resolvedCity = resolvePostExOperationalCityName(
       customer.city,
       operationalCities,
+      customer.province,
     );
     if (!resolvedCity.ok) {
       missingOrInvalid.push(POSTEX_CITY_NOT_OPERATIONAL);

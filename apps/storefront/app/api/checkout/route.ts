@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getOrderByPublicId } from "@/lib/db/store";
+import { getOrderByIdempotencyKey, getOrderByPublicId } from "@/lib/db/store";
 import {
   resolveCheckout,
   CHECKOUT_PRICE_CHANGED_ERROR,
@@ -26,7 +26,8 @@ import {
 } from "@/lib/checkout-observability";
 import { checkoutHttpStatusAfterOrderPersisted } from "@/lib/email-checkout-rules";
 import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
-import { scopeCheckoutIdempotencyKey } from "@/lib/checkout-idempotency";
+import { buildCheckoutRequestFingerprint, scopeCheckoutIdempotencyKey } from "@/lib/checkout-idempotency";
+import { checkoutReplayMatches } from "@/lib/checkout-replay-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -90,6 +91,12 @@ export async function POST(request: Request) {
     const checkoutCustomer = normalizedCustomer.customer;
     const email = checkoutCustomer.email;
     const phone = checkoutCustomer.phone;
+    if (payment?.method && payment.method !== "cod") {
+      return NextResponse.json(
+        { error: "Only Cash on Delivery is available right now." },
+        { status: 400 },
+      );
+    }
     const rate = takeCheckoutRateLimit({
       ip: checkoutClientIp(request),
       email,
@@ -104,15 +111,23 @@ export async function POST(request: Request) {
     // Keep practice retries in a separate namespace so a browser switching
     // between demo and live checkout can never replay the other environment.
     const idemKey = scopeCheckoutIdempotencyKey(rawIdemKey, demoSession);
+    const requestFingerprint = buildCheckoutRequestFingerprint(body, checkoutCustomer);
     if (idemKey) {
       const cached = getCachedCheckoutOrder(idemKey);
       if (cached) {
-        const existing = await getOrderByPublicId(cached);
+        if (cached.fingerprint !== requestFingerprint) {
+          slo("validation", 409, { itemCount: items.length, code: "IDEMPOTENCY_CONFLICT" });
+          return NextResponse.json(
+            { error: "This checkout attempt was already used for a different order. Please refresh your cart and try again." },
+            { status: 409 },
+          );
+        }
+        const existing = await getOrderByPublicId(cached.orderId);
         if (existing) {
           slo("replayed", 200, { itemCount: items.length, replayed: true });
           return NextResponse.json({
             ok: true,
-            orderId: cached,
+            orderId: cached.orderId,
             lookupEmail: existing.customer?.email ?? "",
             subtotal: existing.subtotal,
             shipping: existing.shipping,
@@ -124,13 +139,32 @@ export async function POST(request: Request) {
           });
         }
       }
-    }
-
-    if (payment?.method && payment.method !== "cod") {
-      return NextResponse.json(
-        { error: "Only Cash on Delivery is available right now." },
-        { status: 400 },
-      );
+      // This lookup also handles retries routed to a different server instance,
+      // even if stock, prices, or a promotion changed after the first order.
+      const existing = await getOrderByIdempotencyKey(idemKey);
+      if (existing) {
+        if (!checkoutReplayMatches(existing, body, checkoutCustomer)) {
+          slo("validation", 409, { itemCount: items.length, code: "IDEMPOTENCY_CONFLICT" });
+          return NextResponse.json(
+            { error: "This checkout attempt was already used for a different order. Please refresh your cart and try again." },
+            { status: 409 },
+          );
+        }
+        cacheCheckoutOrder(idemKey, existing.orderId, requestFingerprint);
+        slo("replayed", 200, { itemCount: items.length, replayed: true });
+        return NextResponse.json({
+          ok: true,
+          orderId: existing.orderId,
+          lookupEmail: existing.customer?.email ?? "",
+          subtotal: existing.subtotal,
+          shipping: existing.shipping,
+          total: existing.total,
+          discount: existing.discount ?? 0,
+          promoCode: existing.promoCode ?? null,
+          lines: existing.items ?? [],
+          replayed: true,
+        });
+      }
     }
 
     const [resolution, dealsList] = await Promise.all([
@@ -195,6 +229,7 @@ export async function POST(request: Request) {
         email,
         phone,
         address: checkoutCustomer.address,
+        province: checkoutCustomer.province,
         city: checkoutCustomer.city,
         postal: checkoutCustomer.postal,
         note: customerNote || undefined,
@@ -215,6 +250,13 @@ export async function POST(request: Request) {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "";
       if (message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
+        if (message.includes("IDEMPOTENCY_CONFLICT")) {
+          slo("validation", 409, { itemCount: items.length, code: "IDEMPOTENCY_CONFLICT" });
+          return NextResponse.json(
+            { error: "This checkout attempt was already used for a different order. Please refresh your cart and try again." },
+            { status: 409 },
+          );
+        }
         return NextResponse.json(
           { error: message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
           { status: 400 }
@@ -239,7 +281,7 @@ export async function POST(request: Request) {
     const orderId = persisted.orderId;
 
     if (idemKey) {
-      cacheCheckoutOrder(idemKey, orderId);
+      cacheCheckoutOrder(idemKey, orderId, requestFingerprint);
     }
 
     if (persisted.replayed) {
@@ -281,6 +323,7 @@ export async function POST(request: Request) {
           email: baseOrder.customer.email,
           phone: baseOrder.customer.phone,
           address: baseOrder.customer.address,
+          province: baseOrder.customer.province,
           city: baseOrder.customer.city,
           postal: baseOrder.customer.postal,
         },
