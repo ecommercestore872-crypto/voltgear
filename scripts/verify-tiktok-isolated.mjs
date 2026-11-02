@@ -25,6 +25,8 @@ const sdk = `(() => {
 const report = { ok: false, assertions: 0, viewports: [], liveTikTokReception: "NOT TESTED — SDK and transport mocked" };
 function check(value, message) { assert.ok(value, message); report.assertions++; }
 const browsers = { chromium: await chromium.launch({ headless: true }), webkit: await webkit.launch({ headless: true }) };
+let debugPage;
+let shuttingDown = false;
 
 try {
   for (const { engine, width } of [{ engine: "chromium", width: 1440 }, { engine: "chromium", width: 390 }, { engine: "webkit", width: 390 }]) {
@@ -33,11 +35,14 @@ try {
     const context = await browser.newContext({ ...device, viewport: { width, height: 900 }, serviceWorkers: "block" });
     const network = [];
     const errors = [];
+    const transportErrors = [];
+    let closingContext = false;
     let status = 200;
     let posts = 0;
     const purchase = { ok: true, orderId: `QA-${width}`, lookupEmail: "qa@example.com", total: 2199, subtotal: 1999, shipping: 200,
       lines: [{ slug: "tracking-qa-product", name: "Tracking QA product", sku: "QA-PRODUCT", quantity: 1, price: 1999 }] };
     await context.route("**/*", async (route) => {
+      const handle = async () => {
       const request = route.request();
       const url = new URL(request.url());
       if (url.hostname === "analytics.tiktok.com") {
@@ -60,16 +65,22 @@ try {
         // Quote/abandonment/newsletter requests cannot reach any backend.
         return route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"discount":0,"applied":[]}' });
       }
-      const response = await route.fetch({ url: `${local}${url.pathname}${url.search}` });
+      const response = await route.fetch({ url: `${local}${url.pathname}${url.search}`, maxRetries: 2 });
       // Re-serve bytes under the synthetic origin; retain no upstream URL metadata.
       const headers = { ...response.headers(), "access-control-allow-origin": origin, "access-control-allow-credentials": "true" };
       for (const key of ["content-encoding", "content-length", "transfer-encoding", "connection"]) delete headers[key];
       return route.fulfill({ status: response.status(), headers, body: await response.body() });
+      };
+      await handle().catch(async (error) => {
+        if (!shuttingDown && !closingContext) transportErrors.push(String(error));
+        await route.abort().catch(() => {});
+      });
     });
     const page = await context.newPage();
+    debugPage = page;
     page.on("pageerror", (error) => errors.push(error.message));
     const events = async (event) => page.evaluate((event) => (window.__tiktokEvents || []).filter((entry) => entry.event === event), event);
-    await page.goto(`${origin}/product/tracking-qa-product`, { waitUntil: "networkidle" });
+    await page.goto(`${origin}/product/tracking-qa-product`, { waitUntil: "domcontentloaded" });
     check(await page.evaluate(() => typeof window.ttq === "undefined"), "no Pixel before consent");
     check(network.length === 0, "no TikTok transport before consent");
     await page.evaluate(() => {
@@ -85,7 +96,7 @@ try {
     check((await events("PageView")).length === 1, "late grant produces exactly one PageView");
     await page.evaluate(() => dispatchEvent(new CustomEvent("bnt-cookie-consent-change", { detail: "all" })));
     check((await events("PageView")).length === 1, "repeated grant does not duplicate PageView");
-    await page.reload({ waitUntil: "networkidle" });
+    await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.__tiktokEvents?.some((event) => event.event === "ViewContent"));
     const views = await events("ViewContent");
     check(views.length === 1 && views[0].properties.contents[0].content_id === "QA-PRODUCT", "actual PDP emits one catalog-compatible ViewContent");
@@ -109,7 +120,10 @@ try {
     check(JSON.parse(cart).length === 1, "cart contains actual selected product");
     // Settle Next's link prefetch before replacing the document in this proxy harness.
     await page.waitForLoadState("networkidle");
-    await page.goto(`${origin}/checkout`, { waitUntil: "networkidle" });
+    await page.goto(`${origin}/checkout`, { waitUntil: "domcontentloaded" });
+    // The confirmation fixture replaces the document. Finish settings fetches
+    // before that artificial replacement to avoid WebKit cancellation/CORS noise.
+    await page.waitForLoadState("networkidle");
     await page.waitForFunction(() => window.__tiktokEvents?.some((entry) => entry.event === "InitiateCheckout"));
     check((await events("InitiateCheckout")).length === 1, "settled checkout emits once");
     check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "checkout has no horizontal overflow");
@@ -139,11 +153,12 @@ try {
     check(purchases[0].event_id === `purchase_QA-${width}`, "Purchase uses stable backend-compatible event ID");
     check(purchases[0].properties.value === 2199 && purchases[0].properties.currency === "PKR", "Purchase uses authoritative total and PKR");
     check(!page.url().includes("phone=") && !page.url().includes("email="), "confirmation URL contains no matching PII");
-    await page.reload({ waitUntil: "networkidle" });
+    await page.reload({ waitUntil: "domcontentloaded" });
     check(network.filter((entry) => entry.event === "Purchase").length === 1, "confirmation refresh does not repeat Purchase");
     purchase.replayed = true;
     await page.evaluate((cart) => localStorage.setItem("ecomm-cart", cart), cart);
-    await page.goto(`${origin}/checkout`, { waitUntil: "networkidle" });
+    await page.goto(`${origin}/checkout`, { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle");
     await page.locator("#name").fill("QA Shopper");
     await page.locator("#phone").fill("03001234567");
     await page.locator("#address").fill("QA isolated test address");
@@ -153,11 +168,22 @@ try {
     await page.waitForURL(/\/order\/QA-/);
     check(network.filter((entry) => entry.event === "Purchase").length === 1, "idempotent replay after reload does not duplicate Purchase");
     check(errors.length === 0, `no browser runtime errors: ${errors.join("; ")}`);
+    check(transportErrors.length === 0, `no proxy transport errors: ${transportErrors.join("; ")}`);
     report.viewports.push({ engine, width, assertions: "PASS", mockedCheckoutPosts: posts, purchaseEventId: purchases[0].event_id });
+    closingContext = true;
     await context.close();
   }
   report.ok = true;
+} catch (error) {
+  shuttingDown = true;
+  report.error = String(error);
+  if (debugPage && !debugPage.isClosed()) {
+    await debugPage.screenshot({ path: `${output}/failure.png`, fullPage: true }).catch(() => {});
+    fs.writeFileSync(`${output}/failure.txt`, await debugPage.locator("body").innerText().catch(() => ""));
+  }
+  throw error;
 } finally {
+  shuttingDown = true;
   await Promise.all(Object.values(browsers).map((browser) => browser.close()));
   fs.writeFileSync(`${output}/report.json`, JSON.stringify(report, null, 2));
 }

@@ -22,6 +22,7 @@ import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
 import { indexSiteUrl, productStructuredData } from "@/lib/seo-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
+import { isPurchasable } from "@/lib/stock";
 
 export const revalidate = 300;
 
@@ -225,6 +226,7 @@ export default async function Product2Page(
         }}
       />
       <ProductViewTrackerLoader
+        metaAvailable={isPurchasable(product, trackingVariant)}
         slug={product.slug}
         name={product.name}
         price={trackingVariant?.price ?? product.price}

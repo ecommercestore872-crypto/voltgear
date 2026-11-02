@@ -296,9 +296,11 @@ export async function POST(request: Request) {
       });
     }
 
+    const acceptedAt = Math.floor(Date.now() / 1000);
     deferAfterResponse(() =>
       runCheckoutPostPersist({
         orderId,
+        acceptedAt,
         request,
         body: body as Record<string, unknown>,
         consent,

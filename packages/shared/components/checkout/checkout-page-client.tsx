@@ -58,7 +58,7 @@ import {
   tagCheckoutClarityStep,
 } from "@/lib/checkout-clarity";
 import { normalizePhone } from "@/lib/messaging";
-import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel-events";
+import { trackMetaInitiateCheckout, trackAcceptedMetaPurchase } from "@/lib/meta-pixel-events";
 import {
   validateCheckoutFormField,
   validateCheckoutFormFields,
@@ -325,7 +325,10 @@ export default function CheckoutPageClient() {
       const idempotency = getOrCreateCheckoutIdempotency({
         items,
         details: { customer: currentCustomer, orderNotes, giftWrap, promoCode: activePromo?.code, payment },
-        storage: window.sessionStorage,
+        storage: {
+          getItem: (key) => window.sessionStorage.getItem(key),
+          setItem: (key, value) => window.sessionStorage.setItem(key, value),
+        },
         current: idemRef.current,
       });
       idemRef.current = idempotency;
@@ -376,14 +379,15 @@ export default function CheckoutPageClient() {
       if (!response.ok) {
         throw new Error(data.error ?? "Failed");
       }
-      if (!data.orderId) {
+      if (data.ok !== true || !data.orderId) {
         throw new Error("Checkout returned an invalid order response.");
       }
       const orderId = data.orderId;
       tagCheckoutClarityEvent("order_success");
 
       if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_STORAGE_KEY);
+        try { window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_STORAGE_KEY); } catch {}
+        try { window.sessionStorage.removeItem("bnt-meta-checkout"); } catch {}
       }
       idemRef.current = null;
 
@@ -395,8 +399,6 @@ export default function CheckoutPageClient() {
         const maxAge = 60 * 60 * 24;
         document.cookie = `bnt_order_${encodeURIComponent(orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
       }
-      const serverTotal = Number(data.total);
-      const purchaseTotal = Number.isFinite(serverTotal) ? serverTotal : total;
       const first = items[0];
       if (first) {
         saveLastOrder({
@@ -410,29 +412,14 @@ export default function CheckoutPageClient() {
 
       orderNavigationRef.current = true;
       // Queue before navigation; replay recovery keeps the same deduplication ID.
-      trackAcceptedTikTokPurchase(response.status, data);
+      try { trackAcceptedTikTokPurchase(response.status, data); } catch {}
+      try { await trackAcceptedMetaPurchase(response.status, data); } catch {}
       void identifyTikTokCustomer({ email: currentCustomer.email, phone: currentCustomer.phone });
       window.scrollTo({ top: 0, behavior: "instant" });
       router.replace(`/order/${orderId}`);
 
       window.setTimeout(() => {
         clearCart();
-        if (!data.replayed) {
-          try {
-            trackMetaPurchase({
-              orderId,
-              items: items.map((i) => ({
-                productId: i.productId,
-                name: i.name,
-                price: i.price,
-                quantity: i.quantity,
-              })),
-              value: purchaseTotal,
-            });
-          } catch {
-            // fail-open
-          }
-        }
       }, 0);
       return;
     } catch (error) {
@@ -489,15 +476,14 @@ export default function CheckoutPageClient() {
 
     let metaCleanup: (() => void) | void = undefined;
     try {
-      const metaCheckoutValue = Math.max(0, merchandise - subDiscount);
       metaCleanup = trackMetaInitiateCheckout({
         items: items.map((i) => ({
-          productId: i.productId,
+          productId: i.slug,
           name: i.name,
           price: i.price,
           quantity: i.quantity,
         })),
-        value: metaCheckoutValue,
+        value: total,
       });
     } catch {
       // fail-open
