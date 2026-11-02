@@ -1,16 +1,12 @@
-/** Run work after the HTTP response is sent (emails, pixels). Uses Vercel waitUntil when available. */
+import { waitUntil } from "@vercel/functions";
+
+/** Register before returning the response so serverless suspension cannot lose work. */
 export function deferAfterResponse(task: () => Promise<unknown>): void {
   const run = Promise.resolve()
     .then(task)
-    .catch((err) => {
-      console.error("[defer-after-response]", err);
+    .catch(() => {
+      console.error("[defer-after-response] task failed");
     });
 
-  void import("@vercel/functions")
-    .then(({ waitUntil }) => {
-      waitUntil(run);
-    })
-    .catch(() => {
-      void run;
-    });
+  try { waitUntil(run); } catch { void run; }
 }

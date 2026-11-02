@@ -118,9 +118,7 @@ export function AppChrome({
     <CartProvider>
       <WishlistProvider>
         {!pathname?.startsWith("/admin") ? (
-          <DeferredUntilIdle timeoutMs={5000}>
-            <TikTokPixel />
-          </DeferredUntilIdle>
+          <TikTokPixel />
         ) : null}
         {gadget ? (
           <>

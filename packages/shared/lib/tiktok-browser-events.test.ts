@@ -85,8 +85,8 @@ describe("payload builders", () => {
     assert.equal(ok!.currency, "PKR");
     assert.equal(ok!.value, 4499);
     assert.equal(ok!.contents[0].content_id, "CHG-1");
-    assert.equal(ok!.contents[0].content_type, "product");
-    assert.equal(ok!.contents[0].num_items, 1);
+    assert.equal(ok!.content_type, "product");
+    assert.equal(ok!.contents[0].quantity, 1);
 
     assert.equal(
       buildViewContentPayload({
@@ -108,9 +108,9 @@ describe("payload builders", () => {
     );
   });
 
-  it("builds Search with search_string only when term is real; omits invented contents", () => {
+  it("builds Search with query only when term is real; omits invented contents", () => {
     const ok = buildSearchPayload("  earbuds  ");
-    assert.deepEqual(ok, { search_string: "earbuds" });
+    assert.deepEqual(ok, { query: "earbuds" });
     assert.equal(buildSearchPayload("   "), null);
     assert.equal(buildSearchPayload(""), null);
   });
@@ -123,7 +123,7 @@ describe("payload builders", () => {
       price: 2000,
     });
     assert.equal(wish!.value, 2000);
-    assert.equal(wish!.contents[0].num_items, 1);
+    assert.equal(wish!.contents[0].quantity, 1);
 
     const cart = buildAddToCartPayload({
       slug: "buds",
@@ -134,7 +134,7 @@ describe("payload builders", () => {
       variantSku: "BUDS-BLK",
     });
     assert.equal(cart!.contents[0].content_id, "BUDS-BLK");
-    assert.equal(cart!.contents[0].num_items, 3);
+    assert.equal(cart!.contents[0].quantity, 3);
     assert.equal(cart!.value, 6000);
     assert.equal(
       buildAddToCartPayload({
@@ -156,6 +156,8 @@ describe("payload builders", () => {
     assert.equal(payload!.value, 250);
     assert.equal(payload!.contents.length, 2);
     assert.equal(payload!.contents[1].content_id, "b::v1");
+    assert.equal(payload!.contents[0].price, 100);
+    assert.equal(payload!.contents[0].quantity, 2);
     assert.equal(buildInitiateCheckoutPayload([]), null);
   });
 
@@ -384,5 +386,54 @@ describe("fail-open browser trackers", () => {
       }),
       null
     );
+  });
+
+  it("queues one Purchase while the Pixel loads, then marks it sent", () => {
+    const previousWindow = (globalThis as { window?: unknown }).window;
+    const previousStorage = (globalThis as { sessionStorage?: unknown }).sessionStorage;
+    const previousPixel = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
+    const previousEnabled = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED;
+    const previousNodeEnv = process.env.NODE_ENV;
+    const stored = new Map<string, string>();
+    let tick: (() => void) | undefined;
+    let sent = 0;
+    try {
+      process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID = "PIXEL";
+      process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED = "true";
+      process.env.NODE_ENV = "production";
+      (globalThis as { sessionStorage?: unknown }).sessionStorage = {
+        getItem: (key: string) => stored.get(key) ?? null,
+        setItem: (key: string, value: string) => stored.set(key, value),
+      };
+      (globalThis as { window?: unknown }).window = {
+        location: { pathname: "/checkout", hostname: "buyntryy.com" },
+        localStorage: { getItem: () => "all" },
+        setInterval: (callback: () => void) => { tick = callback; return 1; },
+        clearInterval: () => {},
+      };
+      const purchase = {
+        orderId: "BNT-PENDING",
+        total: 100,
+        lines: [{ slug: "x", name: "X", quantity: 1, price: 100 }],
+      };
+      assert.equal(trackTikTokPurchase(purchase), "purchase_BNT-PENDING");
+      assert.equal(trackTikTokPurchase(purchase), null);
+      assert.ok(tick);
+      (globalThis as { window?: { ttq?: unknown } }).window!.ttq = {
+        track: () => { sent++; },
+      };
+      tick();
+      assert.equal(sent, 1);
+      assert.equal(trackTikTokPurchase(purchase), null);
+    } finally {
+      (globalThis as { window?: unknown }).window = previousWindow;
+      (globalThis as { sessionStorage?: unknown }).sessionStorage = previousStorage;
+      if (previousPixel === undefined) delete process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
+      else process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID = previousPixel;
+      if (previousEnabled === undefined) delete process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED;
+      else process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED = previousEnabled;
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
   });
 });

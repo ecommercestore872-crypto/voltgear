@@ -80,6 +80,7 @@ export interface CheckoutOrderResponse {
   code?: string;
   error?: string;
   replayed?: boolean;
+  isDemo?: boolean;
 }
 
 function jsonRequest(body: unknown, headers?: HeadersInit): RequestInit {

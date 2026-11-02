@@ -14,11 +14,11 @@ export async function runCheckoutTracking(
 
   let ttclid: string | null = null;
   try {
-    const snapshot = await attachOrderAttribution(
+    const snapshot = input.consent === "all" ? await attachOrderAttribution(
       input.orderId,
       input.request,
       input.body,
-    );
+    ) : null;
     ttclid = snapshot?.attrib_ttclid || null;
   } catch {
     console.error("[order-attribution]", "attach failed");
@@ -38,9 +38,10 @@ export async function runCheckoutTracking(
       lines: input.lines,
       consent: input.consent,
       ttclid,
+      ttp: input.request.headers.get("cookie")?.split(";").map((part) => part.trim()).find((part) => part.startsWith("_ttp="))?.slice(5),
     });
-  } catch (error) {
-    console.error("[tiktok-server] root error", error);
+  } catch {
+    console.error("[tiktok-server] tracking failed");
   }
 
   try {

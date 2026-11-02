@@ -36,8 +36,8 @@ import {
   identifyTikTokCustomer,
   isCheckoutPricingReadyForInitiateCheckout,
   trackTikTokInitiateCheckout,
-  trackTikTokPurchase,
 } from "@/lib/tiktok-browser-events";
+import { trackAcceptedTikTokPurchase } from "@/lib/tiktok-checkout-result";
 import {
   GADGET_SESSION_KEY,
   product2Href,
@@ -133,6 +133,7 @@ export default function CheckoutPageClient() {
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [orderNotes, setOrderNotes] = useState("");
   const [placing, setPlacing] = useState(false);
+  const placingRef = useRef(false);
   const orderNavigationRef = useRef(false);
   const [customer, setCustomer] = useState<Record<string, string>>({});
   const [province, setProvince] = useState<PakistanRegionCode | "">("");
@@ -313,7 +314,8 @@ export default function CheckoutPageClient() {
       }
     }
 
-    if (placing || orderNavigationRef.current) return;
+    if (placingRef.current || placing || orderNavigationRef.current) return;
+    placingRef.current = true;
     tagCheckoutClarityEvent("place_order_click");
     setPlacing(true);
     setPriceChanged(null);
@@ -322,6 +324,7 @@ export default function CheckoutPageClient() {
     try {
       const idempotency = getOrCreateCheckoutIdempotency({
         items,
+        details: { customer: currentCustomer, orderNotes, giftWrap, promoCode: activePromo?.code, payment },
         storage: window.sessionStorage,
         current: idemRef.current,
       });
@@ -340,10 +343,7 @@ export default function CheckoutPageClient() {
         giftWrap,
         giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
         idempotencyKey: activeIdemKey,
-        consent:
-          typeof window !== "undefined"
-            ? window.localStorage.getItem("bnt-cookie-consent")
-            : null,
+        consent: (() => { try { return window.localStorage.getItem("bnt-cookie-consent"); } catch { return null; } })(),
         promoCode:
           activePromo?.code && !activePromo.error
             ? activePromo.code
@@ -369,6 +369,7 @@ export default function CheckoutPageClient() {
           total: Number(data.total) || 0,
         });
         setPlacing(false);
+        placingRef.current = false;
         return;
       }
 
@@ -394,14 +395,8 @@ export default function CheckoutPageClient() {
         const maxAge = 60 * 60 * 24;
         document.cookie = `bnt_order_${encodeURIComponent(orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
       }
-      const orderQuery = new URLSearchParams();
-      const phoneForTrack = currentCustomer.phone?.trim() ?? "";
-      if (phoneForTrack) orderQuery.set("phone", phoneForTrack);
-      else if (lookupEmail) orderQuery.set("email", lookupEmail);
-      const orderQs = orderQuery.toString() ? `?${orderQuery.toString()}` : "";
       const serverTotal = Number(data.total);
       const purchaseTotal = Number.isFinite(serverTotal) ? serverTotal : total;
-      const serverLines = Array.isArray(data.lines) ? data.lines : [];
       const first = items[0];
       if (first) {
         saveLastOrder({
@@ -414,25 +409,15 @@ export default function CheckoutPageClient() {
       }
 
       orderNavigationRef.current = true;
+      // Queue before navigation; replay recovery keeps the same deduplication ID.
+      trackAcceptedTikTokPurchase(response.status, data);
+      void identifyTikTokCustomer({ email: currentCustomer.email, phone: currentCustomer.phone });
       window.scrollTo({ top: 0, behavior: "instant" });
-      router.replace(`/order/${orderId}${orderQs}`);
+      router.replace(`/order/${orderId}`);
 
       window.setTimeout(() => {
         clearCart();
-        void identifyTikTokCustomer({
-          email: lookupEmail || currentCustomer.email,
-          phone: currentCustomer.phone,
-        });
         if (!data.replayed) {
-          try {
-            trackTikTokPurchase({
-              orderId,
-              total: purchaseTotal,
-              lines: serverLines,
-            });
-          } catch {
-            // fail-open
-          }
           try {
             trackMetaPurchase({
               orderId,
@@ -457,6 +442,7 @@ export default function CheckoutPageClient() {
           : "Something went wrong placing your order. Please try again.";
       setApiError(message);
       setPlacing(false);
+      placingRef.current = false;
     }
   }
 

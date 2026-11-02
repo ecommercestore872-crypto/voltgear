@@ -18,6 +18,7 @@ interface CheckoutIdempotencyStorage {
 
 interface GetOrCreateCheckoutIdempotencyInput {
   items: readonly CheckoutIdempotencyCartItem[];
+  details?: unknown;
   storage: CheckoutIdempotencyStorage;
   current?: CheckoutIdempotencyState | null;
   createKey?: () => string;
@@ -45,12 +46,22 @@ function createBrowserCheckoutKey(now: () => number): string {
 
 export function getOrCreateCheckoutIdempotency({
   items,
+  details,
   storage,
   current,
   createKey,
   now = Date.now,
 }: GetOrCreateCheckoutIdempotencyInput): CheckoutIdempotencyState {
-  const fingerprint = checkoutCartFingerprint(items);
+  // Keep delivery details out of sessionStorage while changing the key when
+  // the shopper edits them. The server still validates the full request.
+  const detailText = JSON.stringify(details ?? null);
+  let detailHash = 2166136261;
+  for (let i = 0; i < detailText.length; i += 1) {
+    detailHash = Math.imul(detailHash ^ detailText.charCodeAt(i), 16777619);
+  }
+  const fingerprint = details === undefined
+    ? checkoutCartFingerprint(items)
+    : `${checkoutCartFingerprint(items)}:${(detailHash >>> 0).toString(16)}`;
   if (current?.fingerprint === fingerprint) return current;
 
   let key = "";

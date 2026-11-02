@@ -17,6 +17,8 @@ export function ProductViewTracker({
   category,
   productId,
   sku,
+  variantSku,
+  variantKey,
 }: {
   slug: string;
   name: string;
@@ -25,6 +27,8 @@ export function ProductViewTracker({
   category: string;
   productId?: string;
   sku?: string;
+  variantSku?: string;
+  variantKey?: string;
 }) {
   useEffect(() => {
     let metaCleanup: (() => void) | void = undefined;
@@ -44,6 +48,8 @@ export function ProductViewTracker({
         price,
         category,
         ...(sku ? { sku } : {}),
+        variantSku,
+        variantKey,
       });
     } catch {
       // fail-open
@@ -66,7 +72,7 @@ export function ProductViewTracker({
         metaCleanup();
       }
     };
-  }, [slug, name, price, image, category, productId, sku]);
+  }, [slug, name, price, image, category, productId, sku, variantSku, variantKey]);
 
   return null;
 }

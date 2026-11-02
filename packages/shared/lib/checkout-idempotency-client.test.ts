@@ -85,4 +85,23 @@ describe("getOrCreateCheckoutIdempotency", () => {
 
     assert.equal(result.key, "checkout-key-new");
   });
+
+  it("changes the key when delivery details change without storing them", () => {
+    const storage = new MemoryStorage();
+    const first = getOrCreateCheckoutIdempotency({
+      items,
+      details: { address: "House 12, Lahore" },
+      storage,
+      createKey: () => "checkout-key-1",
+    });
+    const changed = getOrCreateCheckoutIdempotency({
+      items,
+      details: { address: "House 13, Lahore" },
+      storage,
+      current: first,
+      createKey: () => "checkout-key-2",
+    });
+    assert.equal(changed.key, "checkout-key-2");
+    assert.equal(String(storage.getItem(CHECKOUT_IDEMPOTENCY_STORAGE_KEY)).includes("House"), false);
+  });
 });
