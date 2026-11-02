@@ -25,8 +25,13 @@ export function parseCartStorage(raw: string | null): CartHydrationLine[] {
           line &&
             typeof line === "object" &&
             typeof (line as CartHydrationLine).slug === "string" &&
+            (line as CartHydrationLine).slug.trim().length > 0 &&
             typeof (line as CartHydrationLine).quantity === "number" &&
-            typeof (line as CartHydrationLine).price === "number",
+            Number.isSafeInteger((line as CartHydrationLine).quantity) &&
+            (line as CartHydrationLine).quantity > 0 &&
+            typeof (line as CartHydrationLine).price === "number" &&
+            Number.isFinite((line as CartHydrationLine).price) &&
+            (line as CartHydrationLine).price > 0,
         ),
     );
   } catch {

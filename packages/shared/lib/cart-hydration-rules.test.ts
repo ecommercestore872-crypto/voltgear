@@ -21,6 +21,13 @@ describe("cart-hydration-rules", () => {
     assert.deepEqual(parseCartStorage("[]"), []);
   });
 
+  it("rejects invalid restored commerce rather than emitting from an unusable cart", () => {
+    const invalid = [{ ...stylus, slug: " " }, { ...stylus, price: 0 }, { ...stylus, price: -1 },
+      { ...stylus, price: "1999" }, { ...stylus, quantity: 0 }, { ...stylus, quantity: -1 },
+      { ...stylus, quantity: 1.5 }, { ...stylus, quantity: Number.MAX_SAFE_INTEGER + 1 }];
+    assert.deepEqual(parseCartStorage(JSON.stringify([...invalid, stylus])), [stylus]);
+  });
+
   it("mergeCartHydration keeps in-memory add when storage is empty []", () => {
     const merged = mergeCartHydration([stylus], []);
     assert.equal(merged.length, 1);

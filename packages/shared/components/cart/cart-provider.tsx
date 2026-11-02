@@ -7,6 +7,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -67,11 +68,13 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-function writeCartStorage(next: CartItem[]) {
+function writeCartStorage(next: CartItem[]): boolean {
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(next));
+    return true;
   } catch {
     // private mode / quota — fail open
+    return false;
   }
 }
 
@@ -79,11 +82,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const pendingMetaAdds = useRef<Array<{ item: Omit<CartItem, "quantity">; quantity: number }>>([]);
 
   useEffect(() => {
-    const stored = parseCartStorage(
-      localStorage.getItem(CART_STORAGE_KEY),
-    ) as CartItem[];
+    let raw: string | null = null;
+    try { raw = localStorage.getItem(CART_STORAGE_KEY); } catch {}
+    const stored = parseCartStorage(raw) as CartItem[];
     // Pure updater only — persist via useLayoutEffect after commit.
     setItems((current) => mergeCartHydration(current, stored) as CartItem[]);
     setHydrated(true);
@@ -92,7 +96,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Layout persist: flush before paint / before Playwright navigates away.
   useLayoutEffect(() => {
     if (!hydrated) return;
-    writeCartStorage(items);
+    const persisted = writeCartStorage(items);
+    const added = pendingMetaAdds.current.splice(0);
+    if (persisted) for (const { item, quantity } of added) {
+      const line = items.find((line) => cartLineKey(line) === cartLineKey(item) && line.quantity >= quantity);
+      if (!line) continue;
+      try { trackMetaAddToCart({ productId: line.slug, name: line.name, price: line.price, quantity }); } catch {}
+    }
   }, [items, hydrated]);
 
   useEffect(() => {
@@ -110,8 +120,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
       // Hydration/restoration uses setItems from localStorage — never this path.
       const qty = Number(quantity);
-      if (!Number.isFinite(qty) || qty <= 0) return;
+      if (!Number.isSafeInteger(qty) || qty <= 0 || !item.slug?.trim() || !item.name?.trim()) return;
       if (!isPurchasablePrice(item.price)) return;
+      pendingMetaAdds.current.push({ item, quantity: qty });
       setItems((prev) => {
         const key = cartLineKey(item);
         const existing = prev.find((i) => cartLineKey(i) === key);
@@ -131,17 +142,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         return [...prev, { ...item, quantity: qty }];
       });
-      try {
-        trackMetaAddToCart({
-          productId: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: qty,
-        });
-      } catch {
-        // fail-open
-      }
-
       try {
         trackTikTokAddToCart({
           slug: item.slug,

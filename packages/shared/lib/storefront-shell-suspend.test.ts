@@ -97,7 +97,9 @@ describe("storefront shell must not suspend on ad query strings", () => {
 
     assert.doesNotMatch(layout, /setTimeout\(load,\s*9000\)/);
     assert.match(layout, /<AdSenseLoaderClientOnly/);
-    assert.match(meta, /consent !== "all"/);
+    assert.match(meta, /if \(!canSendMetaBrowserEvents\(\)\)/);
+    const metaEvents = readShared("lib/meta-pixel-events.ts");
+    assert.match(metaEvents, /getItem\("bnt-cookie-consent"\) === "all"/);
     assert.match(adsense, /consent !== "all"/);
     assert.match(clarity, /consent !== "all"/);
   });

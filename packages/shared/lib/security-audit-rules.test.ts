@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import {
@@ -30,6 +31,11 @@ describe("auditNextPublicEnvKey", () => {
 });
 
 describe("auditEnvExamplePublicKeys", () => {
+  it("accepts the real documented Meta switches while rejecting public CAPI credentials", () => {
+    const content = readFileSync(new URL("../../../.env.example", import.meta.url), "utf8");
+    assert.deepEqual(auditEnvExamplePublicKeys(content), []);
+    assert.equal(auditNextPublicEnvKey("NEXT_PUBLIC_META_CONVERSIONS_API_ACCESS_TOKEN").ok, false);
+  });
   it("passes on current .env.example shape", () => {
     const sample = `
 NEXT_PUBLIC_SITE_URL=https://buyntryy.com

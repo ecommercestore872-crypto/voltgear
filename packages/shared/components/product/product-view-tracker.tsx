@@ -19,6 +19,7 @@ export function ProductViewTracker({
   sku,
   variantSku,
   variantKey,
+  metaAvailable = true,
 }: {
   slug: string;
   name: string;
@@ -29,17 +30,17 @@ export function ProductViewTracker({
   sku?: string;
   variantSku?: string;
   variantKey?: string;
+  metaAvailable?: boolean;
 }) {
   useEffect(() => {
     let metaCleanup: (() => void) | void = undefined;
-    if (productId) {
-      metaCleanup = trackMetaViewContent({
-        productId,
-        name,
-        price,
-        category,
-      });
-    }
+    const trackCurrentMetaView = () => {
+      if (metaCleanup) metaCleanup();
+      metaCleanup = trackMetaViewContent({ productId: slug, name, price, category, available: metaAvailable });
+    };
+    trackCurrentMetaView();
+    window.addEventListener("bnt-cookie-consent-change", trackCurrentMetaView);
+    window.addEventListener("meta:pixel-ready", trackCurrentMetaView);
 
     try {
       trackTikTokViewContent({
@@ -68,11 +69,13 @@ export function ProductViewTracker({
     }
 
     return () => {
+      window.removeEventListener("bnt-cookie-consent-change", trackCurrentMetaView);
+      window.removeEventListener("meta:pixel-ready", trackCurrentMetaView);
       if (metaCleanup) {
         metaCleanup();
       }
     };
-  }, [slug, name, price, image, category, productId, sku, variantSku, variantKey]);
+  }, [slug, name, price, image, category, productId, sku, variantSku, variantKey, metaAvailable]);
 
   return null;
 }

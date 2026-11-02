@@ -2,6 +2,7 @@ import type { OrderItem } from "@/lib/types";
 
 export type CheckoutPostPersistInput = {
   orderId: string;
+  acceptedAt?: number;
   request: Request;
   body: Record<string, unknown>;
   consent: string | null | undefined;

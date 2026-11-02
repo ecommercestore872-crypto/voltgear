@@ -143,10 +143,11 @@ export async function requestCheckoutOrder(
   body: CheckoutOrderBody,
   idempotencyKey: string,
   fetcher: CheckoutFetch = fetch,
+  timeoutMs = 20000,
 ): Promise<{ response: Response; data: CheckoutOrderResponse }> {
   const response = await fetcher(
     "/api/checkout",
-    jsonRequest(body, { "Idempotency-Key": idempotencyKey }),
+    { ...jsonRequest(body, { "Idempotency-Key": idempotencyKey }), signal: AbortSignal.timeout(timeoutMs) },
   );
   const data = (await response.json()) as CheckoutOrderResponse;
   return { response, data };
