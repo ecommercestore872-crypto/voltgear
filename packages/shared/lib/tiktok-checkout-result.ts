@@ -1,4 +1,5 @@
 import { buildPurchasePayload, trackTikTokPurchase } from "./tiktok-browser-events";
+import type { TikTokCustomer } from "./tiktok-browser-events";
 
 /** Only a successful API response with the persisted snapshot can convert. */
 export function acceptedTikTokPurchase(status: number, data: unknown): Parameters<typeof trackTikTokPurchase>[0] | null {
@@ -9,7 +10,7 @@ export function acceptedTikTokPurchase(status: number, data: unknown): Parameter
   try { return buildPurchasePayload(input) ? input : null; } catch { return null; }
 }
 
-export function trackAcceptedTikTokPurchase(status: number, data: unknown): string | null {
+export function trackAcceptedTikTokPurchase(status: number, data: unknown, customer?: TikTokCustomer): string | null {
   const input = acceptedTikTokPurchase(status, data);
-  return input ? trackTikTokPurchase(input) : null;
+  return input ? trackTikTokPurchase(input, customer) : null;
 }

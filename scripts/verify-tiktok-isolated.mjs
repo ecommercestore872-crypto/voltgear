@@ -1,6 +1,7 @@
 /** Production-build browser gate. All services/analytics/orders are local mocks. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 import { chromium, webkit, devices } from "playwright";
 
 const local = process.env.TIKTOK_QA_LOCAL || "http://127.0.0.1:4590";
@@ -14,6 +15,7 @@ const sdk = `(() => {
   function send(event, properties = {}, options = {}) {
     if (!granted) return;
     const payload = { event, properties, event_id: options.event_id };
+    if (event === 'Purchase') payload.matching = window.__tiktokIdentity || {};
     window.__tiktokEvents.push(payload);
     fetch('https://analytics.tiktok.com/api/v2/pixel', { method:'POST', body:JSON.stringify(payload) });
   }
@@ -150,6 +152,9 @@ try {
     check(posts === before + 1, "rapid duplicate submission creates one request");
     const purchases = network.filter((entry) => entry.event === "Purchase");
     check(purchases.length === 1, "accepted order delivers one browser Purchase");
+    check(purchases[0].matching.phone_number === createHash("sha256").update("+923001234567").digest("hex"), "normalized hashed phone is identified before Purchase");
+    check(!purchases[0].matching.email, "optional missing email is not replaced with the server lookup email");
+    check(!JSON.stringify(purchases[0]).includes("03001234567") && !JSON.stringify(purchases[0]).includes("+923001234567"), "Purchase transport contains no raw phone");
     check(purchases[0].event_id === `purchase_QA-${width}`, "Purchase uses stable backend-compatible event ID");
     check(purchases[0].properties.value === 2199 && purchases[0].properties.currency === "PKR", "Purchase uses authoritative total and PKR");
     check(!page.url().includes("phone=") && !page.url().includes("email="), "confirmation URL contains no matching PII");

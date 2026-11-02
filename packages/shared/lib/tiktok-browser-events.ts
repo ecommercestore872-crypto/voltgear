@@ -5,10 +5,13 @@
 
 import { shouldLoadTikTokPixel } from "@/lib/tiktok-pixel-rules";
 import { normalizePhone } from "@/lib/messaging";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 
 export const TIKTOK_CURRENCY = "PKR" as const;
 
 export type TikTokConsent = "all" | "essential" | null;
+export type TikTokCustomer = { email?: string | null; phone?: string | null };
 
 export type TikTokContentItem = {
   content_id: string;
@@ -119,11 +122,18 @@ export function normalizeTikTokPhone(raw: string): string | null {
 }
 
 export async function sha256Hex(value: string): Promise<string> {
-  const data = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return [...new Uint8Array(digest)]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return bytesToHex(sha256(utf8ToBytes(value)));
+}
+
+/** Manual Advanced Matching uses SHA-256 hex, never raw or generated contacts. */
+function matchingPayload(input: TikTokCustomer): Record<string, string> {
+  const email = typeof input.email === "string" ? normalizeTikTokEmail(input.email) : null;
+  const phone = typeof input.phone === "string" && /^(?:\+|00)?[\d\s().-]+$/.test(input.phone.trim())
+    ? normalizeTikTokPhone(input.phone) : null;
+  const payload: Record<string, string> = {};
+  if (email) payload.email = bytesToHex(sha256(utf8ToBytes(email)));
+  if (phone) payload.phone_number = bytesToHex(sha256(utf8ToBytes(phone)));
+  return payload;
 }
 
 export function buildViewContentPayload(input: {
@@ -499,7 +509,8 @@ function safeTrack(
   payload: Record<string, unknown>,
   eventId: string,
   onSuccess?: () => void,
-  onFailure?: () => void
+  onFailure?: () => void,
+  beforeTrack?: (ttq: Ttq) => void,
 ): string | null {
   try {
     if (!readBrowserGate()) {
@@ -511,6 +522,7 @@ function safeTrack(
       if (!readBrowserGate()) return false;
       const ttq = getTtq();
       if (!ttq?.track) return false;
+      try { beforeTrack?.(ttq); } catch { /* matching must never block Purchase */ }
       ttq.track(event, payload, { event_id: eventId });
       try {
         onSuccess?.();
@@ -644,7 +656,7 @@ export function trackTikTokPurchase(input: {
     category?: string;
     price?: number;
   }>;
-}): string | null {
+}, customer?: TikTokCustomer): string | null {
   const payload = buildPurchasePayload(input);
   if (!payload) return null;
   if (isPurchaseMarked(input.orderId) || pendingPurchase.has(input.orderId)) return null;
@@ -655,22 +667,20 @@ export function trackTikTokPurchase(input: {
     purchaseEventId(input.orderId),
     () => { pendingPurchase.delete(input.orderId); markPurchase(input.orderId); },
     () => pendingPurchase.delete(input.orderId),
+    customer ? (ttq) => {
+      if (!ttq.identify) return;
+      const identity = matchingPayload(customer);
+      if (Object.keys(identity).length) ttq.identify(identity);
+    } : undefined,
   );
 }
 
 /** Advanced Matching — hashed fields only; omit missing; never invent external_id. */
-export async function identifyTikTokCustomer(input: {
-  email?: string | null;
-  phone?: string | null;
-}): Promise<boolean> {
+export async function identifyTikTokCustomer(input: TikTokCustomer): Promise<boolean> {
   try {
     if (!readBrowserGate()) return false;
 
-    const email = input.email ? normalizeTikTokEmail(input.email) : null;
-    const phone = input.phone ? normalizeTikTokPhone(input.phone) : null;
-    const payload: Record<string, string> = {};
-    if (email) payload.email = await sha256Hex(email);
-    if (phone) payload.phone_number = await sha256Hex(phone);
+    const payload = matchingPayload(input);
     if (!Object.keys(payload).length) return false;
 
     const send = (): boolean => {

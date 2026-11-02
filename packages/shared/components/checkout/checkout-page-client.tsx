@@ -33,7 +33,6 @@ import { saveLastOrder } from "@/lib/review-reminder";
 import { cn, formatPrice } from "@/lib/utils";
 import { readStoredClickAttribution } from "@/lib/click-attribution";
 import {
-  identifyTikTokCustomer,
   isCheckoutPricingReadyForInitiateCheckout,
   trackTikTokInitiateCheckout,
 } from "@/lib/tiktok-browser-events";
@@ -412,9 +411,13 @@ export default function CheckoutPageClient() {
 
       orderNavigationRef.current = true;
       // Queue before navigation; replay recovery keeps the same deduplication ID.
-      try { trackAcceptedTikTokPurchase(response.status, data); } catch {}
+      try {
+        trackAcceptedTikTokPurchase(response.status, data, {
+          email: currentCustomer.email,
+          phone: currentCustomer.phone,
+        });
+      } catch {}
       try { await trackAcceptedMetaPurchase(response.status, data); } catch {}
-      void identifyTikTokCustomer({ email: currentCustomer.email, phone: currentCustomer.phone });
       window.scrollTo({ top: 0, behavior: "instant" });
       router.replace(`/order/${orderId}`);
 
