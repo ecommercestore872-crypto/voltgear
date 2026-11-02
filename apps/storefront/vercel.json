@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "git": { "deploymentEnabled": { "codex/buyntry-meta-readiness-20261102": false } },
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w @voltgear/storefront",
   "ignoreCommand": "node ../../scripts/vercel-ignore-build.mjs storefront",

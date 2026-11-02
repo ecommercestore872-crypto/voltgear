@@ -62,7 +62,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {
+      // The storefront/cart must remain usable when browser storage is denied.
+    }
   }, [items, hydrated]);
 
   const addItem = useCallback((item: WishlistItem) => {

@@ -145,5 +145,26 @@ describe("checkout client requests", () => {
       "checkout-key",
     );
     assert.equal(JSON.parse(String(calls[0]?.init?.body)).idempotencyKey, "checkout-key");
+    assert.ok(calls[0]?.init?.signal instanceof AbortSignal);
+  });
+
+  it("checkout times out without discarding the retry idempotency key", async () => {
+    const body = buildCheckoutOrderBody({ items: [], customer: {}, orderNotes: "", paymentMethod: "cod",
+      subtotal: 0, shipping: 0, total: 0, giftWrap: false, giftWrapFee: 0, idempotencyKey: "uncertain-key", consent: null });
+    let key: string | null = null;
+    const fetcher = async (_input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+      key = new Headers(init?.headers).get("Idempotency-Key");
+      return new Promise((_resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("request did not abort")), 1000);
+        init?.signal?.addEventListener("abort", () => { clearTimeout(timer); reject(init.signal!.reason); }, { once: true });
+      });
+    };
+    await assert.rejects(requestCheckoutOrder(body, "uncertain-key", fetcher, 5), { name: "TimeoutError" });
+    assert.equal(key, "uncertain-key");
+    const recovered = await requestCheckoutOrder(body, "uncertain-key", async (_input, init) => {
+      assert.equal(new Headers(init?.headers).get("Idempotency-Key"), key);
+      return new Response(JSON.stringify({ ok: true, orderId: "BNT-RECOVERED", replayed: true }));
+    });
+    assert.equal(recovered.data.orderId, "BNT-RECOVERED");
   });
 });

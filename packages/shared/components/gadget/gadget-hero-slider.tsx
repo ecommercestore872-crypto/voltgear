@@ -112,7 +112,7 @@ export function GadgetHeroSlider({
   if (banners.length === 0) {
     return (
       <div className="bg-[var(--g-cream)] px-4 py-10 lg:px-8">
-        <div className="rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] px-4 py-16 text-center">
+        <div className="rounded-[12px] border border-[var(--g-line)] bg-[var(--g-white)] px-4 py-16 text-center">
           <p className="text-sm text-[var(--g-taupe)]">
             No published hero slides yet. Add a full campaign banner image in
             Admin → Hero.

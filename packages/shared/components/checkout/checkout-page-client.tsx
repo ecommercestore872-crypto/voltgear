@@ -36,8 +36,8 @@ import {
   identifyTikTokCustomer,
   isCheckoutPricingReadyForInitiateCheckout,
   trackTikTokInitiateCheckout,
-  trackTikTokPurchase,
 } from "@/lib/tiktok-browser-events";
+import { trackAcceptedTikTokPurchase } from "@/lib/tiktok-checkout-result";
 import {
   GADGET_SESSION_KEY,
   product2Href,
@@ -45,6 +45,8 @@ import {
   readGadgetPreviewSession,
 } from "@/lib/gadget-preview";
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
+import { CheckoutIntroHeader } from "@/components/checkout/checkout-intro-header";
+import { CheckoutLocationFields } from "@/components/checkout/checkout-location-fields";
 import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
 import { CheckoutDesktopSidebar } from "@/components/checkout/checkout-desktop-sidebar";
@@ -56,13 +58,17 @@ import {
   tagCheckoutClarityStep,
 } from "@/lib/checkout-clarity";
 import { normalizePhone } from "@/lib/messaging";
-import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel-events";
+import { trackMetaInitiateCheckout, trackAcceptedMetaPurchase } from "@/lib/meta-pixel-events";
 import {
   validateCheckoutFormField,
   validateCheckoutFormFields,
   type CheckoutFormField,
 } from "@/lib/checkout-form-fields";
-import { PAKISTAN_CITY_SUGGESTIONS } from "@/lib/pakistan-cities";
+import {
+  citiesForRegion,
+  findCityByLabel,
+  type PakistanRegionCode,
+} from "@/lib/pakistan-locations";
 import {
   buildCheckoutOrderBody,
   requestCheckoutOrder,
@@ -120,19 +126,6 @@ export default function CheckoutPageClient() {
       setGadget(false);
     }
 
-    try {
-      // Background City Autofill from Edge Cookie
-      const match = document.cookie.match(/(?:^|;\s*)visitor-city=([^;]*)/);
-      if (match && match[1]) {
-        const decodedCity = decodeURIComponent(match[1]);
-        if (decodedCity && decodedCity !== "Pakistan") {
-          setTimeout(() => {
-            const cityEl = document.getElementById("city") as HTMLInputElement;
-            if (cityEl && !cityEl.value) cityEl.value = decodedCity;
-          }, 50);
-        }
-      }
-    } catch {}
   }, []);
 
   // step: 0 = Cart, 1 = Information, 2 = Review, 3 = Complete (implicit on placedOrder)
@@ -140,14 +133,40 @@ export default function CheckoutPageClient() {
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [orderNotes, setOrderNotes] = useState("");
   const [placing, setPlacing] = useState(false);
+  const placingRef = useRef(false);
   const orderNavigationRef = useRef(false);
   const [customer, setCustomer] = useState<Record<string, string>>({});
+  const [province, setProvince] = useState<PakistanRegionCode | "">("");
+  const [cityId, setCityId] = useState("");
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<CheckoutFormField, string>>
   >({});
 
+  const cityOptions = useMemo(
+    () => (province ? citiesForRegion(province) : []),
+    [province],
+  );
+
+  useEffect(() => {
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)visitor-city=([^;]*)/);
+      if (!match?.[1]) return;
+      const decodedCity = decodeURIComponent(match[1]);
+      if (!decodedCity || decodedCity === "Pakistan") return;
+      const known = findCityByLabel(decodedCity);
+      if (!known || !known.courierServiceable) return;
+      setProvince((prev) => prev || known.region);
+      setCityId((prev) => prev || known.id);
+    } catch {
+      // fail-open
+    }
+  }, []);
+
   function touchField(field: CheckoutFormField, value: string) {
-    const msg = validateCheckoutFormField(field, value);
+    const msg = validateCheckoutFormField(field, value, {
+      province: province || undefined,
+      cityId: cityId || undefined,
+    });
     setFieldErrors((prev) => ({
       ...prev,
       [field]: msg ?? undefined,
@@ -295,7 +314,8 @@ export default function CheckoutPageClient() {
       }
     }
 
-    if (placing || orderNavigationRef.current) return;
+    if (placingRef.current || placing || orderNavigationRef.current) return;
+    placingRef.current = true;
     tagCheckoutClarityEvent("place_order_click");
     setPlacing(true);
     setPriceChanged(null);
@@ -304,7 +324,11 @@ export default function CheckoutPageClient() {
     try {
       const idempotency = getOrCreateCheckoutIdempotency({
         items,
-        storage: window.sessionStorage,
+        details: { customer: currentCustomer, orderNotes, giftWrap, promoCode: activePromo?.code, payment },
+        storage: {
+          getItem: (key) => window.sessionStorage.getItem(key),
+          setItem: (key, value) => window.sessionStorage.setItem(key, value),
+        },
         current: idemRef.current,
       });
       idemRef.current = idempotency;
@@ -322,10 +346,7 @@ export default function CheckoutPageClient() {
         giftWrap,
         giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
         idempotencyKey: activeIdemKey,
-        consent:
-          typeof window !== "undefined"
-            ? window.localStorage.getItem("bnt-cookie-consent")
-            : null,
+        consent: (() => { try { return window.localStorage.getItem("bnt-cookie-consent"); } catch { return null; } })(),
         promoCode:
           activePromo?.code && !activePromo.error
             ? activePromo.code
@@ -351,20 +372,22 @@ export default function CheckoutPageClient() {
           total: Number(data.total) || 0,
         });
         setPlacing(false);
+        placingRef.current = false;
         return;
       }
 
       if (!response.ok) {
         throw new Error(data.error ?? "Failed");
       }
-      if (!data.orderId) {
+      if (data.ok !== true || !data.orderId) {
         throw new Error("Checkout returned an invalid order response.");
       }
       const orderId = data.orderId;
       tagCheckoutClarityEvent("order_success");
 
       if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_STORAGE_KEY);
+        try { window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_STORAGE_KEY); } catch {}
+        try { window.sessionStorage.removeItem("bnt-meta-checkout"); } catch {}
       }
       idemRef.current = null;
 
@@ -376,14 +399,6 @@ export default function CheckoutPageClient() {
         const maxAge = 60 * 60 * 24;
         document.cookie = `bnt_order_${encodeURIComponent(orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
       }
-      const orderQuery = new URLSearchParams();
-      const phoneForTrack = currentCustomer.phone?.trim() ?? "";
-      if (phoneForTrack) orderQuery.set("phone", phoneForTrack);
-      else if (lookupEmail) orderQuery.set("email", lookupEmail);
-      const orderQs = orderQuery.toString() ? `?${orderQuery.toString()}` : "";
-      const serverTotal = Number(data.total);
-      const purchaseTotal = Number.isFinite(serverTotal) ? serverTotal : total;
-      const serverLines = Array.isArray(data.lines) ? data.lines : [];
       const first = items[0];
       if (first) {
         saveLastOrder({
@@ -396,40 +411,15 @@ export default function CheckoutPageClient() {
       }
 
       orderNavigationRef.current = true;
+      // Queue before navigation; replay recovery keeps the same deduplication ID.
+      try { trackAcceptedTikTokPurchase(response.status, data); } catch {}
+      try { await trackAcceptedMetaPurchase(response.status, data); } catch {}
+      void identifyTikTokCustomer({ email: currentCustomer.email, phone: currentCustomer.phone });
       window.scrollTo({ top: 0, behavior: "instant" });
-      router.replace(`/order/${orderId}${orderQs}`);
+      router.replace(`/order/${orderId}`);
 
       window.setTimeout(() => {
         clearCart();
-        void identifyTikTokCustomer({
-          email: lookupEmail || currentCustomer.email,
-          phone: currentCustomer.phone,
-        });
-        if (!data.replayed) {
-          try {
-            trackTikTokPurchase({
-              orderId,
-              total: purchaseTotal,
-              lines: serverLines,
-            });
-          } catch {
-            // fail-open
-          }
-          try {
-            trackMetaPurchase({
-              orderId,
-              items: items.map((i) => ({
-                productId: i.productId,
-                name: i.name,
-                price: i.price,
-                quantity: i.quantity,
-              })),
-              value: purchaseTotal,
-            });
-          } catch {
-            // fail-open
-          }
-        }
       }, 0);
       return;
     } catch (error) {
@@ -439,6 +429,7 @@ export default function CheckoutPageClient() {
           : "Something went wrong placing your order. Please try again.";
       setApiError(message);
       setPlacing(false);
+      placingRef.current = false;
     }
   }
 
@@ -485,15 +476,14 @@ export default function CheckoutPageClient() {
 
     let metaCleanup: (() => void) | void = undefined;
     try {
-      const metaCheckoutValue = Math.max(0, merchandise - subDiscount);
       metaCleanup = trackMetaInitiateCheckout({
         items: items.map((i) => ({
-          productId: i.productId,
+          productId: i.slug,
           name: i.name,
           price: i.price,
           quantity: i.quantity,
         })),
-        value: metaCheckoutValue,
+        value: total,
       });
     } catch {
       // fail-open
@@ -543,7 +533,8 @@ export default function CheckoutPageClient() {
   }, [step, items, subtotal]);
 
   return (
-    <div className="premium-royal-page-bg min-h-dvh overflow-x-clip font-sans">
+    <div className="min-h-dvh overflow-x-clip bg-[var(--g-cream)] font-sans">
+      <CheckoutIntroHeader />
       <div
         className={cn(
           "relative z-20 mx-auto max-w-6xl px-4 py-4 sm:py-6 lg:px-8 lg:pb-16",
@@ -590,6 +581,10 @@ export default function CheckoutPageClient() {
                       const customerData = Object.fromEntries(
                         formData,
                       ) as Record<string, string>;
+                      const selectedCity = cityOptions.find((c) => c.id === cityId);
+                      customerData.province = province;
+                      customerData.cityId = cityId;
+                      customerData.city = selectedCity?.label ?? "";
                       const errors = validateCheckoutFormFields(customerData);
                       if (Object.keys(errors).length > 0) {
                         setFieldErrors(errors);
@@ -700,25 +695,21 @@ export default function CheckoutPageClient() {
                         </p>
                       ) : null}
                     </div>
-                    <div className="min-w-0 space-y-1.5 hidden sm:block">
-                      <Label htmlFor="city" className="text-xs font-bold sm:text-sm">
-                        City <span className="font-normal text-muted-foreground">(optional)</span>
-                      </Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        list="pakistan-cities"
-                        autoComplete="address-level2"
-                        placeholder="Karachi, Lahore…"
-                        className="h-11"
-                        defaultValue={customer.city}
-                      />
-                      <datalist id="pakistan-cities">
-                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
-                          <option key={city} value={city} />
-                        ))}
-                      </datalist>
-                    </div>
+                    <CheckoutLocationFields
+                      province={province}
+                      cityId={cityId}
+                      cityOptions={cityOptions}
+                      fieldErrors={fieldErrors}
+                      onProvinceChange={(next) => {
+                        setProvince(next);
+                        setCityId("");
+                      }}
+                      onCityChange={setCityId}
+                      onProvinceBlur={(value) => touchField("province", value)}
+                      onCityBlur={(value) => touchField("city", value)}
+                      clearProvinceError={() => clearFieldError("province")}
+                      clearCityError={() => clearFieldError("city")}
+                    />
                     <div className="min-w-0 space-y-1.5 hidden sm:block">
                       <Label htmlFor="email" className="text-xs font-bold sm:text-sm">
                         Email <span className="font-normal text-muted-foreground">(optional)</span>
@@ -764,29 +755,9 @@ export default function CheckoutPageClient() {
 
                 <details className="mt-3 text-sm sm:hidden">
                   <summary className="cursor-pointer font-semibold text-primary">
-                    City or email (optional)
+                    Email (optional)
                   </summary>
                   <div className="mt-2 grid gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="city-mobile" className="text-xs font-bold">
-                        City
-                      </Label>
-                      <Input
-                        id="city-mobile"
-                        form="details-form"
-                        name="city"
-                        list="pakistan-cities-mobile"
-                        autoComplete="address-level2"
-                        placeholder="Karachi, Lahore…"
-                        className="h-11"
-                        defaultValue={customer.city}
-                      />
-                      <datalist id="pakistan-cities-mobile">
-                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
-                          <option key={city} value={city} />
-                        ))}
-                      </datalist>
-                    </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="email-mobile" className="text-xs font-bold">
                         Email

@@ -377,10 +377,10 @@ export function PurchaseSection({ product }: { product: Product }) {
                 </div>
                 <div>
                   <p className="text-[13px] font-bold text-foreground leading-tight">
-                    Secure Checkout
+                    Cash on Delivery
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
-                    100% Safe & Encrypted
+                    Pay when your order arrives
                   </p>
                 </div>
               </div>

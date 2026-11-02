@@ -11,6 +11,7 @@ import { gadgetImageSrc } from "@/lib/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { product2Href } from "@/lib/gadget-preview";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { getStockState } from "@/lib/stock";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
@@ -38,16 +39,24 @@ export function GadgetFeaturedProduct({
   const href = product2Href(product.slug);
   const off = salePercent(product.price, product.compareAtPrice);
   const rating =
-    product.rating != null && product.rating > 0 ? product.rating : null;
+    product.rating != null &&
+    product.rating > 0 &&
+    typeof product.reviewCount === "number" &&
+    product.reviewCount > 0
+      ? product.rating
+      : null;
   const features = (product.features ?? []).filter(Boolean).slice(0, 3);
+  const canBuy =
+    !stock.soldOut && isPurchasablePrice(product.price);
 
   function handleBuy() {
-    if (stock.soldOut) return;
+    if (!canBuy) return;
     const defaultVariant =
       product.variants?.find((v) => v.isDefault) ??
       product.variants?.[0] ??
       null;
     const price = defaultVariant?.price ?? product.price;
+    if (!isPurchasablePrice(price)) return;
     const itemImage = gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
     addItem({
       slug: product.slug,
@@ -81,19 +90,18 @@ export function GadgetFeaturedProduct({
       aria-labelledby="featured-product-heading"
     >
       <div className="mx-auto max-w-6xl">
-        <p className="gadget-eyebrow">{eyebrow || "Featured"}</p>
+        {eyebrow ? <p className="gadget-eyebrow">{eyebrow}</p> : null}
         <h2
           id="featured-product-heading"
           className="gadget-h2 mt-2 text-[var(--g-charcoal)] dark:text-white"
         >
-          {title || "Staff pick"}
+          {title || "In focus"}
         </h2>
-        <p className="gadget-body mt-2 max-w-lg">
-          {subtitle ||
-            "One standout product worth a closer look — clear price, ready to buy."}
-        </p>
+        {subtitle ? (
+          <p className="gadget-body mt-2 max-w-lg">{subtitle}</p>
+        ) : null}
 
-        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-white)] dark:bg-[var(--g-charcoal)] lg:grid-cols-2 lg:gap-0">
+        <div className="mt-8 grid items-stretch overflow-hidden rounded-[12px] border border-[var(--g-line)] bg-[var(--g-white)] dark:bg-[var(--g-charcoal)] lg:grid-cols-2 lg:gap-0">
           <Link
             href={href}
             prefetch={false}
@@ -116,8 +124,8 @@ export function GadgetFeaturedProduct({
               </span>
             )}
             {off ? (
-              <span className="gadget-sale-badge absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-bold">
-                {off}% OFF
+              <span className="gadget-sale-badge absolute left-4 top-4 rounded-md px-2.5 py-1 text-xs font-semibold">
+                −{off}%
               </span>
             ) : null}
           </Link>
@@ -185,10 +193,10 @@ export function GadgetFeaturedProduct({
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              {stock.soldOut ? (
+              {!canBuy ? (
                 <Link
                   href={href}
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--g-line)] px-6 text-sm font-semibold text-[var(--g-charcoal)]"
+                  className="inline-flex h-12 items-center justify-center rounded-[10px] border border-[var(--g-line)] px-6 text-sm font-semibold text-[var(--g-charcoal)]"
                 >
                   View details
                 </Link>
@@ -197,7 +205,7 @@ export function GadgetFeaturedProduct({
                   ref={btnRef}
                   type="button"
                   onClick={handleBuy}
-                  className="gadget-buy-cta gadget-press inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-sm font-bold transition"
+                  className="gadget-buy-cta gadget-press inline-flex h-12 items-center justify-center gap-2 rounded-[10px] px-7 text-sm font-bold transition"
                 >
                   {added ? (
                     <>
@@ -205,15 +213,15 @@ export function GadgetFeaturedProduct({
                     </>
                   ) : (
                     <>
-                      <ShoppingBag className="h-4 w-4" strokeWidth={1.75} /> Buy
-                      now
+                      <ShoppingBag className="h-4 w-4" strokeWidth={1.75} /> Add
+                      to cart
                     </>
                   )}
                 </button>
               )}
               <Link
                 href={href}
-                className="inline-flex h-12 items-center justify-center rounded-full px-4 text-sm font-semibold text-[var(--g-forest)] hover:underline"
+                className="inline-flex h-12 items-center justify-center rounded-[10px] px-4 text-sm font-semibold text-[var(--g-forest)] hover:underline"
               >
                 See full details
               </Link>

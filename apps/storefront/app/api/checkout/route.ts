@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getOrderByPublicId } from "@/lib/db/store";
+import { getOrderByIdempotencyKey, getOrderByPublicId } from "@/lib/db/store";
 import {
   resolveCheckout,
   CHECKOUT_PRICE_CHANGED_ERROR,
@@ -26,7 +26,8 @@ import {
 } from "@/lib/checkout-observability";
 import { checkoutHttpStatusAfterOrderPersisted } from "@/lib/email-checkout-rules";
 import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
-import { scopeCheckoutIdempotencyKey } from "@/lib/checkout-idempotency";
+import { buildCheckoutRequestFingerprint, scopeCheckoutIdempotencyKey } from "@/lib/checkout-idempotency";
+import { checkoutReplayMatches } from "@/lib/checkout-replay-rules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -104,15 +105,20 @@ export async function POST(request: Request) {
     // Keep practice retries in a separate namespace so a browser switching
     // between demo and live checkout can never replay the other environment.
     const idemKey = scopeCheckoutIdempotencyKey(rawIdemKey, demoSession);
+    const requestFingerprint = buildCheckoutRequestFingerprint(body, checkoutCustomer);
     if (idemKey) {
       const cached = getCachedCheckoutOrder(idemKey);
       if (cached) {
-        const existing = await getOrderByPublicId(cached);
+        if (cached.fingerprint !== requestFingerprint) {
+          return NextResponse.json({ error: "This checkout attempt was already used for a different order." }, { status: 409 });
+        }
+        const existing = await getOrderByPublicId(cached.orderId);
         if (existing) {
           slo("replayed", 200, { itemCount: items.length, replayed: true });
           return NextResponse.json({
             ok: true,
-            orderId: cached,
+            orderId: cached.orderId,
+            isDemo: existing.isDemo === true,
             lookupEmail: existing.customer?.email ?? "",
             subtotal: existing.subtotal,
             shipping: existing.shipping,
@@ -123,6 +129,27 @@ export async function POST(request: Request) {
             replayed: true,
           });
         }
+      }
+      // Recover accepted retries across server instances and deployment versions.
+      const existing = await getOrderByIdempotencyKey(idemKey);
+      if (existing) {
+        if (!checkoutReplayMatches(existing, body, checkoutCustomer)) {
+          return NextResponse.json({ error: "This checkout attempt was already used for a different order." }, { status: 409 });
+        }
+        cacheCheckoutOrder(idemKey, existing.orderId, requestFingerprint);
+        return NextResponse.json({
+          ok: true,
+          orderId: existing.orderId,
+          isDemo: existing.isDemo === true,
+          lookupEmail: existing.customer?.email ?? "",
+          subtotal: existing.subtotal,
+          shipping: existing.shipping,
+          total: existing.total,
+          discount: existing.discount ?? 0,
+          promoCode: existing.promoCode ?? null,
+          lines: existing.items ?? [],
+          replayed: true,
+        });
       }
     }
 
@@ -195,7 +222,9 @@ export async function POST(request: Request) {
         email,
         phone,
         address: checkoutCustomer.address,
+        province: checkoutCustomer.province,
         city: checkoutCustomer.city,
+        cityId: checkoutCustomer.cityId,
         postal: checkoutCustomer.postal,
         note: customerNote || undefined,
       },
@@ -215,6 +244,9 @@ export async function POST(request: Request) {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "";
       if (message.startsWith("ATOMIC_BUSINESS_ERROR:")) {
+        if (message.includes("IDEMPOTENCY_CONFLICT")) {
+          return NextResponse.json({ error: "This checkout attempt was already used for a different order." }, { status: 409 });
+        }
         return NextResponse.json(
           { error: message.split("ATOMIC_BUSINESS_ERROR:")[1].trim() },
           { status: 400 }
@@ -239,7 +271,7 @@ export async function POST(request: Request) {
     const orderId = persisted.orderId;
 
     if (idemKey) {
-      cacheCheckoutOrder(idemKey, orderId);
+      cacheCheckoutOrder(idemKey, orderId, requestFingerprint);
     }
 
     if (persisted.replayed) {
@@ -249,9 +281,11 @@ export async function POST(request: Request) {
         ok: true,
         orderId,
         replayed: true,
+        isDemo: existing?.isDemo === true,
         ...(existing
           ? {
               subtotal: existing.subtotal,
+              lookupEmail: existing.customer?.email ?? "",
               shipping: existing.shipping,
               total: existing.total,
               discount: existing.discount ?? 0,
@@ -262,9 +296,11 @@ export async function POST(request: Request) {
       });
     }
 
+    const acceptedAt = Math.floor(Date.now() / 1000);
     deferAfterResponse(() =>
       runCheckoutPostPersist({
         orderId,
+        acceptedAt,
         request,
         body: body as Record<string, unknown>,
         consent,
@@ -281,7 +317,9 @@ export async function POST(request: Request) {
           email: baseOrder.customer.email,
           phone: baseOrder.customer.phone,
           address: baseOrder.customer.address,
+          province: baseOrder.customer.province,
           city: baseOrder.customer.city,
+          cityId: baseOrder.customer.cityId,
           postal: baseOrder.customer.postal,
         },
       }),
@@ -293,6 +331,7 @@ export async function POST(request: Request) {
       ok: true,
       orderId,
       lookupEmail: checkoutCustomer.email,
+      isDemo: baseOrder.isDemo,
       subtotal,
       shipping: finalShipping,
       total: finalTotal,

@@ -221,7 +221,7 @@ export function CheckoutDesktopSidebar({
               {
                 icon: Lock,
                 title: "Secure Checkout",
-                detail: "100% safe & secure",
+                detail: "Encrypted connection",
               },
             ].map((item) => (
               <div key={item.title} className="flex min-w-0 items-start gap-3">

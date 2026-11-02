@@ -15,7 +15,7 @@ const PARAMS = [
 export function captureClickAttribution(href: string): ClickAttributionInput {
   const out: ClickAttributionInput = {};
   try {
-    const url = new URL(href);
+    const url = new URL(href, "https://buyntryy.com");
     for (const param of PARAMS) {
       const value = url.searchParams.get(param);
       if (value) {

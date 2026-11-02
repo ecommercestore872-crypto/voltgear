@@ -1,3 +1,7 @@
+import {
+  courierBookingAllowed,
+  resolveCourierBookingMode,
+} from "@/lib/courier-booking-mode";
 import { createPostExOrder, getPostExInvoice } from "@/lib/postex";
 import { CreateShipmentParams, ICourierProvider, ShipmentResult } from "./provider";
 
@@ -5,6 +9,21 @@ export class PostExProvider implements ICourierProvider {
   name: "POSTEX" = "POSTEX";
 
   async createShipment(params: CreateShipmentParams): Promise<ShipmentResult> {
+    const mode = resolveCourierBookingMode();
+    if (!courierBookingAllowed()) {
+      if (mode === "mock") {
+        return {
+          ok: true,
+          trackingNumber: `MOCK-PX-${params.orderId}`,
+          rawResponse: { mocked: true, mode },
+        };
+      }
+      return {
+        ok: false,
+        errorMessage: `Courier booking is ${mode}; set COURIER_BOOKING_MODE=live to book PostEx.`,
+      };
+    }
+
     const res = await createPostExOrder({
       orderRefNumber: params.orderId,
       invoicePayment: params.codAmount,

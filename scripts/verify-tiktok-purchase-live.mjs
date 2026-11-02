@@ -1,8 +1,19 @@
 import { chromium } from "playwright";
 
-const BASE = "https://buyntryy.com";
+// This legacy runner submits checkout. Never permit it against a remote service.
+const BASE = process.env.VERIFY_BASE || "http://127.0.0.1:3000";
+if (!["localhost", "127.0.0.1"].includes(new URL(BASE).hostname)) {
+  throw new Error("Purchase verification requires an isolated local server and mocked checkout.");
+}
 const browser = await chromium.launch({ headless: true });
 const page = await (await browser.newContext()).newPage();
+await page.route("**/*", async (route) => {
+  const request = route.request();
+  if (!new URL(request.url()).origin.startsWith(new URL(BASE).origin) || !["GET", "HEAD"].includes(request.method())) {
+    return route.abort();
+  }
+  return route.continue();
+});
 await page.addInitScript(() => {
   localStorage.setItem("bnt-cookie-consent", "all");
 });

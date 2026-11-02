@@ -20,6 +20,7 @@ import { textToPortableText } from "@/lib/product-detail-copy";
 import { normalizePageSeo } from "@/lib/blog-desk-rules";
 import { shopVisible } from "@/lib/db/publish";
 import { syncStockStatusWithQuantity } from "@/lib/db/stock-rules";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -48,6 +49,8 @@ export function mapProduct(
 ): Product | null {
   if (!row) return null;
   if (opts?.storefront && !shopVisible(row.status)) return null;
+  const mappedPrice = num(row.price);
+  if (opts?.storefront && !isPurchasablePrice(mappedPrice)) return null;
   const images = Array.isArray(row.product_images)
     ? [...row.product_images]
         .sort(
@@ -96,7 +99,7 @@ export function mapProduct(
     name: String(row.name ?? ""),
     slug: String(row.slug ?? ""),
     category: String(row.category || ""),
-    price: num(row.price),
+    price: mappedPrice,
     compareAtPrice: row.compare_at_price != null ? num(row.compare_at_price) : undefined,
     images: images.length ? images : cloudinaryImages,
     cloudinaryImages,

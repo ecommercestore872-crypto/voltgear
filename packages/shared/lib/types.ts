@@ -227,7 +227,10 @@ export interface OrderCustomer {
   email?: string;
   phone?: string;
   address?: string;
+  /** Pakistan region code; nullable on historical orders. */
+  province?: string;
   city?: string;
+  cityId?: string;
   postal?: string;
   note?: string;
 }

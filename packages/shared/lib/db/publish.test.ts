@@ -63,11 +63,12 @@ describe("canSaveDraft", () => {
 });
 
 describe("canPublish", () => {
-  it("requires name, slug, a real category, and a non-negative price", () => {
+  it("requires name, slug, a real category, and a price greater than zero", () => {
     assert.equal(canPublish({ ...sample, name: "" }, shopTypes).ok, false);
     assert.equal(canPublish({ ...sample, category: "" }, shopTypes).ok, false);
     assert.equal(canPublish({ ...sample, category: "charger" }, shopTypes).ok, false);
     assert.equal(canPublish({ ...sample, price: -1 }, shopTypes).ok, false);
+    assert.equal(canPublish({ ...sample, price: 0 }, shopTypes).ok, false);
     assert.equal(canPublish(sample, shopTypes).ok, true);
   });
 

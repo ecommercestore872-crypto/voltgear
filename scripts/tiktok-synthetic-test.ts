@@ -1,59 +1,43 @@
 
 
 async function run() {
-  const pixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || "DAF1KQBC77UES974M180";
-  const token = process.env.TIKTOK_EVENTS_API_ACCESS_TOKEN;
+  const pixelId = process.env.TIKTOK_TEST_PIXEL_ID;
+  const token = process.env.TIKTOK_EVENTS_API_ACCESS_TOKEN || process.env.TIKTOK_ACCESS_TOKEN;
   const testEventCode = process.env.TIKTOK_TEST_EVENT_CODE;
 
-  if (!token || !testEventCode) {
-    console.error("Missing token or test_event_code in .env.local");
+  if (process.env.TIKTOK_ISOLATED_TEST_MODE !== "true" || !pixelId || !token || !testEventCode) {
+    console.error("Explicit isolated Test Events mode, test Pixel ID, token and test event code are required.");
+    process.exitCode = 1;
     return;
   }
 
-  const event_id = `test_synthetic_view_${Date.now()}`;
+  const event_id = `test_page_view_${crypto.randomUUID()}`;
 
   const body = {
-    pixel_code: pixelId,
-    event: "ViewContent",
-    event_id: event_id,
+    event_source: "web",
+    event_source_id: pixelId,
     test_event_code: testEventCode,
-    context: {
-      page: {
-        url: "https://buyntryy.com/product/demo-synthetic"
-      }
-    },
-    properties: {
-      contents: [
-        {
-          content_id: "DEMO-SKU-999",
-          content_type: "product",
-          content_name: "Automated Synthetic Test",
-          quantity: 1,
-          price: 5000
-        }
-      ],
-      value: 5000,
-      currency: "PKR"
-    }
+    data: [{ event: "PageView", event_id, event_time: Math.floor(Date.now() / 1000), page: { url: "https://buyntryy.com/" } }],
   };
 
   try {
-    const res = await fetch("https://business-api.tiktok.com/open_api/v1.3/pixel/track/", {
+    const res = await fetch("https://business-api.tiktok.com/open_api/v1.3/event/track/", {
       method: "POST",
       headers: {
         "Access-Token": token,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
     });
 
-    const data = await res.text();
+    const data = await res.json().catch(() => null) as { code?: number } | null;
     console.log("HTTP Status:", res.status);
-    console.log("Event Name:", body.event);
-    console.log("Event ID:", event_id);
-    console.log("TikTok API Response:", data);
-  } catch (err) {
-    console.error("Failed:", err);
+    console.log("Application code:", typeof data?.code === "number" ? data.code : "invalid_response");
+    if (!res.ok || data?.code !== 0) process.exitCode = 1;
+  } catch {
+    console.error("Isolated Test Events request failed.");
+    process.exitCode = 1;
   }
 }
 

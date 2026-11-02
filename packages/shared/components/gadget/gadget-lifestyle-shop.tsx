@@ -28,7 +28,7 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
         {showBanner ? (
           <Link
             href={featureHref}
-            className="group relative min-h-[18rem] overflow-hidden rounded-2xl bg-[var(--g-forest)] sm:min-h-[22rem] lg:min-h-full"
+            className="group relative min-h-[18rem] overflow-hidden rounded-[12px] bg-[var(--g-forest)] sm:min-h-[22rem] lg:min-h-full"
           >
             {banner.imageUrl ? (
                 <Image
@@ -59,7 +59,7 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
                 </span>
               ) : null}
               {banner.cta || banner.title ? (
-                <span className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-[var(--g-white)] px-5 text-sm font-medium text-[var(--g-charcoal)] shadow-[0_1px_0_rgba(26,26,26,0.06)] transition group-hover:bg-[var(--g-cream)]">
+                <span className="mt-4 inline-flex min-h-10 items-center justify-center rounded-[10px] bg-[var(--g-white)] px-5 text-sm font-medium text-[var(--g-charcoal)] transition group-hover:bg-[var(--g-cream)]">
                   {banner.cta && !/^shop now$/i.test(banner.cta.trim())
                     ? banner.cta
                     : `Shop ${banner.title || "lifestyle picks"}`}
@@ -75,13 +75,13 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
               <Link
                 key={`${tile.href}-${tile.title}`}
                 href={tile.href}
-                className="group relative flex min-h-[10.5rem] flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3.5 shadow-[0_1px_0_rgba(26,26,26,0.03)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(31,54,38,0.1)] sm:min-h-[13rem] sm:p-4"
+                className="group relative flex min-h-[10.5rem] flex-col overflow-hidden rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] p-3.5 transition duration-200 sm:min-h-[13rem] sm:p-4"
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[12px] font-medium text-[var(--g-charcoal)] sm:text-[13px]">
                     {tile.title}
                   </span>
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)] text-[var(--g-white)] transition group-hover:bg-[var(--g-forest-mid)]">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-[var(--g-forest)] text-[var(--g-white)] transition group-hover:bg-[var(--g-forest-mid)]">
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                   </span>
                 </div>

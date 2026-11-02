@@ -5,7 +5,10 @@ export interface CheckoutCustomer {
   email?: string;
   phone?: string;
   address?: string;
+  /** Pakistan region code: PB | SD | KP | BA | ICT | AJK | GB */
+  province?: string;
   city?: string;
+  cityId?: string;
   postal?: string;
   note?: string;
 }

@@ -24,6 +24,7 @@ import type { PublicSiteConfig } from "@/lib/site-config";
 import { GadgetPdpHowItWorks } from "@/components/gadget/gadget-pdp-how-it-works";
 import { GadgetPdpTrustRow } from "@/components/gadget/gadget-pdp-trust-row";
 import type { Product, ProductVariant } from "@/lib/types";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { cn, formatPrice } from "@/lib/utils";
 import { imageUrl } from "@/lib/sanity/image";
 import { useOptionalGadgetPdpVariantImage } from "@/components/gadget/gadget-pdp-variant-context";
@@ -89,6 +90,7 @@ export function GadgetBuyBox({
   const stock = getVariantStockState(product, variant);
   const outOfStock = stock.soldOut;
   const price = axesOn ? product.price : (variant?.price ?? product.price);
+  const priceValid = isPurchasablePrice(price);
   const compareAtPrice = axesOn
     ? product.compareAtPrice
     : (variant?.compareAtPrice ?? product.compareAtPrice);
@@ -156,7 +158,7 @@ export function GadgetBuyBox({
   }
 
   function handleAdd(open = true, event?: React.MouseEvent<HTMLButtonElement>) {
-    if (outOfStock || !selectionReady) return;
+    if (outOfStock || !selectionReady || !priceValid) return;
     addItem(
       {
         slug: product.slug,
@@ -263,7 +265,7 @@ export function GadgetBuyBox({
 
           <GadgetProductWatchLinks product={product} />
 
-          <div className="mt-5 rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-4 shadow-sm">
+          <div className="mt-5 border-y border-[var(--g-line)] py-4">
             <div className="flex flex-wrap items-end gap-3">
               <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">
                 {formatPrice(displayPrice)}
@@ -274,8 +276,8 @@ export function GadgetBuyBox({
                 </span>
               ) : null}
               {off ? (
-                <span className="mb-1 rounded-full bg-[var(--g-forest)] dark:bg-primary px-2.5 py-1 text-xs font-bold text-[var(--g-white)] dark:text-primary-foreground">
-                  Save {off}%
+                <span className="mb-1 rounded-[8px] bg-[var(--g-sale)] px-2 py-0.5 text-xs font-semibold text-[var(--g-cream)]">
+                  −{off}%
                 </span>
               ) : null}
             </div>
@@ -464,9 +466,9 @@ export function GadgetBuyBox({
             <button
               ref={btnRef}
               type="button"
-              disabled={outOfStock || !selectionReady}
+              disabled={outOfStock || !selectionReady || !priceValid}
               onClick={(e) => handleAdd(true, e)}
-              className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full px-6 text-base font-bold tracking-wide transition-transform active:scale-95 disabled:cursor-not-allowed disabled:border-[var(--g-line)] disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
+              className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-[10px] px-6 text-base font-bold tracking-wide transition-transform active:scale-95 disabled:cursor-not-allowed disabled:border-[var(--g-line)] disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
             >
               {added ? (
                 <>
@@ -475,13 +477,15 @@ export function GadgetBuyBox({
               ) : (
                 <>
                   <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
-                  {outOfStock
-                    ? "Sold out"
-                    : !selectionReady
-                      ? "Choose options above"
-                      : config.codEnabled
-                        ? "Order with COD"
-                        : "Add to cart"}
+                  {!priceValid
+                    ? "Unavailable"
+                    : outOfStock
+                      ? "Sold out"
+                      : !selectionReady
+                        ? "Choose options above"
+                        : config.codEnabled
+                          ? "Order with COD"
+                          : "Add to cart"}
                 </>
               )}
             </button>
@@ -509,8 +513,8 @@ export function GadgetBuyBox({
       )}
 
       {/* Mobile sticky CTA — safe-area for iPhone home indicator */}
-      {!outOfStock && showStickyCta ? (
-        <div className="premium-royal-dock touch-manipulation gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 bg-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+      {!outOfStock && priceValid && showStickyCta ? (
+        <div className="touch-manipulation gadget-sticky-cta fixed inset-x-0 bottom-0 z-30 border-t border-[var(--g-line)] bg-[var(--g-cream)] px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-[var(--g-charcoal)] dark:text-foreground">
@@ -531,7 +535,7 @@ export function GadgetBuyBox({
                 }
                 handleAdd(true, e);
               }}
-              className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-full text-base font-bold transition-transform active:scale-95"
+              className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-[10px] text-base font-bold transition-transform active:scale-95"
             >
               <ShoppingBag className="h-4 w-4" />
               {selectionReady

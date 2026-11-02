@@ -12,6 +12,7 @@ const TikTokPixel = dynamic(
   { ssr: false, loading: () => null },
 );
 import { captureClickAttribution, persistClickAttribution } from "@/lib/click-attribution";
+import { captureMetaClick } from "@/lib/meta-click-attribution";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
 const CookieConsentBar = dynamic(
@@ -83,6 +84,7 @@ export function AppChrome({
       readGadgetPreviewSession() || params.get("from") === "gadget",
     );
     if (typeof window !== "undefined") {
+      captureMetaClick(`${window.location.pathname}${currentSearch}`);
       persistClickAttribution(
         captureClickAttribution(
           `${window.location.pathname}${currentSearch}`,
@@ -118,9 +120,7 @@ export function AppChrome({
     <CartProvider>
       <WishlistProvider>
         {!pathname?.startsWith("/admin") ? (
-          <DeferredUntilIdle timeoutMs={5000}>
-            <TikTokPixel />
-          </DeferredUntilIdle>
+          <TikTokPixel />
         ) : null}
         {gadget ? (
           <>

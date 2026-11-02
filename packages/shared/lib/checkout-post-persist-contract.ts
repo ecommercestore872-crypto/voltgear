@@ -2,6 +2,7 @@ import type { OrderItem } from "@/lib/types";
 
 export type CheckoutPostPersistInput = {
   orderId: string;
+  acceptedAt?: number;
   request: Request;
   body: Record<string, unknown>;
   consent: string | null | undefined;
@@ -18,7 +19,9 @@ export type CheckoutPostPersistInput = {
     email: string;
     phone: string;
     address: string;
+    province?: string;
     city: string;
+    cityId?: string;
     postal?: string;
   };
 };

@@ -22,6 +22,7 @@ import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
 import { indexSiteUrl, productStructuredData } from "@/lib/seo-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
+import { isPurchasable } from "@/lib/stock";
 
 export const revalidate = 300;
 
@@ -130,6 +131,7 @@ export default async function Product2Page(
   const settings = await loadStorefrontSettings().catch(() => null);
 
   product = applyGadgetStudioImages(product);
+  const trackingVariant = product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0];
   const config = normalizeSettings(settings);
 
   const siteUrl = indexSiteUrl();
@@ -224,9 +226,10 @@ export default async function Product2Page(
         }}
       />
       <ProductViewTrackerLoader
+        metaAvailable={isPurchasable(product, trackingVariant)}
         slug={product.slug}
         name={product.name}
-        price={product.price}
+        price={trackingVariant?.price ?? product.price}
         image={
           product.images?.[0]
             ? imageUrl(product.images[0], { w: 128 })
@@ -235,6 +238,8 @@ export default async function Product2Page(
         category={product.category}
         productId={product._id}
         sku={product.sku}
+        variantSku={trackingVariant?.sku}
+        variantKey={trackingVariant?._key}
       />
       <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
         <GadgetPdpServerFacts product={product} config={config} />

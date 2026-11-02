@@ -28,21 +28,18 @@ export function GadgetSearchInput({
   return (
     <div
       className={cn(
-        "group relative flex items-center rounded-full border bg-white transition duration-300 ease-out",
+        "group relative flex items-center rounded-[10px] border bg-white transition duration-200 ease-out",
         tall ? "h-12 sm:h-[3.15rem]" : "h-10 sm:h-11",
         focused
-          ? "border-[var(--g-forest)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--g-sage)_28%,transparent)]"
-          : "border-[var(--g-line)] shadow-none hover:border-[color-mix(in_srgb,var(--g-sage)_40%,var(--g-line))]",
+          ? "border-[var(--g-forest)]"
+          : "border-[var(--g-line)] hover:border-[var(--g-forest)]/40",
         className,
       )}
     >
       <span
         className={cn(
-          "pointer-events-none absolute left-3 flex items-center justify-center rounded-full transition duration-300",
+          "pointer-events-none absolute left-3 flex items-center justify-center rounded-[8px] text-[var(--g-forest)]",
           tall ? "left-3.5 h-8 w-8 sm:left-4" : "h-7 w-7",
-          focused
-            ? "bg-[var(--g-forest)] text-white"
-            : "bg-[var(--g-cream)] text-[var(--g-forest)]",
         )}
         aria-hidden
       >

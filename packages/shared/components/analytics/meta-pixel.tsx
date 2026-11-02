@@ -1,69 +1,54 @@
 "use client";
 
-import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import {
-  COOKIE_CONSENT_CHANGE_EVENT,
-  COOKIE_CONSENT_STORAGE_KEY,
-  type CookieConsentChoice,
-} from "@/components/legal/cookie-consent-bar";
-import { ensureMetaPageView } from "@/lib/meta-pixel-events";
+import { useEffect } from "react";
+import { canSendMetaBrowserEvents, ensureMetaPageView } from "@/lib/meta-pixel-events";
+import { persistMetaClick } from "@/lib/meta-click-attribution";
 
-const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-
+/** One consent-aware SDK and initialization, including StrictMode/remounts. */
 export function MetaPixel() {
   const pathname = usePathname();
-  const [consent, setConsent] = useState<CookieConsentChoice | null>(null);
-
   useEffect(() => {
-    const stored = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-    setConsent(stored === "all" || stored === "essential" ? stored : null);
-
-    function onConsent(event: Event) {
-      const choice = (event as CustomEvent<CookieConsentChoice>).detail;
-      setConsent(choice === "all" || choice === "essential" ? choice : null);
-    }
-
-    window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
-    return () => window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
-  }, []);
-
-  useEffect(() => {
-    if (!META_PIXEL_ID || consent !== "all") return;
-    ensureMetaPageView(pathname);
-  }, [consent, pathname]);
-
-  if (!META_PIXEL_ID || consent !== "all") return null;
-
-  return (
-    <>
-      <Script
-        id="meta-pixel"
-        strategy="lazyOnload"
-      >
-        {`
-          if (!window.__META_PIXEL_BOOTSTRAPPED__) {
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            
-            fbq('init', '${META_PIXEL_ID}');
-            fbq('track', 'PageView');
-            
-            window.__META_PIXEL_LAST_PATHNAME__ = window.location.pathname;
-            window.__META_PAGEVIEW_SEQUENCE__ = 1;
-            window.__META_PIXEL_BOOTSTRAPPED__ = true;
-            
-            window.dispatchEvent(new Event('meta:pixel-ready'));
-          }
-        `}
-      </Script>
-    </>
-  );
+    const update = () => {
+      if (!canSendMetaBrowserEvents()) {
+        if (window.__META_PIXEL_BOOTSTRAPPED__) window.fbq?.("consent", "revoke");
+        window.__META_PIXEL_LAST_PATHNAME__ = undefined;
+        return;
+      }
+      if (!window.__META_PIXEL_BOOTSTRAPPED__) {
+        const queue = function (...args: unknown[]) {
+          if (queue.callMethod) queue.callMethod(...args);
+          else queue.queue.push(args);
+        };
+        queue.queue = [] as unknown[][];
+        queue.callMethod = undefined as ((...args: unknown[]) => void) | undefined;
+        Object.assign(queue, { push: queue, loaded: true, version: "2.0" });
+        window.fbq = window.fbq || queue;
+        window._fbq = window._fbq || window.fbq;
+        const id = process.env.NEXT_PUBLIC_META_PIXEL_ID!;
+        window.fbq("consent", "grant");
+        window.fbq("set", "autoConfig", false, id);
+        window.fbq("init", id);
+        window.__META_PIXEL_BOOTSTRAPPED__ = true;
+        if (!document.querySelector('script[src*="connect.facebook.net"][src*="fbevents.js"]')) {
+          const script = document.createElement("script");
+          script.id = "meta-pixel-sdk";
+          script.async = true;
+          script.src = "https://connect.facebook.net/en_US/fbevents.js";
+          document.head.appendChild(script);
+        }
+      } else window.fbq?.("consent", "grant");
+      persistMetaClick();
+      ensureMetaPageView(window.location.pathname);
+      window.dispatchEvent(new Event("meta:pixel-ready"));
+    };
+    update();
+    window.addEventListener("bnt-cookie-consent-change", update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener("bnt-cookie-consent-change", update);
+      window.removeEventListener("storage", update);
+    };
+  }, [pathname]);
+  return null;
 }

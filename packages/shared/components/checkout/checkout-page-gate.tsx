@@ -24,17 +24,17 @@ export function CheckoutPageGate() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto min-h-[calc(100dvh-10rem)] max-w-xl px-4 py-16 lg:px-8">
-        <div className="rounded-2xl border border-dashed p-6 text-center sm:p-12">
-          <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h2 className="mt-4 text-2xl font-bold tracking-tight">
+      <div className="mx-auto min-h-[calc(100dvh-10rem)] max-w-xl px-4 py-14 lg:px-8">
+        <div className="rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] p-6 text-center sm:p-10">
+          <ShoppingBag className="mx-auto h-10 w-10 text-[var(--g-taupe)]" />
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[var(--g-charcoal)]">
             Your cart is empty
-          </h2>
-          <p className="mx-auto mt-2 max-w-[16rem] text-sm text-muted-foreground">
-            Add some products and come back to check out.
+          </h1>
+          <p className="mx-auto mt-2 max-w-[18rem] text-sm text-[var(--g-taupe)]">
+            Add products first, then check out with cash on delivery.
           </p>
-          <Button asChild className="mt-6">
-            <Link href="/products">Start Shopping</Link>
+          <Button asChild className="mt-6 rounded-[10px]">
+            <Link href="/products">Browse products</Link>
           </Button>
         </div>
       </div>

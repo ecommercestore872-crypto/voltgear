@@ -1,186 +1,88 @@
-import crypto from "crypto";
-
-import { purchaseTrackLog } from "@/lib/purchase-track-observability";
+import crypto from "node:crypto";
+import { isIP } from "node:net";
+import { metaCommerceData, metaEnvironmentAllowed, type MetaItem } from "./meta-commerce";
+import { purchaseTrackLog } from "./purchase-track-observability";
 
 export const META_CURRENCY = "PKR";
+// Current version in Meta's official Business SDK (verified 2026-11-02).
+export const META_GRAPH_API_VERSION = "v26.0";
+type PurchaseInput = {
+  orderId: string; value: number; items: MetaItem[]; consent?: string | null;
+  eventTime?: number; email?: string; phone?: string;
+  clientIp?: string; userAgent?: string;
+  eventSourceUrl?: string; fbp?: string; fbc?: string;
+};
+const hash = (value: string) => crypto.createHash("sha256").update(value).digest("hex");
 
-function sha256Hex(value: string): string {
-  return crypto.createHash("sha256").update(value).digest("hex");
+/** Normalized PII only enters hashed user_data; URLs never carry customer data. */
+export function buildMetaServerPurchasePayload(input: PurchaseInput) {
+  const data = metaCommerceData(input.items, input.value);
+  const id = input.orderId?.trim();
+  const eventTime = input.eventTime ?? Math.floor(Date.now() / 1000);
+  if (!id || !data || !Number.isSafeInteger(eventTime) || eventTime <= 0 ||
+    eventTime > Math.floor(Date.now() / 1000) + 60 || eventTime < Math.floor(Date.now() / 1000) - 7 * 86400) return null;
+  const user: Record<string, string | string[]> = {};
+  const email = input.email?.trim().toLowerCase();
+  if (email && email.length <= 254 && !email.endsWith("@orders.buyntryy.com") && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) user.em = [hash(email)];
+  let phone = input.phone?.replace(/\D/g, "") ?? "";
+  if (phone.startsWith("0092")) phone = phone.slice(2);
+  if (/^03\d{9}$/.test(phone)) phone = `92${phone.slice(1)}`;
+  if (/^3\d{9}$/.test(phone)) phone = `92${phone}`;
+  if (/^923\d{9}$/.test(phone)) user.ph = [hash(phone)];
+  // Additional matching fields are optional; minimize the data sent.
+  if (input.clientIp && isIP(input.clientIp)) user.client_ip_address = input.clientIp;
+  if (input.userAgent) user.client_user_agent = input.userAgent.slice(0, 1024);
+  if (validMetaCookie(input.fbp)) user.fbp = input.fbp!;
+  if (validMetaCookie(input.fbc)) user.fbc = input.fbc!;
+  if (!Object.keys(user).length) return null;
+  return { data: [{
+    event_name: "Purchase", event_time: eventTime, action_source: "website",
+    event_id: id, event_source_url: "https://buyntryy.com/checkout",
+    user_data: user, custom_data: { ...data, order_id: id },
+  }] };
 }
 
-function normalizePhone(phone: string): string {
-  // Extract only digits
-  let cleaned = phone.replace(/[^0-9]/g, "");
-  // Standardize Pakistani numbers to 92...
-  if (cleaned.startsWith("0092")) {
-    cleaned = "92" + cleaned.slice(4);
-  } else if (cleaned.startsWith("03") && cleaned.length === 11) {
-    cleaned = "92" + cleaned.slice(1);
-  } else if (cleaned.startsWith("3") && cleaned.length === 10) {
-    cleaned = "92" + cleaned;
+export function validMetaCookie(value?: string): boolean {
+  return typeof value === "string" && value.length <= 512 && /^fb\.\d+\.\d{10,16}\.[A-Za-z0-9_-]+$/.test(value);
+}
+
+/** Two bounded attempts. Every retry reuses the exact event ID/time/body. */
+export async function trackMetaServerPurchase(input: PurchaseInput): Promise<void> {
+  if (input.consent !== "all") {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_consent" }); return;
   }
-  return cleaned;
-}
-
-export async function trackMetaServerPurchase(input: {
-  orderId: string;
-  value: number;
-  items: Array<{
-    productId?: string;
-    name?: string;
-    price: number;
-    quantity: number;
-  }>;
-  email?: string;
-  phone?: string;
-  fullName?: string;
-  city?: string;
-  postalCode?: string;
-  country?: string;
-  clientIp?: string;
-  userAgent?: string;
-  eventSourceUrl?: string;
-  fbp?: string;
-  fbc?: string;
-}) {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const token = process.env.META_CONVERSIONS_API_ACCESS_TOKEN;
-  const version = process.env.META_GRAPH_API_VERSION || "v19.0";
-  const testEventCode = process.env.META_TEST_EVENT_CODE;
-
-  if (!pixelId || !token || !version) {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_config" });
-    return;
+  const testMode = process.env.NEXT_PUBLIC_META_TEST_MODE;
+  if (!token || (testMode !== "true" && process.env.VERCEL_ENV !== "production") ||
+    (process.env.NODE_ENV !== "production" && testMode !== "true") || process.env.NEXT_PUBLIC_META_PIXEL_ENABLED === "false" || !metaEnvironmentAllowed({
+    pixelId, testMode, vercelEnv: process.env.VERCEL_ENV, host: "buyntryy.com",
+  }) || (testMode === "true" && !process.env.META_TEST_EVENT_CODE) ||
+    (testMode !== "true" && process.env.META_TEST_EVENT_CODE)) {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_config" }); return;
   }
-
-  const userData: Record<string, any> = {};
-
-  if (input.email) {
-    const cleanEmail = input.email.trim().toLowerCase();
-    if (cleanEmail) userData.em = [sha256Hex(cleanEmail)];
+  const body = buildMetaServerPurchasePayload(input);
+  const version = process.env.META_GRAPH_API_VERSION || META_GRAPH_API_VERSION;
+  if (!body || !/^v(2[4-6])\.0$/.test(version)) {
+    purchaseTrackLog({ channel: "meta", outcome: "failed" }); return;
   }
-
-  if (input.phone) {
-    const cleanPhone = normalizePhone(input.phone);
-    if (cleanPhone) userData.ph = [sha256Hex(cleanPhone)];
-  }
-
-  if (input.fullName) {
-    const parts = input.fullName.trim().replace(/\s+/g, " ").toLowerCase().split(" ");
-    if (parts.length > 0 && parts[0]) {
-      userData.fn = [sha256Hex(parts[0])];
-      if (parts.length > 1) {
-        const ln = parts.slice(1).join(" ");
-        if (ln) userData.ln = [sha256Hex(ln)];
+  const payload = JSON.stringify({ ...body, ...(testMode === "true" ? { test_event_code: process.env.META_TEST_EVENT_CODE } : {}) });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`https://graph.facebook.com/${version}/${pixelId}/events`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: payload, signal: AbortSignal.timeout(4000), cache: "no-store", redirect: "error",
+      });
+      const result = await res.json().catch(() => null) as { events_received?: number; error?: { is_transient?: boolean } } | null;
+      if (res.ok && !result?.error && result?.events_received === 1) {
+        purchaseTrackLog({ channel: "meta", outcome: "sent" }); return;
       }
+      if (attempt === 0 && (res.status === 429 || res.status >= 500 || result?.error?.is_transient)) continue;
+      break;
+    } catch {
+      // Never log request exceptions: they can embed tokens or user_data.
+      if (attempt === 0) continue;
     }
   }
-
-  if (input.city) {
-    const cleanCity = input.city.trim().toLowerCase().replace(/[.\-_,]/g, "");
-    if (cleanCity) userData.ct = [sha256Hex(cleanCity)];
-  }
-
-  if (input.postalCode) {
-    const cleanPostal = input.postalCode.trim().toLowerCase();
-    if (cleanPostal) userData.zp = [sha256Hex(cleanPostal)];
-  }
-
-  if (input.country) {
-    const cleanCountry = input.country.trim().toLowerCase();
-    if (cleanCountry === "pakistan" || cleanCountry === "pk") {
-      userData.country = [sha256Hex("pk")];
-    } else if (cleanCountry) {
-      userData.country = [sha256Hex(cleanCountry)];
-    }
-  }
-
-  if (input.clientIp) userData.client_ip_address = input.clientIp;
-  if (input.userAgent) userData.client_user_agent = input.userAgent;
-  if (input.fbp) userData.fbp = input.fbp;
-  if (input.fbc) userData.fbc = input.fbc;
-
-  let allItemsValid = true;
-  let summedQuantity = 0;
-  
-  const contents = input.items.map(i => {
-    if (
-      !i.productId ||
-      typeof i.price !== "number" || i.price < 0 || !Number.isFinite(i.price) ||
-      typeof i.quantity !== "number" || i.quantity <= 0 || !Number.isFinite(i.quantity)
-    ) {
-      allItemsValid = false;
-    }
-    const safeQty = typeof i.quantity === "number" && Number.isFinite(i.quantity) && i.quantity > 0 ? i.quantity : 0;
-    summedQuantity += safeQty;
-
-    return {
-      id: i.productId || "",
-      quantity: safeQty,
-      item_price: i.price,
-    };
-  });
-
-  const customData: Record<string, any> = {
-    currency: META_CURRENCY,
-    value: input.value,
-  };
-
-  if (allItemsValid && input.items.length > 0) {
-    customData.content_type = "product";
-    customData.content_ids = input.items.map(i => i.productId);
-    customData.contents = contents;
-    customData.num_items = summedQuantity;
-  } else {
-    customData.num_items = summedQuantity;
-  }
-
-  const payload: Record<string, any> = {
-    data: [
-      {
-        event_name: "Purchase",
-        event_time: Math.floor(Date.now() / 1000),
-        action_source: "website",
-        event_id: input.orderId,
-        user_data: userData,
-        custom_data: customData,
-      }
-    ]
-  };
-
-  if (input.eventSourceUrl) {
-    payload.data[0].event_source_url = input.eventSourceUrl;
-  }
-
-  if (testEventCode) {
-    payload.test_event_code = testEventCode;
-  }
-
-  try {
-    const url = `https://graph.facebook.com/${version}/${pixelId}/events?access_token=${token}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!res.ok) {
-      let message = await res.text();
-      try { message = JSON.parse(message).error?.message || message; } catch {}
-      console.warn("[meta-capi] Purchase send failed", { orderId: input.orderId, status: res.status, message });
-      purchaseTrackLog({ channel: "meta", outcome: "failed" });
-      return;
-    }
-    purchaseTrackLog({ channel: "meta", outcome: "sent" });
-  } catch (error) {
-    purchaseTrackLog({ channel: "meta", outcome: "failed" });
-    if (error instanceof Error && error.name === "TimeoutError") {
-      console.warn("[meta-capi] Purchase send timeout", { orderId: input.orderId });
-    } else {
-      console.warn("[meta-capi] Purchase send failed with exception", { orderId: input.orderId, error: error instanceof Error ? error.message : "Unknown" });
-    }
-  }
+  purchaseTrackLog({ channel: "meta", outcome: "failed" });
 }
