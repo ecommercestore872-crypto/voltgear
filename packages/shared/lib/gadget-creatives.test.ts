@@ -14,11 +14,15 @@ describe("gadget-creatives", () => {
     }
   });
 
-  it("builds three demo hero banners with category hrefs", () => {
+  it("builds four collection banners with working category hrefs", () => {
     const banners = gadgetDemoHeroBanners((slug) => `/products/${slug}`);
-    assert.equal(banners.length, 3);
+    assert.equal(banners.length, 4);
     assert.ok(banners.every((b) => b.imageUrl.startsWith("/gadget/")));
-    assert.equal(banners[0].href, "/products/earbuds");
+    assert.equal(banners[0].href, "/products/");
+    assert.equal(banners[0].title, "More than gadgets.");
+    assert.equal(banners[0].eyebrow, "Campaign concept · illustrative products");
+    assert.equal(banners[1].href, "/products/earbuds");
+    assert.equal(banners[3].href, "/products/smartwatch");
   });
 
   it("prefers admin slide image over lifestyle flatlay", () => {

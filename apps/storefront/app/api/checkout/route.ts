@@ -28,6 +28,7 @@ import { checkoutHttpStatusAfterOrderPersisted } from "@/lib/email-checkout-rule
 import { normalizeCheckoutCustomer } from "@/lib/checkout-customer-rules";
 import { buildCheckoutRequestFingerprint, scopeCheckoutIdempotencyKey } from "@/lib/checkout-idempotency";
 import { checkoutReplayMatches } from "@/lib/checkout-replay-rules";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,6 +48,12 @@ export const dynamic = "force-dynamic";
  * via the flow runner).
  */
 export async function POST(request: Request) {
+  if (localCatalogPreviewEnabled()) {
+    return NextResponse.json(
+      { error: "Orders are disabled in the local catalog preview." },
+      { status: 503 },
+    );
+  }
   const checkoutStarted = performance.now();
   const slo = (
     outcome: CheckoutOutcome,

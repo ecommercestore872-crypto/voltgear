@@ -124,13 +124,24 @@ export function resolveCheckoutLocation(input: {
     return { ok: false, error: "Please select your province / region." };
   }
 
+  const enteredCity = (input.city ?? "").trim().replace(/\s+/g, " ");
   const byId = input.cityId ? findCityById(input.cityId) : undefined;
-  const byLabel = input.city ? findCityByLabel(input.city) : undefined;
-  const city = byId ?? byLabel;
+  const byLabel = enteredCity ? findCityByLabel(enteredCity) : undefined;
+  // The typed city is authoritative. An old cityId must never replace it.
+  if (enteredCity && byId && byId.label.toLowerCase() !== enteredCity.toLowerCase()) {
+    return { ok: false, error: "City does not match the selected city." };
+  }
+  const city = byLabel ?? byId;
+  if (!city && !/^[\p{L}][\p{L}\p{M}\s.'-]{1,79}$/u.test(enteredCity)) {
+    return { ok: false, error: "Enter your city or town (2–80 letters)." };
+  }
   if (!city) {
     return {
-      ok: false,
-      error: "Please select a delivery city from the list.",
+      ok: true,
+      province: provinceRaw,
+      cityId: "",
+      cityLabel: enteredCity,
+      courierServiceable: false,
     };
   }
   if (city.region !== provinceRaw) {

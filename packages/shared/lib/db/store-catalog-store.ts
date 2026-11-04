@@ -13,6 +13,7 @@ import {
   LIVE,
 } from "@/lib/db/store-query-foundation";
 import { mapPdpDetailFields, mapProduct } from "@/lib/db/map";
+import { localPreviewProductBySlug, localPreviewProducts } from "@/lib/local-catalog-preview";
 import { pdpProductCacheTag } from "@/lib/gadget-pdp-lcp";
 import {
   STOREFRONT_CATALOG_GRID_CACHE_TAG,
@@ -110,6 +111,8 @@ export async function fetchAllProducts(includeDemo = false): Promise<Product[]> 
 }
 
 async function loadCatalogProducts(): Promise<Product[]> {
+  const preview = localPreviewProducts();
+  if (preview) return preview;
   const [queryResult, activeCategories] = await Promise.all([
     execDemoQuery(() =>
       demoFilter(
@@ -179,6 +182,8 @@ export function fetchCatalogProductsShopOverview(
   perCategory = SHOP_HUB_PER_CATEGORY_DEFAULT,
 ): Promise<Product[]> {
   const cap = Math.max(4, Math.min(perCategory, 32));
+  const preview = localPreviewProducts();
+  if (preview) return Promise.resolve(preview);
   return unstable_cache(
     () => loadCatalogProductsShopOverview(cap),
     ["fetchCatalogProductsShopOverview-v2", String(cap)],
@@ -191,6 +196,8 @@ const HOMEPAGE_PRODUCT_LIMIT = 36;
 /** Slim catalog for the homepage — avoids a second full-catalog + analytics pass. */
 export const fetchHomepageProducts = unstable_cache(
   async (includeDemo = false): Promise<Product[]> => {
+    const preview = localPreviewProducts();
+    if (preview) return preview;
     const { data, error } = await execDemoQuery(() =>
       demoFilter(
         db()
@@ -218,6 +225,8 @@ export const fetchHomepageProducts = unstable_cache(
 );
 
 export async function fetchProductBySlug(slug: string, includeDemo = false): Promise<Product | null> {
+  const preview = localPreviewProducts();
+  if (preview) return localPreviewProductBySlug(slug);
   const { data, error } = await execDemoQuery(() =>
     demoFilter(
       db().from("products").select(PRODUCT_EMBED).eq("slug", slug).eq("status", LIVE),
@@ -281,6 +290,8 @@ async function loadPdpProductDetailsRow(
 export async function loadCachedPdpProductBySlug(slug: string): Promise<Product | null> {
   const trimmed = slug.trim();
   if (!trimmed) return null;
+  const preview = localPreviewProducts();
+  if (preview) return localPreviewProductBySlug(trimmed);
   return unstable_cache(
     async () => loadPdpProductRow(trimmed),
     ["pdp-product-v2", trimmed],
@@ -361,6 +372,8 @@ async function loadCatalogProductsByCategory(category: string): Promise<Product[
 /** Category PLP — one indexed query instead of full cached catalog + filter. */
 export function fetchCatalogProductsByCategory(category: string): Promise<Product[]> {
   const cat = category.trim();
+  const preview = localPreviewProducts();
+  if (preview) return Promise.resolve(preview.filter((product) => product.category === cat));
   return unstable_cache(
     async () => loadCatalogProductsByCategory(cat),
     ["fetchCatalogProductsByCategory", cat],
@@ -377,6 +390,8 @@ export async function fetchRelatedProducts(
   const id = excludeProductId.trim();
   const cat = category.trim();
   const lim = Math.max(1, Math.min(limit, 24));
+  const preview = localPreviewProducts();
+  if (preview) return preview.filter((product) => product._id !== id && product.category === cat).slice(0, lim);
   return unstable_cache(
     async () => loadRelatedCatalogProducts(id, cat, lim),
     ["fetchRelatedProducts-v2", id, cat, String(lim)],
@@ -390,6 +405,8 @@ export async function fetchCatalogProductsBySlugs(
 ): Promise<Product[]> {
   const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))];
   if (!unique.length) return [];
+  const preview = localPreviewProducts();
+  if (preview) return preview.filter((product) => unique.includes(product.slug));
   const { data, error } = await execDemoQuery(() =>
     demoFilter(
       db()
@@ -609,6 +626,8 @@ export async function fetchCatalogFeaturedByCategory(
   const cap = clampStoreLimit(limit);
   const cat = category.trim();
   if (!cat) return [];
+  const preview = localPreviewProducts();
+  if (preview) return preview.filter((product) => product.category === cat && product.featured).slice(0, cap);
   const { data, error } = await execDemoQuery(() =>
     demoFilter(
       db()
@@ -639,6 +658,8 @@ export async function fetchCatalogFeaturedProducts(
   includeDemo = false,
 ): Promise<Product[]> {
   const cap = clampStoreLimit(limit);
+  const preview = localPreviewProducts();
+  if (preview) return preview.filter((product) => product.featured).slice(0, cap);
   const { data, error } = await execDemoQuery(() =>
     demoFilter(
       db()
@@ -666,6 +687,8 @@ export async function fetchCatalogNewestProducts(
   includeDemo = false,
 ): Promise<Product[]> {
   const cap = clampStoreLimit(limit);
+  const preview = localPreviewProducts();
+  if (preview) return preview.slice(0, cap);
   const { data, error } = await execDemoQuery(() =>
     demoFilter(
       db()

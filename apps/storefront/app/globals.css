@@ -927,6 +927,22 @@
   transform: none;
 }
 
+/* The campaign action mirrors the approved deep-green retail treatment. */
+.gadget-theme .gadget-hero-shell .gadget-hero-cta {
+  background: var(--g-forest-mid);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--g-white);
+  box-shadow: 0 12px 26px rgba(3, 24, 15, 0.26);
+}
+
+.gadget-theme .gadget-hero-shell .gadget-hero-cta:hover {
+  background: var(--g-forest);
+}
+
+.gadget-theme .gadget-hero-shell h1.gadget-display {
+  color: var(--g-white);
+}
+
 .gadget-theme .gadget-sale-badge {
   background: var(--g-sale);
   color: var(--g-cream);
@@ -1618,13 +1634,12 @@
 }
 
 .gadget-theme .gadget-h1,
-.gadget-theme .gadget-h2,
-.gadget-theme .gadget-display {
+.gadget-theme .gadget-h2 {
   color: var(--g-forest);
 }
 
 .gadget-theme .gadget-eyebrow {
-  color: color-mix(in srgb, var(--g-gold) 38%, var(--g-sage));
+  color: var(--g-olive);
 }
 
 .gadget-theme .gadget-topbar-premium {

@@ -5,7 +5,8 @@ import {
   loadCachedPdpDetailsBySlug,
   loadCachedPdpProductBySlug,
 } from "@/lib/db/store";
-import type { ApprovedReviewStats } from "@/lib/product-review-stats";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
+import { EMPTY_APPROVED_REVIEW_STATS, type ApprovedReviewStats } from "@/lib/product-review-stats";
 
 /** One cached Supabase read per slug per request (metadata + page share this). */
 export const loadPdpProductBySlug = cache((slug: string) =>
@@ -20,5 +21,7 @@ export const loadPdpProductDetailsBySlug = cache((slug: string) =>
 /** Approved customer reviews only — shared by buy box + JSON-LD per request. */
 export const loadPdpReviewStats = cache(
   (productId: string): Promise<ApprovedReviewStats> =>
-    fetchCachedApprovedReviewStats(productId),
+    localCatalogPreviewEnabled()
+      ? Promise.resolve(EMPTY_APPROVED_REVIEW_STATS)
+      : fetchCachedApprovedReviewStats(productId),
 );

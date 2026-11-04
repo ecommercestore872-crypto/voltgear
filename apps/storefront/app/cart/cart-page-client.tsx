@@ -16,7 +16,6 @@ import {
   products2Href,
 } from "@/lib/gadget-preview";
 import { useSiteConfig } from "@/lib/use-site-config";
-import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { cn, formatPrice } from "@/lib/utils";
 
 function FreeShippingBar({
@@ -195,8 +194,6 @@ export default function CartPageClient() {
       >
         {items.length} item(s) in your cart
       </p>
-
-      <FunnelTrustStrip className="premium-royal-enter mt-4" />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">

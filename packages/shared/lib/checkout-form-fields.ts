@@ -52,7 +52,7 @@ export function validateCheckoutFormField(
       const location = resolveCheckoutLocation({
         province: ctx?.province || undefined,
         city: v,
-        cityId: ctx?.cityId || v,
+        cityId: ctx?.cityId,
       });
       if (!location.ok) return location.error;
       return null;

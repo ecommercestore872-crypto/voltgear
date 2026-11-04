@@ -82,23 +82,23 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
 
 const CATEGORY_HUB_BLURBS: Record<string, string> = {
   earbuds:
-    "Shop wireless earbuds and airbuds in Pakistan at Buy n Try (buyntryy.com). Cash on delivery to Lahore, Karachi, Islamabad, Rawalpindi and nationwide — inspect TWS at delivery.",
+    "Shop wireless earbuds and airbuds in Pakistan at Buy n Try (buyntryy.com). Compare designs, prices and features, with cash on delivery available at checkout.",
   smartwatch:
-    "Browse calling and AMOLED smartwatches in Pakistan at Buy n Try. Clear pricing and cash on delivery to major cities and nationwide from buyntryy.com.",
+    "Browse smartwatches in Pakistan at Buy n Try (buyntryy.com). Compare current product details and prices, with cash on delivery available at checkout.",
   "power-bank":
-    "Find 10,000mAh and 20,000mAh power banks in Pakistan at Buy n Try. Fast portable power with cash on delivery — try it when the courier arrives.",
+    "Find power banks in Pakistan at Buy n Try (buyntryy.com). Compare capacities, product details and prices, with cash on delivery available at checkout.",
   charger:
-    "Buy chargers and adapters in Pakistan at Buy n Try — GaN and fast USB-C. Cash on delivery nationwide from buyntryy.com.",
+    "Browse chargers and adapters in Pakistan at Buy n Try (buyntryy.com). Compare available connections, charging features and prices before you order.",
   "ring-light":
-    "Shop LED ring lights in Pakistan at Buy n Try. Creator lighting with cash on delivery so you can check brightness before you pay.",
+    "Shop ring lights in Pakistan at Buy n Try (buyntryy.com). Compare sizes, lighting features and current prices for creator setups and everyday use.",
   "selfie-stick":
-    "Buy Bluetooth selfie sticks in Pakistan at Buy n Try. Compact sticks with remote and tripod modes — cash on delivery from buyntryy.com.",
+    "Browse selfie sticks in Pakistan at Buy n Try (buyntryy.com). Compare available lengths, remotes, tripod modes and current prices before you order.",
   tripod:
-    "Shop camera and phone tripods in Pakistan at Buy n Try. Overhead, boom-arm, AI tracking and full-size camera stands — cash on delivery from buyntryy.com.",
+    "Shop phone and camera tripods in Pakistan at Buy n Try (buyntryy.com). Compare available stands, mounting options and current product prices.",
   microphones:
-    "Shop wireless lavalier and lapel mics in Pakistan at Buy n Try. Creator audio with cash on delivery nationwide.",
+    "Shop microphones in Pakistan at Buy n Try (buyntryy.com). Compare available connections, recording features and prices for creator audio setups.",
   accessories:
-    "Shop universal stylus pens and tech accessories in Pakistan at Buy n Try. Precise writing for phones, tablets and touchscreens — cash on delivery from buyntryy.com.",
+    "Shop stylus pens and tech accessories in Pakistan at Buy n Try (buyntryy.com). Check device compatibility and current product prices before you order.",
 };
 
 export const CATEGORY_FAQS: Record<string, { question: string; answer: string }[]> = {
@@ -181,7 +181,7 @@ export function categorySearchMeta(input: {
 export function categoryHubCopy(input: { slug: string; name: string }): string {
   const blurb = CATEGORY_HUB_BLURBS[input.slug];
   if (blurb) return blurb.slice(0, 320);
-  return `Shop ${input.name} in Pakistan at ${SHOPPER_BRAND.spokenName} (buyntryy.com). Cash on delivery nationwide — inspect your order when it arrives.`.slice(
+  return `Shop ${input.name} in Pakistan at ${SHOPPER_BRAND.spokenName} (buyntryy.com). Compare current product details, availability and prices before you order.`.slice(
     0,
     320
   );

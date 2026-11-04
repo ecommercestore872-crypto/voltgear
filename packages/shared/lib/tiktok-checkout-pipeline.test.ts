@@ -136,6 +136,7 @@ describe("actual checkout route → post-persist tracking → Events API", () =>
         "@/lib/checkout-customer-rules": { normalizeCheckoutCustomer: () => ({ ok: true, customer }) },
         "@/lib/checkout-idempotency": { buildCheckoutRequestFingerprint, scopeCheckoutIdempotencyKey },
         "@/lib/checkout-replay-rules": { checkoutReplayMatches },
+        "@/lib/local-catalog-preview": { localCatalogPreviewEnabled: () => false },
       });
       try {
         const response: Response = await route.POST(new Request("https://buyntryy.test/api/checkout", {

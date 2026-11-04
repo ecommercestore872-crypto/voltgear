@@ -102,6 +102,7 @@ export function AppChrome({
   }, [pathname]);
 
   const activePath = pathname || "/";
+  const pageNodes = Children.toArray(children);
 
   if (pathname?.startsWith("/admin")) {
     return <>{children}</>;
@@ -129,8 +130,8 @@ export function AppChrome({
             >
               {demoBanner}
               <GadgetNavbar settings={settings} shopTypes={shopTypes} />
-              <main className="min-w-0 flex-1 bg-[var(--g-cream)]">
-                {children}
+              <main className="min-w-0 flex-1 bg-[var(--g-cream)] pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
+                {pageNodes}
               </main>
               <GadgetFooter settings={settings} shopTypes={shopTypes} />
               {cartDrawer}
@@ -148,7 +149,7 @@ export function AppChrome({
             {urgencyTicker}
             {demoBanner}
             <Navbar settings={settings} shopTypes={shopTypes} />
-            <main className="flex-1 overflow-x-hidden w-full">{children}</main>
+            <main className="flex-1 overflow-x-hidden w-full">{pageNodes}</main>
             <Footer settings={settings} shopTypes={shopTypes} />
             <DeferredUntilIdle>
               <ShopWhatsAppButton settings={settings} />

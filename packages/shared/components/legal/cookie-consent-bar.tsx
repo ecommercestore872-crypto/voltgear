@@ -47,7 +47,7 @@ export function CookieConsentBar() {
     <div
       role="dialog"
       aria-label="Cookie consent banner"
-      className="fixed bottom-4 left-4 right-4 z-[100] sm:left-6 sm:bottom-6 sm:max-w-[340px] animate-in fade-in slide-in-from-bottom-4 duration-700"
+      className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[100] sm:left-6 sm:bottom-6 sm:max-w-[340px] animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
       <div className="flex flex-col gap-3 sm:gap-4 overflow-hidden rounded-[1.25rem] border border-primary bg-background/95 shadow-2xl backdrop-blur-2xl p-4 sm:p-5" style={{ WebkitBackdropFilter: 'blur(24px)' }}>
         <div>

@@ -74,7 +74,7 @@ export function CheckoutCodAssist({
           </span>
         </p>
         <p className="text-xs text-muted-foreground">
-          Only name, mobile, and address are required. Email and city are optional.
+          Name, mobile, address, province and city are required. Email is optional.
         </p>
       </div>
       {whatsapp ? (

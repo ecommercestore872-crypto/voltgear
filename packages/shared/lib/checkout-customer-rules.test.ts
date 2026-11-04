@@ -37,6 +37,20 @@ describe("checkout-customer-rules", () => {
     assert.equal(email, "buyer@example.com");
   });
 
+  it("persists a typed town for delivery and admin review", () => {
+    const r = normalizeCheckoutCustomer({
+      name: "Ali Khan",
+      phone: "03001234567",
+      address: "House 12, Main Road, Kot Addu",
+      province: "PB",
+      city: "Kot Addu",
+    });
+    assert.equal(r.ok, true);
+    if (!r.ok) return;
+    assert.equal(r.customer.city, "Kot Addu");
+    assert.equal(r.customer.cityId, "");
+  });
+
   it("lenient phone accepts spaced local format", () => {
     assert.equal(normalizePhoneForCheckout("0300 123 4567"), "+923001234567");
   });

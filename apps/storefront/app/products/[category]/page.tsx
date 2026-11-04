@@ -9,6 +9,7 @@ import { products2Href } from "@/lib/gadget-preview";
 import { fetchCatalogProductsByCategory, fetchShopTypes } from "@/lib/db/store";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import type { Product } from "@/lib/types";
 import {
   categoryHubCopy,
@@ -34,7 +35,7 @@ export async function generateMetadata(
   }
 ): Promise<Metadata> {
   const params = await props.params;
-  const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
+  const types = localCatalogPreviewEnabled() ? FALLBACK_SHOP_TYPES : await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
   const shop = findShopType(
     types.length ? types : FALLBACK_SHOP_TYPES,
     params.category,
@@ -70,19 +71,16 @@ export default async function Products2CategoryPage(
   const params = await props.params;
   let products: Product[] = [];
   let shopTypes = FALLBACK_SHOP_TYPES;
-  const settings = await loadStorefrontSettings().catch(() => null);
+  const preview = localCatalogPreviewEnabled();
+  const settings = preview ? null : await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
 
-  try {
-    const [p, types] = await Promise.all([
-      fetchCatalogProductsByCategory(params.category),
-      fetchShopTypes(),
-    ]);
-    products = applyGadgetStudioImagesList(p);
-    shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
-  } catch {
-    products = [];
-  }
+  const [p, types] = await Promise.all([
+    fetchCatalogProductsByCategory(params.category).catch(() => [] as Product[]),
+    preview ? Promise.resolve(FALLBACK_SHOP_TYPES) : fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES),
+  ]);
+  products = applyGadgetStudioImagesList(p);
+  shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
 
   const shop = findShopType(shopTypes, params.category);
   if (!shop) {

@@ -26,6 +26,20 @@ describe("pakistan-locations", () => {
     assert.equal(r.ok, false);
   });
 
+  it("accepts an unlisted town without changing its name", () => {
+    const r = resolveCheckoutLocation({ province: "PB", city: "Kot Addu" });
+    assert.equal(r.ok, true);
+    if (!r.ok) return;
+    assert.equal(r.cityLabel, "Kot Addu");
+    assert.equal(r.cityId, "");
+    assert.equal(r.courierServiceable, false);
+  });
+
+  it("does not substitute a stale city ID for the typed city", () => {
+    const r = resolveCheckoutLocation({ province: "PB", city: "Kot Addu", cityId: "lahore" });
+    assert.equal(r.ok, false);
+  });
+
   it("rejects missing province", () => {
     const r = resolveCheckoutLocation({ city: "Lahore" });
     assert.equal(r.ok, false);

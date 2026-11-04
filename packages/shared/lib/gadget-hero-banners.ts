@@ -7,6 +7,7 @@ export type GadgetHeroBanner = {
   id: string;
   title?: string;
   subtitle?: string | null;
+  eyebrow?: string;
   imageUrl: string;
   mobileImageUrl?: string;
   href: string;
@@ -69,9 +70,11 @@ export function fallbackHeroBanners(
   return fallbackBanners.map((b) => ({
     id: b.id,
     title: b.title,
-    subtitle: undefined,
     imageUrl: b.imageUrl,
+    mobileImageUrl: b.mobileImageUrl,
+    subtitle: b.subtitle,
+    eyebrow: b.eyebrow,
     href: b.href,
-    ctaLabel: "Shop this offer",
+    ctaLabel: b.ctaLabel || "Shop the collection",
   }));
 }

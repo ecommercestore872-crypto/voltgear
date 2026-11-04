@@ -14,15 +14,17 @@ import {
   storeAlternatesLanguages,
 } from "@/lib/seo-rules";
 import { normalizeSettings } from "@/lib/site-config";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import type { Product } from "@/lib/types";
 
 export const revalidate = 300;
 
 const shopMeta = shopCatalogSearchMeta();
+const catalogDescription = "Explore earbuds, chargers, power banks, smartwatches and accessories at Buy N Try.";
 
 export const metadata: Metadata = {
   title: { absolute: shopMeta.title },
-  description: shopMeta.description,
+  description: catalogDescription,
   keywords: shopMeta.keywords,
   alternates: {
     canonical: "/products",
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: shopMeta.title,
-    description: shopMeta.description,
+    description: catalogDescription,
     type: "website",
   },
 };
@@ -38,19 +40,16 @@ export const metadata: Metadata = {
 export default async function Products2Page() {
   let products: Product[] = [];
   let shopTypes = FALLBACK_SHOP_TYPES;
-  const settings = await loadStorefrontSettings().catch(() => null);
+  const preview = localCatalogPreviewEnabled();
+  const settings = preview ? null : await loadStorefrontSettings().catch(() => null);
   const config = normalizeSettings(settings);
 
-  try {
-    const [p, types] = await Promise.all([
-      fetchCatalogProductsShopOverview(16),
-      fetchShopTypes(),
-    ]);
-    products = applyGadgetStudioImagesList(p);
-    shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
-  } catch {
-    products = [];
-  }
+  const [p, types] = await Promise.all([
+    fetchCatalogProductsShopOverview(16).catch(() => [] as Product[]),
+    preview ? Promise.resolve(FALLBACK_SHOP_TYPES) : fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES),
+  ]);
+  products = applyGadgetStudioImagesList(p);
+  shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
 
   return (
     <Suspense
@@ -60,7 +59,7 @@ export default async function Products2Page() {
     >
       <GadgetShopCatalogClient
         title="Shop electronics in Pakistan"
-        description={shopMeta.description}
+        description={catalogDescription}
         products={products}
         shopTypes={shopTypes}
         config={config}

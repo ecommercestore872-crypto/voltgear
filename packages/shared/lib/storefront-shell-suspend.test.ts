@@ -126,6 +126,6 @@ describe("storefront shell must not suspend on ad query strings", () => {
     assert.doesNotMatch(footer, /<h3 className="mb-(?:3|4) text-\[11px\]/);
     assert.match(card, /Add to cart: \$\{product\.name\}/);
     assert.match(reviews, /className="flex h-8 min-w-8/);
-    assert.match(hero, /className="relative flex h-8 min-w-8/);
+    assert.match(hero, /className="relative flex h-11 min-w-11/);
   });
 });

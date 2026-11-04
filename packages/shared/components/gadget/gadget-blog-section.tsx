@@ -39,16 +39,6 @@ function toCards(posts: Page[]): BlogCardPost[] {
   }));
 }
 
-function coverGradient(i: number) {
-  const tones = [
-    "from-[var(--g-forest)] to-[var(--g-forest-mid)]",
-    "from-[var(--g-forest-mid)] to-[var(--g-sage)]",
-    "from-[#1a1a1a] to-[#5c6b5a]",
-    "from-[#2a4032] to-[#efeae0]",
-  ];
-  return tones[i % tones.length];
-}
-
 export function GadgetBlogSection({ posts }: { posts: Page[] }) {
   const [tab, setTab] = useState<"popular" | "latest">("popular");
 
@@ -118,7 +108,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
 
         <div className="mt-8 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <ul className="flex w-max gap-4 pb-1 sm:gap-5">
-            {visible.map((post, i) => {
+            {visible.map((post) => {
               const date = formatDate(post.publishedAt);
               const href = `/blog/${post.slug}`;
               return (
@@ -142,15 +132,12 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
                           className="object-cover transition duration-500 hover:scale-[1.03]"
                         />
                       ) : (
-                        <span
-                          className={`absolute inset-0 bg-gradient-to-br ${coverGradient(i)}`}
-                          aria-hidden
-                        />
+                        <span className="absolute inset-0 bg-[#08291d]" aria-hidden />
                       )}
                       {!post.coverImage ? (
                         <span className="absolute inset-0 flex items-end p-4">
-                          <span className="line-clamp-2 text-sm font-semibold text-[var(--g-white)]">
-                            {post.title}
+                          <span className="border-t border-white/50 pt-3 text-xs font-semibold uppercase tracking-[0.2em] text-white">
+                            Buy N Try Journal
                           </span>
                         </span>
                       ) : null}

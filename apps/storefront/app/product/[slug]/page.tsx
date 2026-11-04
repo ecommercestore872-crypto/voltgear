@@ -60,8 +60,8 @@ export async function generateMetadata(
   }
 
   const description = product.shortDescription
-    ? `${product.shortDescription} Check the latest ${product.name} price in Pakistan. Fast shipping with Cash on Delivery from Buy n Try!`
-    : `Find the exact ${product.name} price in Pakistan online. Read genuine reviews, compare specs, and buy with Cash on Delivery nationwide at Buy n Try.`;
+    ? `${product.shortDescription} View product details and the listed price at Buy n Try.`
+    : `View the ${product.name} product details, specifications and listed price at Buy n Try.`;
   const siteUrl = indexSiteUrl();
   const url = `${siteUrl}/product/${product.slug}`;
   const firstImg = product.images?.[0]
@@ -79,9 +79,6 @@ export async function generateMetadata(
       "Buy n Try",
       "buyntryy",
       "cash on delivery",
-      "J10 wireless mic price in Pakistan",
-      "best 20000mah power bank Pakistan",
-      "smartwatch under 5000 Pakistan",
     ],
     openGraph: {
       type: "website",
@@ -185,29 +182,6 @@ export default async function Product2Page(
     ],
   };
 
-  const dynamicFaqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `What is the price of ${product.name} in Pakistan?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `The ${product.name} is priced competitively at Rs. ${product.price} exclusively at Buy n Try in Pakistan.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `Can I get cash on delivery for the ${product.name}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Yes! Buy n Try offers 100% Cash on Delivery across Pakistan for the ${product.name}. You can even inspect the parcel to combat fraud.`,
-        },
-      },
-    ],
-  };
-
   const lcpPreload = pdpLcpImageUrl(product);
   if (lcpPreload) {
     preload(lcpPreload, { as: "image", fetchPriority: "high" });
@@ -221,7 +195,6 @@ export default async function Product2Page(
           __html: JSON.stringify([
             productJsonLd,
             breadcrumbJsonLd,
-            dynamicFaqJsonLd,
           ]).replace(/</g, "\\u003c"),
         }}
       />

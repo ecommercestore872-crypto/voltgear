@@ -11,11 +11,11 @@ import {
 
 type Props = {
   province: PakistanRegionCode | "";
-  cityId: string;
+  city: string;
   cityOptions: PakistanCity[];
   fieldErrors: Partial<Record<"province" | "city", string>>;
   onProvinceChange: (next: PakistanRegionCode | "") => void;
-  onCityChange: (cityId: string) => void;
+  onCityChange: (city: string) => void;
   onProvinceBlur: (value: string) => void;
   onCityBlur: (value: string) => void;
   clearProvinceError: () => void;
@@ -24,7 +24,7 @@ type Props = {
 
 export function CheckoutLocationFields({
   province,
-  cityId,
+  city,
   cityOptions,
   fieldErrors,
   onProvinceChange,
@@ -34,9 +34,6 @@ export function CheckoutLocationFields({
   clearProvinceError,
   clearCityError,
 }: Props) {
-  const cityLabel =
-    cityOptions.find((c) => c.id === cityId)?.label ?? "";
-
   return (
     <>
       <div className="min-w-0 space-y-1.5 sm:col-span-1">
@@ -86,17 +83,19 @@ export function CheckoutLocationFields({
         <Label htmlFor="city" className="text-xs font-bold sm:text-sm">
           City *
         </Label>
-        <select
+        <input
           id="city"
-          name="cityId"
+          name="city"
           required
           autoComplete="address-level2"
-          disabled={!province}
+          list="checkout-city-suggestions"
+          maxLength={80}
+          placeholder="Enter your city or town"
           className={cn(
-            "flex h-11 w-full rounded-md border border-input bg-background px-3 text-base disabled:opacity-60",
+            "flex h-11 w-full rounded-md border border-input bg-background px-3 text-base",
             fieldErrors.city && "border-destructive",
           )}
-          value={cityId}
+          value={city}
           aria-invalid={fieldErrors.city ? true : undefined}
           aria-describedby={
             fieldErrors.city ? "checkout-city-error" : undefined
@@ -106,17 +105,12 @@ export function CheckoutLocationFields({
             clearCityError();
           }}
           onBlur={(e) => onCityBlur(e.target.value)}
-        >
-          <option value="">
-            {province ? "Select city" : "Select province first"}
-          </option>
-          {cityOptions.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.label}
-            </option>
+        />
+        <datalist id="checkout-city-suggestions">
+          {cityOptions.map((option) => (
+            <option key={option.id} value={option.label} />
           ))}
-        </select>
-        <input type="hidden" name="city" value={cityLabel} />
+        </datalist>
         {fieldErrors.city ? (
           <p
             id="checkout-city-error"

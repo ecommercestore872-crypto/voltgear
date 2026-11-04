@@ -1,4 +1,4 @@
-import { Banknote, ShieldCheck, Truck } from "lucide-react";
+import { Banknote, Truck } from "lucide-react";
 
 import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
@@ -34,11 +34,7 @@ export async function CheckoutStaticShell() {
             <Truck className="h-3.5 w-3.5 text-[var(--g-forest)]" aria-hidden />
             {threshold > 0
               ? `Free shipping over ${formatPrice(threshold)}`
-              : "Nationwide delivery"}
-          </li>
-          <li className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-[var(--g-forest)]" aria-hidden />
-            Inspect at the door
+              : "Shipping shown at checkout"}
           </li>
         </ul>
         <p className="mt-2 text-xs text-[var(--g-taupe)]">
