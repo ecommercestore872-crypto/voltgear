@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Expand, ImageOff } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
@@ -67,14 +66,6 @@ export function ProductGallery({
   const lb = sources.length
     ? sources[Math.min(Math.max(0, lightboxIndex), sources.length - 1)]
     : null;
-
-  const discount =
-    product.compareAtPrice && product.compareAtPrice > product.price
-      ? Math.round(
-          ((product.compareAtPrice - product.price) / product.compareAtPrice) *
-            100,
-        )
-      : 0;
 
   const goTo = useCallback(
     (index: number) => {
@@ -159,12 +150,6 @@ export function ProductGallery({
             <ImageOff className="h-8 w-8" />
             <span className="text-sm">No image uploaded</span>
           </div>
-        )}
-
-        {discount > 0 && (
-          <Badge className="absolute left-4 top-4 bg-destructive text-white z-10">
-            Save {discount}%
-          </Badge>
         )}
 
         {/* ✨ Desktop Hover Zoom Lens Panel */}

@@ -15,7 +15,7 @@ export function GadgetPdpTrustRow({ config }: { config: PublicSiteConfig }) {
       label:
         threshold > 0
           ? `Free shipping over ${formatPrice(threshold)}`
-          : "Delivery across Pakistan",
+          : "Delivery shown at checkout",
     },
     config.warrantyMonths
       ? { icon: ShieldCheck, label: warrantyLabel(config.warrantyMonths) }

@@ -1,11 +1,4 @@
-import {
-  Banknote,
-  Mail,
-  Phone,
-  RotateCcw,
-  ShieldCheck,
-  Truck,
-} from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
@@ -21,7 +14,6 @@ import {
 } from "@/lib/chrome-nav-rules";
 import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
 import type { SiteSettings } from "@/lib/types";
-import { formatPrice } from "@/lib/utils";
 import { normalizeSettings } from "@/lib/site-config";
 
 function splitTwo<T>(items: T[]): [T[], T[]] {
@@ -66,64 +58,10 @@ export function GadgetFooter({
   const email = settings?.email;
   const config = normalizeSettings(settings);
   const socialLinks = getPublicSocialLinks(config);
-  const threshold = config.freeShippingThreshold;
-  const codEnabled = config.codEnabled;
 
   return (
     <footer className="bg-[var(--g-cream)] pt-6 sm:px-3 sm:pb-3 sm:pt-8">
       <div className="overflow-hidden rounded-t-[2.25rem] border-t-4 border-[var(--g-gold)] bg-[var(--g-forest)] text-[var(--g-white)] shadow-[0_-12px_40px_rgba(14,36,25,0.2)] sm:rounded-[2.25rem]">
-        {/* Pre-footer Trust Row */}
-        <div className="border-b border-white/10 px-5 py-6 sm:px-8">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 text-center sm:grid-cols-4 sm:gap-6">
-            <div className="flex flex-col items-center gap-1.5 p-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-sage)_35%,transparent)] text-[color-mix(in_srgb,var(--g-sage)_40%,white)] shadow-sm">
-                <Truck className="h-5 w-5 stroke-[1.6]" />
-              </span>
-              <p className="text-xs font-bold text-white">
-                {threshold > 0 ? "Free Shipping" : "Fast Shipping"}
-              </p>
-              <p className="text-[11px] text-white/85">
-                {threshold > 0
-                  ? `On orders over ${formatPrice(threshold)}`
-                  : "Across the country"}
-              </p>
-            </div>
-            {codEnabled && (
-              <div className="flex flex-col items-center gap-1.5 p-2">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_40%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_45%,white)] shadow-sm">
-                  <Banknote className="h-5 w-5 stroke-[1.6]" />
-                </span>
-                <p className="text-xs font-bold text-white">Cash on Delivery</p>
-                <p className="text-[11px] text-white/85">
-                  Pay at your doorstep
-                </p>
-              </div>
-            )}
-            {config.warrantyMonths && (
-              <div className="flex flex-col items-center gap-1.5 p-2">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-[color-mix(in_srgb,var(--g-sage)_30%,white)] shadow-sm">
-                  <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
-                </span>
-                <p className="text-xs font-bold text-white">
-                  {config.warrantyMonths}-Month Warranty
-                </p>
-                <p className="text-[11px] text-white/85">Warranty details apply</p>
-              </div>
-            )}
-            {config.returnWindowDays && (
-              <div className="flex flex-col items-center gap-1.5 p-2">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--g-terracotta)_28%,transparent)] text-[color-mix(in_srgb,var(--g-terracotta)_35%,white)] shadow-sm">
-                  <RotateCcw className="h-5 w-5 stroke-[1.6]" />
-                </span>
-                <p className="text-xs font-bold text-white">Easy Returns</p>
-                <p className="text-[11px] text-white/85">
-                  {config.returnWindowDays}-day policy
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.15fr_1fr_0.85fr_1.1fr] lg:gap-8 lg:py-14 xl:gap-12">
           {/* Shop */}
           <div>

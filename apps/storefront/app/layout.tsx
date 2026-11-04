@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Fragment } from "react";
 import { AppChrome } from "@/components/layout/app-chrome";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { DeferredUntilIdle } from "@/components/ui/deferred-until-idle";
@@ -27,6 +28,7 @@ import {
   adsenseHeadScriptSrc,
 } from "@/lib/adsense-policy";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import {
   loadStorefrontSettings,
   loadStorefrontShopTypes,
@@ -59,7 +61,7 @@ export const metadata: Metadata = {
     template: "%s | Buy n Try",
   },
   description:
-    "Buy authentic tripods, wireless earbuds, smartwatches, power banks and chargers at Buy n Try. Try it at home — cash on delivery nationwide.",
+    "Explore tripods, wireless earbuds, smartwatches, power banks and chargers at Buy n Try. View product details and current listed prices.",
   keywords: [
     "Buy n Try",
     "buyntry",
@@ -86,14 +88,14 @@ export const metadata: Metadata = {
     siteName: "Buy n Try",
     title: "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
     description:
-      "Buy authentic tripods, earbuds, smartwatches, chargers and adapters. Try it at home — cash on delivery nationwide. buyntryy.com",
+      "Explore tripods, earbuds, smartwatches, chargers and adapters at Buy n Try. View product details and listed prices.",
     url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
     title: "Buy n Try — Electronics Accessories in Pakistan",
     description:
-      "Buy authentic tripods, wireless earbuds, smartwatches, power banks, adapters & fast chargers in Pakistan.",
+      "Explore tripods, wireless earbuds, smartwatches, power banks, adapters and chargers at Buy n Try.",
   },
   robots: {
     index: true,
@@ -208,32 +210,41 @@ export default async function RootLayout({
           settings={settings}
           shopTypes={shopTypes}
           urgencyTicker={
-            <DeferredUntilIdle timeoutMs={3200}>
+            <DeferredUntilIdle key="ticker" timeoutMs={3200}>
               <UrgencyTickerClientOnly announcement={config.announcement} />
             </DeferredUntilIdle>
           }
-          cartDrawer={<CartDrawerClientOnly />}
+          cartDrawer={<CartDrawerClientOnly key="cart-drawer" />}
           reviewReminder={
-            <DeferredUntilIdle>
+            <DeferredUntilIdle key="review-reminder">
               <ReviewReminderClientOnly />
             </DeferredUntilIdle>
           }
-          cartEffects={<CartEffectsClientOnly />}
+          cartEffects={<CartEffectsClientOnly key="cart-effects" />}
           compareBar={
-            <DeferredUntilIdle>
+            <DeferredUntilIdle key="compare-bar">
               <CompareBarClientOnly />
             </DeferredUntilIdle>
           }
-          demoBanner={<DemoBanner />}
+          demoBanner={
+            <Fragment key="local-preview-status">
+              <DemoBanner />
+              {localCatalogPreviewEnabled() ? (
+                <div role="status" className="bg-[#d4b16a] px-4 py-1.5 text-center text-[11px] font-semibold text-[#173124]">
+                  Local catalog snapshot from 4 Nov 2026 · illustrative campaign imagery · orders disabled
+                </div>
+              ) : null}
+            </Fragment>
+          }
         >
-          <StorefrontAnnouncementBar tagline={settings?.tagline} />
-          <DeferredUntilIdle>
+          <StorefrontAnnouncementBar key="announcement" tagline={settings?.tagline} />
+          <DeferredUntilIdle key="promotion">
             <StorefrontPromoPopup />
           </DeferredUntilIdle>
-          <DeferredUntilIdle>
+          <DeferredUntilIdle key="scroll-top">
             <ScrollToTopClientOnly />
           </DeferredUntilIdle>
-          {children}
+          <Fragment key="page">{children}</Fragment>
         </AppChrome>
         <DeferredUntilIdle timeoutMs={5500}>
           <MetaPixelClientOnly />

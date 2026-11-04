@@ -176,6 +176,10 @@ export function GadgetArrivalCard({
               </span>
             ) : null}
           </div>
+          <span className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--g-charcoal)]/75">
+            <span className={cn("h-1.5 w-1.5 rounded-full", stock.soldOut ? "bg-red-600" : "bg-[var(--g-forest-mid)]")} aria-hidden />
+            {stock.label}
+          </span>
 
           <div className="mt-3">
             {!canBuy ? (

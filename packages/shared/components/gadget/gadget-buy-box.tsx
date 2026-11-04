@@ -21,7 +21,6 @@ import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
 import { getVariantStockState } from "@/lib/stock";
 import type { ApprovedReviewStats } from "@/lib/product-review-stats";
 import type { PublicSiteConfig } from "@/lib/site-config";
-import { GadgetPdpHowItWorks } from "@/components/gadget/gadget-pdp-how-it-works";
 import { GadgetPdpTrustRow } from "@/components/gadget/gadget-pdp-trust-row";
 import type { Product, ProductVariant } from "@/lib/types";
 import { isPurchasablePrice } from "@/lib/product-price-rules";
@@ -211,7 +210,7 @@ export function GadgetBuyBox({
               </span>
             ) : null}
           </div>
-          <h1 className="mt-2 text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] text-[var(--g-charcoal)] sm:text-4xl">
+          <h1 className="gadget-display mt-2 text-[2rem] font-semibold leading-[1.08] tracking-[-0.03em] text-[var(--g-charcoal)] sm:text-[2.6rem]">
             {product.name}
           </h1>
 
@@ -250,7 +249,7 @@ export function GadgetBuyBox({
             </p>
           ) : (
             <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-taupe)]">
-              Order with cash on delivery — pay only when your parcel arrives.
+              Explore the product details, then choose the options that suit you.
             </p>
           )}
 
@@ -281,11 +280,6 @@ export function GadgetBuyBox({
                 </span>
               ) : null}
             </div>
-            {!outOfStock && config.codEnabled ? (
-              <p className="mt-2 text-sm font-bold text-[var(--g-forest)]">
-                Pay {formatPrice(displayPrice)} on delivery — no card needed
-              </p>
-            ) : null}
             <p
               className={cn(
                 "mt-1 text-sm font-semibold",
@@ -435,10 +429,6 @@ export function GadgetBuyBox({
             </div>
           ) : null}
 
-          {config.codEnabled && !outOfStock ? (
-            <GadgetPdpHowItWorks />
-          ) : null}
-
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             {!outOfStock ? (
               <div className="flex h-12 w-full justify-between sm:w-fit sm:justify-center items-center gap-3 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] px-5 sm:px-4">
@@ -446,7 +436,7 @@ export function GadgetBuyBox({
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   aria-label="Decrease quantity"
-                  className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--g-cream-deep)]"
+                  className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--g-cream-deep)]"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
@@ -457,7 +447,7 @@ export function GadgetBuyBox({
                   type="button"
                   onClick={() => setQuantity((q) => Math.min(99, q + 1))}
                   aria-label="Increase quantity"
-                  className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--g-cream-deep)]"
+                  className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--g-cream-deep)]"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -468,7 +458,7 @@ export function GadgetBuyBox({
               type="button"
               disabled={outOfStock || !selectionReady || !priceValid}
               onClick={(e) => handleAdd(true, e)}
-              className="gadget-buy-cta gadget-press inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-[10px] px-6 text-base font-bold tracking-wide transition-transform active:scale-95 disabled:cursor-not-allowed disabled:border-[var(--g-line)] disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
+              className="gadget-buy-cta gadget-press inline-flex min-h-14 w-full shrink-0 items-center justify-center gap-2 rounded-[10px] px-6 text-base font-bold tracking-wide transition-transform active:scale-95 sm:w-auto sm:flex-1 disabled:cursor-not-allowed disabled:border-[var(--g-line)] disabled:bg-[var(--g-cream-deep)] disabled:text-[var(--g-taupe)] disabled:shadow-none disabled:filter-none"
             >
               {added ? (
                 <>
@@ -493,7 +483,7 @@ export function GadgetBuyBox({
 
           {!outOfStock ? (
             <p className="mt-2 text-center text-xs text-[var(--g-taupe)] sm:text-left">
-              Opens cart to review — checkout takes under a minute
+              Opens your cart so you can review the order
             </p>
           ) : null}
         </div>

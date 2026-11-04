@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     "Buy n Try — Earbuds, Airbuds, Smartwatches & Chargers in Pakistan";
   const description =
     settings?.seo?.description ||
-    "Shop earbuds, airbuds, smartwatches, power banks and chargers at Buy n Try (buyntryy.com). Cash on delivery nationwide.";
+    "Explore earbuds, smartwatches, power banks and chargers at Buy n Try. View product details and current listed prices.";
   return {
     title: { absolute: title },
     description,

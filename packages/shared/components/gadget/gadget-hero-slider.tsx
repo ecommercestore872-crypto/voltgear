@@ -3,7 +3,7 @@
 import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cloudinaryLoader } from "@/lib/cloudinary";
 import type { GadgetCreativeBanner } from "@/lib/gadget-creatives";
@@ -14,8 +14,8 @@ import {
 } from "@/lib/gadget-hero-banners";
 import type { HeroSlide } from "@/lib/types";
 
-const INTERVAL_MS = 5500;
-const FADE_MS = 700;
+const INTERVAL_MS = 7000;
+const FADE_MS = 600;
 
 export type { GadgetHeroBanner } from "@/lib/gadget-hero-banners";
 
@@ -33,10 +33,11 @@ function ResponsiveHeroImage({
         src={banner.imageUrl}
         alt=""
         fill
+        unoptimized={banner.imageUrl.startsWith("/")}
         priority={eager}
         fetchPriority={eager ? "high" : "auto"}
         quality={eager ? 65 : 72}
-        className="object-cover object-center z-[1]"
+        className="object-cover object-[68%_center] sm:object-center z-[1]"
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
       />
     );
@@ -47,6 +48,7 @@ function ResponsiveHeroImage({
     src: banner.mobileImageUrl,
     alt: "",
     fill: true,
+    unoptimized: banner.mobileImageUrl.startsWith("/"),
     priority: eager,
     fetchPriority: eager ? "high" : "auto",
     quality: eager ? 62 : 70,
@@ -57,6 +59,7 @@ function ResponsiveHeroImage({
     src: banner.imageUrl,
     alt: "",
     fill: true,
+    unoptimized: banner.imageUrl.startsWith("/"),
     priority: eager,
     fetchPriority: eager ? "high" : "auto",
     quality: eager ? 65 : 72,
@@ -70,7 +73,7 @@ function ResponsiveHeroImage({
         srcSet={desktop.srcSet}
         sizes={desktop.sizes}
       />
-      <img {...mobile} className="object-cover object-center z-[1]" />
+      <img {...mobile} className="object-cover object-[68%_center] sm:object-center z-[1]" />
     </picture>
   );
 }
@@ -88,7 +91,9 @@ export function GadgetHeroSlider({
       : fallbackHeroBanners(fallbackBanners);
 
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartTime = useRef<number | null>(null);
@@ -100,6 +105,15 @@ export function GadgetHeroSlider({
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
+
+  useEffect(() => {
+    const onVisibility = () => setHidden(document.visibilityState !== "visible");
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  const paused = hovered || focused || hidden || reduceMotion;
 
   useEffect(() => {
     if (banners.length <= 1 || paused || reduceMotion) return;
@@ -125,19 +139,16 @@ export function GadgetHeroSlider({
   const active = banners[index] ?? banners[0];
 
   function prev() {
-    setPaused(false);
     setIndex((i) => (i - 1 + banners.length) % banners.length);
   }
 
   function next() {
-    setPaused(false);
     setIndex((i) => (i + 1) % banners.length);
   }
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0]?.clientX ?? null;
     touchStartTime.current = Date.now();
-    setPaused(true);
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
@@ -148,8 +159,6 @@ export function GadgetHeroSlider({
     const isSwipe = Math.abs(dx) > 40 || velocity > 0.3;
     if (isSwipe) {
       dx < 0 ? next() : prev();
-    } else {
-      setPaused(false);
     }
     touchStartX.current = null;
     touchStartTime.current = null;
@@ -157,17 +166,26 @@ export function GadgetHeroSlider({
 
   return (
     <section
-      className="bg-[var(--g-cream)] px-3 pt-3 pb-2 sm:px-4 sm:pt-4 lg:px-8"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      className="bg-[var(--g-cream)] px-3 pb-4 pt-3 sm:px-5 sm:pb-7 sm:pt-5 lg:px-8"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowLeft") { event.preventDefault(); prev(); }
+        if (event.key === "ArrowRight") { event.preventDefault(); next(); }
+      }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Campaign banners"
+      aria-label="Featured collections"
+      tabIndex={0}
     >
-      <div className="gadget-hero-shell group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)]">
-        <div className="relative w-full min-h-[320px] aspect-square sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1]">
+      <div className="gadget-hero-shell group relative mx-auto max-w-[80rem] overflow-hidden rounded-[1.15rem] border border-[var(--g-line)] bg-[var(--g-forest)] sm:rounded-[1.75rem]">
+        <div className="relative h-[min(68svh,600px)] min-h-[460px] w-full sm:h-[520px] sm:min-h-0 lg:h-[570px]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
@@ -178,7 +196,7 @@ export function GadgetHeroSlider({
                 style={{
                   opacity: isActive ? 1 : 0,
                   transition: reduceMotion
-                    ? "opacity 1ms"
+                    ? "none"
                     : `opacity ${FADE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
                   zIndex: isActive ? 1 : 0,
                   pointerEvents: isActive ? "auto" : "none",
@@ -192,19 +210,19 @@ export function GadgetHeroSlider({
             );
           })}
 
-          {/* Vignette Overlay: only if there's text */}
+          {/* A fixed overlay keeps the copy readable without changing contrast on slide transitions. */}
           {(active.title || active.subtitle || active.ctaLabel) ? (
-            <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/80 sm:from-black/60 via-transparent to-black/10" />
+            <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(0deg,rgba(8,27,19,.96)_0%,rgba(8,27,19,.46)_47%,rgba(8,27,19,.08)_100%)] sm:bg-[linear-gradient(90deg,rgba(8,27,19,.94)_0%,rgba(8,27,19,.72)_35%,rgba(8,27,19,.08)_76%)]" />
           ) : null}
 
-          {/* Left / Right Arrow Navigation (Visible on Hover / Focus) */}
+          {/* Controls remain visible for touch, keyboard and pointer users. */}
           {banners.length > 1 ? (
             <>
               <button
                 type="button"
                 onClick={prev}
                 aria-label="Previous slide"
-                className="absolute left-3 top-1/2 z-[10] -translate-y-1/2 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-black/70 hover:scale-110"
+                className="absolute left-3 top-[30%] z-[10] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-black/40 text-white transition-colors hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:bottom-7 sm:left-auto sm:right-20 sm:top-auto sm:translate-y-0"
               >
                 <ChevronLeft className="h-6 w-6" />
               </button>
@@ -212,38 +230,38 @@ export function GadgetHeroSlider({
                 type="button"
                 onClick={next}
                 aria-label="Next slide"
-                className="absolute right-3 top-1/2 z-[10] -translate-y-1/2 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-black/70 hover:scale-110"
+                className="absolute right-3 top-[30%] z-[10] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-black/40 text-white transition-colors hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:bottom-7 sm:right-7 sm:top-auto sm:translate-y-0"
               >
                 <ChevronRight className="h-6 w-6" />
               </button>
             </>
           ) : null}
-          {/* Bottom Bar: Title, Progress Indicators & CTA */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-wrap items-end justify-between gap-3 p-4 sm:p-6">
-            <div className="pointer-events-auto flex flex-col gap-2 max-w-[min(100%,32rem)]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-col items-start gap-4 px-6 pb-8 pt-20 sm:bottom-auto sm:top-1/2 sm:max-w-[58%] sm:-translate-y-1/2 sm:px-12 sm:py-0 lg:px-20">
+            <div className="pointer-events-auto flex max-w-[min(100%,35rem)] flex-col items-start gap-3">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e2c696] sm:text-[11px] sm:tracking-[0.24em]">{active.eyebrow || "The Buy N Try edit"}</span>
               {active.title ? (
-                <p className="gadget-display text-left text-lg font-bold leading-tight tracking-[-0.02em] text-white drop-shadow-md sm:text-xl lg:text-2xl">
+                <h1 className="gadget-display text-left text-[clamp(2.6rem,7vw,5rem)] font-medium leading-[1.04] tracking-[-0.04em] text-white">
                   {active.title}
-                </p>
+                </h1>
               ) : null}
               {active.subtitle ? (
-                <p className="max-w-[40ch] text-left text-sm text-white/90 drop-shadow sm:text-base">
+                <p className="max-w-[36ch] text-left text-sm leading-relaxed text-white/90 sm:text-base">
                   {active.subtitle}
                 </p>
               ) : null}
 
-              {/* Progress Indicators */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1" aria-label="Choose featured collection">
                 {banners.map((s, i) => (
                   <button
                     key={s.id}
                     type="button"
                     aria-label={`Go to slide ${i + 1}`}
                     onClick={() => setIndex(i)}
-                    className="relative flex h-8 min-w-8 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    aria-current={i === index ? "true" : undefined}
+                    className="relative flex h-11 min-w-11 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
                     <span
-                      className={`relative block h-1.5 rounded-full overflow-hidden transition-colors duration-300 ${
+                      className={`relative block h-1 rounded-full overflow-hidden transition-colors duration-300 ${
                         i === index
                           ? "w-10 bg-white/40"
                           : "w-3 bg-white/30 hover:bg-white/60"
@@ -267,17 +285,16 @@ export function GadgetHeroSlider({
               </div>
             </div>
 
-            {/* CTA Button */}
             {!active.ctaDisabled ? (
-              active.ctaLabel ? (
+              active.ctaLabel && active.href ? (
                 <Link
                   href={active.href}
-                  className="gadget-hero-cta pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-5 py-2 text-xs font-black uppercase tracking-wider sm:px-6 sm:text-sm"
+                  className="gadget-hero-cta pointer-events-auto inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full border border-white/30 bg-[var(--g-forest-mid)] px-6 py-2 text-xs font-bold uppercase tracking-[0.1em] text-white transition-colors sm:text-sm"
                 >
-                  <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
-                  <span className="max-w-[16ch] truncate sm:max-w-none">
+                  <span>
                     {active.ctaLabel}
                   </span>
+                  <ArrowRight className="h-4 w-4 stroke-[2]" aria-hidden />
                 </Link>
               ) : null
             ) : (

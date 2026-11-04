@@ -1,0 +1,583 @@
+{
+  "capturedAt": "2026-11-04",
+  "source": "https://buyntryy.com/api/store/products",
+  "products": [
+    {
+      "_id": "c84ad6f0-7eec-4df5-b29c-d561f4c2c58d",
+      "name": "K-520 Heart-Shaped Wireless Earbuds – Stereo Bass, Bluetooth & Pink Charging Case",
+      "slug": "k-520-heart-shaped-wireless-earbuds-stereo-bass-bluetooth-pink-charging-case",
+      "category": "earbuds",
+      "price": 2399,
+      "compareAtPrice": 2900,
+      "images": [
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471157/ecommerce-store/admin/daxtij43diabmpuyj6an.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471164/ecommerce-store/admin/xmdnxnd8qhfgrly1p7qv.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471171/ecommerce-store/admin/wjs71j82uolb56yqlpev.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471184/ecommerce-store/admin/limshha962ftgndeuw8d.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471200/ecommerce-store/admin/ljmp50yjv8oldb7rhvcv.webp"
+      ],
+      "cloudinaryImages": [],
+      "shortDescription": "Fall in love with your music! K-520 Wireless Earbuds combine stereo sound with a beautiful heart-shaped charging case. Featuring a stylish pink-and-white design, wireless connectivity, and a convenient carrying strap, they're perfect for everyday listening or gifting someone special.",
+      "variants": [],
+      "colorEnabled": false,
+      "sizeEnabled": false,
+      "colorOptions": [],
+      "sizeOptions": [],
+      "stockStatus": "in-stock",
+      "quantity": null,
+      "reviewCount": 0,
+      "reviews": [],
+      "featured": true,
+      "badge": "Cute Design",
+      "isDemo": false,
+      "freeShipping": false
+    },
+    {
+      "_id": "d8d97305-986d-4980-becd-6ee2f229a7b9",
+      "name": "Animal Forest 10000mAh Fast Charging Power Bank with Digital Display",
+      "slug": "animal-forest-10000mah-fast-charging-power-bank-with-digital-display",
+      "category": "power-bank",
+      "price": 2200,
+      "compareAtPrice": 2800,
+      "images": [
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471455/ecommerce-store/admin/emdntepx79f5ryfy1iqs.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471463/ecommerce-store/admin/xmgow28n5ubcegy9lsde.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471477/ecommerce-store/admin/zjesm0xasjo8ikzq4khv.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1793471485/ecommerce-store/admin/bdvvgudfzqyuxbqrn3nz.webp"
+      ],
+      "cloudinaryImages": [],
+      "shortDescription": "Stay charged in style with this 10000mAh fast-charging power bank. Featuring a colorful Animal Forest design, a digital battery percentage display, and a convenient portable body, it's a stylish charging companion for everyday use.\n\n",
+      "variants": [],
+      "colorEnabled": false,
+      "sizeEnabled": false,
+      "colorOptions": [],
+      "sizeOptions": [],
+      "stockStatus": "in-stock",
+      "quantity": null,
+      "reviewCount": 0,
+      "reviews": [],
+      "featured": true,
+      "badge": "Unique Design",
+      "isDemo": false,
+      "freeShipping": false
+    },
+    {
+      "_id": "c5e41691-1ebd-43a0-9a40-5ad8768522df",
+      "name": "MONSTER Storm XKH03 Wireless Gaming Headphones – 25H Battery + Game Mode",
+      "slug": "monster-headphones",
+      "category": "earbuds",
+      "price": 4499,
+      "compareAtPrice": 6499,
+      "images": [
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1789572617/ecommerce-store/admin/a8oxoptidyhm7s6ntiie.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1789572516/ecommerce-store/admin/q7vj2xfjzwdzgj5uuoiy.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1789572532/ecommerce-store/admin/stsnjvmu9mhikxioh5bw.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1789572569/ecommerce-store/admin/ibojzaloqfu9544rhr7v.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1789572583/ecommerce-store/admin/vjrxdxshqrvowfrckhb0.webp"
+      ],
+      "cloudinaryImages": [],
+      "shortDescription": "Game for hours without staying tied to your desk. MONSTER Storm XKH03 combines a dedicated Game/Music mode, powerful 40mm drivers, up to 25-hour battery life and both Bluetooth + AUX connectivity.",
+      "variants": [],
+      "colorEnabled": false,
+      "sizeEnabled": false,
+      "colorOptions": [],
+      "sizeOptions": [],
+      "stockStatus": "in-stock",
+      "quantity": null,
+      "rating": 5,
+      "reviewCount": 2,
+      "reviews": [],
+      "featured": true,
+      "isDemo": false,
+      "freeShipping": false
+    },
+    {
+      "_id": "b662c558-9528-44b9-af34-22429e9bcf97",
+      "name": "Universal Active Stylus Pen – iPad, Android, iPhone & Touchscreen",
+      "slug": "universal-active-stylus-pen",
+      "category": "accessories",
+      "price": 1999,
+      "compareAtPrice": 2999,
+      "images": [
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790863245/ecommerce-store/admin/swth0ismmrjikb4hp5nl.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790863253/ecommerce-store/admin/kjpyvtnjeojkkaz5qlv1.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790863258/ecommerce-store/admin/cdjmyqmy5tjpe5vttz4h.webp"
+      ],
+      "cloudinaryImages": [],
+      "shortDescription": "Stop buying a different stylus for every device. This rechargeable Universal Stylus Pen gives you precise pen-like control across compatible iPads, Android devices, iPhones and touchscreen laptops.",
+      "variants": [],
+      "colorEnabled": false,
+      "sizeEnabled": false,
+      "colorOptions": [],
+      "sizeOptions": [],
+      "sku": "VG-ACC-STYLUS",
+      "brand": "Universal",
+      "stockStatus": "in-stock",
+      "quantity": null,
+      "reviewCount": 0,
+      "reviews": [],
+      "featured": true,
+      "badge": "One Pen • Multiple Screens",
+      "isDemo": false,
+      "freeShipping": false
+    },
+    {
+      "_id": "98a91bf2-5517-4682-9827-e68be7838c0d",
+      "name": "KALOBEE GT8 BUDS 2-in-1 Smartwatch with Built-In Earbuds",
+      "slug": "kalobee-gt8-buds-2-in-1-smartwatch",
+      "category": "smartwatch",
+      "price": 11999,
+      "compareAtPrice": 15999,
+      "images": [
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666803/ecommerce-store/admin/lsucn7nanriy95rh28pc.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666715/ecommerce-store/admin/vl5erwtsxjtvpuledfsl.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666728/ecommerce-store/admin/asiyeqw2iqarugv8agkp.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666753/ecommerce-store/admin/rsyqjqkddt5zo3ri5vdv.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666790/ecommerce-store/admin/wzjtj2iof7eyb6ni9ux9.webp"
+      ],
+      "cloudinaryImages": [],
+      "shortDescription": "Your earbuds are literally inside your watch. KALOBEE GT8 BUDS combines a round smartwatch and true wireless earbuds in one 2-in-1 design, so your audio is always on your wrist.",
+      "variants": [],
+      "colorEnabled": false,
+      "sizeEnabled": false,
+      "colorOptions": [],
+      "sizeOptions": [],
+      "sku": "VG-SW-GT8B",
+      "brand": "KALOBEE",
+      "stockStatus": "in-stock",
+      "quantity": null,
+      "reviewCount": 0,
+      "reviews": [],
+      "featured": true,
+      "badge": "Earbuds Hidden Inside",
+      "isDemo": false,
+      "freeShipping": false
+    }
+  ],
+  "details": {
+    "kalobee-gt8-buds-2-in-1-smartwatch": {
+      "_id": "98a91bf2-5517-4682-9827-e68be7838c0d",
+      "name": "KALOBEE GT8 BUDS 2-in-1 Smartwatch with Built-In Earbuds",
+      "slug": "kalobee-gt8-buds-2-in-1-smartwatch",
+      "category": "smartwatch",
+      "price": 11999,
+      "compareAtPrice": 15999,
+      "images": [
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666803/ecommerce-store/admin/lsucn7nanriy95rh28pc.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666715/ecommerce-store/admin/vl5erwtsxjtvpuledfsl.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666728/ecommerce-store/admin/asiyeqw2iqarugv8agkp.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666753/ecommerce-store/admin/rsyqjqkddt5zo3ri5vdv.webp",
+        "https://res.cloudinary.com/t5evppnl/image/upload/v1790666790/ecommerce-store/admin/wzjtj2iof7eyb6ni9ux9.webp"
+      ],
+      "cloudinaryImages": [],
+      "shortDescription": "Your earbuds are literally inside your watch. KALOBEE GT8 BUDS combines a round smartwatch and true wireless earbuds in one 2-in-1 design, so your audio is always on your wrist.",
+      "description": [
+        {
+          "_key": "b1",
+          "_type": "block",
+          "style": "h2",
+          "children": [
+            {
+              "_key": "b1s",
+              "text": "Open the Watch. Your Earbuds Are Inside.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b2",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b2s0",
+              "text": "This is the feature that sells the KALOBEE GT8 BUDS immediately.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b3",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b3s0",
+              "text": "The smartwatch itself acts as storage and charging space for a pair of compact wireless earbuds.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b4",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b4s0",
+              "text": "> ",
+              "_type": "span",
+              "marks": []
+            },
+            {
+              "_key": "b4s1",
+              "text": "The highlight: smartwatch + TWS earbuds combined into one device on your wrist.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b5",
+          "_type": "block",
+          "style": "h2",
+          "children": [
+            {
+              "_key": "b5s",
+              "text": "Stop Forgetting Your Earbuds Case",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b6",
+          "_type": "block",
+          "style": "h2",
+          "children": [
+            {
+              "_key": "b6s",
+              "text": "Normally you carry",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b7i0",
+          "_type": "block",
+          "level": 1,
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b7i0s0",
+              "text": "A smartwatch",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "listItem": "bullet",
+          "markDefs": []
+        },
+        {
+          "_key": "b7i1",
+          "_type": "block",
+          "level": 1,
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b7i1s0",
+              "text": "Two earbuds",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "listItem": "bullet",
+          "markDefs": []
+        },
+        {
+          "_key": "b7i2",
+          "_type": "block",
+          "level": 1,
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b7i2s0",
+              "text": "A charging case",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "listItem": "bullet",
+          "markDefs": []
+        },
+        {
+          "_key": "b8",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b8s0",
+              "text": "The GT8 turns those separate items into one wearable system.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b9",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b9s0",
+              "text": "Leave home with the watch and your earbuds automatically come with you.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b10",
+          "_type": "block",
+          "style": "h2",
+          "children": [
+            {
+              "_key": "b10s",
+              "text": "Take Them Out When You Need Audio",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b11",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b11s0",
+              "text": "Use the earbuds for music, videos and compatible calls, then return them to the watch when you're finished.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b12",
+          "_type": "block",
+          "style": "h2",
+          "children": [
+            {
+              "_key": "b12s",
+              "text": "Still a Proper Smartwatch",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b13",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b13s0",
+              "text": "The GT8 also includes Bluetooth calling/smart functions, sleep, heart-rate, SpO₂ and blood-pressure-style wellness and fitness estimates, plus activity reminders.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b14",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b14s0",
+              "text": "Its stainless-steel case gives the round watch a more conventional premium appearance.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b15",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b15s0",
+              "text": "> ",
+              "_type": "span",
+              "marks": []
+            },
+            {
+              "_key": "b15s1",
+              "text": "SMARTWATCH • BUILT-IN TWS • BT 5.3 • STAINLESS STEEL",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b16",
+          "_type": "block",
+          "style": "h2",
+          "children": [
+            {
+              "_key": "b16s",
+              "text": "The Earbuds Case You Can't Forget",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b17",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b17s0",
+              "text": "The biggest GT8 benefit isn't hidden in a specification sheet.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b18",
+          "_type": "block",
+          "style": "normal",
+          "children": [
+            {
+              "_key": "b18s0",
+              "text": "It's that your earbuds live on your wrist.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        },
+        {
+          "_key": "b19",
+          "_type": "block",
+          "style": "h2",
+          "children": [
+            {
+              "_key": "b19s",
+              "text": "Wear the watch. Carry the earbuds automatically.",
+              "_type": "span",
+              "marks": []
+            }
+          ],
+          "markDefs": []
+        }
+      ],
+      "features": [
+        "Earbuds store directly inside the smartwatch",
+        "No separate earbuds charging case to remember",
+        "2-in-1 design reduces the number of gadgets you carry",
+        "Bluetooth 3.0 / 5.3 supported for watch and earbud connectivity",
+        "300mAh smartwatch battery",
+        "25mAh × 2 earbud batteries",
+        "Stainless-steel round case at 39mm / 11.5mm thick",
+        "Fitness and wellness/fitness estimate features",
+        "Powerband companion app",
+        "IP67 life waterproof rating with silicone strap"
+      ],
+      "specifications": [
+        {
+          "label": "Brand",
+          "value": "KALOBEE"
+        },
+        {
+          "label": "Model",
+          "value": "GT8 BUDS"
+        },
+        {
+          "label": "Product Type",
+          "value": "Smartwatch + TWS Earbuds"
+        },
+        {
+          "label": "Watch Bluetooth",
+          "value": "BT3.0 / BT5.3"
+        },
+        {
+          "label": "Watch Battery",
+          "value": "300mAh"
+        },
+        {
+          "label": "Earbud Battery",
+          "value": "25mAh × 2"
+        },
+        {
+          "label": "Case",
+          "value": "Stainless Steel"
+        },
+        {
+          "label": "Watch Size",
+          "value": "39mm"
+        },
+        {
+          "label": "Thickness",
+          "value": "11.5mm"
+        },
+        {
+          "label": "App",
+          "value": "Powerband"
+        },
+        {
+          "label": "Water Resistance",
+          "value": "IP67 Life Waterproof"
+        },
+        {
+          "label": "Strap",
+          "value": "Silicone"
+        }
+      ],
+      "compatibility": [
+        "Android smartphones",
+        "iPhones",
+        "Powerband-compatible phones",
+        "Bluetooth audio devices"
+      ],
+      "inTheBox": [
+        "KALOBEE GT8 BUDS Smartwatch",
+        "2 × Integrated Wireless Earbuds",
+        "Strap",
+        "Charging Cable",
+        "Documentation"
+      ],
+      "productVideo": {},
+      "variants": [],
+      "colorEnabled": false,
+      "sizeEnabled": false,
+      "colorOptions": [],
+      "sizeOptions": [],
+      "productFaq": [],
+      "sku": "VG-SW-GT8B",
+      "brand": "KALOBEE",
+      "stockStatus": "in-stock",
+      "quantity": null,
+      "reviewCount": 0,
+      "reviews": [],
+      "featured": true,
+      "badge": "Earbuds Hidden Inside",
+      "isDemo": false,
+      "freeShipping": false,
+      "addons": []
+    }
+  }
+}

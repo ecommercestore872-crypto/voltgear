@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
+import { Grid2X2, House, Search as SearchIcon, ShoppingCart as CartIcon } from "lucide-react";
 import {
   CaretDown,
   Headphones,
@@ -73,6 +75,7 @@ export function GadgetNavbar({
   shopTypes?: ShopType[];
 }) {
   const { count, openCart } = useCart();
+  const pathname = usePathname() || "/";
   const { count: wishCount } = useWishlist();
   const [open, setOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
@@ -363,7 +366,7 @@ export function GadgetNavbar({
                 wishCount ? `Wishlist, ${wishCount} items` : "Wishlist"
               }
               title="Wishlist"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:h-11 sm:w-11"
+              className="relative hidden h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:inline-flex"
             >
               <Heart {...PHOSPHOR_HEADER} aria-hidden />
               {wishCount > 0 ? (
@@ -376,6 +379,7 @@ export function GadgetNavbar({
             <IconHit
               onClick={openCart}
               aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
+              className="hidden sm:flex"
             >
               <ShoppingBag {...PHOSPHOR_HEADER} aria-hidden />
               {count > 0 ? (
@@ -403,6 +407,22 @@ export function GadgetNavbar({
       {menu && typeof document !== "undefined"
         ? createPortal(menu, document.body)
         : null}
+      {!pathname.startsWith("/checkout") && !pathname.startsWith("/product/") && !pathname.startsWith("/order/") ? (
+        <nav aria-label="Mobile primary" className="gadget-mobile-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-[var(--g-line)] bg-[var(--g-cream)] px-[env(safe-area-inset-left)] pb-[env(safe-area-inset-bottom)] pr-[env(safe-area-inset-right)] shadow-[0_-8px_24px_rgba(14,36,25,.08)] sm:hidden">
+          {[
+            { href: "/", label: "Home", icon: House, active: pathname === "/" },
+            { href: "/products", label: "All Products", icon: Grid2X2, active: pathname.startsWith("/products") },
+            { href: "/search", label: "Search", icon: SearchIcon, active: pathname.startsWith("/search") },
+            { href: "/cart", label: "Cart", icon: CartIcon, active: pathname.startsWith("/cart") },
+          ].map(({ href, label, icon: Icon, active }) => (
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-[62px] flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--g-forest)]", active ? "text-[var(--g-forest)]" : "text-[var(--g-taupe)]")}>
+              <Icon className="h-5 w-5" strokeWidth={active ? 2.3 : 1.8} aria-hidden />
+              <span>{label}</span>
+              {href === "/cart" && count > 0 ? <span className="absolute right-1 top-1 rounded-full bg-[var(--g-sale)] px-1 text-[9px] text-white">{count}</span> : null}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
     </header>
   );
 }

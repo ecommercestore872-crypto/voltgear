@@ -9,6 +9,7 @@ import {
   applyGadgetStudioImagesList,
 } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import { normalizeDealSlug, publicDealsForSlug } from "@/lib/db/deal-rules";
 import {
   fetchDealCatalogForSlugs,
@@ -34,11 +35,12 @@ export async function GadgetPdpDeferred({
   reviewStats: ApprovedReviewStats;
 }) {
   const slugKey = normalizeDealSlug(productIn.slug);
+  const preview = localCatalogPreviewEnabled();
 
   const [approvedReviews, deals, detailFields] = await Promise.all([
-    fetchCachedApprovedReviews(productIn._id).catch(() => []),
-    listCachedDealsForProductSlug(productIn.slug).catch(() => []),
-    loadPdpProductDetailsBySlug(productIn.slug).catch(() => null),
+    preview ? Promise.resolve([]) : fetchCachedApprovedReviews(productIn._id).catch(() => []),
+    preview ? Promise.resolve([]) : listCachedDealsForProductSlug(productIn.slug).catch(() => []),
+    preview ? Promise.resolve(null) : loadPdpProductDetailsBySlug(productIn.slug).catch(() => null),
   ]);
 
   const slugsForDeals = new Set<string>([productIn.slug]);
@@ -51,9 +53,9 @@ export async function GadgetPdpDeferred({
   const dealSlugs = [...slugsForDeals].filter((s) => s !== productIn.slug);
 
   const [dealCatalog, related, dealPartners] = await Promise.all([
-    fetchDealCatalogForSlugs([...slugsForDeals]).catch(() => []),
-    fetchRelatedProducts(productIn._id, productIn.category, RELATED_LIMIT),
-    dealSlugs.length
+    preview ? Promise.resolve([]) : fetchDealCatalogForSlugs([...slugsForDeals]).catch(() => []),
+    fetchRelatedProducts(productIn._id, productIn.category, RELATED_LIMIT).catch(() => []),
+    !preview && dealSlugs.length
       ? fetchCatalogProductsBySlugs(dealSlugs)
       : Promise.resolve([]),
   ]);
@@ -132,23 +134,23 @@ export async function GadgetPdpDeferred({
         </section>
       ) : null}
       <section className="mt-16 border-t border-[var(--g-border)]/20 pt-10 pb-8">
-        <h3 className="mb-6 text-xl font-bold text-slate-800">
-          Explore Popular Categories in Pakistan
+        <h3 className="gadget-display mb-6 text-2xl font-semibold text-[var(--g-charcoal)]">
+          Explore more at Buy n Try
         </h3>
         <div className="flex flex-wrap gap-3">
           {[
-            { name: "Bluetooth Calling Smartwatches", path: "/products/smartwatch" },
-            { name: "Noise Cancelling Earbuds", path: "/products/earbuds" },
-            { name: "Fast Charging Power Banks", path: "/products/power-bank" },
-            { name: "Wireless Vlogging Mics", path: "/products/microphones" },
-            { name: "Tripod Stands for Mobile", path: "/products/tripod" },
-            { name: "Selfie Ring Lights", path: "/products/ring-light" },
-            { name: "GaN Fast Chargers", path: "/products/charger" },
+            { name: "Smartwatches", path: "/products/smartwatch" },
+            { name: "Earbuds & audio", path: "/products/earbuds" },
+            { name: "Power banks", path: "/products/power-bank" },
+            { name: "Microphones", path: "/products/microphones" },
+            { name: "Tripods", path: "/products/tripod" },
+            { name: "Ring lights", path: "/products/ring-light" },
+            { name: "Chargers", path: "/products/charger" },
           ].map((link) => (
             <Link
               key={link.name}
               href={link.path}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-slate-800 hover:bg-slate-800 hover:text-white"
+              className="rounded-full border border-[var(--g-line)] bg-[var(--g-white)] px-4 py-2 text-sm font-medium text-[var(--g-charcoal)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-white"
             >
               {link.name}
             </Link>

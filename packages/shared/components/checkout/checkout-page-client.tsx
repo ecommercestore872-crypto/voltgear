@@ -45,9 +45,7 @@ import {
   readGadgetPreviewSession,
 } from "@/lib/gadget-preview";
 import { CheckoutCodAssist } from "@/components/checkout/checkout-cod-assist";
-import { CheckoutIntroHeader } from "@/components/checkout/checkout-intro-header";
 import { CheckoutLocationFields } from "@/components/checkout/checkout-location-fields";
-import { FunnelTrustStrip } from "@/components/checkout/funnel-trust-strip";
 import { CheckoutMobileOrderBox } from "@/components/checkout/checkout-mobile-order-box";
 import { CheckoutDesktopSidebar } from "@/components/checkout/checkout-desktop-sidebar";
 import { useCheckoutMobileDock } from "@/components/checkout/use-checkout-mobile-dock";
@@ -137,7 +135,7 @@ export default function CheckoutPageClient() {
   const orderNavigationRef = useRef(false);
   const [customer, setCustomer] = useState<Record<string, string>>({});
   const [province, setProvince] = useState<PakistanRegionCode | "">("");
-  const [cityId, setCityId] = useState("");
+  const [city, setCity] = useState("");
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<CheckoutFormField, string>>
   >({});
@@ -156,7 +154,7 @@ export default function CheckoutPageClient() {
       const known = findCityByLabel(decodedCity);
       if (!known || !known.courierServiceable) return;
       setProvince((prev) => prev || known.region);
-      setCityId((prev) => prev || known.id);
+      setCity((prev) => prev || known.label);
     } catch {
       // fail-open
     }
@@ -165,7 +163,6 @@ export default function CheckoutPageClient() {
   function touchField(field: CheckoutFormField, value: string) {
     const msg = validateCheckoutFormField(field, value, {
       province: province || undefined,
-      cityId: cityId || undefined,
     });
     setFieldErrors((prev) => ({
       ...prev,
@@ -534,7 +531,6 @@ export default function CheckoutPageClient() {
 
   return (
     <div className="min-h-dvh overflow-x-clip bg-[var(--g-cream)] font-sans">
-      <CheckoutIntroHeader />
       <div
         className={cn(
           "relative z-20 mx-auto max-w-6xl px-4 py-4 sm:py-6 lg:px-8 lg:pb-16",
@@ -553,11 +549,9 @@ export default function CheckoutPageClient() {
                     Your delivery details
                   </h2>
                   <p className="mt-1 text-xs leading-snug text-muted-foreground sm:text-sm">
-                    Only 3 required fields — name, mobile number, and address.
+                    Add your contact details and delivery location below.
                   </p>
                 </div>
-
-                <FunnelTrustStrip className="premium-royal-enter premium-royal-enter-delay-1 mb-4" />
 
                 {apiError && (
                   <div className="mb-6 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
@@ -581,10 +575,8 @@ export default function CheckoutPageClient() {
                       const customerData = Object.fromEntries(
                         formData,
                       ) as Record<string, string>;
-                      const selectedCity = cityOptions.find((c) => c.id === cityId);
                       customerData.province = province;
-                      customerData.cityId = cityId;
-                      customerData.city = selectedCity?.label ?? "";
+                      customerData.city = city.trim();
                       const errors = validateCheckoutFormFields(customerData);
                       if (Object.keys(errors).length > 0) {
                         setFieldErrors(errors);
@@ -697,14 +689,14 @@ export default function CheckoutPageClient() {
                     </div>
                     <CheckoutLocationFields
                       province={province}
-                      cityId={cityId}
+                      city={city}
                       cityOptions={cityOptions}
                       fieldErrors={fieldErrors}
                       onProvinceChange={(next) => {
                         setProvince(next);
-                        setCityId("");
+                        // Keep a town the shopper already typed when changing province.
                       }}
-                      onCityChange={setCityId}
+                      onCityChange={setCity}
                       onProvinceBlur={(value) => touchField("province", value)}
                       onCityBlur={(value) => touchField("city", value)}
                       clearProvinceError={() => clearFieldError("province")}

@@ -35,13 +35,15 @@ describe("public commerce claim boundaries", () => {
   });
 
   it("shows configured warranty and return claims only when values exist", () => {
-    const footer = source("packages/shared/components/gadget/gadget-footer.tsx");
+    const homeTrust = source("packages/shared/components/gadget/gadget-home-trust.tsx");
+    const productTrust = source("packages/shared/components/gadget/gadget-pdp-trust-row.tsx");
     const checkout = source(
       "packages/shared/components/checkout/checkout-desktop-sidebar.tsx",
     );
 
-    assert.match(footer, /config\.warrantyMonths\s*&&/);
-    assert.match(footer, /config\.returnWindowDays\s*&&/);
+    assert.match(homeTrust, /if \(config\.returnWindowDays\)/);
+    assert.match(productTrust, /config\.warrantyMonths\s*\?/);
+    assert.match(productTrust, /config\.returnWindowDays\s*\?/);
     assert.match(checkout, /warrantyMonths\s*\?/);
     assert.match(checkout, /returnWindowDays\s*\?/);
   });

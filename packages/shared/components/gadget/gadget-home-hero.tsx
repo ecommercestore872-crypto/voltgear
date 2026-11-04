@@ -4,6 +4,7 @@ import { fetchHeroSlides } from "@/lib/db/store";
 import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
 import { heroLcpPreloads } from "@/lib/gadget-hero-lcp";
 import { products2Href } from "@/lib/gadget-preview";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 
 import { GadgetHeroSlider } from "./gadget-hero-slider";
 
@@ -11,10 +12,12 @@ import { GadgetHeroSlider } from "./gadget-hero-slider";
 export async function GadgetHomeHero() {
   const demo = false;
   let slides: Awaited<ReturnType<typeof fetchHeroSlides>> = [];
-  try {
-    slides = await fetchHeroSlides(demo);
-  } catch {
-    slides = [];
+  if (!localCatalogPreviewEnabled()) {
+    try {
+      slides = await fetchHeroSlides(demo);
+    } catch {
+      slides = [];
+    }
   }
 
   if (slides[0]) {

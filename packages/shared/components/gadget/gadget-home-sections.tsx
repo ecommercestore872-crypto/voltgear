@@ -3,7 +3,6 @@ import { Fragment, type ReactNode } from "react";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
 import { GadgetReviewsSliderLoader } from "@/components/gadget/gadget-reviews-slider-loader";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
-import { GadgetTrustStrip } from "@/components/gadget/gadget-trust-strip";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import {
   fetchBlogPosts,
@@ -31,13 +30,13 @@ import {
   type HomeSectionId,
 } from "@/lib/db/home-section-rules";
 import { normalizeSettings } from "@/lib/site-config";
+import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import { getStockState } from "@/lib/stock";
 import type { Page, Product, Testimonial } from "@/lib/types";
 import {
   filterProductsToActiveCategories,
   slugSetFromShopTypeLinks,
 } from "@/lib/home-active-categories";
-import { formatPrice } from "@/lib/utils";
 
 const GadgetBlogSection = dynamic(
   () =>
@@ -79,11 +78,12 @@ export async function GadgetHomeSections() {
   let slotFeatured: Product[] | null = null;
   let slotOffers: Product[] | null = null;
   let extraRails: Awaited<ReturnType<typeof fetchExtraCollectionRails>> = [];
+  const preview = localCatalogPreviewEnabled();
 
   try {
     const [set, types] = await Promise.all([
-      loadStorefrontSettings(),
-      loadStorefrontShopTypes(),
+      preview ? Promise.resolve(null) : loadStorefrontSettings().catch(() => null),
+      preview ? Promise.resolve(FALLBACK_SHOP_TYPES) : loadStorefrontShopTypes().catch(() => FALLBACK_SHOP_TYPES),
     ]);
     settings = set;
     shopTypes = gadgetShopTypeLinks(types);
@@ -98,12 +98,12 @@ export async function GadgetHomeSections() {
 
     const [p, t, blogs, homeSlots, extra] = await Promise.all([
       fetchHomepageProducts(demo),
-      needsReviews
-        ? fetchTestimonials(demo)
+      needsReviews && !preview
+        ? fetchTestimonials(demo).catch(() => [] as Testimonial[])
         : Promise.resolve([] as Testimonial[]),
-      needsBlog ? fetchBlogPosts(demo) : Promise.resolve([] as Page[]),
-      fetchProductsForHomeSlots(demo).catch(() => null),
-      fetchExtraCollectionRails(demo).catch(() => []),
+      needsBlog && !preview ? fetchBlogPosts(demo).catch(() => [] as Page[]) : Promise.resolve([] as Page[]),
+      preview ? Promise.resolve(null) : fetchProductsForHomeSlots(demo).catch(() => null),
+      preview ? Promise.resolve([]) : fetchExtraCollectionRails(demo).catch(() => []),
     ]);
     const colBest = homeSlots?.bestsellers ?? null;
     const colFeat = homeSlots?.featured ?? null;
@@ -180,7 +180,6 @@ export async function GadgetHomeSections() {
   }));
 
   const config = normalizeSettings(settings);
-  const threshold = Number(config.freeShippingThreshold ?? 0);
 
   const categoryCards = shopTypes
     .map((cat) => {
@@ -195,40 +194,6 @@ export async function GadgetHomeSections() {
     })
     .filter((c): c is NonNullable<typeof c> => c != null);
 
-  const trust = [
-    {
-      key: "shipping",
-      title: threshold > 0 ? "Free shipping" : "Shipping",
-      detail: threshold > 0 ? `Over ${formatPrice(threshold)}` : "Across Pakistan",
-      icon: "shipping" as const,
-      show: true,
-    },
-    {
-      key: "cod",
-      title: "Cash on delivery",
-      detail: "Pay when you receive",
-      icon: "cod" as const,
-      show: Boolean(config.codEnabled),
-    },
-    {
-      key: "returns",
-      title: "Returns",
-      detail: config.returnWindowDays
-        ? `${config.returnWindowDays}-day window`
-        : "",
-      icon: "returns" as const,
-      show: Boolean(config.returnWindowDays),
-    },
-    {
-      key: "curated",
-      title: "Warranty",
-      detail: config.warrantyMonths
-        ? `${config.warrantyMonths}-month coverage`
-        : "",
-      icon: "curated" as const,
-      show: Boolean(config.warrantyMonths),
-    },
-  ].filter((t) => t.show);
 
   const newArrivals = products
     .filter((p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p))
@@ -303,12 +268,6 @@ export async function GadgetHomeSections() {
     normalizeHomeSections(settings?.homeSections ?? null),
     lifestyleShop,
   );
-  const trustItems = trust.map(({ key, title, detail, icon }) => ({
-    key,
-    title,
-    detail,
-    icon,
-  }));
   const merchIds: HomeSectionId[] = ["bestsellers", "featured", "offers"];
   const lastMerchId = [...layout].reverse().find((id) => merchIds.includes(id));
   const extraRailTones = ["leaf", "clay", "default"] as const;
@@ -332,14 +291,7 @@ export async function GadgetHomeSections() {
         let section: ReactNode = null;
         switch (id) {
           case "trust":
-            section = trustItems.length ? (
-              <GadgetTrustStrip
-                key={id}
-                items={trustItems}
-                headline={config.homeTrustHeadline ?? undefined}
-                accent={config.homeTrustAccent ?? undefined}
-              />
-            ) : null;
+            // Rendered beside the hero so it never waits for catalog data.
             break;
           case "bestsellers":
             section = (
