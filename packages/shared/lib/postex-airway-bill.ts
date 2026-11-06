@@ -73,10 +73,10 @@ export async function fetchPostExAirwayBillPdf(
       method: "GET",
       headers: { token },
       cache: "no-store",
+        signal: AbortSignal.timeout(6000),
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Failed to communicate with PostEx API.";
-    return { ok: false, error: message, httpStatus: 502 };
+  } catch {
+    return { ok: false, error: "Failed to communicate with PostEx API.", httpStatus: 502 };
   }
 
   const upstreamHttpStatus = res.status;

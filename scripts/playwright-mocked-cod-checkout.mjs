@@ -461,15 +461,9 @@ try {
   await province.selectOption({ label: "Punjab" }).catch(async () => {
     await province.selectOption("PB");
   });
-  const city = page.locator("select#city, select[name='cityId']").first();
+  const city = page.locator("input#city, input[name='city']").first();
   await city.waitFor({ state: "visible" });
-  const cityOptions = await city.locator("option").count();
-  assert(cityOptions > 1, "City options populated after province", {
-    cityOptions,
-  });
-  await city.selectOption({ label: "Lahore" }).catch(async () => {
-    await city.selectOption("lahore");
-  });
+  await city.fill("Lahore");
   await readyShot(page, "mobile-mock-checkout-filled.png");
 
   // Preserve field values across error recoveries

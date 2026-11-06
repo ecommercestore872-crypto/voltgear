@@ -37,7 +37,7 @@ function ResponsiveHeroImage({
         priority={eager}
         fetchPriority={eager ? "high" : "auto"}
         quality={eager ? 65 : 72}
-        className="object-cover object-[68%_center] sm:object-center z-[1]"
+        className={banner.artworkText ? "object-contain z-[1]" : "object-cover object-[68%_center] sm:object-center z-[1]"}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
       />
     );
@@ -70,10 +70,10 @@ function ResponsiveHeroImage({
     <picture>
       <source
         media="(min-width: 640px)"
-        srcSet={desktop.srcSet}
+        srcSet={desktop.srcSet ?? desktop.src}
         sizes={desktop.sizes}
       />
-      <img {...mobile} className="object-cover object-[68%_center] sm:object-center z-[1]" />
+      <img {...mobile} className={banner.artworkText ? "object-contain z-[1]" : "object-cover object-[68%_center] sm:object-center z-[1]"} />
     </picture>
   );
 }
@@ -192,7 +192,7 @@ export function GadgetHeroSlider({
             return (
               <div
                 key={banner.id}
-                className="absolute inset-0"
+                className={banner.artworkText ? "absolute inset-x-0 top-0 bottom-28 sm:bottom-20" : "absolute inset-0"}
                 style={{
                   opacity: isActive ? 1 : 0,
                   transition: reduceMotion
@@ -211,7 +211,7 @@ export function GadgetHeroSlider({
           })}
 
           {/* A fixed overlay keeps the copy readable without changing contrast on slide transitions. */}
-          {(active.title || active.subtitle || active.ctaLabel) ? (
+          {!active.artworkText && (active.title || active.subtitle || active.ctaLabel) ? (
             <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(0deg,rgba(8,27,19,.96)_0%,rgba(8,27,19,.46)_47%,rgba(8,27,19,.08)_100%)] sm:bg-[linear-gradient(90deg,rgba(8,27,19,.94)_0%,rgba(8,27,19,.72)_35%,rgba(8,27,19,.08)_76%)]" />
           ) : null}
 
@@ -236,16 +236,20 @@ export function GadgetHeroSlider({
               </button>
             </>
           ) : null}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-col items-start gap-4 px-6 pb-8 pt-20 sm:bottom-auto sm:top-1/2 sm:max-w-[58%] sm:-translate-y-1/2 sm:px-12 sm:py-0 lg:px-20">
-            <div className="pointer-events-auto flex max-w-[min(100%,35rem)] flex-col items-start gap-3">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e2c696] sm:text-[11px] sm:tracking-[0.24em]">{active.eyebrow || "The Buy N Try edit"}</span>
+          <div className={active.artworkText
+            ? "pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex min-h-28 flex-col items-center justify-center gap-1 bg-[var(--g-forest)] px-4 sm:h-20 sm:min-h-0 sm:flex-row sm:justify-between sm:px-8"
+            : "pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-col items-start gap-4 px-6 pb-8 pt-20 sm:bottom-auto sm:top-1/2 sm:max-w-[58%] sm:-translate-y-1/2 sm:px-12 sm:py-0 lg:px-20"}>
+            <div className={active.artworkText
+              ? "pointer-events-auto flex items-center"
+              : "pointer-events-auto flex max-w-[min(100%,35rem)] flex-col items-start gap-3"}>
+              <span className={active.artworkText ? "sr-only" : "text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e2c696] sm:text-[11px] sm:tracking-[0.24em]"}>{active.eyebrow || "The Buy N Try edit"}</span>
               {active.title ? (
-                <h1 className="gadget-display text-left text-[clamp(2.6rem,7vw,5rem)] font-medium leading-[1.04] tracking-[-0.04em] text-white">
+                <h1 className={active.artworkText ? "sr-only" : "gadget-display text-left text-[clamp(2.6rem,7vw,5rem)] font-medium leading-[1.04] tracking-[-0.04em] text-white"}>
                   {active.title}
                 </h1>
               ) : null}
               {active.subtitle ? (
-                <p className="max-w-[36ch] text-left text-sm leading-relaxed text-white/90 sm:text-base">
+                <p className={active.artworkText ? "sr-only" : "max-w-[36ch] text-left text-sm leading-relaxed text-white/90 sm:text-base"}>
                   {active.subtitle}
                 </p>
               ) : null}

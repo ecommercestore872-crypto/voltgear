@@ -11,6 +11,7 @@ export const MARKETING_QUERY_PARAMS = [
   "utm_term",
   "utm_content",
   "utm_id",
+  "ad_id",
 ] as const;
 
 export function stripMarketingQueryFromSearch(search: string): string {

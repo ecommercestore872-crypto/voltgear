@@ -20,9 +20,9 @@ describe("gadget-hero-lcp", () => {
   it("selects the two art-directed sources by viewport without fetching both", () => {
     const images = heroLcpPreloads({ imageUrl: "https://res.cloudinary.com/demo/image/upload/v1/d.jpg", subtitle: '{"mobile":"https://res.cloudinary.com/demo/image/upload/v1/m.jpg"}' });
     assert.equal(images.length, 2);
-    assert.match(images[0].href, /q_62.*m.webp/);
+    assert.match(images[0].href, /f_auto,q_62.*m\.jpg/);
     assert.equal(images[0].media, "(max-width: 639px)");
-    assert.match(images[1].href, /q_65.*d.webp/);
+    assert.match(images[1].href, /f_auto,q_65.*d\.jpg/);
     assert.equal(images[1].media, "(min-width: 640px)");
   });
   it("prefers mobile image from slide subtitle JSON", () => {

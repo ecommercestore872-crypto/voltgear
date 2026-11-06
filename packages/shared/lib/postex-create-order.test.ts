@@ -102,7 +102,8 @@ describe("createPostExOrder", () => {
 
     assert.equal(result.ok, false);
     if (result.ok) return;
-    assert.equal(result.error, "Invalid city name");
+    assert.match(result.error, /reconcile before retrying/i);
+    assert.equal(result.failureKind, "unknown");
     assert.equal(result.upstreamHttpStatus, 200);
   });
 
@@ -119,8 +120,84 @@ describe("createPostExOrder", () => {
     assert.equal(result.ok, false);
     if (result.ok) return;
     assert.equal(result.error, "PostEx returned a non-JSON response");
+    assert.equal(result.failureKind, "unknown");
     assert.equal(result.upstreamHttpStatus, 404);
     assert.equal(String(result.error).includes("SyntaxError"), false);
     assert.equal(JSON.stringify(result).includes("<html>"), false);
+  });
+
+  it("does not send incomplete pickup, city, or COD data", async () => {
+    let calls = 0;
+    const fetchImpl: typeof fetch = async () => { calls++; throw new Error("should not send"); };
+    for (const payload of [
+      { ...samplePayload(), pickupAddressCode: undefined },
+      { ...samplePayload(), cityName: "" },
+      { ...samplePayload(), invoicePayment: 1500.5 },
+    ]) {
+      const result = await createPostExOrder(payload, {
+        env: { POSTEX_API_TOKEN: "merchant-token" }, fetchImpl,
+      });
+      assert.equal(result.ok, false);
+      if (!result.ok) assert.equal(result.failureKind, "definitive");
+    }
+    assert.equal(calls, 0);
+  });
+
+  it("keeps transport and provider outage outcomes unknown without leaking exceptions", async () => {
+    const env = { POSTEX_API_TOKEN: "merchant-token" };
+    const thrown = await createPostExOrder(samplePayload(), {
+      env,
+      fetchImpl: async () => { throw new Error("merchant-token customer phone 03001234567"); },
+    });
+    assert.equal(thrown.ok, false);
+    if (thrown.ok) return;
+    assert.equal(thrown.failureKind, "unknown");
+    assert.equal(JSON.stringify(thrown).includes("03001234567"), false);
+    assert.equal(JSON.stringify(thrown).includes("merchant-token"), false);
+
+    const outage = await createPostExOrder(samplePayload(), {
+      env,
+      fetchImpl: async () => new Response(JSON.stringify({ statusCode: "500" }), {
+        status: 500, headers: { "content-type": "application/json" },
+      }),
+    });
+    assert.equal(outage.ok, false);
+    if (!outage.ok) assert.equal(outage.failureKind, "unknown");
+  });
+
+  it("sets an explicit timeout on the create request", async () => {
+    let signal: AbortSignal | null | undefined;
+    await createPostExOrder(samplePayload(), {
+      env: { POSTEX_API_TOKEN: "merchant-token" },
+      fetchImpl: async (_url, init) => {
+        signal = init?.signal;
+        return new Response(JSON.stringify({ statusCode: "200", dist: { trackingNumber: "PX-1" } }), {
+          status: 200, headers: { "content-type": "application/json" },
+        });
+      },
+    });
+    assert.ok(signal);
+  });
+
+  it("keeps all provider responses without tracking locked until reconciliation", async () => {
+    const env = { POSTEX_API_TOKEN: "merchant-token" };
+    for (const httpStatus of [401, 429]) {
+      const result = await createPostExOrder(samplePayload(), {
+        env,
+        fetchImpl: async () => new Response(JSON.stringify({ statusCode: String(httpStatus) }), {
+          status: httpStatus, headers: { "content-type": "application/json" },
+        }),
+      });
+      assert.equal(result.ok, false);
+      if (!result.ok) assert.equal(result.failureKind, "unknown");
+    }
+    const missing = await createPostExOrder(samplePayload(), {
+      env,
+      fetchImpl: async () => new Response(JSON.stringify({ statusCode: "200", dist: {} }), {
+        status: 200, headers: { "content-type": "application/json" },
+      }),
+    });
+    assert.equal(missing.ok, false);
+    if (!missing.ok) assert.equal(missing.failureKind, "unknown");
   });
 });

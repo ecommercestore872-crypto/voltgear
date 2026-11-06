@@ -27,15 +27,15 @@ export function ProductGallery({
 }) {
   const sources: GallerySource[] = [
     ...(variantImage ? [variantImage] : []),
-    ...(product.cloudinaryImages ?? []).map((id) => ({
-      src: cloudinaryImageUrl(id, { w: PRODUCT_IMAGE.gallery }),
-      thumb: cloudinaryImageUrl(id, { w: PRODUCT_IMAGE.thumb }),
-      alt: `${product.name} (gallery image)`,
-    })),
     ...(product.images ?? []).map((img) => ({
       src: imageUrl(img, { w: PRODUCT_IMAGE.gallery }),
       thumb: imageUrl(img, { w: PRODUCT_IMAGE.thumb }),
       alt: product.name,
+    })),
+    ...(product.cloudinaryImages ?? []).map((id) => ({
+      src: cloudinaryImageUrl(id, { w: PRODUCT_IMAGE.gallery }),
+      thumb: cloudinaryImageUrl(id, { w: PRODUCT_IMAGE.thumb }),
+      alt: `${product.name} (gallery image)`,
     })),
   ];
 

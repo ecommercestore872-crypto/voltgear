@@ -48,41 +48,61 @@ export function validMetaCookie(value?: string): boolean {
 
 /** Two bounded attempts. Every retry reuses the exact event ID/time/body. */
 export async function trackMetaServerPurchase(input: PurchaseInput): Promise<void> {
+  const orderId = input.orderId;
   if (input.consent !== "all") {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_consent" }); return;
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_consent", orderId }); return;
   }
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const token = process.env.META_CONVERSIONS_API_ACCESS_TOKEN;
   const testMode = process.env.NEXT_PUBLIC_META_TEST_MODE;
-  if (!token || (testMode !== "true" && process.env.VERCEL_ENV !== "production") ||
-    (process.env.NODE_ENV !== "production" && testMode !== "true") || process.env.NEXT_PUBLIC_META_PIXEL_ENABLED === "false" || !metaEnvironmentAllowed({
+  const environmentBlocked = (testMode !== "true" && process.env.VERCEL_ENV !== "production") ||
+    (process.env.NODE_ENV !== "production" && testMode !== "true");
+  const pixelAllowed = metaEnvironmentAllowed({
     pixelId, testMode, vercelEnv: process.env.VERCEL_ENV, host: "buyntryy.com",
-  }) || (testMode === "true" && !process.env.META_TEST_EVENT_CODE) ||
-    (testMode !== "true" && process.env.META_TEST_EVENT_CODE)) {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_config" }); return;
+  });
+  const skipReason = !token ? "missing_token" :
+    environmentBlocked ? "environment_blocked" :
+    process.env.NEXT_PUBLIC_META_PIXEL_ENABLED === "false" ? "pixel_disabled" :
+    !pixelAllowed ? "pixel_configuration" :
+    (testMode === "true" && !process.env.META_TEST_EVENT_CODE) ||
+    (testMode !== "true" && process.env.META_TEST_EVENT_CODE) ? "test_code_configuration" : null;
+  if (skipReason) {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_config", orderId, reason: skipReason }); return;
   }
   const body = buildMetaServerPurchasePayload(input);
   const version = process.env.META_GRAPH_API_VERSION || META_GRAPH_API_VERSION;
-  if (!body || !/^v(2[4-6])\.0$/.test(version)) {
-    purchaseTrackLog({ channel: "meta", outcome: "failed" }); return;
+  if (!/^v(2[4-6])\.0$/.test(version)) {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_config", orderId, reason: "invalid_api_version", attempts: 0 }); return;
+  }
+  if (!body) {
+    purchaseTrackLog({ channel: "meta", outcome: "failed", orderId, reason: "invalid_payload", attempts: 0 }); return;
   }
   const payload = JSON.stringify({ ...body, ...(testMode === "true" ? { test_event_code: process.env.META_TEST_EVENT_CODE } : {}) });
+  let httpStatus: number | undefined;
+  let providerCode: number | undefined;
+  let reason: "provider_rejected" | "timeout" | "network" = "network";
+  let attempts = 0;
   for (let attempt = 0; attempt < 2; attempt++) {
+    attempts = attempt + 1;
     try {
       const res = await fetch(`https://graph.facebook.com/${version}/${pixelId}/events`, {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: payload, signal: AbortSignal.timeout(4000), cache: "no-store", redirect: "error",
       });
-      const result = await res.json().catch(() => null) as { events_received?: number; error?: { is_transient?: boolean } } | null;
+      httpStatus = res.status;
+      const result = await res.json().catch(() => null) as { events_received?: number; error?: { is_transient?: boolean; code?: number } } | null;
       if (res.ok && !result?.error && result?.events_received === 1) {
-        purchaseTrackLog({ channel: "meta", outcome: "sent" }); return;
+        purchaseTrackLog({ channel: "meta", outcome: "sent", orderId, attempts, httpStatus }); return;
       }
+      reason = "provider_rejected";
+      providerCode = typeof result?.error?.code === "number" ? result.error.code : undefined;
       if (attempt === 0 && (res.status === 429 || res.status >= 500 || result?.error?.is_transient)) continue;
       break;
-    } catch {
+    } catch (error) {
       // Never log request exceptions: they can embed tokens or user_data.
+      reason = error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name) ? "timeout" : "network";
       if (attempt === 0) continue;
     }
   }
-  purchaseTrackLog({ channel: "meta", outcome: "failed" });
+  purchaseTrackLog({ channel: "meta", outcome: "failed", orderId, attempts, httpStatus, providerCode, reason });
 }

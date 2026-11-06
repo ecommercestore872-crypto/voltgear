@@ -6,7 +6,7 @@ import {
 } from "@/lib/db/order-attribution-rules";
 import { updateOrderAttributionRow } from "@/lib/db/store";
 
-const PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_id", "ttclid", "fbclid", "gclid"] as const;
+const PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_id", "ad_id", "ttclid", "fbclid", "gclid"] as const;
 
 function fromSearchParams(search: string): Record<string, string> {
   const out: Record<string, string> = {};

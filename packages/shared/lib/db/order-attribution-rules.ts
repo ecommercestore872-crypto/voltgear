@@ -4,7 +4,9 @@ export type OrderAttributionSnapshot = {
   attrib_source: string | null;
   attrib_medium: string | null;
   attrib_campaign: string | null;
+  attrib_content: string | null;
   attrib_campaign_id: string | null;
+  attrib_ad_id: string | null;
   attrib_ttclid: string | null;
   attrib_fbclid: string | null;
   attrib_gclid: string | null;
@@ -16,7 +18,9 @@ export const EMPTY_ORDER_ATTRIBUTION: OrderAttributionSnapshot = {
   attrib_source: null,
   attrib_medium: null,
   attrib_campaign: null,
+  attrib_content: null,
   attrib_campaign_id: null,
+  attrib_ad_id: null,
   attrib_ttclid: null,
   attrib_fbclid: null,
   attrib_gclid: null,
@@ -35,7 +39,9 @@ export type ClickAttributionInput = {
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
+  utm_content?: string;
   utm_id?: string;
+  ad_id?: string;
   ttclid?: string;
   fbclid?: string;
   gclid?: string;
@@ -50,7 +56,9 @@ export function orderAttributionFromClick(
     attrib_source: cap(input.utm_source),
     attrib_medium: cap(input.utm_medium),
     attrib_campaign: cap(input.utm_campaign),
+    attrib_content: cap(input.utm_content),
     attrib_campaign_id: cap(input.utm_id),
+    attrib_ad_id: cap(input.ad_id),
     attrib_ttclid: cap(input.ttclid, MAX_LEN),
     attrib_fbclid: cap(input.fbclid, MAX_LEN),
     attrib_gclid: cap(input.gclid, MAX_LEN),
@@ -62,7 +70,9 @@ export function hasOrderAttribution(snapshot: OrderAttributionSnapshot): boolean
     snapshot.attrib_source ||
       snapshot.attrib_medium ||
       snapshot.attrib_campaign ||
+      snapshot.attrib_content ||
       snapshot.attrib_campaign_id ||
+      snapshot.attrib_ad_id ||
       snapshot.attrib_ttclid ||
       snapshot.attrib_fbclid ||
       snapshot.attrib_gclid,

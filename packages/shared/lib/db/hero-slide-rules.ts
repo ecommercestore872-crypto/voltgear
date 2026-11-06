@@ -3,11 +3,24 @@ export const MAX_HERO_SLIDES = 8;
 export function canPublishSlide(slide: {
   imageUrl?: string | null;
   productId?: string | null;
+  title?: string | null;
+  subtitle?: string | null;
 }): { ok: boolean; reason?: string } {
   const imageUrl = (slide.imageUrl ?? "").trim();
   const productId = (slide.productId ?? "").trim();
   if (!imageUrl) return { ok: false, reason: "Image is required." };
   if (!productId) return { ok: false, reason: "Product is required." };
+  if (slide.subtitle?.trim().startsWith("{")) {
+    try {
+      const content = JSON.parse(slide.subtitle) as { artworkText?: boolean; text?: string };
+      if (content.artworkText === true &&
+          (!(slide.title ?? "").trim() || !(content.text ?? "").trim())) {
+        return { ok: false, reason: "Artwork with embedded text needs a title and subtitle for screen readers." };
+      }
+    } catch {
+      // Legacy plain subtitles remain valid.
+    }
+  }
   if (!(imageUrl.startsWith("/") && !imageUrl.startsWith("//"))) {
     try {
       const parsed = new URL(imageUrl);

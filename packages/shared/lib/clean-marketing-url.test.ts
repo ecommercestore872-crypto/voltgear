@@ -24,4 +24,11 @@ describe("clean-marketing-url", () => {
       "/",
     );
   });
+
+  it("removes captured ad identifiers while retaining checkout routing", () => {
+    assert.equal(
+      cleanedPathnameAndSearch("/checkout", "?from=gadget&utm_source=ig&utm_content=charging_video_01&ad_id=987654&fbclid=FB_CLICK&ttclid=TT_CLICK"),
+      "/checkout?from=gadget",
+    );
+  });
 });

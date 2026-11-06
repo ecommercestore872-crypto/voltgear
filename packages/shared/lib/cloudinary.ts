@@ -12,12 +12,9 @@ export const CLOUDINARY_TRANSFORM = {
   fetch_format: "auto" as const,
 };
 
-/** Strip version + transform segments so we never stack w_/f_ twice. */
+/** Strip existing transform segments without losing Cloudinary's versioned cache key. */
 export function cloudinaryAssetPathAfterUpload(uploadTail: string): string {
   let rest = uploadTail.replace(/^\/+/, "");
-  if (/^v\d+\//.test(rest)) {
-    rest = rest.slice(rest.indexOf("/") + 1);
-  }
   while (rest.length > 0) {
     const slash = rest.indexOf("/");
     const segment = slash === -1 ? rest : rest.slice(0, slash);
@@ -27,16 +24,11 @@ export function cloudinaryAssetPathAfterUpload(uploadTail: string): string {
     if (!looksLikeTransform) break;
     rest = slash === -1 ? "" : rest.slice(slash + 1);
   }
-  return rest
-    .replace(/\.heic$/i, ".webp")
-    .replace(/\.heif$/i, ".webp")
-    .replace(/\.jpg$/i, ".webp")
-    .replace(/\.jpeg$/i, ".webp")
-    .replace(/\.png$/i, ".webp");
+  return rest;
 }
 
 /**
- * Returns an auto-optimized Cloudinary image URL (f_webp, q_auto,
+ * Returns an auto-optimized Cloudinary image URL (f_auto, q_auto,
  * responsive width). Accepts either a full URL or a bare public ID.
  */
 /** Cream pad for square product cards (matches storefront `--g-cream` / studio stage). */
@@ -57,9 +49,17 @@ export function cloudinaryImageUrl(
   const cloudName =
     process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME;
 
+  if (base.startsWith("//")) return base;
   if (!base.startsWith("http")) {
     if (!cloudName) return base;
     base = `https://res.cloudinary.com/${cloudName}/image/upload/${base}`;
+  }
+
+  try {
+    const url = new URL(base);
+    if (url.protocol !== "https:" || url.hostname !== "res.cloudinary.com") return base;
+  } catch {
+    return base;
   }
 
   const marker = "/image/upload/";
@@ -68,8 +68,8 @@ export function cloudinaryImageUrl(
 
   const insert =
     fit === "pad"
-      ? `f_webp,q_${q},c_pad,w_${w},h_${w},b_rgb:${CLOUDINARY_CARD_PAD_RGB},g_center/`
-      : `f_webp,q_${q},c_limit,w_${w}/`;
+      ? `f_auto,q_${q},c_pad,w_${w},h_${w},b_rgb:${CLOUDINARY_CARD_PAD_RGB},g_center/`
+      : `f_auto,q_${q},c_limit,w_${w}/`;
   const endPath = cloudinaryAssetPathAfterUpload(base.slice(idx + marker.length));
   return `${base.slice(0, idx + marker.length)}${insert}${endPath}`;
 }
@@ -85,7 +85,7 @@ import { indexSiteUrl } from "@/lib/seo-rules";
 /** Next.js `loader` — resize on Cloudinary, not Vercel Image Optimization. */
 export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
   const q = quality ? String(quality) : "auto";
-  if (src.includes("res.cloudinary.com")) {
+  if (src.startsWith("https://res.cloudinary.com/")) {
     return cloudinaryImageUrl(src, { w: width, q });
   }
   if (src.startsWith("/") && !src.startsWith("//")) {
@@ -104,7 +104,7 @@ export function cloudinaryLoader({ src, width, quality }: ImageLoaderProps) {
     if (cloudName) {
       const origin = indexSiteUrl().replace(/\/$/, "");
       const remote = `${origin}${src}`;
-      const insert = `f_webp,q_${q},c_limit,w_${width}/`;
+      const insert = `f_auto,q_${q},c_limit,w_${width}/`;
       return `https://res.cloudinary.com/${cloudName}/image/upload/${insert}${remote}`;
     }
   }

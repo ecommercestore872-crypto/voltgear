@@ -10,6 +10,7 @@ import {
 } from "@/lib/postex-track-order";
 
 import type { Order, OrderStatus } from "@/lib/types";
+import { parsePostExEventTimestamp, type PostExTrackingSnapshot } from "@/lib/postex-tracking-rules";
 
 export type PostExStatusSyncHttpResult = {
   status: number;
@@ -24,6 +25,10 @@ export type PostExStatusSyncDeps = {
     newStatus: OrderStatus,
     note: string,
   ) => Promise<{ ok: true } | { ok: false; error: string }>;
+  recordSnapshot?: (snapshot: PostExTrackingSnapshot) => Promise<
+    { ok: true; inserted: boolean; advanced: boolean; status: OrderStatus } |
+    { ok: false; error: string }
+  >;
   now?: () => string;
 };
 
@@ -79,6 +84,38 @@ export async function runPostExStatusSyncForOrderId(
   const mapResult = mapPostExTransactionStatusToBuyNTry(postexStatus);
   const preview = derivePostExStatusPreviewAction(previousStatus, mapResult);
 
+  const trackingMeta = {
+    orderPickupDate: trackSafe.orderPickupDate,
+    orderDeliveryDate: trackSafe.orderDeliveryDate,
+    transactionDate: trackSafe.transactionDate,
+    transactionStatusHistory: trackSafe.transactionStatusHistory,
+  };
+
+  if (deps.recordSnapshot) {
+    const recorded = await deps.recordSnapshot({
+      orderId: trimmedId,
+      trackingNumber,
+      rawStatus: postexStatus ?? "unknown",
+      normalizedStatus: mapResult.kind === "mapped" ? mapResult.buyNTryStatus : null,
+      eventTime: parsePostExEventTimestamp(trackSafe.transactionDate),
+      history: trackSafe.transactionStatusHistory,
+    });
+    if (!recorded.ok) return { status: 503, body: { success: false, error: recorded.error } };
+    return {
+      status: preview.action === "manual_review" ? 409 : 200,
+      body: {
+        success: preview.action !== "manual_review",
+        orderId: trimmedId,
+        postexStatus,
+        previousStatus,
+        newStatus: recorded.status,
+        action: preview.action === "manual_review" ? "manual_review" : recorded.advanced ? "updated" : "no_change",
+        lastSyncedAt: deps.now?.() ?? new Date().toISOString(),
+        ...trackingMeta,
+      },
+    };
+  }
+
   if (preview.action === "manual_review") {
     return {
       status: 409,
@@ -91,13 +128,6 @@ export async function runPostExStatusSyncForOrderId(
       },
     };
   }
-
-  const trackingMeta = {
-    orderPickupDate: trackSafe.orderPickupDate,
-    orderDeliveryDate: trackSafe.orderDeliveryDate,
-    transactionDate: trackSafe.transactionDate,
-    transactionStatusHistory: trackSafe.transactionStatusHistory,
-  };
 
   if (preview.action === "no_change" || !preview.proposedBuyNTryStatus) {
     return {

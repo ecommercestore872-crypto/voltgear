@@ -88,7 +88,7 @@ try {
       await page.locator("#phone").fill("03001234567");
       await page.locator("#address").fill("QA isolated address");
       await page.locator("#province").selectOption("PB");
-      await page.locator("#city").selectOption("lahore");
+      await page.locator("#city").fill("Lahore");
     };
     const submit = () => page.getByRole("button", { name: /place order|confirm order/i }).first();
     await page.goto(`${origin}/product/tracking-qa-product?fbclid=ISOLATED_META_CLICK`, { waitUntil: "domcontentloaded" });

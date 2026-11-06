@@ -17,6 +17,17 @@ describe("resolvePostExCancelOrderUrl", () => {
 });
 
 describe("cancelPostExShipment", () => {
+  it("keeps an uncertain cancellation private and recoverable", async () => {
+    const result = await cancelPostExShipment("CX-999", {
+      env: { POSTEX_API_TOKEN: "secret" },
+      fetchImpl: async () => { throw new Error("secret customer@example.com"); },
+    });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.match(result.error, /reconcile before retrying/i);
+      assert.equal(JSON.stringify(result).includes("secret"), false);
+    }
+  });
   it("PUTs JSON body with trackingNumber and token header", async () => {
     let method = "";
     let body = "";
@@ -48,6 +59,15 @@ describe("cancelPostExShipment", () => {
 });
 
 describe("runPostExCancelOrderForOrderId", () => {
+  it("does not request provider cancellation for a delivered shipment", async () => {
+    let calls = 0;
+    const result = await runPostExCancelOrderForOrderId("BNT-1", {
+      getOrder: async () => ({ orderId: "BNT-1", status: "delivered", postexTrackingNumber: "PX-123" }) as never,
+      cancelShipment: async () => { calls++; return { ok: true, upstreamHttpStatus: 200 }; },
+    });
+    assert.equal(result.status, 409);
+    assert.equal(calls, 0);
+  });
   it("requires tracking on order", async () => {
     const result = await runPostExCancelOrderForOrderId("BNT-1", {
       getOrder: async () =>

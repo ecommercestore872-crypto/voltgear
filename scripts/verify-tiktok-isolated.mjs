@@ -134,7 +134,7 @@ try {
     await page.locator("#phone").fill("03001234567");
     await page.locator("#address").fill("QA isolated test address");
     await page.locator("#province").selectOption("PB");
-    await page.locator("#city").selectOption("lahore");
+    await page.locator("#city").fill("Lahore");
     for (status of [409, 429, 500]) {
       const before = posts;
       await submit.click();
@@ -163,13 +163,22 @@ try {
     await page.locator("#phone").fill("03001234567");
     await page.locator("#address").fill("QA isolated test address");
     await page.locator("#province").selectOption("PB");
-    await page.locator("#city").selectOption("lahore");
+    await page.locator("#city").fill("Lahore");
     await page.getByRole("button", { name: /place order|confirm order/i }).first().click();
     await page.waitForURL(/\/order\/QA-/);
     check(network.filter((entry) => entry.event === "Purchase").length === 1, "idempotent replay after reload does not duplicate Purchase");
-    check(errors.length === 0, `no browser runtime errors: ${errors.join("; ")}`);
+    // WebKit may report a cross-origin RSC prefetch failure because this test
+    // re-serves localhost bytes under buyntryy.test. Navigation and commerce
+    // assertions above still exercise the actual storefront document.
+    const proxyPrefetchErrors = errors.filter((message) =>
+      engine === "webkit" &&
+      /buyntryy\.test\/checkout\?from=gadget&_rsc=/.test(message) &&
+      message.includes("due to access control checks"),
+    );
+    const runtimeErrors = errors.filter((message) => !proxyPrefetchErrors.includes(message));
+    check(runtimeErrors.length === 0, `no browser runtime errors: ${runtimeErrors.join("; ")}`);
     check(transportErrors.length === 0, `no proxy transport errors: ${transportErrors.join("; ")}`);
-    report.viewports.push({ engine, width, assertions: "PASS", mockedCheckoutPosts: posts, purchaseEventId: purchases[0].event_id });
+    report.viewports.push({ engine, width, assertions: "PASS", mockedCheckoutPosts: posts, purchaseEventId: purchases[0].event_id, proxyPrefetchErrors: proxyPrefetchErrors.length });
     closingContext = true;
     await context.close();
   }

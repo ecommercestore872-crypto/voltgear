@@ -1,48 +1,47 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  claimPostExBookingRow,
+  completePostExBookingRow,
+  markPostExBookingUnknownRow,
+  releasePostExBookingClaimRow,
+} from "./postex-book-order-db";
 
-import { completePostExBookingRow } from "./postex-book-order-db";
-
-function mockOrdersUpdateClient(captured: { update?: Record<string, unknown> }) {
+function mockRpc(result: unknown) {
+  const calls: Array<{ name: string; args: unknown }> = [];
   const client = {
-    from(table: string) {
-      assert.equal(table, "orders");
-      return {
-        update(payload: Record<string, unknown>) {
-          captured.update = payload;
-          return {
-            eq(_col: string, _orderId: string) {
-              return Promise.resolve({ error: null });
-            },
-          };
-        },
-      };
+    async rpc(name: string, args: unknown) {
+      calls.push({ name, args });
+      return { data: result, error: null };
     },
-  };
-  return client as unknown as SupabaseClient;
+  } as unknown as SupabaseClient;
+  return { client, calls };
 }
 
-describe("completePostExBookingRow", () => {
-  it("persists tracking and sets status to processing after PostEx create-order", async () => {
-    const captured: { update?: Record<string, unknown> } = {};
-    const client = mockOrdersUpdateClient(captured);
-    const at = "2026-09-30T12:00:00.000Z";
+describe("PostEx booking database commands", () => {
+  it("returns the database-generated claim token", async () => {
+    const { client, calls } = mockRpc({ ok: true, attempt_id: "QA-UUID" });
+    assert.equal(await claimPostExBookingRow(client, "BNT-1", "ignored"), "QA-UUID");
+    assert.deepEqual(calls, [{ name: "postex_claim_booking", args: { p_order_id: "BNT-1" } }]);
+  });
 
-    const result = await completePostExBookingRow(
-      client,
-      "BNT-1001",
-      "23736240000001",
-      at,
-    );
+  it("does not report a failed guarded completion as success", async () => {
+    const { client } = mockRpc({ ok: false, reason: "conflict" });
+    const result = await completePostExBookingRow(client, "BNT-1", "PX-1", "QA-UUID", "2026-11-06T00:00:00Z");
+    assert.equal(result.ok, false);
+  });
 
-    assert.equal(result.ok, true);
-    assert.deepEqual(captured.update, {
-      postex_tracking_number: "23736240000001",
-      status: "processing",
-      status_updated_at: at,
-      postex_booking_claimed_at: null,
+  it("uses the same token for release, uncertain-state and completion commands", async () => {
+    const { client, calls } = mockRpc({ ok: true });
+    assert.equal(await releasePostExBookingClaimRow(client, "BNT-1", "QA-UUID"), true);
+    await markPostExBookingUnknownRow(client, "BNT-1", "QA-UUID");
+    assert.equal((await completePostExBookingRow(client, "BNT-1", "PX-1", "QA-UUID", "2026-11-06T00:00:00Z")).ok, true);
+    assert.deepEqual(calls.map((call) => call.name), [
+      "postex_release_booking_preflight", "postex_mark_booking_unknown", "postex_complete_booking",
+    ]);
+    assert.deepEqual(calls[2]?.args, {
+      p_order_id: "BNT-1", p_attempt_id: "QA-UUID", p_tracking_number: "PX-1", p_completed_at: "2026-11-06T00:00:00Z",
     });
   });
 });

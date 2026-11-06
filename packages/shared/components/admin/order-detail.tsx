@@ -45,12 +45,18 @@ export function OrderDetail({
   const [status, setStatus] = useState<OrderStatus>(order.status ?? "new");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [bookingPostEx, setBookingPostEx] = useState(false);
   const [syncingPostEx, setSyncingPostEx] = useState(false);
   const [checkingPostEx, setCheckingPostEx] = useState(false);
   const [reconcilingPostEx, setReconcilingPostEx] = useState(false);
   const [cancellingPostEx, setCancellingPostEx] = useState(false);
   const [postExHint, setPostExHint] = useState<string | null>(null);
+  const [loadingTrackingHistory, setLoadingTrackingHistory] = useState(false);
+  const [trackingHistory, setTrackingHistory] = useState<{
+    lastSyncedAt: string | null;
+    events: Array<{ providerStatus: string; normalizedStatus: string | null; providerEventAt: string | null; receivedAt: string }>;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
 
@@ -260,6 +266,20 @@ export function OrderDetail({
     }
   }
 
+  async function handleTrackingHistory() {
+    setLoadingTrackingHistory(true);
+    setError(null);
+    try {
+      const data = await adminFetch(`/api/admin/postex/history/${encodeURIComponent(order.orderId)}`) as typeof trackingHistory;
+      setTrackingHistory(data);
+    } catch (err) {
+      if (err instanceof AdminAuthError) { router.replace("/admin/login"); return; }
+      setError(err instanceof Error ? err.message : "Could not load tracking history.");
+    } finally {
+      setLoadingTrackingHistory(false);
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (status === "cancelled" && order.status !== "cancelled") {
@@ -329,6 +349,31 @@ export function OrderDetail({
     }
   }
 
+  async function handleArchive() {
+    const archived = !order.archivedAt;
+    const verb = archived ? "Archive" : "Unarchive";
+    if (!window.confirm(`${verb} this order? Its status, inventory, courier shipment, and sales history will stay unchanged.`)) return;
+    setArchiving(true);
+    setError(null);
+    setOk(null);
+    try {
+      await adminFetch(`/api/admin/orders/${encodeURIComponent(order.orderId)}/archive`, {
+        method: "POST",
+        body: JSON.stringify({ archived }),
+      });
+      setOk(archived ? "Order archived. Find it in the Archived tab." : "Order returned to the active list.");
+      router.refresh();
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        router.replace("/admin/login");
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Could not change the archive state.");
+    } finally {
+      setArchiving(false);
+    }
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="space-y-4">
@@ -346,6 +391,9 @@ export function OrderDetail({
                 <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
                   Demo
                 </Badge>
+              ) : null}
+              {order.archivedAt ? (
+                <Badge variant="outline">Archived</Badge>
               ) : null}
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -419,6 +467,10 @@ export function OrderDetail({
             >
               {reconcilingPostEx ? "Reconciling…" : "Reconcile with PostEx"}
             </Button>
+            <Button type="button" variant="ghost" disabled={loadingTrackingHistory || !postexTracking}
+              onClick={() => void handleTrackingHistory()}>
+              {loadingTrackingHistory ? "Loading history…" : "Tracking history"}
+            </Button>
             <Button
               asChild
               type="button"
@@ -443,6 +495,23 @@ export function OrderDetail({
         <p className="rounded-md border border-blue-200 bg-blue-50/80 px-3 py-2 text-sm text-blue-950 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
           {postExHint}
         </p>
+      ) : null}
+      {trackingHistory ? (
+        <section aria-label="PostEx tracking history" className="rounded-md border p-3 text-sm">
+          <h2 className="font-semibold">PostEx tracking history</h2>
+          <p className="text-muted-foreground">Last successful sync: {trackingHistory.lastSyncedAt ? formatDate(trackingHistory.lastSyncedAt) : "Not yet synced"}</p>
+          {trackingHistory.events.length ? (
+            <ol className="mt-2 space-y-2">
+              {trackingHistory.events.map((event, index) => (
+                <li key={`${event.receivedAt}-${index}`} className="border-t pt-2">
+                  <span className="font-medium">{event.providerStatus}</span>
+                  {event.normalizedStatus ? <span className="text-muted-foreground"> · {event.normalizedStatus}</span> : null}
+                  <div className="text-xs text-muted-foreground">Provider time: {event.providerEventAt ? formatDate(event.providerEventAt) : "Not supplied"} · Received: {formatDate(event.receivedAt)}</div>
+                </li>
+              ))}
+            </ol>
+          ) : <p className="mt-2 text-muted-foreground">No tracking snapshots have been recorded.</p>}
+        </section>
       ) : null}
 
       {emailIssue ? (
@@ -610,6 +679,18 @@ export function OrderDetail({
           {saving ? "Updating…" : "Update"}
         </Button>
       </form>
+
+      <section className="rounded-lg border p-4">
+        <h2 className="text-sm font-semibold">Order visibility</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {order.archivedAt
+            ? `Archived ${formatDate(order.archivedAt)}. This order remains available for fulfillment, reporting, tracking, and customer service.`
+            : "Archive this order to remove it from the active management list. Its fulfillment status and records stay intact."}
+        </p>
+        <Button type="button" variant="outline" className="mt-4" disabled={archiving || saving} onClick={() => void handleArchive()}>
+          {archiving ? "Saving…" : order.archivedAt ? "Unarchive Order" : "Archive Order"}
+        </Button>
+      </section>
 
       {order.isDemo ? (
         <section className="rounded-lg border border-destructive/20 p-4">

@@ -54,10 +54,10 @@ export async function cancelPostExShipment(
         token,
       },
       body: JSON.stringify({ trackingNumber: tn }),
+      signal: AbortSignal.timeout(6000),
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Failed to communicate with PostEx API.";
-    return { ok: false, error: message, httpStatus: 502 };
+  } catch {
+    return { ok: false, error: "PostEx cancellation outcome is unknown; reconcile before retrying.", httpStatus: 502 };
   }
 
   const parsed = await readPostExJsonResponse(res);
@@ -88,6 +88,9 @@ export async function cancelPostExShipment(
 export type PostExCancelOrderDeps = {
   getOrder: (orderId: string) => Promise<Order | null>;
   cancelShipment?: typeof cancelPostExShipment;
+  claimCancellation?: (orderId: string, trackingNumber: string) => Promise<string | null>;
+  markUnknown?: (orderId: string, attemptId: string) => Promise<boolean>;
+  markConfirmed?: (orderId: string, trackingNumber: string, attemptId: string) => Promise<boolean>;
 };
 
 export async function runPostExCancelOrderForOrderId(
@@ -115,9 +118,27 @@ export async function runPostExCancelOrderForOrderId(
     };
   }
 
+  if (order.status === "shipped" || order.status === "delivered") {
+    return {
+      status: 409,
+      body: { success: false, error: "Shipment has progressed beyond booking; review its PostEx status before cancellation." },
+    };
+  }
+
+  const attemptId = deps.claimCancellation ? await deps.claimCancellation(trimmedId, trackingNumber) : null;
+  if (deps.claimCancellation && !attemptId) {
+    return { status: 409, body: { success: false, error: "PostEx cancellation is already in progress or requires reconciliation." } };
+  }
+
   const cancelShipment = deps.cancelShipment ?? cancelPostExShipment;
-  const cancelled = await cancelShipment(trackingNumber);
+  let cancelled: Awaited<ReturnType<typeof cancelPostExShipment>>;
+  try {
+    cancelled = await cancelShipment(trackingNumber);
+  } catch {
+    cancelled = { ok: false, error: "PostEx cancellation outcome is unknown; reconcile before retrying.", httpStatus: 502 };
+  }
   if (!cancelled.ok) {
+    if (attemptId && deps.markUnknown) await deps.markUnknown(trimmedId, attemptId);
     return {
       status: cancelled.httpStatus,
       body: {
@@ -128,6 +149,10 @@ export async function runPostExCancelOrderForOrderId(
           : {}),
       },
     };
+  }
+
+  if (attemptId && deps.markConfirmed && !await deps.markConfirmed(trimmedId, trackingNumber, attemptId)) {
+    return { status: 503, body: { success: false, error: "PostEx confirmed cancellation, but local confirmation failed. Reconcile before retrying." } };
   }
 
   return {

@@ -4,6 +4,7 @@ import { isCronAuthorized } from "@/lib/deploy-rules";
 import { getOrderByPublicId, updateOrderStatusRow } from "@/lib/db/store";
 import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 import { runPostExStatusSyncForOrderId } from "@/lib/postex-status-sync";
+import { recordPostExTrackingSnapshot } from "@/lib/postex-tracking-ledger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,11 @@ export async function POST(
 
   const result = await runPostExStatusSyncForOrderId(orderId, {
     getOrder: getOrderByPublicId,
+    recordSnapshot: async (snapshot) => {
+      const result = await recordPostExTrackingSnapshot(snapshot);
+      if (result.ok && result.advanced) scheduleOrderSheetSync(snapshot.orderId);
+      return result;
+    },
     applyStatusUpdate: async (id, newStatus, note) => {
       const updated = await updateOrderStatusRow(id, newStatus, note);
       if (!updated) {

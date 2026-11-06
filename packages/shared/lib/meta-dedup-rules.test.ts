@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { acceptedMetaPurchase, metaCommerceData, metaEnvironmentAllowed, META_PRODUCTION_PIXEL_ID } from "./meta-commerce";
 import { buildMetaServerPurchasePayload, trackMetaServerPurchase } from "./meta-events-api";
+import { purchaseTrackOrderRef } from "./purchase-track-observability";
 import { ensureMetaPageView, trackMetaViewContent, trackMetaAddToCart, trackMetaInitiateCheckout, trackAcceptedMetaPurchase } from "./meta-pixel-events";
 
 const lines = [{ slug: "buds", name: "Earbuds", price: 2999, quantity: 2 }, { slug: "charger", name: "Charger", price: 1499, quantity: 1 }];
@@ -138,6 +139,7 @@ test("CAPI exact payload retries, parsing, redaction, consent and environment is
   try {
     process.env.NEXT_PUBLIC_META_PIXEL_ID = META_PRODUCTION_PIXEL_ID;
     process.env.META_CONVERSIONS_API_ACCESS_TOKEN = "PRIVATE-TOKEN-MUST-NOT-LOG";
+    process.env.PURCHASE_TRACK_LOG_HMAC_KEY = "test-log-key-with-at-least-32-characters";
     process.env.VERCEL_ENV = "production";
     process.env.NODE_ENV = "production";
     delete process.env.NEXT_PUBLIC_META_TEST_MODE;
@@ -156,6 +158,13 @@ test("CAPI exact payload retries, parsing, redaction, consent and environment is
     assert.ok(!calls[0].url.includes("PRIVATE-TOKEN"));
     assert.equal(new Headers(calls[0].init.headers).get("Authorization"), "Bearer PRIVATE-TOKEN-MUST-NOT-LOG");
     assert.match(JSON.stringify(logs), /sent/);
+    const sentLog = JSON.parse(String(logs.at(-1)?.[1]));
+    const expectedRef = createHmac("sha256", process.env.PURCHASE_TRACK_LOG_HMAC_KEY)
+      .update("purchase-track:v1:").update(input.orderId).digest("hex").slice(0, 20);
+    assert.equal(sentLog.orderRef, expectedRef);
+    assert.equal(sentLog.attempts, 2);
+    assert.equal(sentLog.httpStatus, 200);
+    assert.ok(!JSON.stringify(sentLog).includes(input.orderId));
     calls.length = 0; logs.length = 0;
     globalThis.fetch = async (url, init) => { calls.push({ url: String(url), init: init! }); return new Response('{"error":{"message":"PRIVATE-TOKEN-MUST-NOT-LOG qa@example.com"}}'); };
     await trackMetaServerPurchase(input);
@@ -163,6 +172,11 @@ test("CAPI exact payload retries, parsing, redaction, consent and environment is
     assert.match(JSON.stringify(logs), /failed/);
     assert.ok(!JSON.stringify(logs).includes("PRIVATE-TOKEN"));
     assert.ok(!JSON.stringify(logs).includes("qa@example.com"));
+    const rejectedLog = JSON.parse(String(logs.at(-1)?.[1]));
+    assert.equal(rejectedLog.orderRef, expectedRef);
+    assert.equal(rejectedLog.reason, "provider_rejected");
+    assert.equal(rejectedLog.attempts, 1);
+    assert.equal(rejectedLog.httpStatus, 200);
     calls.length = 0;
     await trackMetaServerPurchase({ ...input, consent: "essential" });
     delete process.env.VERCEL_ENV;
@@ -195,10 +209,30 @@ test("CAPI exact payload retries, parsing, redaction, consent and environment is
       assert.equal(calls.length, attempts);
       if (attempts === 2) assert.equal(calls[0].init.body, calls[1].init.body);
     }
+    calls.length = 0; logs.length = 0;
+    process.env.META_GRAPH_API_VERSION = "v99.0";
+    await trackMetaServerPurchase(input);
+    assert.equal(calls.length, 0);
+    assert.equal(JSON.parse(String(logs.at(-1)?.[1])).reason, "invalid_api_version");
+    delete process.env.META_GRAPH_API_VERSION;
+    calls.length = 0; logs.length = 0;
+    globalThis.fetch = async (url, init) => {
+      calls.push({ url: String(url), init: init! });
+      if (calls.length === 1) return new Response('{"error":{"is_transient":true}}', { status: 503 });
+      throw new Error("network failure");
+    };
+    await trackMetaServerPurchase(input);
+    assert.equal(calls.length, 2);
+    assert.equal(JSON.parse(String(logs.at(-1)?.[1])).httpStatus, 503);
     calls.length = 0;
     delete process.env.META_CONVERSIONS_API_ACCESS_TOKEN;
     await trackMetaServerPurchase(input);
     assert.equal(calls.length, 0);
+    assert.equal(JSON.parse(String(logs.at(-1)?.[1])).reason, "missing_token");
+    delete process.env.PURCHASE_TRACK_LOG_HMAC_KEY;
+    delete process.env.AUTH_SECRET;
+    delete process.env.ADMIN_TOKEN;
+    assert.equal(purchaseTrackOrderRef("BNT-1001"), undefined);
   } finally {
     globalThis.fetch = originalFetch; console.info = originalLog;
     for (const key of Object.keys(process.env)) if (!(key in beforeEnv)) delete process.env[key];

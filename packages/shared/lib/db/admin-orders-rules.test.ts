@@ -5,6 +5,7 @@ import {
   ADMIN_ORDERS_PAGE_SIZE,
   adminOrderSearchPattern,
   adminOrdersRange,
+  adminOrdersIsArchivedTab,
   adminOrdersStatusForTab,
   normalizeAdminOrdersPage,
   sanitizeAdminOrderSearchTerm,
@@ -36,5 +37,8 @@ describe("admin-orders-rules", () => {
     assert.equal(adminOrdersStatusForTab("all"), null);
     assert.equal(adminOrdersStatusForTab("shipped"), "shipped");
     assert.equal(adminOrdersStatusForTab("bogus"), null);
+    assert.equal(adminOrdersStatusForTab("archived"), null);
+    assert.equal(adminOrdersIsArchivedTab("archived"), true);
+    assert.equal(adminOrdersIsArchivedTab("all"), false);
   });
 });

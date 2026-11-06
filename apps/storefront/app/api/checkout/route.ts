@@ -247,7 +247,7 @@ export async function POST(request: Request) {
 
     let persisted: { orderId: string; replayed: boolean } | null = null;
     try {
-      persisted = await persistCheckoutOrder(baseOrder, idemKey);
+      persisted = await persistCheckoutOrder(baseOrder, idemKey, { request, consent });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "";
       if (message.startsWith("ATOMIC_BUSINESS_ERROR:")) {

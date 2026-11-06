@@ -23,8 +23,8 @@ export function GadgetPdpServerHero({ product }: { product: Product }) {
         fill
         priority
         fetchPriority="high"
-        quality={62}
-        sizes="(max-width: 768px) 100vw, 50vw"
+        quality={75}
+        sizes="(max-width: 1024px) 100vw, min(600px, 50vw)"
         className="object-contain"
       />
     </div>

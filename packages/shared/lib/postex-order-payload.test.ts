@@ -149,4 +149,17 @@ describe("buildPostExOrderPayloadFromOrder", () => {
     assert.ok(result.missingOrInvalid.includes("POSTEX_PICKUP_ADDRESS_CODE"));
     assert.ok(result.missingOrInvalid.includes("order.items"));
   });
+
+  it("rejects fractional COD totals and missing product quantities", () => {
+    const order = baseOrder();
+    order.total = 5499.5;
+    order.items = [{ name: "Watch" }];
+    const result = buildPostExOrderPayloadFromOrder(order, OPERATIONAL_CITIES, {
+      POSTEX_PICKUP_ADDRESS_CODE: "001",
+    });
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.ok(result.missingOrInvalid.includes("order.total"));
+    assert.ok(result.missingOrInvalid.includes("order.items"));
+  });
 });

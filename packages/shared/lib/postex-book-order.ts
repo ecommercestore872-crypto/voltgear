@@ -1,270 +1,96 @@
 import type { PostExOrderPayload } from "@/lib/postex";
-
-import {
-  toPostExOrderPayloadForApi,
-  type PostExCreateOrderPayload,
-} from "@/lib/postex-order-payload";
-
+import { toPostExOrderPayloadForApi, type PostExCreateOrderPayload } from "@/lib/postex-order-payload";
 import type { Order } from "@/lib/types";
 
-
-
 export const POSTEX_BOOKING_CONFLICT_MESSAGE =
-
   "PostEx booking is already in progress or this order has already been booked.";
 
-
-
 export type PostExCreateOrderResult =
-
   | { ok: true; trackingNumber: string }
-
-  | { ok: false; error: string };
-
-
+  | { ok: false; error: string; failureKind?: "definitive" | "unknown" };
 
 export type PostExBookPayloadResult =
-
   | { ok: true; payload: PostExCreateOrderPayload }
-
   | { ok: false; status: number; error: string };
 
-
-
 export type PostExBookOrderDeps = {
-
   getOrder: (orderId: string) => Promise<Order | null>;
-
   buildPostExPayload: (order: Order) => Promise<PostExBookPayloadResult>;
-
-  claimOrder: (orderId: string, claimedAt: string) => Promise<boolean>;
-
-  releaseClaim: (orderId: string) => Promise<void>;
-
-  completeBooking: (
-
-    orderId: string,
-
-    trackingNumber: string,
-
-    shippedAt: string,
-
-  ) => Promise<{ ok: true } | { ok: false; error: string }>;
-
+  claimOrder: (orderId: string, claimedAt: string) => Promise<string | null>;
+  releaseClaim: (orderId: string, attemptId: string) => Promise<boolean>;
+  markUnknown: (orderId: string, attemptId: string) => Promise<void>;
+  completeBooking: (orderId: string, trackingNumber: string, attemptId: string, completedAt: string) =>
+    Promise<{ ok: true } | { ok: false; error: string }>;
   createPostExOrder: (payload: PostExOrderPayload) => Promise<PostExCreateOrderResult>;
-
   mapPayloadForApi?: (payload: PostExCreateOrderPayload) => PostExOrderPayload;
-
   now?: () => string;
-
 };
 
+export type PostExBookOrderHttpResult = { status: number; body: Record<string, unknown> };
 
-
-export type PostExBookOrderHttpResult = {
-
-  status: number;
-
-  body: Record<string, unknown>;
-
-};
-
-
-
-/**
-
- * Definite upstream rejection (no tracking returned) — safe to release the DB claim.
-
- * Ambiguous failures keep the claim to block duplicate create-order.
-
- */
-
-export function shouldReleasePostExBookingClaim(
-
-  postExResult: PostExCreateOrderResult,
-
-): boolean {
-
-  if (postExResult.ok) return false;
-
-  const error = postExResult.error;
-
-  if (/PostEx API Token is missing/i.test(error)) return true;
-
-  if (/PostEx error/i.test(error)) return true;
-
-  if (/tracking number was missing/i.test(error)) return false;
-
-  if (/Failed to communicate with PostEx/i.test(error)) return false;
-
-  return false;
-
+/** Only local preflight failures prove that no create request reached PostEx. */
+export function shouldReleasePostExBookingClaim(result: PostExCreateOrderResult): boolean {
+  return !result.ok && result.failureKind === "definitive";
 }
 
-
+const UNKNOWN_BOOKING_ERROR =
+  "PostEx booking could not be confirmed. The order remains locked for manual reconciliation.";
 
 export async function runPostExBookOrder(
-
   orderId: string,
-
   deps: PostExBookOrderDeps,
-
 ): Promise<PostExBookOrderHttpResult> {
+  const id = orderId?.trim();
+  if (!id) return { status: 400, body: { error: "Missing orderId parameter" } };
 
-  const trimmedId = orderId?.trim();
-
-  if (!trimmedId) {
-
-    return { status: 400, body: { error: "Missing orderId parameter" } };
-
-  }
-
-
-
-  const order = await deps.getOrder(trimmedId);
-
-  if (!order) {
-
-    return { status: 404, body: { error: "Order not found" } };
-
-  }
-
-
-
+  const order = await deps.getOrder(id);
+  if (!order) return { status: 404, body: { error: "Order not found" } };
   if (order.postexTrackingNumber?.trim()) {
-
     return { status: 409, body: { error: POSTEX_BOOKING_CONFLICT_MESSAGE } };
-
   }
-
-
 
   const built = await deps.buildPostExPayload(order);
+  if (!built.ok) return { status: built.status, body: { error: built.error } };
 
-  if (!built.ok) {
-
-    return { status: built.status, body: { error: built.error } };
-
-  }
-
-
-
-  const nowIso = deps.now?.() ?? new Date().toISOString();
-
-  const claimed = await deps.claimOrder(trimmedId, nowIso);
-
-  if (!claimed) {
-
-    return { status: 409, body: { error: POSTEX_BOOKING_CONFLICT_MESSAGE } };
-
-  }
-
-
+  const attemptId = await deps.claimOrder(id, deps.now?.() ?? new Date().toISOString());
+  if (!attemptId) return { status: 409, body: { error: POSTEX_BOOKING_CONFLICT_MESSAGE } };
 
   const apiPayload = deps.mapPayloadForApi
     ? deps.mapPayloadForApi(built.payload)
     : toPostExOrderPayloadForApi(built.payload);
-
-  let postExResult: PostExCreateOrderResult;
+  let result: PostExCreateOrderResult;
   try {
-    postExResult = await deps.createPostExOrder(apiPayload);
-
+    result = await deps.createPostExOrder(apiPayload);
   } catch {
-
-    return {
-
-      status: 503,
-
-      body: {
-
-        error:
-
-          "PostEx booking could not be confirmed. The order remains locked for manual reconciliation.",
-
-      },
-
-    };
-
+    await deps.markUnknown(id, attemptId);
+    return { status: 503, body: { error: UNKNOWN_BOOKING_ERROR } };
   }
 
-
-
-  if (!postExResult.ok) {
-
-    if (shouldReleasePostExBookingClaim(postExResult)) {
-
-      await deps.releaseClaim(trimmedId);
-
-      return { status: 400, body: { error: postExResult.error } };
-
+  if (!result.ok) {
+    if (shouldReleasePostExBookingClaim(result)) {
+      const released = await deps.releaseClaim(id, attemptId);
+      if (released) return { status: 400, body: { error: result.error } };
     }
-
-    return {
-
-      status: 503,
-
-      body: {
-
-        error:
-
-          "PostEx booking could not be confirmed. The order remains locked for manual reconciliation.",
-
-      },
-
-    };
-
+    await deps.markUnknown(id, attemptId);
+    return { status: 503, body: { error: UNKNOWN_BOOKING_ERROR } };
   }
-
-
 
   const persisted = await deps.completeBooking(
-
-    trimmedId,
-
-    postExResult.trackingNumber,
-
-    nowIso,
-
+    id, result.trackingNumber, attemptId, deps.now?.() ?? new Date().toISOString(),
   );
-
-
-
   if (!persisted.ok) {
-
+    await deps.markUnknown(id, attemptId);
     return {
-
       status: 503,
-
-      body: {
-
-        error:
-
-          "PostEx may have created a shipment but tracking could not be saved. The order remains locked for manual reconciliation.",
-
-      },
-
+      body: { error: "PostEx may have created a shipment but tracking could not be saved. The order remains locked for manual reconciliation." },
     };
-
   }
-
-
-
   return {
-
     status: 200,
-
     body: {
-
       success: true,
-
-      trackingNumber: postExResult.trackingNumber,
-
-      message: `Shipment booked successfully with PostEx (Tracking #: ${postExResult.trackingNumber})`,
-
+      trackingNumber: result.trackingNumber,
+      message: `Shipment booked successfully with PostEx (Tracking #: ${result.trackingNumber})`,
     },
-
   };
-
 }
-
-

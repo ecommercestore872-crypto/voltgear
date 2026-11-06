@@ -5,6 +5,7 @@ import { isAdminRequest } from "@/lib/admin";
 import {
   claimPostExBookingRow,
   completePostExBookingRow,
+  markPostExBookingUnknownRow,
   releasePostExBookingClaimRow,
 } from "@/lib/postex-book-order-db";
 import { runPostExBookOrder } from "@/lib/postex-book-order";
@@ -53,9 +54,10 @@ async function POSTHandler(req: NextRequest) {
         return { ok: true, payload: built.payload };
       },
       claimOrder: (id, claimedAt) => claimPostExBookingRow(client, id, claimedAt),
-      releaseClaim: (id) => releasePostExBookingClaimRow(client, id),
-      completeBooking: (id, trackingNumber, shippedAt) =>
-        completePostExBookingRow(client, id, trackingNumber, shippedAt),
+      releaseClaim: (id, attemptId) => releasePostExBookingClaimRow(client, id, attemptId),
+      markUnknown: (id, attemptId) => markPostExBookingUnknownRow(client, id, attemptId),
+      completeBooking: (id, trackingNumber, attemptId, completedAt) =>
+        completePostExBookingRow(client, id, trackingNumber, attemptId, completedAt),
       createPostExOrder: async (payload) => {
         const created = await createPostExOrder(payload);
         if (!created.ok) return created;
@@ -64,11 +66,9 @@ async function POSTHandler(req: NextRequest) {
     });
 
     return NextResponse.json(result.body, { status: result.status });
-  } catch (err: unknown) {
-    console.error("[PostEx Book Route Error]:", err instanceof Error ? err.message : err);
-    const message =
-      err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    console.error("[PostEx Book Route Error]: unexpected failure");
+    return NextResponse.json({ error: "Could not process PostEx booking." }, { status: 500 });
   }
 }
 

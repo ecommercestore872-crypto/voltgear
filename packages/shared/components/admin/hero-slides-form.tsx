@@ -56,6 +56,7 @@ export function HeroSlidesForm({
     title: "",
     subtitle: "",
     ctaText: "",
+    artworkText: false,
   });
 
   useEffect(() => {
@@ -74,7 +75,8 @@ export function HeroSlidesForm({
           draft.mobileImageUrl.trim() ||
           draft.title.trim() ||
           draft.subtitle.trim() ||
-          draft.ctaText.trim(),
+          draft.ctaText.trim() ||
+          draft.artworkText,
       ),
     [draft],
   );
@@ -101,6 +103,10 @@ export function HeroSlidesForm({
       setError("Product and slide image are required.");
       return;
     }
+    if (draft.artworkText && (!draft.title.trim() || !draft.subtitle.trim())) {
+      setError("Artwork with embedded text needs a title and subtitle for screen readers.");
+      return;
+    }
     await run(async () => {
       const json = await adminFetch("/api/admin/hero/slides", {
         method: "POST",
@@ -114,7 +120,8 @@ export function HeroSlidesForm({
               cta: draft.ctaText,
               mobile: draft.mobileImageUrl,
               linkType: draft.linkType,
-              category: draft.categoryId
+              category: draft.categoryId,
+              artworkText: draft.artworkText,
             }),
           },
         }),
@@ -140,7 +147,7 @@ export function HeroSlidesForm({
           },
         ]);
       }
-      setDraft((d) => ({ ...d, imageUrl: "", mobileImageUrl: "", title: "", subtitle: "", ctaText: "" }));
+      setDraft((d) => ({ ...d, imageUrl: "", mobileImageUrl: "", title: "", subtitle: "", ctaText: "", artworkText: false }));
     });
   }
 
@@ -186,7 +193,7 @@ export function HeroSlidesForm({
     setSlides((prev) =>
       prev.map((s) => {
         if (s.id !== slideId) return s;
-        let p: any = { text: "", cta: "", linkType: "product", category: "", mobile: "" };
+        let p: any = { text: "", cta: "", linkType: "product", category: "", mobile: "", artworkText: false };
         if (s.subtitle && s.subtitle.startsWith("{")) {
           try { p = { ...p, ...JSON.parse(s.subtitle) }; } catch {}
         }
@@ -197,6 +204,7 @@ export function HeroSlidesForm({
         if (updates.linkType !== undefined) p.linkType = updates.linkType;
         if (updates.category !== undefined) p.category = updates.category;
         if (updates.mobile !== undefined) p.mobile = updates.mobile;
+        if (updates.artworkText !== undefined) p.artworkText = updates.artworkText;
         s.subtitle = JSON.stringify(p);
         return { ...s };
       })
@@ -395,6 +403,16 @@ export function HeroSlidesForm({
               placeholder="e.g. SHOP EARBUDS (Defaults to product title)"
             />
           </div>
+          <label className="flex items-start gap-2 text-sm sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={draft.artworkText}
+              onChange={(e) => setDraft((d) => ({ ...d, artworkText: e.target.checked }))}
+              className="mt-1"
+            />
+            <span>Artwork already contains the visible headline and subtitle. Keep that text accessible, and place the shop button below the image.</span>
+          </label>
+          {draft.artworkText ? <p className="text-xs text-amber-700 sm:col-span-2">Check every word and claim in the image before publishing.</p> : null}
         </div>
         <Button
           onClick={createSlide}
@@ -415,6 +433,7 @@ export function HeroSlidesForm({
           let cta = ""; 
           let linkType = "product";
           let categoryId = "";
+          let artworkText = false;
           if (sub && sub.trim().startsWith("{")) {
             try {
               const p = JSON.parse(sub);
@@ -422,6 +441,7 @@ export function HeroSlidesForm({
               cta = p.cta || ""; 
               linkType = p.linkType || "product";
               categoryId = p.category || "";
+              artworkText = p.artworkText === true;
             } catch {}
           }
           
@@ -537,6 +557,16 @@ export function HeroSlidesForm({
                       placeholder="e.g. SHOP EARBUDS"
                     />
                   </div>
+                  <label className="flex items-start gap-2 text-sm sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={artworkText}
+                      onChange={(e) => updateSlideContent(slide.id, { artworkText: e.target.checked })}
+                      className="mt-1"
+                    />
+                    <span>Text is embedded in the artwork. Show it once and keep the shop button below the image.</span>
+                  </label>
+                  {artworkText ? <p className="text-xs text-amber-700 sm:col-span-2">Replace artwork with unverified claims before publishing.</p> : null}
                   <div className="space-y-1.5">
                     <Label>Click Destination Mode</Label>
                     <select
