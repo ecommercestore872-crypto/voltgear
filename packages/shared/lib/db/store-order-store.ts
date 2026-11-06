@@ -41,6 +41,7 @@ function mapOrder(row: Record<string, unknown>, items: OrderItem[], history: Ord
     statusHistory: history,
     createdAt: String(row.created_at ?? new Date().toISOString()),
     isDemo: Boolean(row.is_demo),
+    archivedAt: row.archived_at ? String(row.archived_at) : null,
     postexTrackingNumber: row.postex_tracking_number
       ? String(row.postex_tracking_number)
       : undefined,
@@ -97,6 +98,7 @@ export async function createOrderRow(input: {
   isDemo?: boolean;
   idempotencyKey?: string | null;
   idempotencyFingerprint?: string | null;
+  metaPayload?: Record<string, unknown> | null;
 }): Promise<{ orderId: string; replayed: boolean } | null> {
   const rpcItems = input.items.map((i) => ({
     slug: i.slug,
@@ -126,10 +128,10 @@ export async function createOrderRow(input: {
 
   const rpcName = input.isDemo
     ? "checkout_place_demo_order"
-    : "checkout_place_order";
+    : "checkout_place_order_with_meta";
   const { data: rpcData, error: rpcError } = await db().rpc(
     rpcName,
-    rpcArgs,
+    input.isDemo ? rpcArgs : { ...rpcArgs, p_meta_payload: input.metaPayload ?? null },
   );
 
   if (!rpcError && rpcData?.ok) {
@@ -192,7 +194,9 @@ export async function updateOrderAttributionRow(
         attrib_source: attrib.attrib_source,
         attrib_medium: attrib.attrib_medium,
         attrib_campaign: attrib.attrib_campaign,
+        attrib_content: attrib.attrib_content,
         attrib_campaign_id: attrib.attrib_campaign_id,
+        attrib_ad_id: attrib.attrib_ad_id,
         attrib_ttclid: attrib.attrib_ttclid,
         attrib_fbclid: attrib.attrib_fbclid,
         attrib_gclid: attrib.attrib_gclid,

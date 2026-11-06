@@ -3,6 +3,7 @@ import {
   resolveCourierBookingMode,
 } from "@/lib/courier-booking-mode";
 import { createPostExOrder, getPostExInvoice } from "@/lib/postex";
+import { fetchPostExTrackOrderFromApi, mapPostExTrackBodyToSafeResponse } from "@/lib/postex-track-order";
 import { CreateShipmentParams, ICourierProvider, ShipmentResult } from "./provider";
 
 export class PostExProvider implements ICourierProvider {
@@ -50,10 +51,17 @@ export class PostExProvider implements ICourierProvider {
   }
 
   async trackShipment(trackingNumber: string) {
-    // PostEx track endpoint implementation
+    const tracked = await fetchPostExTrackOrderFromApi(trackingNumber);
+    if (!tracked.ok) throw new Error("PostEx tracking is currently unavailable.");
+    const mapped = mapPostExTrackBodyToSafeResponse("", trackingNumber, tracked.data);
+    if ("ok" in mapped || !mapped.transactionStatus) {
+      throw new Error("PostEx returned an incomplete tracking response.");
+    }
     return {
-      status: "BOOKED",
-      history: [{ status: "BOOKED", at: new Date().toISOString() }],
+      status: mapped.transactionStatus,
+      history: mapped.transactionStatusHistory.map((entry) => ({
+        status: entry.transactionStatusMessage ?? entry.transactionStatusMessageCode ?? "Unknown",
+      })),
     };
   }
 

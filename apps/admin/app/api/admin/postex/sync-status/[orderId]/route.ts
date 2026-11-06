@@ -5,6 +5,7 @@ import { isAdminRequest } from "@/lib/admin";
 import { getOrderByPublicId, updateOrderStatusRow } from "@/lib/db/store";
 import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 import { runPostExStatusSyncForOrderId } from "@/lib/postex-status-sync";
+import { recordPostExTrackingSnapshot } from "@/lib/postex-tracking-ledger";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,11 @@ async function POSTHandler(
 
   const result = await runPostExStatusSyncForOrderId((await context.params).orderId, {
     getOrder: getOrderByPublicId,
+    recordSnapshot: async (snapshot) => {
+      const result = await recordPostExTrackingSnapshot(snapshot);
+      if (result.ok && result.advanced) scheduleOrderSheetSync(snapshot.orderId);
+      return result;
+    },
     applyStatusUpdate: async (orderId, newStatus, note) => {
       const updated = await updateOrderStatusRow(orderId, newStatus, note);
       if (!updated) {

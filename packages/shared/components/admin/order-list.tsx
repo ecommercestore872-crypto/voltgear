@@ -25,9 +25,10 @@ const STATUS_LABEL: Record<string, string> = {
   shipped: "Shipped",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  archived: "Archived",
 };
 
-const TABS = ["all", "new", "processing", "shipped", "delivered", "cancelled"];
+const TABS = ["all", "new", "processing", "shipped", "delivered", "cancelled", "archived"];
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -154,7 +155,7 @@ export function OrderList({
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {t === "all" ? "All Orders" : STATUS_LABEL[t]}
+                {t === "all" ? "Active Orders" : STATUS_LABEL[t]}
                 <span
                   className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
                     activeTab === t ? "bg-muted" : "bg-muted/60"
@@ -180,7 +181,7 @@ export function OrderList({
 
       {total === 0 && !initialQuery && activeTab === "all" ? (
         <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-          No orders have been placed yet.
+          No active orders. Check Archived for retained orders.
         </div>
       ) : orders.length === 0 ? (
         <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
@@ -207,6 +208,7 @@ export function OrderList({
                         Demo
                       </span>
                     )}
+                    {o.archivedAt ? <span className="ml-2 text-[10px] font-semibold uppercase text-muted-foreground">Archived</span> : null}
                   </div>
                   <div className="text-right">
                     <StatusBadge status={o.status} />

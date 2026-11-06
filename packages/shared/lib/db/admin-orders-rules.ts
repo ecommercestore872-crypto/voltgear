@@ -10,6 +10,7 @@ export type AdminOrderTabCounts = {
   shipped: number;
   delivered: number;
   cancelled: number;
+  archived: number;
 };
 
 export function sanitizeAdminOrderSearchTerm(term: string): string {
@@ -53,4 +54,8 @@ export function adminOrdersStatusForTab(
     return tab;
   }
   return null;
+}
+
+export function adminOrdersIsArchivedTab(tab: string | null | undefined): boolean {
+  return tab === "archived";
 }

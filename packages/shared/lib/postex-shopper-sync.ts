@@ -2,6 +2,7 @@ import { resolveAdminUpstreamBaseUrl } from "@/lib/deploy-rules";
 import { getOrderByPublicId, updateOrderStatusRow } from "@/lib/db/store";
 import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 import { runPostExStatusSyncForOrderId } from "@/lib/postex-status-sync";
+import { recordPostExTrackingSnapshot } from "@/lib/postex-tracking-ledger";
 
 const lastSyncAt = new Map<string, number>();
 const MIN_INTERVAL_MS = 60_000;
@@ -13,6 +14,11 @@ function postExConfiguredLocally(): boolean {
 function postExSyncDeps() {
   return {
     getOrder: getOrderByPublicId,
+    recordSnapshot: async (snapshot: Parameters<typeof recordPostExTrackingSnapshot>[0]) => {
+      const result = await recordPostExTrackingSnapshot(snapshot);
+      if (result.ok && result.advanced) scheduleOrderSheetSync(snapshot.orderId);
+      return result;
+    },
     applyStatusUpdate: async (
       id: string,
       newStatus: Parameters<typeof updateOrderStatusRow>[1],
@@ -71,17 +77,7 @@ export async function syncPostExOrdersBatch(orderIds: string[]): Promise<{
   for (const id of orderIds) {
     lastSyncAt.delete(id.trim());
     try {
-      const result = await runPostExStatusSyncForOrderId(id.trim(), {
-        getOrder: getOrderByPublicId,
-        applyStatusUpdate: async (oid, newStatus, note) => {
-          const updated = await updateOrderStatusRow(oid, newStatus, note);
-          if (!updated) {
-            return { ok: false, error: "Could not update order status." };
-          }
-          scheduleOrderSheetSync(oid);
-          return { ok: true };
-        },
-      });
+      const result = await runPostExStatusSyncForOrderId(id.trim(), postExSyncDeps());
       if (result.status >= 200 && result.status < 300) synced += 1;
       else failed += 1;
     } catch {

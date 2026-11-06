@@ -192,6 +192,7 @@ export async function fetchPostExListOrders(
       method: "GET",
       headers: { token },
       cache: "no-store",
+      signal: AbortSignal.timeout(6000),
     });
   } catch {
     return {

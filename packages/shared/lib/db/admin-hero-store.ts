@@ -155,6 +155,8 @@ export async function createAdminHeroSlide(doc: HeroSlideDoc) {
   const check = canPublishSlide({
     imageUrl: doc.imageUrl,
     productId: doc.productId,
+    title: doc.title,
+    subtitle: doc.subtitle,
   });
   if (!check.ok) {
     return {
@@ -195,6 +197,8 @@ export async function updateAdminHeroSlide(id: string, doc: HeroSlideDoc) {
   const check = canPublishSlide({
     imageUrl: doc.imageUrl,
     productId: doc.productId,
+    title: doc.title,
+    subtitle: doc.subtitle,
   });
   if (!check.ok) {
     return {
@@ -239,6 +243,8 @@ export async function publishAdminHeroSlide(id: string, doc?: HeroSlideDoc) {
   const check = canPublishSlide({
     imageUrl: String(row.image_url ?? ""),
     productId: String(row.product_id ?? ""),
+    title: String(row.title ?? ""),
+    subtitle: String(row.subtitle ?? ""),
   });
   if (!check.ok) {
     return {

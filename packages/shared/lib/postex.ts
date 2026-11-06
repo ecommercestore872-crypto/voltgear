@@ -26,6 +26,8 @@ export type PostExBookingResponse = {
 export type PostExCreateOrderFailure = {
   ok: false;
   error: string;
+  /** Definitive means the request was rejected or never sent. Unknown requires reconciliation. */
+  failureKind?: "definitive" | "unknown";
   upstreamHttpStatus?: number;
 };
 
@@ -176,6 +178,21 @@ function extractTrackingNumber(data: Record<string, unknown>): string | null {
   return s.length ? s : null;
 }
 
+function validCreateOrderPayload(payload: PostExOrderPayload, pickupAddressCode: string): boolean {
+  return Boolean(
+    /^[A-Za-z0-9_-]{1,80}$/.test(payload.orderRefNumber?.trim() ?? "") &&
+    Number.isSafeInteger(payload.invoicePayment) && payload.invoicePayment > 0 &&
+    payload.customerName?.trim() &&
+    /^03\d{9}$/.test(payload.customerPhone?.trim() ?? "") &&
+    (payload.deliveryAddress?.trim().length ?? 0) >= 5 &&
+    payload.cityName?.trim() && pickupAddressCode &&
+    payload.orderDetail?.trim() &&
+    Number.isSafeInteger(payload.items) && (payload.items ?? 0) > 0 &&
+    (payload.invoiceDivision == null ||
+      (Number.isSafeInteger(payload.invoiceDivision) && payload.invoiceDivision > 0))
+  );
+}
+
 /**
  * Creates an order shipment in PostEx system.
  */
@@ -193,14 +210,15 @@ export async function createPostExOrder(
     return {
       ok: false,
       error: "PostEx API Token is missing. Set POSTEX_API_TOKEN in environment variables.",
+      failureKind: "definitive",
     };
   }
 
   const pickupAddressCode =
-    payload.pickupAddressCode ||
-    env.POSTEX_PICKUP_ADDRESS_CODE?.trim() ||
-    env.NEXT_PUBLIC_POSTEX_PICKUP_ADDRESS_CODE?.trim() ||
-    "001";
+    payload.pickupAddressCode?.trim() || env.POSTEX_PICKUP_ADDRESS_CODE?.trim() || "";
+  if (!validCreateOrderPayload(payload, pickupAddressCode)) {
+    return { ok: false, error: "PostEx booking data is incomplete or invalid.", failureKind: "definitive" };
+  }
 
   const body: Record<string, unknown> = {
     orderRefNumber: payload.orderRefNumber,
@@ -208,11 +226,11 @@ export async function createPostExOrder(
     customerName: payload.customerName,
     customerPhone: payload.customerPhone,
     deliveryAddress: payload.deliveryAddress,
-    cityName: payload.cityName || "Lahore",
+    cityName: payload.cityName.trim(),
     pickupAddressCode: pickupAddressCode,
-    orderDetail: payload.orderDetail || "Electronics Accessories",
-    invoiceDivision: payload.invoiceDivision || 1,
-    items: payload.items || 1,
+    orderDetail: payload.orderDetail!.trim(),
+    invoiceDivision: payload.invoiceDivision ?? 1,
+    items: payload.items,
     orderType: "Normal",
   };
   const notes = payload.transactionNotes?.trim();
@@ -229,33 +247,33 @@ export async function createPostExOrder(
         token,
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(6000),
     });
-  } catch (err: unknown) {
-    console.error(
-      "[PostEx API Error]:",
-      err instanceof Error ? err.message : "network error",
-    );
+  } catch {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Failed to communicate with PostEx API.",
+      error: "PostEx booking outcome is unknown; reconcile before retrying.",
+      failureKind: "unknown",
     };
   }
 
   const parsed = await readPostExJsonResponse(res);
   if (!parsed.ok) {
-    console.error("[PostEx API Error]:", parsed.error, `(HTTP ${parsed.upstreamHttpStatus})`);
-    return parsed;
+    return { ...parsed, failureKind: "unknown" };
   }
 
   const data = parsed.data;
   const upstreamHttpStatus = parsed.upstreamHttpStatus;
 
   if (!res.ok || !postExStatusOk(data.statusCode)) {
-    const msg =
-      (typeof data.statusMessage === "string" && data.statusMessage) ||
-      (typeof data.message === "string" && data.message) ||
-      `PostEx error (${upstreamHttpStatus})`;
-    return { ok: false, error: msg, upstreamHttpStatus };
+    return {
+      ok: false,
+      // Without a merchant idempotency/rejection contract, any response after
+      // sending the create request may represent a shipment that needs lookup.
+      error: "PostEx booking outcome is unknown; reconcile before retrying.",
+      failureKind: "unknown",
+      upstreamHttpStatus,
+    };
   }
 
   const trackingNumber = extractTrackingNumber(data);
@@ -263,6 +281,7 @@ export async function createPostExOrder(
     return {
       ok: false,
       error: "PostEx booking succeeded but tracking number was missing in response.",
+      failureKind: "unknown",
       upstreamHttpStatus,
     };
   }

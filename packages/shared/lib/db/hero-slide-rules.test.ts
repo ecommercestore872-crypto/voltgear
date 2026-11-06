@@ -16,6 +16,14 @@ describe("hero-slide-rules", () => {
     assert.equal(canPublishSlide({ imageUrl: "/hero/banner.webp", productId: "p1" }).ok, true);
   });
 
+  it("requires a text equivalent for embedded artwork text", () => {
+    const base = { imageUrl: "/hero/banner.webp", productId: "p1" };
+    assert.equal(canPublishSlide({ ...base, subtitle: JSON.stringify({ artworkText: true, text: "Offer details" }) }).ok, false);
+    assert.equal(canPublishSlide({ ...base, title: "Offer", subtitle: JSON.stringify({ artworkText: true, text: "" }) }).ok, false);
+    assert.equal(canPublishSlide({ ...base, title: "Offer", subtitle: JSON.stringify({ artworkText: true, text: "Offer details" }) }).ok, true);
+    assert.equal(canPublishSlide({ ...base, subtitle: JSON.stringify({ artworkText: false }) }).ok, true);
+  });
+
   it("blocks home publish without slides or testimonials", () => {
     const r = canPublishHome({ publishedSlideCount: 0, publishedTestimonialCount: 1 });
     assert.equal(r.ok, false);

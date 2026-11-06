@@ -13,6 +13,7 @@ export type GadgetHeroBanner = {
   href: string;
   ctaDisabled?: boolean;
   ctaLabel?: string;
+  artworkText?: boolean;
 };
 
 export function heroSlidesToBanners(slides: HeroSlide[]): GadgetHeroBanner[] {
@@ -22,6 +23,7 @@ export function heroSlidesToBanners(slides: HeroSlide[]): GadgetHeroBanner[] {
     let ctaLabel = "Shop " + (slide.title || "this offer");
     let mobileImageUrl = "";
     let href = product2Href(slide.product.slug);
+    let artworkText = false;
 
     if (subtitle && subtitle.trim().startsWith("{")) {
       try {
@@ -31,6 +33,7 @@ export function heroSlidesToBanners(slides: HeroSlide[]): GadgetHeroBanner[] {
           mobile?: string;
           linkType?: string;
           category?: string;
+          artworkText?: boolean;
         };
         subtitle = parsed.text || "";
         if (parsed.cta) {
@@ -39,6 +42,7 @@ export function heroSlidesToBanners(slides: HeroSlide[]): GadgetHeroBanner[] {
         if (parsed.mobile) {
           mobileImageUrl = parsed.mobile;
         }
+        artworkText = parsed.artworkText === true;
         if (parsed.linkType === "all") {
           href = "/products";
         } else if (parsed.linkType === "category" && parsed.category) {
@@ -60,6 +64,7 @@ export function heroSlidesToBanners(slides: HeroSlide[]): GadgetHeroBanner[] {
       href,
       ctaDisabled: cta.disabled,
       ctaLabel: ctaLabel === "Shop this offer" ? "" : ctaLabel,
+      artworkText,
     };
   });
 }

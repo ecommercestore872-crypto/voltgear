@@ -1,12 +1,29 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { captureClickAttribution } from "./click-attribution";
+import { captureClickAttribution, parseClickAttributionBody } from "./click-attribution";
+import { orderAttributionFromClick } from "./db/order-attribution-rules";
 import { captureMetaClick, persistMetaClick } from "./meta-click-attribution";
 import { META_PRODUCTION_PIXEL_ID } from "./meta-commerce";
 
 test("relative storefront URLs preserve original advertising click identifiers", () => {
   assert.deepEqual(captureClickAttribution("/product/buds?fbclid=CLICK_123&ttclid=TT123&utm_source=meta"),
     { fbclid: "CLICK_123", ttclid: "TT123", utm_source: "meta" });
+});
+
+test("dynamic Meta URL parameters survive capture and map to order fields", () => {
+  const click = captureClickAttribution("/product/power-bank?utm_source=ig&utm_medium=paid_social&utm_campaign=animal_forest_powerbank&utm_content=charging_video_01&utm_id=123456&ad_id=987654&fbclid=FB_CLICK&ttclid=TT_CLICK");
+  assert.equal(click.utm_source, "ig");
+  assert.equal(click.utm_content, "charging_video_01");
+  assert.equal(click.utm_id, "123456");
+  assert.equal(click.ad_id, "987654");
+  assert.equal(click.fbclid, "FB_CLICK");
+  assert.equal(click.ttclid, "TT_CLICK");
+  const order = orderAttributionFromClick(click);
+  assert.equal(order.attrib_source, "ig");
+  assert.equal(order.attrib_content, "charging_video_01");
+  assert.equal(order.attrib_campaign_id, "123456");
+  assert.equal(order.attrib_ad_id, "987654");
+  assert.deepEqual(parseClickAttributionBody(click), click);
 });
 
 test("fbc uses the real click timestamp only after consent and never invents a click", () => {

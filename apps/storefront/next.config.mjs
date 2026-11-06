@@ -29,7 +29,6 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
-      { protocol: "https", hostname: "*.cloudinary.com" },
       { protocol: "https", hostname: "zeuhfqevqjkbzwdaxjuv.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],

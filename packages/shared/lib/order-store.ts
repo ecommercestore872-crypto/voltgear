@@ -40,6 +40,7 @@ export interface NewOrderInput {
   isDemo?: boolean;
   idempotencyKey?: string | null;
   idempotencyFingerprint?: string | null;
+  metaPayload?: Record<string, unknown> | null;
 }
 
 export async function createOrder(order: NewOrderInput): Promise<{ orderId: string; replayed: boolean } | null> {

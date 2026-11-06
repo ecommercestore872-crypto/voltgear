@@ -1,66 +1,63 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { scheduleOrderSheetSync } from "@/lib/order-sheet-sync";
 
-/** Atomic claim: only one concurrent book request may proceed per order. */
+/** Database row lock and attempt token prevent two provider creates for one order. */
 export async function claimPostExBookingRow(
   client: SupabaseClient,
   orderId: string,
-  claimedAt: string,
-): Promise<boolean> {
-  const { data, error } = await client
-    .from("orders")
-    .update({ postex_booking_claimed_at: claimedAt })
-    .eq("order_id", orderId)
-    .is("postex_tracking_number", null)
-    .is("postex_booking_claimed_at", null)
-    .select("id")
-    .maybeSingle();
-
+  _claimedAt: string,
+): Promise<string | null> {
+  const { data, error } = await client.rpc("postex_claim_booking", { p_order_id: orderId });
   if (error) {
-    console.error("[postex-book] claim update failed:", error.message);
-    return false;
+    console.error("[postex-book] claim failed");
+    return null;
   }
-
-  return Boolean(data);
+  return data?.ok === true && typeof data.attempt_id === "string" ? data.attempt_id : null;
 }
 
 export async function releasePostExBookingClaimRow(
   client: SupabaseClient,
   orderId: string,
-): Promise<void> {
-  const { error } = await client
-    .from("orders")
-    .update({ postex_booking_claimed_at: null })
-    .eq("order_id", orderId)
-    .is("postex_tracking_number", null);
-
-  if (error) {
-    console.error("[postex-book] release claim failed:", error.message);
+  attemptId: string,
+): Promise<boolean> {
+  const { data, error } = await client.rpc("postex_release_booking_preflight", {
+    p_order_id: orderId, p_attempt_id: attemptId,
+  });
+  if (error || data?.ok !== true) {
+    console.error("[postex-book] release preflight failed");
+    return false;
   }
+  return true;
+}
+
+export async function markPostExBookingUnknownRow(
+  client: SupabaseClient,
+  orderId: string,
+  attemptId: string,
+): Promise<void> {
+  const { data, error } = await client.rpc("postex_mark_booking_unknown", {
+    p_order_id: orderId, p_attempt_id: attemptId,
+  });
+  if (error || data?.ok !== true) console.error("[postex-book] unknown-state update failed");
 }
 
 export async function completePostExBookingRow(
   client: SupabaseClient,
   orderId: string,
   trackingNumber: string,
-  shippedAt: string,
+  attemptId: string,
+  completedAt: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { error } = await client
-    .from("orders")
-    .update({
-      postex_tracking_number: trackingNumber,
-      status: "processing",
-      status_updated_at: shippedAt,
-      postex_booking_claimed_at: null,
-    })
-    .eq("order_id", orderId);
-
-  if (error) {
-    console.error("[postex-book] persist tracking failed:", error.message);
+  const { data, error } = await client.rpc("postex_complete_booking", {
+    p_order_id: orderId,
+    p_attempt_id: attemptId,
+    p_tracking_number: trackingNumber,
+    p_completed_at: completedAt,
+  });
+  if (error || data?.ok !== true) {
+    console.error("[postex-book] persist tracking failed");
     return { ok: false, error: "Could not save PostEx tracking on the order." };
   }
-
   scheduleOrderSheetSync(orderId);
   return { ok: true };
 }

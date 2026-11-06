@@ -13,7 +13,8 @@ describe("cloudinaryImageUrl", () => {
       "https://res.cloudinary.com/demo/image/upload/v1/folder/watch.jpg";
     const url = cloudinaryImageUrl(src, { w: 2000 });
     assert.match(url, /c_limit,w_2000/);
-    assert.match(url, /f_webp,q_auto/);
+    assert.match(url, /f_auto,q_auto/);
+    assert.match(url, /\/v1\/folder\/watch\.jpg$/);
   });
 
   it("pads to a square for product cards without cropping", () => {
@@ -31,6 +32,7 @@ describe("cloudinaryImageUrl", () => {
     const url = cloudinaryImageUrl(src, { w: 640 });
     assert.match(url, /c_limit,w_640/);
     assert.doesNotMatch(url, /w_900/);
+    assert.match(url, /\/v1\/folder\/watch\.jpg$/);
   });
 
   it("cloudinaryLoader applies requested width", () => {
@@ -38,6 +40,15 @@ describe("cloudinaryImageUrl", () => {
       "https://res.cloudinary.com/demo/image/upload/v1/folder/watch.jpg";
     const out = cloudinaryLoader({ src, width: 640, quality: 75 });
     assert.match(out, /w_640/);
+  });
+
+  it("does not rewrite lookalike or insecure Cloudinary hosts", () => {
+    for (const src of [
+      "https://res.cloudinary.com.evil.example/image/upload/watch.jpg",
+      "http://res.cloudinary.com/demo/image/upload/watch.jpg",
+    ]) {
+      assert.equal(cloudinaryImageUrl(src, { w: 640 }), src);
+    }
   });
 
   it("cloudinaryLoader serves blog covers from /public/blog without Cloudinary fetch", () => {
@@ -102,6 +113,10 @@ describe("cloudinaryImageUrl", () => {
     assert.equal(
       cloudinaryAssetPathAfterUpload("f_auto,q_60,w_800/folder/x.webp"),
       "folder/x.webp",
+    );
+    assert.equal(
+      cloudinaryAssetPathAfterUpload("v123/folder/watch.png"),
+      "v123/folder/watch.png",
     );
   });
 

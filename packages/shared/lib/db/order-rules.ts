@@ -70,6 +70,7 @@ export type AdminListRow = {
 export type AdminOrderListItem = AdminListRow & {
   customerEmail: string;
   isDemo: boolean;
+  archivedAt?: string | null;
 };
 
 export function emailsMatch(a?: string | null, b?: string | null): boolean {
@@ -190,6 +191,7 @@ export function toAdminOrderListItem(order: Order): AdminOrderListItem {
     ...toAdminListRow(order),
     customerEmail: order.customer?.email ?? "",
     isDemo: Boolean(order.isDemo),
+    archivedAt: order.archivedAt ?? null,
   };
 }
 

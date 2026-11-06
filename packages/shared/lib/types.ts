@@ -277,6 +277,7 @@ export interface Order {
   statusHistory?: OrderStatusHistoryEntry[];
   createdAt: string;
   isDemo?: boolean;
+  archivedAt?: string | null;
   postexTrackingNumber?: string;
 }
 

@@ -137,10 +137,12 @@ export function buildPostExOrderPayloadFromOrder(
   if (!pickupAddressCode) missingOrInvalid.push("POSTEX_PICKUP_ADDRESS_CODE");
 
   const itemCount = sumPostExItemCount(order.items);
-  if (itemCount <= 0) missingOrInvalid.push("order.items");
+  if (itemCount <= 0 || order.items?.some((line) =>
+    !Number.isSafeInteger(line.quantity) || (line.quantity ?? 0) <= 0
+  )) missingOrInvalid.push("order.items");
 
   const total = order.total;
-  if (total == null || !Number.isFinite(total) || total < 0) {
+  if (total == null || !Number.isSafeInteger(total) || total <= 0) {
     missingOrInvalid.push("order.total");
   }
 
@@ -161,7 +163,7 @@ export function buildPostExOrderPayloadFromOrder(
       customerPhone: customerPhone!,
       deliveryAddress: deliveryAddress!,
       invoiceDivision: 1,
-      invoicePayment: Math.round(total!),
+      invoicePayment: total!,
       items: itemCount,
       orderDetail,
       orderRefNumber: orderRefNumber!,
