@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
-import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { sortBlogPostsForHome } from "@/lib/blog-desk-rules";
 import type { Page } from "@/lib/types";
 import { imageUrl } from "@/lib/sanity/image";
@@ -49,20 +48,27 @@ function coverGradient(i: number) {
   return tones[i % tones.length];
 }
 
-export function GadgetBlogSection({ posts }: { posts: Page[] }) {
+export function GadgetBlogSection({
+  posts = [],
+  popularCards,
+  latestCards,
+}: {
+  posts?: Page[];
+  popularCards?: BlogCardPost[];
+  latestCards?: BlogCardPost[];
+}) {
   const [tab, setTab] = useState<"popular" | "latest">("popular");
 
   const visible = useMemo(() => {
-    const ranked = sortBlogPostsForHome(
-      posts.length ? posts : FALLBACK_BLOG_POSTS,
-      tab,
-    );
+    if (tab === "popular" && popularCards && popularCards.length > 0) return popularCards;
+    if (tab === "latest" && latestCards && latestCards.length > 0) return latestCards;
+    const ranked = sortBlogPostsForHome(posts, tab);
     return toCards(ranked).slice(0, 8);
-  }, [posts, tab]);
+  }, [popularCards, latestCards, posts, tab]);
 
   return (
     <section
-      className="gadget-band-clay px-4 py-10 sm:py-14 lg:px-8"
+      className="gadget-band-clay gadget-contain-blog px-4 py-10 sm:py-14 lg:px-8"
       aria-labelledby="gadget-blogs-heading"
     >
       <div className="mx-auto max-w-6xl">
@@ -106,7 +112,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
             </div>
           </div>
           <Link
-            href="/blog"
+            href="/blog" prefetch={false}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--g-forest)] transition hover:text-[var(--g-forest-mid)]"
           >
             View all blog posts
@@ -128,7 +134,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
                 >
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(31,54,38,0.1)]">
                     <Link
-                      href={href}
+                      href={href} prefetch={false}
                       aria-label={post.title}
                       className="relative block aspect-[16/10] overflow-hidden bg-[var(--g-cream-deep)]"
                     >
@@ -162,7 +168,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
                           {date}
                         </p>
                       ) : null}
-                      <Link href={href}>
+                      <Link href={href} prefetch={false}>
                         <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[var(--g-charcoal)]">
                           {post.title}
                         </h3>
@@ -174,7 +180,7 @@ export function GadgetBlogSection({ posts }: { posts: Page[] }) {
                       ) : null}
                       <div className="flex-1" />
                       <Link
-                        href={href}
+                        href={href} prefetch={false}
                         className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[var(--g-line)] bg-[var(--g-white)] text-[13px] font-semibold text-[var(--g-charcoal)] transition hover:border-[var(--g-forest)] hover:text-[var(--g-forest)]"
                       >
                         Read article

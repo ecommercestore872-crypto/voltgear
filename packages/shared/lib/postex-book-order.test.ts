@@ -115,7 +115,7 @@ describe("runPostExBookOrder", () => {
   });
 
   it("passes canonical normalized payload to createPostExOrder (lahore -> Lahore)", async () => {
-    let captured: PostExOrderPayload | null = null;
+    let captured: any = null;
     const order = baseOrder();
     order.customer = { ...order.customer!, city: "lahore" };
 

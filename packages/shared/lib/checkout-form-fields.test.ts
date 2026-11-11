@@ -25,7 +25,19 @@ describe("checkout-form-fields", () => {
       name: "Ali Khan",
       phone: "03001234567",
       address: "House 12, Street 4, DHA",
+      province: "punjab",
+      city: "Lahore",
     });
     assert.deepEqual(errors, {});
+  });
+
+  it("flags missing province and city beside their fields", () => {
+    const errors = validateCheckoutFormFields({
+      name: "Ali Khan",
+      phone: "03001234567",
+      address: "House 12, Street 4, DHA",
+    });
+    assert.ok(errors.province);
+    assert.ok(errors.city);
   });
 });

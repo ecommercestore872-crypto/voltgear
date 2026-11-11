@@ -56,7 +56,7 @@ export default async function ShippingReturnsPage() {
           title="Shipping policy"
         >
           <p>
-            We ship nationwide. Orders are packed after confirmation and usually
+            We ship to serviceable areas. Orders are packed after confirmation and usually
             leave our warehouse within 1–2 working days.
           </p>
           <ul className="mt-3 list-disc space-y-1.5 pl-4">

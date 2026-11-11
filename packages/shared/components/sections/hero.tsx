@@ -316,12 +316,16 @@ export function Hero({
                   }}
                   aria-label={`Go to slide ${i + 1}`}
                   aria-current={i === activeIndex ? "true" : undefined}
-                  className={`transition-all duration-300 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                    i === activeIndex
-                      ? "h-2 w-7 bg-primary shadow-sm"
-                      : "h-2 w-2 bg-foreground/20 hover:bg-foreground/45"
-                  }`}
-                />
+                  className="inline-flex min-h-[44px] min-w-[28px] items-center justify-center p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <span
+                    className={`transition-all duration-300 rounded-full ${
+                      i === activeIndex
+                        ? "h-2 w-7 bg-primary shadow-sm"
+                        : "h-2 w-2 bg-foreground/20 hover:bg-foreground/45"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           )}

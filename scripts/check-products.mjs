@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-function getEnv(key: string): string {
+function getEnv(key) {
   const envFile = fs.readFileSync(path.join(process.cwd(), ".env.local"), "utf8");
   for (const line of envFile.split("\n")) {
     const trimmed = line.trim();

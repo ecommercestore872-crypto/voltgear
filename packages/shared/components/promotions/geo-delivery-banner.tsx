@@ -28,7 +28,7 @@ export function GeoDeliveryBanner() {
 
   return (
     <span className="text-[var(--g-cream)]">
-      Cash on delivery nationwide · try it at home
+      Cash on delivery in serviceable areas · try it at home
     </span>
   );
 }

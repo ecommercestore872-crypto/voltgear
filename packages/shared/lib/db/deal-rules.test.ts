@@ -171,8 +171,8 @@ describe("suggestDealPairs", () => {
         createdAt: "2026-08-01T07:00:00.000Z",
         status: "delivered",
         items: [
-          { slug: "watch", price: 2500, quantity: 1, lineTotal: 2500 },
-          { slug: "strap", price: 1200, quantity: 1, lineTotal: 1200 },
+          { slug: "watch", quantity: 1 },
+          { slug: "strap", quantity: 1 },
         ],
       },
       {
@@ -180,8 +180,8 @@ describe("suggestDealPairs", () => {
         createdAt: "2026-08-02T07:00:00.000Z",
         status: "delivered",
         items: [
-          { slug: "watch", price: 2500, quantity: 1, lineTotal: 2500 },
-          { slug: "cable", price: 200, quantity: 1, lineTotal: 200 },
+          { slug: "watch", quantity: 1 },
+          { slug: "cable", quantity: 1 },
         ],
       },
       {
@@ -189,8 +189,8 @@ describe("suggestDealPairs", () => {
         createdAt: "2026-08-03T07:00:00.000Z",
         status: "cancelled",
         items: [
-          { slug: "watch", price: 2500, quantity: 1, lineTotal: 2500 },
-          { slug: "strap", price: 1200, quantity: 1, lineTotal: 1200 },
+          { slug: "watch", quantity: 1 },
+          { slug: "strap", quantity: 1 },
         ],
       },
     ];

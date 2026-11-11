@@ -28,40 +28,47 @@ export function ProductViewTracker({
 }) {
   useEffect(() => {
     let metaCleanup: (() => void) | void = undefined;
-    if (productId) {
-      metaCleanup = trackMetaViewContent({
-        productId,
-        name,
-        price,
-        category,
-      });
-    }
+    let timer: NodeJS.Timeout | null = null;
 
-    try {
-      trackTikTokViewContent({
-        slug,
-        name,
-        price,
-        category,
-        ...(sku ? { sku } : {}),
-      });
-    } catch {
-      // fail-open
-    }
+    const runTracking = () => {
+      if (productId) {
+        metaCleanup = trackMetaViewContent({
+          productId,
+          name,
+          price,
+          category,
+        });
+      }
 
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const existing: RecentProduct[] = raw ? JSON.parse(raw) : [];
-      const next = [
-        { slug, name, price, image, category },
-        ...existing.filter((p) => p.slug !== slug),
-      ].slice(0, MAX_ITEMS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // ignore
-    }
+      try {
+        trackTikTokViewContent({
+          slug,
+          name,
+          price,
+          category,
+          ...(sku ? { sku } : {}),
+        });
+      } catch {
+        // fail-open
+      }
+
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const existing: RecentProduct[] = raw ? JSON.parse(raw) : [];
+        const next = [
+          { slug, name, price, image, category },
+          ...existing.filter((p) => p.slug !== slug),
+        ].slice(0, MAX_ITEMS);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+    };
+
+    timer = setTimeout(runTracking, 6500);
 
     return () => {
+      if (timer) clearTimeout(timer);
       if (metaCleanup) {
         metaCleanup();
       }

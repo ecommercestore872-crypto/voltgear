@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
@@ -67,7 +66,7 @@ export async function generateMetadata({
 
   const description = product.shortDescription
     ? `${product.shortDescription} Check the latest ${product.name} price in Pakistan. Fast shipping with Cash on Delivery from Buy n Try!`
-    : `Find the exact ${product.name} price in Pakistan online. Read genuine reviews, compare specs, and buy with Cash on Delivery nationwide at Buy n Try.`;
+    : `Find the ${product.name} price in Pakistan online. Compare specs and buy with Cash on Delivery in serviceable areas at Buy n Try.`;
   const siteUrl = indexSiteUrl();
   const url = `${siteUrl}/product/${product.slug}`;
   const firstImg = product.images?.[0]
@@ -109,7 +108,7 @@ export async function generateMetadata({
 function PdpDeferredFallback() {
   return (
     <div
-      className="mt-10 min-h-[240px] animate-pulse rounded-2xl bg-[var(--g-line)]/40"
+      className="mt-10 min-h-[240px] rounded-2xl bg-[var(--g-line)]/40"
       aria-hidden
     />
   );
@@ -249,23 +248,23 @@ export default async function Product2Page({
           aria-label="Breadcrumb"
           className="flex flex-wrap items-center gap-1 text-xs text-[var(--g-taupe)]"
         >
-          <Link href="/" className="hover:text-[var(--g-forest)]">
+          <a href="/" className="hover:text-[var(--g-forest)]">
             Home
-          </Link>
+          </a>
           <span aria-hidden>/</span>
-          <Link
+          <a
             href={products2Href(product.category)}
             className="capitalize hover:text-[var(--g-forest)]"
           >
             {product.category.replace(/-/g, " ")}
-          </Link>
+          </a>
           <span aria-hidden>/</span>
           <span className="line-clamp-1 text-[var(--g-charcoal)]">
             {product.name}
           </span>
         </nav>
 
-        <div className="mt-6">
+        <div className="mt-6" style={{ contain: "layout" }}>
           <GadgetPdpProductGrid
             product={stripProductForPdpClient(product)}
             config={config}

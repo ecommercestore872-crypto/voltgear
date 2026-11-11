@@ -1,7 +1,10 @@
+import { canSendMetaBrowserEvent } from "@/lib/meta-consent";
+import { buildMetaHashedCustomer, type MetaCustomer } from "@/lib/meta-matching";
+
 declare global {
   interface Window {
-    fbq?: (...args: any[]) => void;
-    _fbq?: any;
+    fbq?: (...args: unknown[]) => void;
+    _fbq?: unknown;
     __META_PIXEL_LAST_PATHNAME__?: string;
     __META_PAGEVIEW_SEQUENCE__?: number;
     __META_VIEWCONTENT_LAST_KEY__?: string;
@@ -9,18 +12,64 @@ declare global {
     __META_INITIATECHECKOUT_LAST_SEQUENCE__?: number;
     __META_PURCHASE_PENDING_ORDER_IDS__?: Set<string>;
     __META_PURCHASE_SENT_ORDER_IDS__?: Set<string>;
+    __META_ADVANCED_MATCHING_KEY__?: string;
   }
+}
+
+export function newMetaEventId(): string {
+  try {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  } catch {
+    // Fall through for older in-app browsers.
+  }
+  return `meta_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function sendMetaBrowserEvent(input: {
+  eventName: "PageView" | "ViewContent" | "AddToCart" | "InitiateCheckout";
+  eventId: string;
+  productIds?: string[];
+  value?: number;
+  numItems?: number;
+}): void {
+  if (!canSendMetaBrowserEvent()) return;
+  try {
+    void fetch("/api/meta/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      keepalive: true,
+      body: JSON.stringify({ ...input, consent: "all", pageUrl: window.location.origin + window.location.pathname }),
+    }).catch(() => {});
+  } catch {
+    // Browser events must not interrupt shopping.
+  }
+}
+
+function initAdvancedMatching(customer?: MetaCustomer): void {
+  if (!customer || !canSendMetaBrowserEvent() || !window.fbq) return;
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  if (!pixelId) return;
+  const matching = buildMetaHashedCustomer(customer);
+  if (!Object.keys(matching).length) return;
+  const key = JSON.stringify(matching);
+  if (window.__META_ADVANCED_MATCHING_KEY__ === key) return;
+  window.fbq("init", pixelId, matching);
+  window.__META_ADVANCED_MATCHING_KEY__ = key;
 }
 
 export function ensureMetaPageView(pathname: string): number | null {
   if (typeof window === "undefined") return null;
+  if (!canSendMetaBrowserEvent()) return null;
   if (!window.fbq) return null;
 
   if (window.__META_PIXEL_LAST_PATHNAME__ === pathname) {
     return window.__META_PAGEVIEW_SEQUENCE__ || 1;
   }
 
-  window.fbq("track", "PageView");
+  const eventId = newMetaEventId();
+  window.fbq("track", "PageView", {}, { eventID: eventId });
+  sendMetaBrowserEvent({ eventName: "PageView", eventId });
   window.__META_PIXEL_LAST_PATHNAME__ = pathname;
   window.__META_PAGEVIEW_SEQUENCE__ = (window.__META_PAGEVIEW_SEQUENCE__ || 0) + 1;
   
@@ -39,10 +88,11 @@ export function trackMetaViewContent({
   category?: string;
 }): void | (() => void) {
   if (typeof window === "undefined") return;
+  if (!canSendMetaBrowserEvent()) return;
   if (!productId || !name || typeof price !== "number" || !isFinite(price)) return;
 
   const execute = () => {
-    if (!window.fbq) return;
+    if (!window.fbq || !canSendMetaBrowserEvent()) return;
 
     const sequence =
       ensureMetaPageView(window.location.pathname) ||
@@ -52,6 +102,7 @@ export function trackMetaViewContent({
     const key = `${sequence}:${productId}`;
     if (window.__META_VIEWCONTENT_LAST_KEY__ === key) return;
     
+    const eventId = newMetaEventId();
     window.fbq("track", "ViewContent", {
       content_ids: [productId],
       content_name: name,
@@ -59,7 +110,8 @@ export function trackMetaViewContent({
       value: price,
       currency: "PKR",
       ...(category ? { content_category: category } : {}),
-    });
+    }, { eventID: eventId });
+    sendMetaBrowserEvent({ eventName: "ViewContent", eventId, productIds: [productId], value: price });
 
     window.__META_VIEWCONTENT_LAST_KEY__ = key;
   };
@@ -93,13 +145,15 @@ export function trackMetaAddToCart({
   quantity?: number;
 }): void {
   if (typeof window === "undefined") return;
+  if (!canSendMetaBrowserEvent()) return;
   if (!productId || typeof name !== "string" || !name.trim()) return;
   if (typeof price !== "number" || !isFinite(price) || price < 0) return;
   if (typeof quantity !== "number" || !isFinite(quantity) || quantity <= 0) return;
 
   const execute = () => {
-    if (!window.fbq) return;
+    if (!window.fbq || !canSendMetaBrowserEvent()) return;
 
+    const eventId = newMetaEventId();
     window.fbq("track", "AddToCart", {
       content_ids: [productId],
       content_name: name,
@@ -113,7 +167,8 @@ export function trackMetaAddToCart({
       ],
       value: price * quantity,
       currency: "PKR",
-    });
+    }, { eventID: eventId });
+    sendMetaBrowserEvent({ eventName: "AddToCart", eventId, productIds: [productId], value: price * quantity, numItems: quantity });
   };
 
   if (window.fbq) {
@@ -137,6 +192,7 @@ export function trackMetaInitiateCheckout({
   value: number;
 }): void | (() => void) {
   if (typeof window === "undefined") return;
+  if (!canSendMetaBrowserEvent()) return;
   if (!items.length) return;
   if (typeof value !== "number" || !isFinite(value) || value < 0) return;
 
@@ -150,7 +206,7 @@ export function trackMetaInitiateCheckout({
   if (summedQuantity <= 0) return;
 
   const execute = () => {
-    if (!window.fbq) return;
+    if (!window.fbq || !canSendMetaBrowserEvent()) return;
 
     const sequence =
       ensureMetaPageView(window.location.pathname) ||
@@ -167,6 +223,7 @@ export function trackMetaInitiateCheckout({
       return true;
     });
 
+    const eventId = newMetaEventId();
     if (allItemsValid) {
       window.fbq("track", "InitiateCheckout", {
         content_ids: items.map((i) => i.productId as string),
@@ -179,14 +236,17 @@ export function trackMetaInitiateCheckout({
         num_items: summedQuantity,
         value: value,
         currency: "PKR",
-      });
+      }, { eventID: eventId });
     } else {
       window.fbq("track", "InitiateCheckout", {
         num_items: summedQuantity,
         value: value,
         currency: "PKR",
-      });
+      }, { eventID: eventId });
     }
+    sendMetaBrowserEvent({ eventName: "InitiateCheckout", eventId,
+      ...(allItemsValid ? { productIds: items.map((i) => i.productId as string) } : {}),
+      value, numItems: summedQuantity });
 
     window.__META_INITIATECHECKOUT_LAST_SEQUENCE__ = sequence;
   };
@@ -212,6 +272,7 @@ export function trackMetaPurchase({
   orderId,
   items,
   value,
+  customer,
 }: {
   orderId: string;
   items: Array<{
@@ -221,8 +282,10 @@ export function trackMetaPurchase({
     quantity: number;
   }>;
   value: number;
+  customer?: MetaCustomer;
 }): void {
   if (typeof window === "undefined") return;
+  if (!canSendMetaBrowserEvent()) return;
   if (typeof orderId !== "string" || orderId.trim().length === 0) return;
   if (typeof value !== "number" || !isFinite(value) || value < 0) return;
 
@@ -274,7 +337,8 @@ export function trackMetaPurchase({
   window.__META_PURCHASE_PENDING_ORDER_IDS__.add(validOrderId);
 
   const execute = () => {
-    if (!window.fbq) return;
+    if (!window.fbq || !canSendMetaBrowserEvent()) return;
+    initAdvancedMatching({ ...customer, externalId: validOrderId });
 
     const allItemsValid = items.every((i) => {
       if (!i.productId || i.productId.trim() === "") return false;

@@ -1,12 +1,7 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { Check, ShoppingBag, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
-import { dispatchAddToCartEffect } from "@/components/effects/cart-effects";
-import { useCart } from "@/components/cart/cart-provider";
+import { GadgetFeaturedBuyButton } from "@/components/gadget/gadget-featured-buy-button";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { product2Href } from "@/lib/gadget-preview";
@@ -30,54 +25,27 @@ export function GadgetFeaturedProduct({
   productDescription?: string | null;
   customImage?: string | null;
 }) {
-  const { addItem, openCart } = useCart();
-  const [added, setAdded] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
   const image = customImage || gadgetImageSrc(product, PRODUCT_IMAGE.gallery);
   const stock = getStockState(product.stockStatus);
   const href = product2Href(product.slug);
   const off = salePercent(product.price, product.compareAtPrice);
   const rating =
     product.rating != null && product.rating > 0 ? product.rating : null;
-  const features = (product.features ?? []).filter(Boolean).slice(0, 3);
 
-  function handleBuy() {
-    if (stock.soldOut) return;
-    const defaultVariant =
-      product.variants?.find((v) => v.isDefault) ??
-      product.variants?.[0] ??
-      null;
-    const price = defaultVariant?.price ?? product.price;
-    const itemImage = gadgetImageSrc(product, PRODUCT_IMAGE.thumb) || undefined;
-    addItem({
-      slug: product.slug,
-      name: product.name,
-      price,
-      image: itemImage,
-      productId: product._id,
-      freeShipping: Boolean(product.freeShipping),
-      ...(product.sku ? { sku: product.sku } : {}),
-      ...(defaultVariant
-        ? {
-            variantKey: defaultVariant._key,
-            variantName: defaultVariant.name,
-            ...(defaultVariant.sku ? { variantSku: defaultVariant.sku } : {}),
-          }
-        : {}),
-    });
-    const btn = btnRef.current;
-    if (btn) {
-      const r = btn.getBoundingClientRect();
-      dispatchAddToCartEffect(null, r.left + r.width / 2, r.top);
-    }
-    setAdded(true);
-    openCart();
-    window.setTimeout(() => setAdded(false), 1600);
-  }
+  const clientProduct = {
+    _id: product._id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    category: product.category,
+    freeShipping: Boolean(product.freeShipping),
+    stockStatus: product.stockStatus,
+    ...(product.sku ? { sku: product.sku } : {}),
+  } as Product;
 
   return (
     <section
-      className="gadget-band-forest px-4 py-10 sm:py-14 lg:px-8"
+      className="gadget-band-forest gadget-contain-featured px-4 py-10 sm:py-14 lg:px-8"
       aria-labelledby="featured-product-heading"
     >
       <div className="mx-auto max-w-6xl">
@@ -102,13 +70,15 @@ export function GadgetFeaturedProduct({
           >
             {image ? (
               <div className="relative w-full h-full flex items-center justify-center p-0 sm:p-8 lg:p-8">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={image}
                   alt=""
-                  fill
-                  quality={90}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
-                  className="object-contain transition duration-500 hover:scale-[1.03] p-2 sm:p-4 lg:p-6 mix-blend-multiply"
+                  width={600}
+                  height={600}
+                  loading="lazy"
+                  decoding="async"
+                  className="max-h-full max-w-full object-contain transition duration-500 hover:scale-[1.03] p-2 sm:p-4 lg:p-6 mix-blend-multiply"
                 />
               </div>
             ) : (
@@ -189,31 +159,20 @@ export function GadgetFeaturedProduct({
               {stock.soldOut ? (
                 <Link
                   href={href}
+                  prefetch={false}
                   className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--g-line)] px-6 text-sm font-semibold text-[var(--g-charcoal)]"
                 >
                   View details
                 </Link>
               ) : (
-                <button
-                  ref={btnRef}
-                  type="button"
-                  onClick={handleBuy}
-                  className="gadget-buy-cta gadget-press inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-sm font-bold transition"
-                >
-                  {added ? (
-                    <>
-                      <Check className="h-4 w-4" strokeWidth={1.75} /> Added
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="h-4 w-4" strokeWidth={1.75} /> Buy
-                      now
-                    </>
-                  )}
-                </button>
+                <GadgetFeaturedBuyButton
+                  product={clientProduct}
+                  soldOut={stock.soldOut}
+                />
               )}
               <Link
                 href={href}
+                prefetch={false}
                 className="inline-flex h-12 items-center justify-center rounded-full px-4 text-sm font-semibold text-[var(--g-forest)] hover:underline"
               >
                 See full details

@@ -1,11 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart, Volume2, VolumeX } from "lucide-react";
 
-import { cloudinaryLoader } from "@/lib/cloudinary";
 import type { GadgetCreativeBanner } from "@/lib/gadget-creatives";
 import {
   fallbackHeroBanners,
@@ -14,40 +12,49 @@ import {
 } from "@/lib/gadget-hero-banners";
 import type { HeroSlide } from "@/lib/types";
 
-const INTERVAL_MS = 5500;
+const INTERVAL_MS = 25000;
 const FADE_MS = 700;
 
 export type { GadgetHeroBanner } from "@/lib/gadget-hero-banners";
 
 export function GadgetHeroSlider({
+  banners: precomputedBanners,
   slides = [],
   fallbackBanners = [],
 }: {
+  banners?: GadgetHeroBanner[];
   slides?: HeroSlide[];
   fallbackBanners?: GadgetCreativeBanner[];
 }) {
   const banners: GadgetHeroBanner[] =
-    slides.length > 0
-      ? heroSlidesToBanners(slides)
-      : fallbackHeroBanners(fallbackBanners);
+    precomputedBanners && precomputedBanners.length > 0
+      ? precomputedBanners
+      : slides.length > 0
+        ? heroSlidesToBanners(slides)
+        : fallbackHeroBanners(fallbackBanners);
 
   const [index, setIndex] = useState(0);
+  const [hasChangedSlide, setHasChangedSlide] = useState(false);
   const [paused, setPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [muted, setMuted] = useState(true);
   const touchStartX = useRef<number | null>(null);
   const touchStartTime = useRef<number | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduceMotion(mq.matches);
+    if (mq.matches) setReduceMotion(true);
     const onChange = () => setReduceMotion(mq.matches);
     mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    return () => {
+      mq.removeEventListener("change", onChange);
+    };
   }, []);
 
   useEffect(() => {
     if (banners.length <= 1 || paused || reduceMotion) return;
     const id = window.setInterval(() => {
+      setHasChangedSlide(true);
       setIndex((i) => (i + 1) % banners.length);
     }, INTERVAL_MS);
     return () => window.clearInterval(id);
@@ -69,11 +76,13 @@ export function GadgetHeroSlider({
   const active = banners[index] ?? banners[0];
 
   function prev() {
+    setHasChangedSlide(true);
     setPaused(false);
     setIndex((i) => (i - 1 + banners.length) % banners.length);
   }
 
   function next() {
+    setHasChangedSlide(true);
     setPaused(false);
     setIndex((i) => (i + 1) % banners.length);
   }
@@ -101,7 +110,7 @@ export function GadgetHeroSlider({
 
   return (
     <section
-      className="bg-[var(--g-cream)] px-3 pt-3 pb-2 sm:px-4 sm:pt-4 lg:px-8"
+      className="bg-black"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={handleTouchStart}
@@ -110,8 +119,8 @@ export function GadgetHeroSlider({
       aria-roledescription="carousel"
       aria-label="Campaign banners"
     >
-      <div className="gadget-hero-shell group relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-[var(--g-line)] bg-[var(--g-forest)]">
-        <div className="relative w-full min-h-[320px] aspect-square sm:min-h-0 sm:aspect-[21/9] lg:aspect-[2.4/1]">
+      <div className="gadget-hero-shell group relative overflow-hidden bg-black">
+        <div className="relative h-[72svh] min-h-[520px] max-h-[860px] w-full sm:h-[76svh]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
@@ -121,44 +130,71 @@ export function GadgetHeroSlider({
                 className="absolute inset-0"
                 style={{
                   opacity: isActive ? 1 : 0,
-                  transition: reduceMotion
-                    ? "opacity 1ms"
+                  transition: !hasChangedSlide || reduceMotion
+                    ? "none"
                     : `opacity ${FADE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
                   zIndex: isActive ? 1 : 0,
                   pointerEvents: isActive ? "auto" : "none",
+                  contain: "paint",
+                  willChange: hasChangedSlide && isActive ? "opacity" : "auto",
                 }}
                 aria-hidden={!isActive}
               >
                 {shouldPaint ? (
                   <>
-                    {banner.mobileImageUrl ? (
-                      <Image
-                        loader={cloudinaryLoader}
-                        src={banner.mobileImageUrl}
+                    {banner.videoUrl && !reduceMotion ? (
+                      <>
+                        <video
+                          key={`${banner.id}-${isActive}`}
+                          autoPlay={isActive}
+                          muted={muted}
+                          loop
+                          playsInline
+                          preload={i === 0 ? "auto" : "metadata"}
+                          poster={banner.imageUrl}
+                          className="absolute inset-0 z-[1] hidden h-full w-full object-cover sm:block"
+                          aria-hidden
+                        >
+                          <source src={banner.videoUrl} />
+                        </video>
+                        <video
+                          key={`${banner.id}-mobile-${isActive}`}
+                          autoPlay={isActive}
+                          muted={muted}
+                          loop
+                          playsInline
+                          preload={i === 0 ? "auto" : "metadata"}
+                          poster={banner.mobileImageUrl || banner.imageUrl}
+                          className="absolute inset-0 z-[1] h-full w-full object-cover sm:hidden"
+                          aria-hidden
+                        >
+                          <source src={banner.mobileVideoUrl || banner.videoUrl} />
+                        </video>
+                      </>
+                    ) : banner.mobileImageUrl ? (
+                      <picture className="absolute inset-0 z-[1] block h-full w-full pointer-events-none select-none">
+                        <source media="(max-width: 639px)" srcSet={banner.mobileImageUrl} width={640} height={928} />
+                        <img
+                          src={banner.imageUrl}
+                          alt=""
+                          width={1280}
+                          height={800}
+                          fetchPriority={i === 0 ? "high" : "auto"}
+                          decoding={i === 0 ? "sync" : "async"}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </picture>
+                    ) : (
+                      <img
+                        src={banner.imageUrl}
                         alt=""
-                        fill
-                        priority={i === 0}
+                        width={1200}
+                        height={800}
                         fetchPriority={i === 0 ? "high" : "auto"}
-                        quality={i === 0 ? 62 : 70}
-                        className="object-cover sm:hidden object-center z-[1]"
-                        sizes="100vw"
+                        decoding={i === 0 ? "sync" : "async"}
+                        className="absolute inset-0 z-[1] h-full w-full object-cover object-center pointer-events-none select-none"
                       />
-                    ) : null}
-                    <Image
-                      loader={cloudinaryLoader}
-                      src={banner.imageUrl}
-                      alt=""
-                      fill
-                      priority={i === 0}
-                      fetchPriority={i === 0 ? "high" : "auto"}
-                      quality={i === 0 ? 65 : 72}
-                      className={
-                        banner.mobileImageUrl
-                          ? "hidden sm:block object-cover object-center z-[1]"
-                          : "object-cover object-center z-[1]"
-                      }
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
-                    />
+                    )}
                   </>
                 ) : null}
               </div>
@@ -167,7 +203,17 @@ export function GadgetHeroSlider({
 
           {/* Vignette Overlay: only if there's text */}
           {(active.title || active.subtitle || active.ctaLabel) ? (
-            <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/80 sm:from-black/60 via-transparent to-black/10" />
+            <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(180deg,rgba(0,0,0,.24)_0%,transparent_38%,rgba(0,0,0,.78)_100%)]" />
+          ) : null}
+          {active.videoUrl ? (
+            <button
+              type="button"
+              onClick={() => setMuted((value) => !value)}
+              aria-label={muted ? "Turn hero sound on" : "Mute hero video"}
+              className="absolute right-4 top-4 z-[10] flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-black/25 text-white backdrop-blur-md transition hover:bg-black/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-6 sm:top-6"
+            >
+              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
           ) : null}
 
           {/* Left / Right Arrow Navigation (Visible on Hover / Focus) */}
@@ -177,7 +223,7 @@ export function GadgetHeroSlider({
                 type="button"
                 onClick={prev}
                 aria-label="Previous slide"
-                className="absolute left-3 top-1/2 z-[10] -translate-y-1/2 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-black/70 hover:scale-110"
+                className="absolute left-3 top-1/2 z-[10] -translate-y-1/2 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/65 text-white border border-white/20 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity hover:bg-black/80"
               >
                 <ChevronLeft className="h-6 w-6" />
               </button>
@@ -185,17 +231,17 @@ export function GadgetHeroSlider({
                 type="button"
                 onClick={next}
                 aria-label="Next slide"
-                className="absolute right-3 top-1/2 z-[10] -translate-y-1/2 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-black/70 hover:scale-110"
+                className="absolute right-3 top-1/2 z-[10] -translate-y-1/2 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/65 text-white border border-white/20 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity hover:bg-black/80"
               >
                 <ChevronRight className="h-6 w-6" />
               </button>
             </>
           ) : null}
           {/* Bottom Bar: Title, Progress Indicators & CTA */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-wrap items-end justify-between gap-3 p-4 sm:p-6">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] flex flex-wrap items-end justify-between gap-5 p-5 pb-8 sm:p-10 lg:px-16 lg:pb-14">
             <div className="pointer-events-auto flex flex-col gap-2 max-w-[min(100%,32rem)]">
               {active.title ? (
-                <p className="gadget-display text-left text-lg font-bold leading-tight tracking-[-0.02em] text-white drop-shadow-md sm:text-xl lg:text-2xl">
+                <p className="gadget-display text-left text-3xl font-bold leading-[0.95] tracking-[-0.04em] text-white drop-shadow-md sm:text-5xl lg:text-7xl">
                   {active.title}
                 </p>
               ) : null}
@@ -212,8 +258,11 @@ export function GadgetHeroSlider({
                     key={s.id}
                     type="button"
                     aria-label={`Go to slide ${i + 1}`}
-                    onClick={() => setIndex(i)}
-                    className="relative flex h-6 items-center focus:outline-none"
+                    onClick={() => {
+                      setHasChangedSlide(true);
+                      setIndex(i);
+                    }}
+                    className="relative inline-flex min-h-[44px] min-w-[28px] items-center justify-center p-2 focus:outline-none"
                   >
                     <span
                       className={`relative block h-1.5 rounded-full overflow-hidden transition-colors duration-300 ${
@@ -222,16 +271,7 @@ export function GadgetHeroSlider({
                           : "w-3 bg-white/30 hover:bg-white/60"
                       }`}
                     >
-                      {i === index && !paused ? (
-                        <span
-                          className="absolute inset-y-0 left-0 w-full bg-[var(--g-amber)] rounded-full animate-progress"
-                          style={{
-                            animationDuration: `${INTERVAL_MS}ms`,
-                            animationTimingFunction: "linear",
-                            animationFillMode: "forwards",
-                          }}
-                        />
-                      ) : i === index ? (
+                      {i === index ? (
                         <span className="absolute inset-0 bg-[var(--g-amber)] rounded-full" />
                       ) : null}
                     </span>
@@ -245,6 +285,7 @@ export function GadgetHeroSlider({
               active.ctaLabel ? (
                 <Link
                   href={active.href}
+                  prefetch={false}
                   className="gadget-hero-cta pointer-events-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-5 py-2 text-xs font-black uppercase tracking-wider sm:px-6 sm:text-sm"
                 >
                   <ShoppingCart className="h-4 w-4 stroke-[2.5]" aria-hidden />
@@ -263,7 +304,7 @@ export function GadgetHeroSlider({
         
         {/* Invisible link covering entire banner if no button is used */}
         {(!active.ctaLabel || active.title === "") && active.href ? (
-          <Link href={active.href} className="absolute inset-0 z-[5]" aria-label="View product" />
+          <Link href={active.href} prefetch={false} className="absolute inset-0 z-[5]" aria-label="View product" />
         ) : null}
       </div>
     </section>

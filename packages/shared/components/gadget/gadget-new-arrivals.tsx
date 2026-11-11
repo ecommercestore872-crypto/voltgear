@@ -1,10 +1,7 @@
-"use client";
-
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { GadgetArrivalCard } from "@/components/gadget/gadget-arrival-card";
+import { GadgetRailArrows } from "@/components/gadget/gadget-rail-arrows";
 import type { Product } from "@/lib/types";
 
 function TitleWithAccent({ title }: { title: string }) {
@@ -38,9 +35,6 @@ export function GadgetNewArrivals({
   headingId?: string;
   tone?: "default" | "clay" | "leaf";
 }) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
   const heading =
     headingId ||
     `rail-${
@@ -49,46 +43,21 @@ export function GadgetNewArrivals({
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "") || "products"
     }`;
-
-  const updateArrows = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setCanPrev(el.scrollLeft > 6);
-    setCanNext(max > 6 && el.scrollLeft < max - 6);
-  }, []);
-
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    updateArrows();
-    el.addEventListener("scroll", updateArrows, { passive: true });
-    const ro = new ResizeObserver(updateArrows);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("scroll", updateArrows);
-      ro.disconnect();
-    };
-  }, [updateArrows, products.length]);
-
-  function scrollByDir(dir: -1 | 1) {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>("[data-rail-card]");
-    const step = card ? card.offsetWidth + 16 : 280;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-  }
+  const scrollerId = `rail-scroller-${heading}`;
 
   if (!products.length) return null;
+
+  const containClass =
+    heading === "best-sellers-heading" ? "" : "gadget-contain-rail ";
 
   return (
     <section
       className={
         tone === "clay"
-          ? "gadget-band-clay px-4 py-8 sm:py-10 lg:px-8"
+          ? `gadget-band-clay ${containClass}px-4 py-8 sm:py-10 lg:px-8`
           : tone === "leaf"
-            ? "gadget-band-leaf px-4 py-8 sm:py-10 lg:px-8"
-            : "px-4 py-8 sm:py-10 lg:px-8"
+            ? `gadget-band-leaf ${containClass}px-4 py-8 sm:py-10 lg:px-8`
+            : `${containClass}px-4 py-8 sm:py-10 lg:px-8`
       }
       aria-labelledby={heading}
     >
@@ -101,26 +70,10 @@ export function GadgetNewArrivals({
             <TitleWithAccent title={title} />
           </h2>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label={`Previous ${title}`}
-              disabled={!canPrev}
-              onClick={() => scrollByDir(-1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/80 text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label={`Next ${title}`}
-              disabled={!canNext}
-              onClick={() => scrollByDir(1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/80 text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            <GadgetRailArrows scrollerId={scrollerId} title={title} />
             <Link
               href={viewAllHref}
+              prefetch={false}
               className="inline-flex min-h-10 items-center rounded-full border border-[var(--g-line)] bg-[var(--g-white)]/70 px-3.5 text-sm font-semibold text-[var(--g-forest)] transition hover:border-[var(--g-forest)]/30 hover:bg-[var(--g-white)]"
             >
               View all {title}
@@ -129,7 +82,7 @@ export function GadgetNewArrivals({
         </div>
 
         <div
-          ref={scrollerRef}
+          id={scrollerId}
           className="overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{ scrollSnapType: "x proximity" }}
         >

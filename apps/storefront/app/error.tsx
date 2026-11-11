@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
-
 export default function StorefrontError({
   error,
   reset,
@@ -25,16 +23,20 @@ export default function StorefrontError({
         session are still safe.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <Button type="button" onClick={() => reset()}>
-          Try again
-        </Button>
-        <Button
+        <button
           type="button"
-          variant="outline"
+          onClick={() => reset()}
+          className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Try again
+        </button>
+        <button
+          type="button"
           onClick={() => window.location.reload()}
+          className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
         >
           Reload page
-        </Button>
+        </button>
       </div>
     </div>
   );

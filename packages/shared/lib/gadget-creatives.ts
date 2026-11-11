@@ -16,6 +16,7 @@ export type GadgetCreativeBanner = {
   title: string;
   subtitle?: string;
   imageUrl: string;
+  mobileImageUrl?: string;
   href: string;
 };
 
@@ -27,6 +28,7 @@ export function gadgetDemoHeroBanners(categoryHref: (slug: string) => string): G
       title: "Sound that stays with you",
       subtitle: "Everyday audio, curated",
       imageUrl: GADGET_CREATIVES.heroAudio,
+      mobileImageUrl: "/gadget/gadget-hero-audio-mobile.webp",
       href: categoryHref("earbuds"),
     },
     {

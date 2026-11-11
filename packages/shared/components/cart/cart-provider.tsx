@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -45,6 +46,8 @@ export function cartLineKey(item: {
 
 interface CartContextValue {
   items: CartItem[];
+  hydrated: boolean;
+  hydrateCart: () => void;
   count: number;
   subtotal: number;
   isOpen: boolean;
@@ -63,22 +66,51 @@ const STORAGE_KEY = "ecomm-cart";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const hydratedRef = useRef(false);
 
-  useEffect(() => {
+  const hydrateCart = useCallback(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setItems((prev) => (prev.length === 0 ? parsed : prev));
+        }
+      }
     } catch {
-      // ignore corrupted storage
+      // Storage may be unavailable in an in-app browser.
     }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    const init = () => {
+      if (!cancelled) hydrateCart();
+    };
+
+    const timer = setTimeout(init, 6000);
+    window.addEventListener("pointerdown", init, { once: true, passive: true });
+    window.addEventListener("keydown", init, { once: true, passive: true });
+    window.addEventListener("touchstart", init, { once: true, passive: true });
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", init);
+      window.removeEventListener("keydown", init);
+      window.removeEventListener("touchstart", init);
+    };
+  }, [hydrateCart]);
+
+  useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {
+      // Keep the cart usable for this tab when persistence is denied.
+    }
   }, [items, hydrated]);
 
   const openCart = useCallback(() => setIsOpen(true), []);
@@ -138,22 +170,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeItem = useCallback(
     (key: string) => {
-      const existing = items.find((i) => cartLineKey(i) === key);
       setItems((prev) => prev.filter((i) => cartLineKey(i) !== key));
     },
-    [items],
+    [],
   );
 
   const updateQuantity = useCallback(
     (key: string, quantity: number) => {
-      const existing = items.find((i) => cartLineKey(i) === key);
       setItems((prev) =>
         quantity <= 0
           ? prev.filter((i) => cartLineKey(i) !== key)
           : prev.map((i) => (cartLineKey(i) === key ? { ...i, quantity } : i)),
       );
     },
-    [items],
+    [],
   );
 
   const updateItemPrice = useCallback((key: string, price: number) => {
@@ -178,6 +208,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       items,
+      hydrated,
+      hydrateCart,
       count,
       subtotal,
       isOpen,
@@ -191,6 +223,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }),
     [
       items,
+      hydrated,
+      hydrateCart,
       count,
       subtotal,
       isOpen,
@@ -209,6 +243,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 const SSR_CART: CartContextValue = {
   items: [],
+  hydrated: false,
+  hydrateCart: () => {},
   count: 0,
   subtotal: 0,
   isOpen: false,

@@ -1,8 +1,8 @@
 import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
-import { isAdminRequest } from "@/lib/admin";
-import { deleteOrder, getOrderById } from "@/lib/order-store";
+import { adminActorId, isAdminRequest } from "@/lib/admin";
+import { deleteOrder } from "@/lib/order-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,12 +20,17 @@ async function DELETEHandler(
     return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
   }
 
-  const order = await getOrderById(orderId);
-  if (!order) {
-    return NextResponse.json({ error: "Order not found." }, { status: 404 });
+  const adminUserId = adminActorId(request);
+  if (!adminUserId) {
+    return NextResponse.json({ error: "Sign in with your admin email to delete an order." }, { status: 403 });
   }
 
-  const result = await deleteOrder(orderId);
+  const body = await request.json().catch(() => null);
+  if (body?.confirmation !== orderId) {
+    return NextResponse.json({ error: "Type the exact order ID to confirm deletion." }, { status: 400 });
+  }
+
+  const result = await deleteOrder(orderId, adminUserId);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

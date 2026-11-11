@@ -2,26 +2,43 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ensureMetaPageView } from "@/lib/meta-pixel-events";
+import { canSendMetaBrowserEvent } from "@/lib/meta-consent";
+import { readStoredClickAttribution, writeMetaFbcCookie } from "@/lib/click-attribution";
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 export function MetaPixel() {
   const pathname = usePathname();
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    if (!META_PIXEL_ID) return;
-    ensureMetaPageView(pathname);
-  }, [pathname]);
+    const refresh = () => setAllowed(canSendMetaBrowserEvent());
+    refresh();
+    window.addEventListener("bnt-cookie-consent-change", refresh);
+    return () => window.removeEventListener("bnt-cookie-consent-change", refresh);
+  }, []);
 
-  if (!META_PIXEL_ID) return null;
+  useEffect(() => {
+    if (!META_PIXEL_ID || !allowed) {
+      if (window.fbq) window.fbq("consent", "revoke");
+      window.__META_PIXEL_LAST_PATHNAME__ = undefined;
+      return;
+    }
+    writeMetaFbcCookie(readStoredClickAttribution()?.fbclid);
+    window.fbq?.("consent", "grant");
+    ensureMetaPageView(pathname);
+  }, [pathname, allowed]);
+
+  if (!META_PIXEL_ID || !allowed) return null;
 
   return (
     <>
       <Script
         id="meta-pixel"
         strategy="lazyOnload"
+        onReady={() => { ensureMetaPageView(window.location.pathname); }}
       >
         {`
           if (!window.__META_PIXEL_BOOTSTRAPPED__) {
@@ -35,10 +52,6 @@ export function MetaPixel() {
             'https://connect.facebook.net/en_US/fbevents.js');
             
             fbq('init', '${META_PIXEL_ID}');
-            fbq('track', 'PageView');
-            
-            window.__META_PIXEL_LAST_PATHNAME__ = window.location.pathname;
-            window.__META_PAGEVIEW_SEQUENCE__ = 1;
             window.__META_PIXEL_BOOTSTRAPPED__ = true;
             
             window.dispatchEvent(new Event('meta:pixel-ready'));

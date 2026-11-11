@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
     "Buy n Try — Earbuds, Airbuds, Smartwatches & Chargers in Pakistan";
   const description =
     settings?.seo?.description ||
-    "Shop earbuds, airbuds, smartwatches, power banks and chargers at Buy n Try (buyntryy.com). Cash on delivery nationwide.";
+    "Shop earbuds, airbuds, smartwatches, power banks and chargers at Buy n Try (buyntryy.com). Cash on delivery in serviceable areas.";
   return {
     title: { absolute: title },
     description,

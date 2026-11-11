@@ -1,11 +1,7 @@
-"use client";
-
-import React, { useRef, useState } from "react";
-import Image from "next/image";
+import React from "react";
 import Link from "next/link";
-import { Check, ShoppingBag } from "lucide-react";
 
-import { useCart } from "@/components/cart/cart-provider";
+import { GadgetCardBuyButton } from "@/components/gadget/gadget-card-buy-button";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { product2Href } from "@/lib/gadget-preview";
@@ -20,6 +16,7 @@ interface GadgetArrivalCardProps {
   badgeTag?: string;
   isGrid?: boolean;
   variant?: "grid" | "horizontal" | "compact";
+  priority?: boolean;
 }
 
 function computeDiscountPercent(
@@ -35,11 +32,8 @@ export function GadgetArrivalCard({
   product,
   badgeTag,
   isGrid = false,
+  priority = false,
 }: GadgetArrivalCardProps) {
-  const { addItem, openCart } = useCart();
-  const [added, setAdded] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
-
   const href = product2Href(product.slug);
   const image = gadgetImageSrc(product, PRODUCT_IMAGE.card);
   const price = product.price;
@@ -57,24 +51,17 @@ export function GadgetArrivalCard({
     typeof product.rating === "number" &&
     product.rating > 0;
 
-  function handleBuy(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (stock.soldOut) return;
-
-    addItem({
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      image: image || undefined,
-      productId: product._id,
-      freeShipping: Boolean(product.freeShipping),
-      ...(product.sku ? { sku: product.sku } : {}),
-    });
-    setAdded(true);
-    openCart();
-    window.setTimeout(() => setAdded(false), 1600);
-  }
+  const clientProduct = {
+    _id: product._id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    category: product.category,
+    images: image ? [image] : [],
+    stockStatus: product.stockStatus,
+    freeShipping: product.freeShipping,
+    ...(product.sku ? { sku: product.sku } : {}),
+  } as Product;
 
   return (
     <article
@@ -110,17 +97,16 @@ export function GadgetArrivalCard({
             ) : null}
           </div>
           {image ? (
-            <Image
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
               src={image}
               alt={product.name}
-              fill
-              quality={70}
-              sizes={
-                isGrid
-                  ? "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
-                  : "260px"
-              }
-              className="object-cover object-center transition duration-500 ease-out group-hover:scale-[1.03]"
+              width={384}
+              height={384}
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
+              decoding={priority ? "sync" : "async"}
+              className="absolute inset-0 h-full w-full object-cover object-center sm:transition-transform sm:duration-500 sm:ease-out sm:group-hover:scale-[1.03]"
             />
           ) : (
             <span className="flex h-full items-center justify-center text-sm text-[var(--g-taupe)]">
@@ -128,7 +114,7 @@ export function GadgetArrivalCard({
             </span>
           )}
         </Link>
-        <WishlistButton product={product} />
+        <WishlistButton product={clientProduct} />
       </div>
 
       <div
@@ -137,7 +123,7 @@ export function GadgetArrivalCard({
           isGrid ? "px-0.5 pb-1 pt-3" : "px-0.5 pb-1 pt-3",
         )}
       >
-        <Link href={href} prefetch={false} className="min-w-0">
+        <Link href={href} prefetch={false} className="min-w-0 block py-1">
           <h3
             className={cn(
               "font-bold tracking-tight text-[var(--g-charcoal)] dark:text-white transition group-hover:text-[var(--g-forest)]",
@@ -179,34 +165,13 @@ export function GadgetArrivalCard({
             {stock.soldOut ? (
               <Link
                 href={href}
+                prefetch={false}
                 className="flex h-11 w-full items-center justify-center rounded-xl bg-[var(--g-cream-deep)] text-[13px] font-semibold text-[var(--g-taupe)] transition hover:bg-[var(--g-line)]"
               >
                 View product
               </Link>
             ) : (
-              <button
-                ref={btnRef}
-                type="button"
-                onClick={handleBuy}
-                title={`Add ${product.name} to cart`}
-                aria-label={`Add ${product.name} to cart`}
-                className="gadget-buy-cta flex h-12 w-full items-center justify-center gap-1.5 rounded-xl text-[13px] font-semibold transition duration-200 active:scale-[0.99]"
-              >
-                {added ? (
-                  <>
-                    <Check className="h-4 w-4 stroke-[2.25]" aria-hidden />
-                    <span>Added</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag
-                      className="h-4 w-4 stroke-[1.75]"
-                      aria-hidden
-                    />
-                    <span>Add to cart</span>
-                  </>
-                )}
-              </button>
+              <GadgetCardBuyButton product={clientProduct} image={image} />
             )}
           </div>
         </div>

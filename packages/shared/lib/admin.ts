@@ -1,5 +1,5 @@
-import { ADMIN_COOKIE } from "@/lib/admin-cookie";
-import { deriveAdminSessionToken, sessionTokensEqual } from "@/lib/admin-session";
+import { ADMIN_ACTOR_COOKIE, ADMIN_COOKIE } from "@/lib/admin-cookie";
+import { deriveAdminSessionToken, sessionTokensEqual, verifyAdminActorSession } from "@/lib/admin-session";
 import { resolveAdminSecret } from "@/lib/deploy-rules";
 
 /**
@@ -42,4 +42,10 @@ export function isAdminRequest(request: Request): boolean {
   const cookie = cookieValue(request, ADMIN_COOKIE);
   const expectedSession = deriveAdminSessionToken(token);
   return Boolean(cookie) && sessionTokensEqual(cookie, expectedSession);
+}
+
+/** Destructive actions require a named Supabase sign-in, not the legacy shared password. */
+export function adminActorId(request: Request): string | null {
+  if (!isAdminRequest(request)) return null;
+  return verifyAdminActorSession(getAdminSecret(), cookieValue(request, ADMIN_ACTOR_COOKIE));
 }

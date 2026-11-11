@@ -64,7 +64,7 @@ import {
   validateCheckoutFormFields,
   type CheckoutFormField,
 } from "@/lib/checkout-form-fields";
-import { PAKISTAN_CITY_SUGGESTIONS } from "@/lib/pakistan-cities";
+import { getCitiesForProvince, PAKISTAN_PROVINCES } from "@/lib/pakistan-locations";
 
 const SUMMARY_CARD =
   "min-w-0 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm sm:rounded-2xl sm:p-5";
@@ -92,6 +92,8 @@ export default function CheckoutPageClient() {
   const router = useRouter();
   const {
     items,
+    hydrated,
+    hydrateCart,
     subtotal,
     updateItemPrice,
     clearCart,
@@ -101,6 +103,7 @@ export default function CheckoutPageClient() {
   const merchandise = Math.max(0, subtotal - dealDiscount);
   const config = useSiteConfig();
   const [gadget, setGadget] = useState(false);
+  useEffect(() => { hydrateCart(); }, [hydrateCart]);
   const shopHref = gadget ? products2Href() : "/products";
   const productHref = (slug: string) =>
     gadget ? product2Href(slug) : `/product/${slug}`;
@@ -115,19 +118,6 @@ export default function CheckoutPageClient() {
       setGadget(false);
     }
 
-    try {
-      // Background City Autofill from Edge Cookie
-      const match = document.cookie.match(/(?:^|;\s*)visitor-city=([^;]*)/);
-      if (match && match[1]) {
-        const decodedCity = decodeURIComponent(match[1]);
-        if (decodedCity && decodedCity !== "Pakistan") {
-          setTimeout(() => {
-            const cityEl = document.getElementById("city") as HTMLInputElement;
-            if (cityEl && !cityEl.value) cityEl.value = decodedCity;
-          }, 50);
-        }
-      }
-    } catch {}
   }, []);
 
   // step: 0 = Cart, 1 = Information, 2 = Review, 3 = Complete (implicit on placedOrder)
@@ -135,8 +125,12 @@ export default function CheckoutPageClient() {
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [orderNotes, setOrderNotes] = useState("");
   const [placing, setPlacing] = useState(false);
+  const placingRef = useRef(false);
   const orderNavigationRef = useRef(false);
   const [customer, setCustomer] = useState<Record<string, string>>({});
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [otherCity, setOtherCity] = useState(false);
+  const [cityValue, setCityValue] = useState("");
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<CheckoutFormField, string>>
   >({});
@@ -178,37 +172,35 @@ export default function CheckoutPageClient() {
     step === 1 && items.length > 0,
   );
 
-  if (typeof window !== "undefined" && items.length > 0) {
-    const cartFingerprint = JSON.stringify(
-      items.map((i) => ({ slug: i.slug, q: i.quantity, v: i.variantKey }))
-    );
-    
-    if (!idemRef.current || idemRef.current.fingerprint !== cartFingerprint) {
-      const storedStr = window.sessionStorage.getItem("buy_n_try_checkout_idem");
-      let activeKey = "";
+  function checkoutIdempotencyKey(currentCustomer: Record<string, string>): string {
+    const fingerprint = JSON.stringify({
+      items: items.map((i) => ({ slug: i.slug, q: i.quantity, v: i.variantKey, p: i.price })),
+      customer: currentCustomer,
+      note: orderNotes.trim(),
+      giftWrap,
+      promoCode: activePromo?.error ? "" : activePromo?.code ?? "",
+    });
+    if (idemRef.current?.fingerprint === fingerprint) return idemRef.current.key;
 
-      if (storedStr) {
-        try {
-          const stored = JSON.parse(storedStr);
-          if (stored.cartFingerprint === cartFingerprint) {
-            activeKey = stored.key;
-          }
-        } catch {}
-      }
-
-      if (!activeKey) {
-        activeKey =
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        
-        window.sessionStorage.setItem(
-          "buy_n_try_checkout_idem",
-          JSON.stringify({ key: activeKey, cartFingerprint, createdAt: Date.now() })
-        );
-      }
-      idemRef.current = { fingerprint: cartFingerprint, key: activeKey };
+    let key = "";
+    try {
+      const stored = JSON.parse(window.sessionStorage.getItem("buy_n_try_checkout_idem") ?? "null");
+      if (stored?.fingerprint === fingerprint && typeof stored.key === "string") key = stored.key;
+    } catch {
+      // Restricted browsers may deny storage; an in-memory key still protects retries in this tab.
     }
+    if (!key) {
+      key = typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      try {
+        window.sessionStorage.setItem("buy_n_try_checkout_idem", JSON.stringify({ key, fingerprint }));
+      } catch {
+        // The current tab retains the key in idemRef.
+      }
+    }
+    idemRef.current = { fingerprint, key };
+    return key;
   }
 
   const GIFT_WRAP_FEE = 199;
@@ -327,14 +319,21 @@ export default function CheckoutPageClient() {
       }
     }
 
-    if (placing || orderNavigationRef.current) return;
+    if (placingRef.current || orderNavigationRef.current) return;
+    placingRef.current = true;
     tagCheckoutClarityEvent("place_order_click");
     setPlacing(true);
     setPriceChanged(null);
     setApiError(null);
 
     try {
-      const activeIdemKey = idemRef.current?.key || "";
+      const activeIdemKey = checkoutIdempotencyKey(currentCustomer);
+      let cookieConsent: string | null = null;
+      try {
+        cookieConsent = window.localStorage.getItem("bnt-cookie-consent");
+      } catch {
+        // Consent remains unknown when storage is blocked.
+      }
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
@@ -363,10 +362,7 @@ export default function CheckoutPageClient() {
           giftWrap,
           giftWrapFee: giftWrap ? GIFT_WRAP_FEE : 0,
           idempotencyKey: activeIdemKey,
-          consent:
-            typeof window !== "undefined"
-              ? window.localStorage.getItem("bnt-cookie-consent")
-              : null,
+          consent: cookieConsent,
           ...(activePromo?.code && !activePromo.error
             ? { promoCode: activePromo.code }
             : {}),
@@ -389,17 +385,15 @@ export default function CheckoutPageClient() {
           total: Number(data.total) || 0,
         });
         setPlacing(false);
+        placingRef.current = false;
         return;
       }
 
       if (!res.ok) {
         throw new Error(data.error ?? "Failed");
       }
-      tagCheckoutClarityEvent("order_success");
-
-      if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem("buy_n_try_checkout_idem");
-      }
+      try { tagCheckoutClarityEvent("order_success"); } catch {}
+      try { window.sessionStorage.removeItem("buy_n_try_checkout_idem"); } catch {}
       idemRef.current = null;
 
       const lookupEmail =
@@ -407,8 +401,10 @@ export default function CheckoutPageClient() {
           ? data.lookupEmail.trim().toLowerCase()
           : currentCustomer.email?.trim().toLowerCase() ?? "";
       if (lookupEmail && typeof document !== "undefined") {
-        const maxAge = 60 * 60 * 24;
-        document.cookie = `bnt_order_${encodeURIComponent(data.orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(data.orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
+        try {
+          const maxAge = 60 * 60 * 24;
+          document.cookie = `bnt_order_${encodeURIComponent(data.orderId)}=${encodeURIComponent(lookupEmail)}; Path=/order/${encodeURIComponent(data.orderId)}; Max-Age=${maxAge}; SameSite=Lax`;
+        } catch {}
       }
       const orderQuery = new URLSearchParams();
       const phoneForTrack = currentCustomer.phone?.trim() ?? "";
@@ -420,17 +416,17 @@ export default function CheckoutPageClient() {
       const serverLines = Array.isArray(data.lines) ? data.lines : [];
       const first = items[0];
       if (first) {
-        saveLastOrder({
+        try { saveLastOrder({
           at: Date.now(),
           orderId: data.orderId,
           email: lookupEmail,
           name: currentCustomer.name?.trim() ?? "",
           product: { slug: first.slug, name: first.name },
-        });
+        }); } catch {}
       }
 
       orderNavigationRef.current = true;
-      window.scrollTo({ top: 0, behavior: "instant" });
+      try { window.scrollTo({ top: 0, behavior: "instant" }); } catch {}
       router.replace(`/order/${data.orderId}${orderQs}`);
 
       window.setTimeout(() => {
@@ -459,6 +455,14 @@ export default function CheckoutPageClient() {
                 quantity: i.quantity,
               })),
               value: purchaseTotal,
+              customer: {
+                email: lookupEmail || currentCustomer.email,
+                phone: currentCustomer.phone,
+                fullName: currentCustomer.name,
+                city: currentCustomer.city,
+                postalCode: currentCustomer.postal,
+                country: "pk",
+              },
             });
           } catch {
             // fail-open
@@ -473,6 +477,7 @@ export default function CheckoutPageClient() {
           : "Something went wrong placing your order. Please try again.";
       setApiError(message);
       setPlacing(false);
+      placingRef.current = false;
     }
   }
 
@@ -577,6 +582,9 @@ export default function CheckoutPageClient() {
   }, [step, items, subtotal]);
 
   /* ── Empty cart ─────────────────────────────────────────────────── */
+  if (!hydrated) {
+    return <div className="container mx-auto max-w-xl px-4 py-16 text-center" role="status">Loading your cart…</div>;
+  }
   if (items.length === 0) {
     return (
       <div className="container mx-auto max-w-xl px-4 py-16 lg:px-8">
@@ -616,7 +624,7 @@ export default function CheckoutPageClient() {
                     Your delivery details
                   </h2>
                   <p className="mt-1 text-xs leading-snug text-muted-foreground sm:text-sm">
-                    Only 3 required fields — name, mobile number, and address.
+                    Enter your delivery details. Email and postal code are optional.
                   </p>
                 </div>
 
@@ -637,6 +645,7 @@ export default function CheckoutPageClient() {
                 <div className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-2 min-w-0 rounded-xl border-0 p-3 sm:rounded-2xl sm:p-5">
                   <form
                     id="details-form"
+                    noValidate
                     className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -754,26 +763,73 @@ export default function CheckoutPageClient() {
                         </p>
                       ) : null}
                     </div>
-                    <div className="min-w-0 space-y-1.5 hidden sm:block">
+                    <div className="min-w-0 space-y-1.5">
+                      <Label htmlFor="province" className="text-xs font-bold sm:text-sm">
+                        Province / region *
+                      </Label>
+                      <select
+                        id="province"
+                        name="province"
+                        required
+                        autoComplete="address-level1"
+                        value={selectedProvince}
+                        className={cn("h-11 w-full rounded-md border bg-background px-3 text-base", fieldErrors.province && "border-destructive")}
+                        aria-invalid={fieldErrors.province ? true : undefined}
+                        aria-describedby={fieldErrors.province ? "checkout-province-error" : undefined}
+                        onChange={(e) => {
+                          setSelectedProvince(e.target.value);
+                          setCityValue("");
+                          setOtherCity(false);
+                          clearFieldError("province");
+                          clearFieldError("city");
+                        }}
+                        onBlur={(e) => touchField("province", e.target.value)}
+                      >
+                        <option value="">Select province / region</option>
+                        {PAKISTAN_PROVINCES.map((province) => (
+                          <option key={province.code} value={province.code}>{province.label}</option>
+                        ))}
+                      </select>
+                      {fieldErrors.province ? <p id="checkout-province-error" className="text-xs text-destructive" role="alert">{fieldErrors.province}</p> : null}
+                    </div>
+                    <div className="min-w-0 space-y-1.5">
                       <Label htmlFor="city" className="text-xs font-bold sm:text-sm">
-                        City <span className="font-normal text-muted-foreground">(optional)</span>
+                        City / town *
                       </Label>
                       <Input
                         id="city"
                         name="city"
-                        list="pakistan-cities"
+                        required
+                        disabled={!selectedProvince}
+                        list={otherCity ? undefined : "checkout-pakistan-cities"}
                         autoComplete="address-level2"
-                        placeholder="Karachi, Lahore…"
-                        className="h-11"
-                        defaultValue={customer.city}
+                        placeholder={otherCity ? "Enter your city or town" : "Search city or town"}
+                        className={cn("h-11 text-base", fieldErrors.city && "border-destructive")}
+                        value={cityValue}
+                        aria-invalid={fieldErrors.city ? true : undefined}
+                        aria-describedby={fieldErrors.city ? "checkout-city-error" : undefined}
+                        onChange={(e) => { setCityValue(e.target.value); clearFieldError("city"); }}
+                        onBlur={(e) => touchField("city", e.target.value)}
                       />
-                      <datalist id="pakistan-cities">
-                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
-                          <option key={city} value={city} />
+                      <datalist id="checkout-pakistan-cities">
+                        {getCitiesForProvince(selectedProvince).map((city) => (
+                          <option key={city.name} value={city.name} />
                         ))}
                       </datalist>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-primary underline underline-offset-2"
+                        disabled={!selectedProvince}
+                        onClick={() => { setOtherCity((value) => !value); setCityValue(""); clearFieldError("city"); }}
+                      >
+                        {otherCity ? "Back to city suggestions" : "Other city / town"}
+                      </button>
+                      {fieldErrors.city ? <p id="checkout-city-error" className="text-xs text-destructive" role="alert">{fieldErrors.city}</p> : null}
                     </div>
-                    <div className="min-w-0 space-y-1.5 hidden sm:block">
+                    <p className="text-xs text-muted-foreground sm:col-span-2">
+                      Courier coverage is checked before dispatch. We will contact you if your location needs manual review.
+                    </p>
+                    <div className="min-w-0 space-y-1.5">
                       <Label htmlFor="email" className="text-xs font-bold sm:text-sm">
                         Email <span className="font-normal text-muted-foreground">(optional)</span>
                       </Label>
@@ -788,7 +844,7 @@ export default function CheckoutPageClient() {
                         defaultValue={customer.email}
                       />
                     </div>
-                    <div className="min-w-0 space-y-1.5 hidden sm:block">
+                    <div className="min-w-0 space-y-1.5">
                       <Label htmlFor="postal" className="text-xs font-bold sm:text-sm">
                         Postal code <span className="font-normal text-muted-foreground">(optional)</span>
                       </Label>
@@ -815,50 +871,6 @@ export default function CheckoutPageClient() {
                     </div>
                   </form>
                 </div>
-
-                <details className="mt-3 text-sm sm:hidden">
-                  <summary className="cursor-pointer font-semibold text-primary">
-                    City or email (optional)
-                  </summary>
-                  <div className="mt-2 grid gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="city-mobile" className="text-xs font-bold">
-                        City
-                      </Label>
-                      <Input
-                        id="city-mobile"
-                        form="details-form"
-                        name="city"
-                        list="pakistan-cities-mobile"
-                        autoComplete="address-level2"
-                        placeholder="Karachi, Lahore…"
-                        className="h-11"
-                        defaultValue={customer.city}
-                      />
-                      <datalist id="pakistan-cities-mobile">
-                        {PAKISTAN_CITY_SUGGESTIONS.map((city) => (
-                          <option key={city} value={city} />
-                        ))}
-                      </datalist>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="email-mobile" className="text-xs font-bold">
-                        Email
-                      </Label>
-                      <Input
-                        id="email-mobile"
-                        form="details-form"
-                        name="email"
-                        type="email"
-                        inputMode="email"
-                        autoComplete="email"
-                        placeholder="For order confirmation"
-                        className="h-11"
-                        defaultValue={customer.email}
-                      />
-                    </div>
-                  </div>
-                </details>
 
                 <div className="mt-3 lg:hidden">
                   <CheckoutCodAssist

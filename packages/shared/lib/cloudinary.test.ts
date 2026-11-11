@@ -72,6 +72,29 @@ describe("cloudinaryImageUrl", () => {
     }
   });
 
+  it("cloudinaryLoader serves /gadget/ and /brand/ assets from origin (no fetch)", () => {
+    const prev = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";
+    try {
+      const outHero = cloudinaryLoader({
+        src: "/gadget/gadget-hero-audio.webp",
+        width: 828,
+        quality: 70,
+      });
+      assert.equal(outHero, "/gadget/gadget-hero-audio.webp");
+
+      const outBrand = cloudinaryLoader({
+        src: "/brand/bnt-seal.webp",
+        width: 44,
+        quality: 70,
+      });
+      assert.equal(outBrand, "/brand/bnt-seal.webp");
+    } finally {
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      else process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = prev;
+    }
+  });
+
   it("strips transform segments from upload tail", () => {
     assert.equal(
       cloudinaryAssetPathAfterUpload("f_auto,q_60,w_800/folder/x.webp"),

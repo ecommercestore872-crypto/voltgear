@@ -1,30 +1,25 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
 
-import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
 import type { ShopType } from "@/lib/categories";
-import { getStockState } from "@/lib/stock";
+import { sortCatalogProducts } from "@/lib/rail-product";
 import type { PublicSiteConfig } from "@/lib/site-config";
 import type { Product } from "@/lib/types";
 
+const GadgetShopCatalogDynamic = dynamic(
+  () =>
+    import("@/components/gadget/gadget-shop-catalog").then(
+      (m) => m.GadgetShopCatalog,
+    ),
+  { ssr: true },
+);
+
 function hasImage(p: Product) {
   return Boolean(p.images?.[0] || p.cloudinaryImages?.[0]);
-}
-
-function sortProducts(list: Product[], sort: string) {
-  const sorted = [...list].sort((a, b) => {
-    if (sort === "price-asc") return a.price - b.price;
-    if (sort === "price-desc") return b.price - a.price;
-    return (
-      Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name)
-    );
-  });
-  return [
-    ...sorted.filter((p) => !getStockState(p.stockStatus).soldOut),
-    ...sorted.filter((p) => getStockState(p.stockStatus).soldOut),
-  ];
 }
 
 /**
@@ -43,6 +38,7 @@ export function GadgetShopCatalogClient({
   flattenGrid,
   guideLink,
   maxPerCategory,
+  children,
 }: {
   products: Product[];
   shopTypes: ShopType[];
@@ -55,6 +51,7 @@ export function GadgetShopCatalogClient({
   flattenGrid?: boolean;
   guideLink?: { href: string; label: string } | null;
   maxPerCategory?: number;
+  children?: ReactNode;
 }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("featured");
@@ -63,13 +60,40 @@ export function GadgetShopCatalogClient({
   const pathname = usePathname();
 
   useEffect(() => {
-    const raw =
-      typeof window !== "undefined" ? window.location.search : "";
-    const params = new URLSearchParams(
-      raw.startsWith("?") ? raw.slice(1) : raw,
-    );
-    setQuery((params.get("q") || "").trim());
-    setSort(params.get("sort") || "featured");
+    const syncFromLocation = () => {
+      const raw = typeof window !== "undefined" ? window.location.search : "";
+      if (!raw) {
+        setQuery((prev) => (prev !== "" ? "" : prev));
+        setSort((prev) => (prev !== "featured" ? "featured" : prev));
+        return;
+      }
+      const params = new URLSearchParams(
+        raw.startsWith("?") ? raw.slice(1) : raw,
+      );
+      const nextQ = (params.get("q") || "").trim();
+      const nextSort = params.get("sort") || "featured";
+      setQuery((prev) => (prev !== nextQ ? nextQ : prev));
+      setSort((prev) => (prev !== nextSort ? nextSort : prev));
+    };
+
+    const onCustomQuery = (e: Event) => {
+      const detail = (e as CustomEvent<{ q?: string; sort?: string }>).detail;
+      if (!detail) return;
+      const nextQ = (detail.q || "").trim();
+      const nextSort = detail.sort || "featured";
+      setQuery((prev) => (prev !== nextQ ? nextQ : prev));
+      setSort((prev) => (prev !== nextSort ? nextSort : prev));
+    };
+
+    if (typeof window !== "undefined" && window.location.search) {
+      syncFromLocation();
+    }
+    window.addEventListener("popstate", syncFromLocation);
+    window.addEventListener("voltgear:catalog-query", onCustomQuery);
+    return () => {
+      window.removeEventListener("popstate", syncFromLocation);
+      window.removeEventListener("voltgear:catalog-query", onCustomQuery);
+    };
   }, [pathname]);
 
   useEffect(() => {
@@ -95,7 +119,10 @@ export function GadgetShopCatalogClient({
     };
   }, [activeCategory, query, sort]);
 
+  const isDefaultView = query === "" && sort === "featured";
+
   const filtered = useMemo(() => {
+    if (children && isDefaultView) return products;
     const qLower = query.toLowerCase();
     const useRemote = !activeCategory && qLower && remoteProducts !== null;
     let list = (useRemote ? remoteProducts : products).filter((p) =>
@@ -112,13 +139,25 @@ export function GadgetShopCatalogClient({
           (p.shortDescription || "").toLowerCase().includes(qLower),
       );
     }
-    return sortProducts(list, sort);
-  }, [products, remoteProducts, activeCategory, query, sort]);
+    return sortCatalogProducts(list, sort);
+  }, [
+    children,
+    isDefaultView,
+    products,
+    remoteProducts,
+    activeCategory,
+    query,
+    sort,
+  ]);
+
+  if (children && isDefaultView) {
+    return <>{children}</>;
+  }
 
   const hubSearchActive = !activeCategory && Boolean(query.trim());
 
   return (
-    <GadgetShopCatalog
+    <GadgetShopCatalogDynamic
       title={title}
       description={description}
       products={filtered}

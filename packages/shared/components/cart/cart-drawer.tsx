@@ -220,7 +220,7 @@ function FreeShippingBar({
   );
 }
 
-export function CartDrawer() {
+function CartDrawerContent() {
   const pathname = usePathname();
   const [sessionActive, setSessionActive] = useState(false);
   const [searchString, setSearchString] = useState("");
@@ -622,4 +622,18 @@ export function CartDrawer() {
       />
     </>
   );
+}
+
+
+export function CartDrawer() {
+  const { isOpen } = useCart();
+  const [hasOpened, setHasOpened] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setHasOpened(true);
+  }, [isOpen]);
+
+  if (!hasOpened && !isOpen) return null;
+
+  return <CartDrawerContent />;
 }

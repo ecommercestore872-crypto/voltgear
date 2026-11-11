@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Banknote,
   Mail,
@@ -31,12 +30,12 @@ function splitTwo<T>(items: T[]): [T[], T[]] {
 
 function FooterLink({ href, label }: { href: string; label: string }) {
   return (
-    <Link
+    <a
       href={href}
       className="block py-1.5 text-[13px] text-white/90 transition hover:text-[var(--g-white)] min-h-[36px] flex items-center"
     >
       {label}
-    </Link>
+    </a>
   );
 }
 
@@ -72,7 +71,7 @@ export function GadgetFooter({
   const codEnabled = config.codEnabled;
 
   return (
-    <footer className="bg-[var(--g-cream)] pt-6 sm:px-3 sm:pb-3 sm:pt-8">
+    <footer className="bg-[var(--g-cream)] gadget-contain-footer pt-6 sm:px-3 sm:pb-3 sm:pt-8">
       <div className="overflow-hidden rounded-t-[2.25rem] border-t-4 border-[var(--g-gold)] bg-[var(--g-forest)] text-[var(--g-white)] shadow-[0_-12px_40px_rgba(14,36,25,0.2)] sm:rounded-[2.25rem]">
         {/* Pre-footer Trust Row */}
         <div className="border-b border-white/10 px-5 py-6 sm:px-8">
@@ -189,13 +188,13 @@ export function GadgetFooter({
 
           {/* Brand + contact + newsletter */}
           <div className="flex flex-col">
-            <Link
+            <a
               href="/"
               className="inline-flex min-h-11 w-fit items-center"
               aria-label={`${brandName} home`}
             >
               <ShopBrandMark logo={settings?.logo} name={brandName} invert />
-            </Link>
+            </a>
 
             {socialLinks.length ? (
               <div className="mt-5 flex flex-wrap gap-2.5">
@@ -267,36 +266,36 @@ export function GadgetFooter({
               aria-label="Legal"
               className="flex flex-wrap items-center gap-x-4 gap-y-1"
             >
-              <Link
+              <a
                 href="/privacy-policy"
                 className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
               >
                 Privacy
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/cookies"
                 className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
               >
                 Cookies
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/terms-of-service"
                 className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
               >
                 Terms
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/about"
                 className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
               >
                 About
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/contact"
                 className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
               >
                 Contact
-              </Link>
+              </a>
             </nav>
           </div>
         </div>

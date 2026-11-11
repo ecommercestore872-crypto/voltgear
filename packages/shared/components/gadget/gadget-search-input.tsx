@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MagnifyingGlass } from "@phosphor-icons/react";
-
-import { PHOSPHOR_SEARCH } from "@/components/icons/phosphor-chrome";
+import { Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -46,7 +44,7 @@ export function GadgetSearchInput({
         )}
         aria-hidden
       >
-        <MagnifyingGlass {...PHOSPHOR_SEARCH} aria-hidden />
+        <Search size={14} strokeWidth={1.75} aria-hidden />
       </span>
       <input
         id={id}

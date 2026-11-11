@@ -1,4 +1,5 @@
 import type { ClickAttributionInput } from "@/lib/db/order-attribution-rules";
+import { canSendMetaBrowserEvent } from "@/lib/meta-consent";
 
 export const CLICK_ATTRIB_STORAGE_KEY = "vg_click_attrib";
 
@@ -15,7 +16,7 @@ const PARAMS = [
 export function captureClickAttribution(href: string): ClickAttributionInput {
   const out: ClickAttributionInput = {};
   try {
-    const url = new URL(href);
+    const url = new URL(href, typeof window === "undefined" ? "https://example.invalid" : window.location.origin);
     for (const param of PARAMS) {
       const value = url.searchParams.get(param);
       if (value) {
@@ -50,6 +51,7 @@ export function readStoredClickAttribution(): ClickAttributionInput | null {
 export function persistClickAttribution(input: ClickAttributionInput): void {
   if (typeof window === "undefined") return;
   if (!Object.keys(input).length) return;
+  if (input.fbclid) writeMetaFbcCookie(input.fbclid);
   try {
     const prev = readStoredClickAttribution();
     const merged = mergeClickAttribution(prev ?? {}, input);
@@ -57,6 +59,16 @@ export function persistClickAttribution(input: ClickAttributionInput): void {
   } catch {
     // ignore storage errors
   }
+}
+
+export function writeMetaFbcCookie(fbclid: string | null | undefined): void {
+  if (typeof document === "undefined" || !canSendMetaBrowserEvent()) return;
+  const clickId = fbclid?.trim();
+  if (!clickId || !/^[A-Za-z0-9_-]{1,500}$/.test(clickId)) return;
+  const current = document.cookie.match(/(?:^|;\s*)_fbc=([^;]+)/)?.[1];
+  if (current?.endsWith(`.${clickId}`)) return;
+  const value = `fb.1.${Date.now()}.${clickId}`;
+  document.cookie = `_fbc=${value}; Path=/; Max-Age=7776000; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
 }
 
 export function parseClickAttributionBody(raw: unknown): ClickAttributionInput | null {

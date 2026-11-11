@@ -121,13 +121,18 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
+  const rafRef = useRef<number | null>(null);
   const syncActive = useCallback(() => {
-    const el = scrollerRef.current;
-    const card = el?.querySelector<HTMLElement>("[data-review-card]");
-    if (!el || !card) return;
-    const step = card.offsetWidth + GAP_PX;
-    const i = Math.round(el.scrollLeft / step);
-    setActive(Math.min(items.length - 1, Math.max(0, i)));
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const el = scrollerRef.current;
+      const card = el?.querySelector<HTMLElement>("[data-review-card]");
+      if (!el || !card) return;
+      const step = card.offsetWidth + GAP_PX;
+      const i = Math.round(el.scrollLeft / step);
+      const next = Math.min(items.length - 1, Math.max(0, i));
+      setActive((prev) => (prev !== next ? next : prev));
+    });
   }, [items.length]);
 
   function scrollByDir(dir: -1 | 1) {
@@ -153,15 +158,15 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
 
   return (
     <section
-      className="gadget-band-leaf relative overflow-hidden px-4 py-12 sm:py-16 lg:px-8"
+      className="gadget-band-leaf gadget-contain-reviews relative overflow-hidden px-4 py-12 sm:py-16 lg:px-8"
       aria-labelledby="customer-reviews-heading"
     >
       <div
-        className="pointer-events-none absolute -right-24 top-10 h-64 w-64 rounded-full bg-[var(--g-sage)]/20 blur-3xl"
+        className="pointer-events-none absolute -right-24 top-10 hidden sm:block h-64 w-64 rounded-full bg-[var(--g-sage)]/20 blur-2xl"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-[var(--g-terracotta)]/16 blur-3xl"
+        className="pointer-events-none absolute -left-16 bottom-0 hidden sm:block h-56 w-56 rounded-full bg-[var(--g-terracotta)]/16 blur-2xl"
         aria-hidden
       />
 
@@ -281,12 +286,16 @@ export function GadgetReviewsSlider({ reviews }: { reviews: Testimonial[] }) {
               aria-current={i === active ? "true" : undefined}
               aria-label={`Go to review ${i + 1}`}
               onClick={() => goTo(i)}
-              className={`h-2 rounded-full transition-all duration-300 ease-out ${
-                i === active
-                  ? "w-7 bg-[var(--g-forest)]"
-                  : "w-2 bg-[var(--g-taupe)]/35 hover:bg-[var(--g-taupe)]/60"
-              }`}
-            />
+              className="inline-flex min-h-[44px] min-w-[28px] items-center justify-center p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--g-forest)] rounded-full"
+            >
+              <span
+                className={`block h-2 rounded-full transition-all duration-300 ease-out ${
+                  i === active
+                    ? "w-7 bg-[var(--g-forest)]"
+                    : "w-2 bg-[var(--g-taupe)]/35 hover:bg-[var(--g-taupe)]/60"
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>

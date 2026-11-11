@@ -1,25 +1,61 @@
-import crypto from "crypto";
-
 import { purchaseTrackLog } from "@/lib/purchase-track-observability";
+import { buildMetaHashedCustomer, type MetaCustomer } from "@/lib/meta-matching";
 
 export const META_CURRENCY = "PKR";
 
-function sha256Hex(value: string): string {
-  return crypto.createHash("sha256").update(value).digest("hex");
+export type MetaEventName = "PageView" | "ViewContent" | "AddToCart" | "InitiateCheckout" | "Purchase";
+
+export type MetaServerEventInput = MetaCustomer & {
+  eventName: MetaEventName;
+  eventId: string;
+  customData?: Record<string, unknown>;
+  clientIp?: string;
+  userAgent?: string;
+  eventSourceUrl?: string;
+  fbp?: string;
+  fbc?: string;
+};
+
+export function buildMetaServerEventPayload(input: MetaServerEventInput, eventTime = Math.floor(Date.now() / 1000)) {
+  const userData: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(buildMetaHashedCustomer(input))) {
+    userData[key] = [value];
+  }
+  if (input.clientIp) userData.client_ip_address = input.clientIp;
+  if (input.userAgent) userData.client_user_agent = input.userAgent;
+  if (input.fbp) userData.fbp = input.fbp;
+  if (input.fbc) userData.fbc = input.fbc;
+  return {
+    data: [{
+      event_name: input.eventName,
+      event_time: eventTime,
+      action_source: "website",
+      event_id: input.eventId,
+      user_data: userData,
+      ...(input.customData ? { custom_data: input.customData } : {}),
+      ...(input.eventSourceUrl ? { event_source_url: input.eventSourceUrl } : {}),
+    }],
+  };
 }
 
-function normalizePhone(phone: string): string {
-  // Extract only digits
-  let cleaned = phone.replace(/[^0-9]/g, "");
-  // Standardize Pakistani numbers to 92...
-  if (cleaned.startsWith("0092")) {
-    cleaned = "92" + cleaned.slice(4);
-  } else if (cleaned.startsWith("03") && cleaned.length === 11) {
-    cleaned = "92" + cleaned.slice(1);
-  } else if (cleaned.startsWith("3") && cleaned.length === 10) {
-    cleaned = "92" + cleaned;
+export async function trackMetaServerEvent(input: MetaServerEventInput): Promise<void> {
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const token = process.env.META_CONVERSIONS_API_ACCESS_TOKEN;
+  const version = process.env.META_GRAPH_API_VERSION || "v19.0";
+  if (!pixelId || !token) return;
+  const payload: Record<string, unknown> = buildMetaServerEventPayload(input);
+  if (process.env.META_TEST_EVENT_CODE) payload.test_event_code = process.env.META_TEST_EVENT_CODE;
+  try {
+    const response = await fetch(`https://graph.facebook.com/${version}/${pixelId}/events?access_token=${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) console.warn("[meta-capi] Event rejected", { eventName: input.eventName, status: response.status });
+  } catch (error) {
+    console.warn("[meta-capi] Event request failed", { eventName: input.eventName, reason: error instanceof Error ? error.name : "unknown" });
   }
-  return cleaned;
 }
 
 export async function trackMetaServerPurchase(input: {
@@ -42,7 +78,13 @@ export async function trackMetaServerPurchase(input: {
   eventSourceUrl?: string;
   fbp?: string;
   fbc?: string;
+  consent?: string | null;
+  privacyOptOut?: boolean;
 }) {
+  if (input.consent !== "all" || input.privacyOptOut) {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_consent" });
+    return;
+  }
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const token = process.env.META_CONVERSIONS_API_ACCESS_TOKEN;
   const version = process.env.META_GRAPH_API_VERSION || "v19.0";
@@ -52,53 +94,6 @@ export async function trackMetaServerPurchase(input: {
     purchaseTrackLog({ channel: "meta", outcome: "skipped_config" });
     return;
   }
-
-  const userData: Record<string, any> = {};
-
-  if (input.email) {
-    const cleanEmail = input.email.trim().toLowerCase();
-    if (cleanEmail) userData.em = [sha256Hex(cleanEmail)];
-  }
-
-  if (input.phone) {
-    const cleanPhone = normalizePhone(input.phone);
-    if (cleanPhone) userData.ph = [sha256Hex(cleanPhone)];
-  }
-
-  if (input.fullName) {
-    const parts = input.fullName.trim().replace(/\s+/g, " ").toLowerCase().split(" ");
-    if (parts.length > 0 && parts[0]) {
-      userData.fn = [sha256Hex(parts[0])];
-      if (parts.length > 1) {
-        const ln = parts.slice(1).join(" ");
-        if (ln) userData.ln = [sha256Hex(ln)];
-      }
-    }
-  }
-
-  if (input.city) {
-    const cleanCity = input.city.trim().toLowerCase().replace(/[.\-_,]/g, "");
-    if (cleanCity) userData.ct = [sha256Hex(cleanCity)];
-  }
-
-  if (input.postalCode) {
-    const cleanPostal = input.postalCode.trim().toLowerCase();
-    if (cleanPostal) userData.zp = [sha256Hex(cleanPostal)];
-  }
-
-  if (input.country) {
-    const cleanCountry = input.country.trim().toLowerCase();
-    if (cleanCountry === "pakistan" || cleanCountry === "pk") {
-      userData.country = [sha256Hex("pk")];
-    } else if (cleanCountry) {
-      userData.country = [sha256Hex(cleanCountry)];
-    }
-  }
-
-  if (input.clientIp) userData.client_ip_address = input.clientIp;
-  if (input.userAgent) userData.client_user_agent = input.userAgent;
-  if (input.fbp) userData.fbp = input.fbp;
-  if (input.fbc) userData.fbc = input.fbc;
 
   let allItemsValid = true;
   let summedQuantity = 0;
@@ -121,7 +116,7 @@ export async function trackMetaServerPurchase(input: {
     };
   });
 
-  const customData: Record<string, any> = {
+  const customData: Record<string, unknown> = {
     currency: META_CURRENCY,
     value: input.value,
   };
@@ -135,22 +130,14 @@ export async function trackMetaServerPurchase(input: {
     customData.num_items = summedQuantity;
   }
 
-  const payload: Record<string, any> = {
-    data: [
-      {
-        event_name: "Purchase",
-        event_time: Math.floor(Date.now() / 1000),
-        action_source: "website",
-        event_id: input.orderId,
-        user_data: userData,
-        custom_data: customData,
-      }
-    ]
-  };
-
-  if (input.eventSourceUrl) {
-    payload.data[0].event_source_url = input.eventSourceUrl;
-  }
+  const payload: ReturnType<typeof buildMetaServerEventPayload> & { test_event_code?: string } = buildMetaServerEventPayload({
+    eventName: "Purchase", eventId: input.orderId, externalId: input.orderId,
+    email: input.email, phone: input.phone, fullName: input.fullName,
+    city: input.city, postalCode: input.postalCode, country: input.country,
+    clientIp: input.clientIp, userAgent: input.userAgent,
+    fbp: input.fbp, fbc: input.fbc, eventSourceUrl: input.eventSourceUrl,
+    customData,
+  });
 
   if (testEventCode) {
     payload.test_event_code = testEventCode;

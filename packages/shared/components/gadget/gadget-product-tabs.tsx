@@ -100,7 +100,7 @@ function ChapterBody({
             )}
             style={{ animationDelay: `${Math.min(i, 8) * 50}ms` }}
           >
-            <dt className="gadget-eyebrow truncate pr-2 text-[0.62rem]">
+            <dt className="font-semibold text-xs uppercase tracking-wider text-[var(--g-forest)] truncate pr-2">
               {s.label}
             </dt>
             <dd className="gadget-display text-[1.02rem] font-medium tracking-[-0.02em] text-[var(--g-forest)]">

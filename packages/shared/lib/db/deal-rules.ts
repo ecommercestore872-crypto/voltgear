@@ -6,6 +6,8 @@ export type DealSuggestItem = {
 };
 
 export type DealSuggestOrder = {
+  orderId?: string | null;
+  createdAt?: string | null;
   status?: string | null;
   isDemo?: boolean;
   items?: DealSuggestItem[] | null;

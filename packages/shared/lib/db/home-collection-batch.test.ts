@@ -14,7 +14,8 @@ function stubProduct(id: string): Product {
     slug: id,
     price: 1,
     category: "misc",
-    stockStatus: "in_stock",
+    stockStatus: "in-stock",
+    images: [],
   } as Product;
 }
 

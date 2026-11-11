@@ -1,16 +1,23 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 
-import { GadgetPdpVariantHero } from "@/components/gadget/gadget-pdp-variant-hero";
 import { useGadgetPdpVariantImage } from "@/components/gadget/gadget-pdp-variant-context";
-import { ProductGallery } from "@/components/product/product-gallery";
 import type { PdpClientProduct } from "@/lib/pdp-client-payload";
 import type { Product } from "@/lib/types";
 
+const ProductGallery = dynamic(
+  () =>
+    import("@/components/product/product-gallery").then(
+      (m) => m.ProductGallery,
+    ),
+  { ssr: false, loading: () => null },
+);
+
 /**
- * Server LCP hero first, then full gallery (main + thumbnails) in normal flow —
- * avoids clipping thumbs inside an absolute overlay.
+ * Server LCP hero first, then full interactive gallery in normal flow.
+ * Defers ProductGallery (embla, radix dialog, touch listeners) until user interaction or idle.
  */
 export function GadgetPdpMediaColumn({
   product,
@@ -23,18 +30,18 @@ export function GadgetPdpMediaColumn({
   const [showGallery, setShowGallery] = useState(false);
 
   useEffect(() => {
-    const mobile = window.matchMedia("(max-width: 767px)").matches;
-    if (mobile) {
-      const id = window.requestAnimationFrame(() => setShowGallery(true));
-      return () => window.cancelAnimationFrame(id);
-    }
-    const id = window.requestAnimationFrame(() => setShowGallery(true));
-    return () => window.cancelAnimationFrame(id);
+    const onInteract = () => setShowGallery(true);
+    window.addEventListener("pointerdown", onInteract, { once: true, passive: true });
+    window.addEventListener("touchstart", onInteract, { once: true, passive: true });
+    window.addEventListener("keydown", onInteract, { once: true, passive: true });
+    const timer = setTimeout(() => setShowGallery(true), 6500);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", onInteract);
+      window.removeEventListener("touchstart", onInteract);
+      window.removeEventListener("keydown", onInteract);
+    };
   }, []);
-
-  useEffect(() => {
-    if (variantImage?.src) setShowGallery(true);
-  }, [variantImage?.src]);
 
   if (showGallery) {
     return (
@@ -43,10 +50,6 @@ export function GadgetPdpMediaColumn({
         variantImage={variantImage ?? undefined}
       />
     );
-  }
-
-  if (variantImage) {
-    return <GadgetPdpVariantHero image={variantImage} />;
   }
 
   return <>{lcpHero}</>;

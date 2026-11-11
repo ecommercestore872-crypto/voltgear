@@ -3,6 +3,7 @@ export interface CheckoutCustomer {
   email?: string;
   phone?: string;
   address?: string;
+  province?: string;
   city?: string;
   postal?: string;
   note?: string;

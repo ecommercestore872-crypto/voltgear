@@ -14,10 +14,7 @@ import type { Product } from "@/lib/types";
 export function GadgetProductWatchLinks({ product }: { product: Product }) {
   const links = productWatchLinks(product);
   const [active, setActive] = useState<ProductWatchLink | null>(null);
-  const [mounted, setMounted] = useState(false);
   const titleId = useId();
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!active) return;
@@ -60,7 +57,7 @@ export function GadgetProductWatchLinks({ product }: { product: Product }) {
         ))}
       </ul>
 
-      {mounted && active
+      {active && typeof document !== "undefined"
         ? createPortal(
             <div
               className="gadget-watch-preview-root"

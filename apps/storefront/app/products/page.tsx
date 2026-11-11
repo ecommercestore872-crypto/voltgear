@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
-import { Suspense } from "react";
 
+import { GadgetShopCatalog } from "@/components/gadget/gadget-shop-catalog";
 import { GadgetShopCatalogClient } from "@/components/gadget/gadget-shop-catalog-client";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/store";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
+import { sortCatalogProducts, toRailProduct } from "@/lib/rail-product";
 import {
   shopCatalogSearchMeta,
   storeAlternatesLanguages,
@@ -44,30 +45,42 @@ export default async function Products2Page() {
 
   try {
     const [p, types] = await Promise.all([
-      fetchCatalogProductsShopOverview(16),
+      fetchCatalogProductsShopOverview(2),
       fetchShopTypes(),
     ]);
-    products = applyGadgetStudioImagesList(p);
+    products = applyGadgetStudioImagesList(p).map(toRailProduct);
     shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
   } catch {
     products = [];
   }
 
+  const breadcrumbs = [{ label: "Home", href: "/" }, { label: "All products" }];
+  const defaultProducts = sortCatalogProducts(
+    products.filter((p) => Boolean(p.images?.[0] || p.cloudinaryImages?.[0])),
+    "featured",
+  );
+
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-[50vh] bg-[var(--g-cream)]" aria-hidden />
-      }
+    <GadgetShopCatalogClient
+      title="Shop electronics in Pakistan"
+      description={shopMeta.description}
+      products={products}
+      shopTypes={shopTypes}
+      config={config}
+      breadcrumbs={breadcrumbs}
+      maxPerCategory={1}
     >
-      <GadgetShopCatalogClient
+      <GadgetShopCatalog
         title="Shop electronics in Pakistan"
         description={shopMeta.description}
-        products={products}
+        products={defaultProducts}
         shopTypes={shopTypes}
+        query=""
+        sort="featured"
         config={config}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "All products" }]}
-        maxPerCategory={8}
+        breadcrumbs={breadcrumbs}
+        maxPerCategory={1}
       />
-    </Suspense>
+    </GadgetShopCatalogClient>
   );
 }

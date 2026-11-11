@@ -16,7 +16,7 @@ type IdleWindow = Window & {
  */
 export function DeferredUntilIdle({
   children,
-  timeoutMs = 4500,
+  timeoutMs = 7000,
 }: {
   children: ReactNode;
   timeoutMs?: number;
@@ -24,14 +24,34 @@ export function DeferredUntilIdle({
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const mark = () => setReady(true);
-    const win = window as IdleWindow;
-    if (typeof win.requestIdleCallback === "function") {
-      const id = win.requestIdleCallback(mark, { timeout: timeoutMs });
-      return () => win.cancelIdleCallback(id);
+    let unmounted = false;
+    const mark = () => {
+      if (!unmounted) setReady(true);
+    };
+
+    const onUserInteraction = () => {
+      mark();
+      cleanup();
+    };
+
+    const events = ["scroll", "touchstart", "click", "keydown"] as const;
+    events.forEach((ev) =>
+      window.addEventListener(ev, onUserInteraction, { once: true, passive: true }),
+    );
+
+    const timerId = window.setTimeout(onUserInteraction, Math.max(timeoutMs, 30000));
+
+    function cleanup() {
+      events.forEach((ev) => window.removeEventListener(ev, onUserInteraction));
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+      }
     }
-    const t = window.setTimeout(mark, Math.min(timeoutMs, 2200));
-    return () => window.clearTimeout(t);
+
+    return () => {
+      unmounted = true;
+      cleanup();
+    };
   }, [timeoutMs]);
 
   if (!ready) return null;

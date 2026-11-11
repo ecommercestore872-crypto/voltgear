@@ -56,7 +56,7 @@ export default async function AboutPage() {
             stand in Pakistan is often a guess: the listing looks fine, the
             parcel arrives, and there is nobody to call if the cable is the
             wrong type or the battery is weak. We built a storefront that shows
-            the product, ships cash on delivery nationwide, and keeps a person
+            the product, offers cash on delivery in serviceable areas, and keeps a person
             on WhatsApp and email when something is wrong.
           </p>
           <p>

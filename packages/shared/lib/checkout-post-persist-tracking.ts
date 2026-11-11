@@ -3,6 +3,8 @@ import type { CheckoutPostPersistInput } from "@/lib/checkout-post-persist-contr
 import { readMetaCookieIds } from "@/lib/checkout-tracking-rules";
 import { attachOrderAttribution } from "@/lib/db/order-attribution";
 import { trackMetaServerPurchase } from "@/lib/meta-events-api";
+import { hasMetaPrivacyOptOut } from "@/lib/meta-consent";
+import { canSendMetaServerEvent } from "@/lib/meta-consent";
 import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
 
 export async function runCheckoutTracking(
@@ -25,6 +27,11 @@ export async function runCheckoutTracking(
   }
 
   try {
+    const ttp = input.request.headers.get("cookie")
+      ?.split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith("_ttp="))
+      ?.slice("_ttp=".length);
     await trackTikTokServerPurchase({
       orderId: input.orderId,
       total: input.finalTotal,
@@ -38,12 +45,14 @@ export async function runCheckoutTracking(
       lines: input.lines,
       consent: input.consent,
       ttclid,
+      ttp,
     });
   } catch (error) {
     console.error("[tiktok-server] root error", error);
   }
 
   try {
+    if (!canSendMetaServerEvent(input.consent, input.request.headers)) return;
     const { fbp, fbc } = readMetaCookieIds(
       input.request.headers.get("cookie") || "",
     );
@@ -64,9 +73,14 @@ export async function runCheckoutTracking(
       country: "pk",
       clientIp: checkoutClientIp(input.request),
       userAgent: input.request.headers.get("user-agent") || undefined,
-      eventSourceUrl: input.request.headers.get("referer") || undefined,
+      eventSourceUrl: new URL("/checkout", input.request.url).toString(),
       fbp,
       fbc,
+      consent: input.consent,
+      privacyOptOut: hasMetaPrivacyOptOut({
+        gpc: input.request.headers.get("sec-gpc"),
+        dnt: input.request.headers.get("dnt"),
+      }),
     });
   } catch (error) {
     console.error("[meta-server] root error", error);

@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -50,20 +51,41 @@ const STORAGE_KEY = "voltgear-wishlist";
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<WishlistItem[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  const hydratedRef = useRef(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch {}
-    setHydrated(true);
+    let cancelled = false;
+    const init = () => {
+      if (cancelled || hydratedRef.current) return;
+      hydratedRef.current = true;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setItems((prev) => (prev.length === 0 ? parsed : prev));
+          }
+        }
+      } catch {}
+    };
+
+    const timer = setTimeout(init, 6000);
+    window.addEventListener("pointerdown", init, { once: true, passive: true });
+    window.addEventListener("keydown", init, { once: true, passive: true });
+    window.addEventListener("touchstart", init, { once: true, passive: true });
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", init);
+      window.removeEventListener("keydown", init);
+      window.removeEventListener("touchstart", init);
+    };
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydratedRef.current) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items, hydrated]);
+  }, [items]);
 
   const addItem = useCallback((item: WishlistItem) => {
     setItems((prev) => {
@@ -98,13 +120,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     () => ({
       items,
       count,
-      hydrated,
+      hydrated: true,
       hasItem,
       addItem,
       removeItem,
       toggleItem,
     }),
-    [items, count, hydrated, hasItem, addItem, removeItem, toggleItem],
+    [items, count, hasItem, addItem, removeItem, toggleItem],
   );
 
   return (

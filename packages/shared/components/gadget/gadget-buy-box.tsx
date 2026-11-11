@@ -15,8 +15,16 @@ import { useCart } from "@/components/cart/cart-provider";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
+import dynamic from "next/dynamic";
 import { GadgetProductWatchLinks } from "@/components/gadget/gadget-product-watch-links";
-import { ProductGallery } from "@/components/product/product-gallery";
+
+const ProductGallery = dynamic(
+  () =>
+    import("@/components/product/product-gallery").then(
+      (m) => m.ProductGallery,
+    ),
+  { ssr: false },
+);
 import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
 import { getVariantStockState } from "@/lib/stock";
 import type { ApprovedReviewStats } from "@/lib/product-review-stats";
@@ -102,20 +110,29 @@ export function GadgetBuyBox({
   const addonTotal = activeAddons.reduce((sum, a) => sum + (a.price ?? 0), 0);
   const displayPrice = price + addonTotal;
 
+  const isFirstVariantSync = useRef(true);
   useEffect(() => {
     const el = btnRef.current;
     if (!el || outOfStock) {
       setShowStickyCta(false);
       return;
     }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowStickyCta(!entry.isIntersecting);
-      },
-      { root: null, threshold: 0.15 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
+    let observer: IntersectionObserver | null = null;
+    const onScroll = () => {
+      if (observer) return;
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setShowStickyCta(!entry.isIntersecting);
+        },
+        { root: null, threshold: 0.15 },
+      );
+      observer.observe(el);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true, once: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (observer) observer.disconnect();
+    };
   }, [outOfStock, selectionReady]);
 
   const reviewCount = reviewStats?.count ?? 0;
@@ -138,6 +155,10 @@ export function GadgetBuyBox({
 
   useEffect(() => {
     if (!syncGalleryVariant || !galleryVariant) return;
+    if (isFirstVariantSync.current) {
+      isFirstVariantSync.current = false;
+      return;
+    }
     galleryVariant.setVariantImage(variantImage);
   }, [syncGalleryVariant, galleryVariant, variantImage]);
 
@@ -351,7 +372,7 @@ export function GadgetBuyBox({
           {/* ── Optional Add-ons upsell ─────────────────────────────── */}
           {(product.addons ?? []).length > 0 ? (
             <div className="mt-5 rounded-2xl border border-[var(--g-line)] bg-[var(--g-cream-deep)] p-4">
-              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--g-forest)]">
                 Optional add-ons
               </p>
               <div className="flex flex-col gap-3">

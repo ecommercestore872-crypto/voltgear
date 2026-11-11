@@ -29,7 +29,7 @@ export function GadgetDealPair({
       <p className="mt-3 text-sm text-[var(--g-charcoal)]">
         Pair from {formatPrice(other.price)} ·{" "}
         <Link
-          href={`/product/${other.slug}`}
+          href={`/product/${other.slug}`} prefetch={false}
           className="text-[var(--g-forest)] underline-offset-2 hover:underline"
         >
           View {other.name}

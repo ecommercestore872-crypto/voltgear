@@ -13,7 +13,6 @@ function product(partial: Partial<Product> & Pick<Product, "slug">): Product {
   return {
     _id: partial.slug,
     name: partial.name ?? partial.slug,
-    slug: partial.slug,
     category: partial.category ?? "gadgets",
     price: partial.price ?? 1000,
     status: "published",

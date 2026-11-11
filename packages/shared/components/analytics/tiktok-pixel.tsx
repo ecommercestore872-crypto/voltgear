@@ -15,8 +15,12 @@ import {
 
 function readConsent(): CookieConsentChoice | null {
   if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-  return raw === "all" || raw === "essential" ? raw : null;
+  try {
+    const raw = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+    return raw === "all" || raw === "essential" ? raw : null;
+  } catch {
+    return null;
+  }
 }
 
 function clientHost(): string {
@@ -24,10 +28,7 @@ function clientHost(): string {
   return window.location.hostname || "";
 }
 
-/**
- * Official TikTok Pixel base code only (load + page).
- * No ecommerce events, Events API, Advanced Matching, or SPA page listeners.
- */
+/** Load the Pixel after advertising consent and count client-side navigations. */
 export function TikTokPixel() {
   const pathname = usePathname();
   const [consent, setConsent] = useState<CookieConsentChoice | null>(null);
@@ -63,21 +64,34 @@ export function TikTokPixel() {
   });
 
   useEffect(() => {
-    if (!load || !pixelId.trim()) return;
+    const script = document.getElementById("tiktok-pixel-base");
+    if (!script) return;
+    if (consent === "all") window.ttq?.grantConsent?.();
+    else {
+      window.ttq?.revokeConsent?.();
+      // A later grant must count the current page after tracking resumes.
+      script.dataset.page = "";
+    }
+  }, [consent]);
 
-    function inject() {
-      if (document.getElementById("tiktok-pixel-base")) return;
-      const s = document.createElement("script");
-      s.id = "tiktok-pixel-base";
-      s.async = true;
-      s.text = tiktokPixelBootstrapSource(pixelId.trim());
-      document.head.appendChild(s);
+  useEffect(() => {
+    if (!load || !pixelId.trim()) return;
+    const page = window.location.pathname + window.location.search;
+    const existing = document.getElementById("tiktok-pixel-base");
+    if (existing) {
+      if (existing.dataset.page !== page) {
+        window.ttq?.page?.();
+        existing.dataset.page = page;
+      }
+      return;
     }
 
-    window.addEventListener("load", () => window.setTimeout(inject, 2500), {
-      once: true,
-    });
-  }, [load, pixelId]);
+    const script = document.createElement("script");
+    script.id = "tiktok-pixel-base";
+    script.dataset.page = page;
+    script.text = tiktokPixelBootstrapSource(pixelId.trim());
+    document.head.appendChild(script);
+  }, [load, pixelId, pathname]);
 
   return null;
 }

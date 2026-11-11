@@ -53,6 +53,8 @@ export function HeroSlidesForm({
     productId: seedProducts[0]?.id ?? "",
     imageUrl: "",
     mobileImageUrl: "",
+    videoUrl: "",
+    mobileVideoUrl: "",
     title: "",
     subtitle: "",
     ctaText: "",
@@ -72,6 +74,8 @@ export function HeroSlidesForm({
       Boolean(
         draft.imageUrl.trim() ||
           draft.mobileImageUrl.trim() ||
+          draft.videoUrl.trim() ||
+          draft.mobileVideoUrl.trim() ||
           draft.title.trim() ||
           draft.subtitle.trim() ||
           draft.ctaText.trim(),
@@ -113,6 +117,8 @@ export function HeroSlidesForm({
               text: draft.subtitle, 
               cta: draft.ctaText,
               mobile: draft.mobileImageUrl,
+              video: draft.videoUrl,
+              mobileVideo: draft.mobileVideoUrl,
               linkType: draft.linkType,
               category: draft.categoryId
             }),
@@ -140,7 +146,7 @@ export function HeroSlidesForm({
           },
         ]);
       }
-      setDraft((d) => ({ ...d, imageUrl: "", mobileImageUrl: "", title: "", subtitle: "", ctaText: "" }));
+      setDraft((d) => ({ ...d, imageUrl: "", mobileImageUrl: "", videoUrl: "", mobileVideoUrl: "", title: "", subtitle: "", ctaText: "" }));
     });
   }
 
@@ -186,7 +192,7 @@ export function HeroSlidesForm({
     setSlides((prev) =>
       prev.map((s) => {
         if (s.id !== slideId) return s;
-        let p: any = { text: "", cta: "", linkType: "product", category: "", mobile: "" };
+        let p: any = { text: "", cta: "", linkType: "product", category: "", mobile: "", video: "", mobileVideo: "" };
         if (s.subtitle && s.subtitle.startsWith("{")) {
           try { p = { ...p, ...JSON.parse(s.subtitle) }; } catch {}
         }
@@ -197,6 +203,8 @@ export function HeroSlidesForm({
         if (updates.linkType !== undefined) p.linkType = updates.linkType;
         if (updates.category !== undefined) p.category = updates.category;
         if (updates.mobile !== undefined) p.mobile = updates.mobile;
+        if (updates.video !== undefined) p.video = updates.video;
+        if (updates.mobileVideo !== undefined) p.mobileVideo = updates.mobileVideo;
         s.subtitle = JSON.stringify(p);
         return { ...s };
       })
@@ -346,6 +354,29 @@ export function HeroSlidesForm({
           }
           hint="Upload a full campaign banner (like a promo slide). Format: JPG, WEBP, or PNG. Wide images work best. Recommended size: 1920x1080px (16:9) to prevent distortion."
         />
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label>Desktop video URL (optional)</Label>
+            <Input
+              type="url"
+              value={draft.videoUrl}
+              onChange={(e) => setDraft((d) => ({ ...d, videoUrl: e.target.value }))}
+              placeholder="https://…/watch-film.mp4"
+            />
+            <p className="text-xs text-muted-foreground">Use a muted, looping MP4/WebM. The desktop image remains the poster and reduced-motion fallback.</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Mobile video URL (optional)</Label>
+            <Input
+              type="url"
+              value={draft.mobileVideoUrl}
+              onChange={(e) => setDraft((d) => ({ ...d, mobileVideoUrl: e.target.value }))}
+              placeholder="https://…/watch-film-mobile.mp4"
+            />
+            <p className="text-xs text-muted-foreground">Portrait 9:16 is best. Desktop video is used when this is blank.</p>
+          </div>
+        </div>
         {draft.imageUrl ? (
           <p className="truncate text-xs text-muted-foreground">
             Ready: {draft.imageUrl}
@@ -415,6 +446,8 @@ export function HeroSlidesForm({
           let cta = ""; 
           let linkType = "product";
           let categoryId = "";
+          let videoUrl = "";
+          let mobileVideoUrl = "";
           if (sub && sub.trim().startsWith("{")) {
             try {
               const p = JSON.parse(sub);
@@ -422,6 +455,8 @@ export function HeroSlidesForm({
               cta = p.cta || ""; 
               linkType = p.linkType || "product";
               categoryId = p.category || "";
+              videoUrl = p.video || "";
+              mobileVideoUrl = p.mobileVideo || "";
             } catch {}
           }
           
@@ -586,6 +621,25 @@ export function HeroSlidesForm({
                       </select>
                     </div>
                   )}
+
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label>Desktop video URL</Label>
+                    <Input
+                      type="url"
+                      value={videoUrl}
+                      onChange={(e) => updateSlideContent(slide.id, { video: e.target.value })}
+                      placeholder="https://…/campaign.mp4"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label>Mobile video URL</Label>
+                    <Input
+                      type="url"
+                      value={mobileVideoUrl}
+                      onChange={(e) => updateSlideContent(slide.id, { mobileVideo: e.target.value })}
+                      placeholder="https://…/campaign-mobile.mp4"
+                    />
+                  </div>
 
                   <div className="sm:col-span-2 pt-2 border-t flex gap-2">
                     <Button 

@@ -1,11 +1,7 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { CategoryGlyph } from "@/components/gadget/gadget-category-glyphs";
+import { GadgetCategoryArrows } from "@/components/gadget/gadget-category-arrows";
 import { gadgetImageSrc } from "@/components/gadget/gadget-image";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
@@ -16,6 +12,7 @@ export type CategoryIconTile = {
   label: string;
   href: string;
   slug?: string;
+  image?: string;
   product?: Product;
   imageUrl?: string;
 };
@@ -30,47 +27,22 @@ type SlideTile = {
 };
 
 function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
-  const fromProducts: SlideTile[] = tiles.map((t) => ({
+  return tiles.map((t) => ({
     key: `p-${t.href}`,
     label: t.label,
     href: t.href,
     slug: t.slug ?? t.href.split("/").filter(Boolean).pop(),
-    image: (() => {
-      const slug = t.slug ?? t.href.split("/").filter(Boolean).pop();
-      const path = resolveCategoryImagePath(t.imageUrl, slug);
-      if (path) return categoryImageUrl(path, 256);
-      if (t.product) return gadgetImageSrc(t.product, PRODUCT_IMAGE.card);
-      return undefined;
-    })() ?? undefined,
+    image:
+      t.image ??
+      (() => {
+        const slug = t.slug ?? t.href.split("/").filter(Boolean).pop();
+        const path = resolveCategoryImagePath(t.imageUrl, slug);
+        if (path) return categoryImageUrl(path, 256);
+        if (t.product) return gadgetImageSrc(t.product, PRODUCT_IMAGE.card);
+        return undefined;
+      })() ??
+      undefined,
   }));
-
-  return fromProducts;
-}
-
-function CategoryTileImage({
-  src,
-  slug,
-}: {
-  src: string;
-  slug?: string;
-}) {
-  const [current, setCurrent] = useState(src);
-  const fallback = slug ? resolveCategoryImagePath(null, slug) : undefined;
-  const display = categoryImageUrl(current, 256) ?? current;
-
-  return (
-    <Image
-      src={display}
-      alt=""
-      fill
-      quality={90}
-      sizes="(max-width: 640px) 96px, 128px"
-      className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.04]"
-      onError={() => {
-        if (fallback && current !== fallback) setCurrent(fallback);
-      }}
-    />
-  );
 }
 
 export function GadgetShopCategories({
@@ -80,44 +52,13 @@ export function GadgetShopCategories({
   tiles: CategoryIconTile[];
   title?: string;
 }) {
-  const slides = useMemo(() => buildSlides(tiles), [tiles]);
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
-
-  const updateArrows = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setCanPrev(el.scrollLeft > 6);
-    setCanNext(max > 6 && el.scrollLeft < max - 6);
-  }, []);
-
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    updateArrows();
-    el.addEventListener("scroll", updateArrows, { passive: true });
-    const ro = new ResizeObserver(updateArrows);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("scroll", updateArrows);
-      ro.disconnect();
-    };
-  }, [updateArrows, slides.length]);
-
-  function scrollByDir(dir: -1 | 1) {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const step = el.clientWidth * 0.65;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-  }
+  const slides = buildSlides(tiles);
 
   if (!slides.length) return null;
 
   return (
     <section
-      className="gadget-band-leaf px-4 py-8 sm:py-12 lg:px-8"
+      className="gadget-band-leaf gadget-contain-categories px-4 py-8 sm:py-12 lg:px-8"
       aria-labelledby="shop-categories-heading"
     >
       <div className="mx-auto max-w-6xl">
@@ -157,6 +98,7 @@ export function GadgetShopCategories({
           <div className="flex items-center gap-3">
             <Link
               href="/products"
+              prefetch={false}
               className="group inline-flex items-center gap-1.5 text-xs font-bold text-[#2a4633] transition hover:text-[var(--g-amber-text)] sm:text-sm"
             >
               <span>View all products</span>
@@ -166,38 +108,20 @@ export function GadgetShopCategories({
             </Link>
 
             {/* Scroll buttons for desktop */}
-            <div className="hidden items-center gap-1 sm:flex">
-              <button
-                type="button"
-                onClick={() => scrollByDir(-1)}
-                disabled={!canPrev}
-                aria-label="Previous categories"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-white text-[var(--g-charcoal)] shadow-xs transition disabled:opacity-30"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollByDir(1)}
-                disabled={!canNext}
-                aria-label="Next categories"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-white text-[var(--g-charcoal)] shadow-xs transition disabled:opacity-30"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+            <GadgetCategoryArrows scrollerId="gadget-categories-scroller" />
           </div>
         </div>
 
         {/* Circular Avatar Category Row */}
         <div
-          ref={scrollerRef}
+          id="gadget-categories-scroller"
           className="flex gap-4 overflow-x-auto pb-4 pt-1 scrollbar-none sm:gap-6 lg:gap-8"
         >
           {slides.map((tile, idx) => (
             <Link
               key={tile.key}
               href={tile.href}
+              prefetch={false}
               className="group flex flex-col items-center gap-2.5 shrink-0 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--g-forest)] rounded-xl p-1 min-h-[44px]"
             >
               {/* Circle Avatar Stage */}
@@ -212,7 +136,16 @@ export function GadgetShopCategories({
                 }`}
               >
                 {tile.image ? (
-                  <CategoryTileImage src={tile.image} slug={tile.slug} />
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={categoryImageUrl(tile.image, 256) ?? tile.image}
+                    alt=""
+                    width={112}
+                    height={112}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-contain p-1.5 transition duration-300 group-hover:scale-[1.04]"
+                  />
                 ) : tile.glyph ? (
                   <CategoryGlyph
                     name={tile.glyph}

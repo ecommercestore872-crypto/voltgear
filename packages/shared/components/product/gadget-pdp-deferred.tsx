@@ -2,8 +2,7 @@ import Link from "next/link";
 
 import { GadgetDealPair } from "@/components/gadget/gadget-deal-pair";
 import { GadgetProductCard } from "@/components/gadget/gadget-product-card";
-import { GadgetProductTabs } from "@/components/gadget/gadget-product-tabs";
-import { ReviewsSection } from "@/components/product/product-info-sections";
+import { PdpDeferredTabsReviews } from "@/components/product/gadget-pdp-deferred-tabs-reviews";
 import {
   applyGadgetStudioImages,
   applyGadgetStudioImagesList,
@@ -100,29 +99,22 @@ export async function GadgetPdpDeferred({
           other={row.other}
         />
       ))}
-      <div className="mt-10 scroll-mt-24">
-        <GadgetProductTabs product={product} />
-      </div>
-      <div className="mt-12 scroll-mt-24">
-        <ReviewsSection
-          product={product}
-          reviews={product.reviews ?? []}
-          rating={reviewStats.count > 0 ? reviewStats.averageRating : undefined}
-          includeDemo={false}
-        />
-      </div>
+      <PdpDeferredTabsReviews
+        product={product}
+        rating={reviewStats.count > 0 ? reviewStats.averageRating : undefined}
+      />
       {relatedProducts.length ? (
         <section className="mt-14 pb-4">
           <div className="mb-6 flex items-end justify-between gap-3">
             <h2 className="gadget-display text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
               You may also like
             </h2>
-            <Link
+            <a
               href={products2Href(product.category)}
               className="text-sm font-medium text-[var(--g-sage)] hover:text-[var(--g-forest)]"
             >
               View all
-            </Link>
+            </a>
           </div>
           <div className="gadget-product-grid">
             {relatedProducts.map((p) => (
@@ -145,13 +137,13 @@ export async function GadgetPdpDeferred({
             { name: "Selfie Ring Lights", path: "/products/ring-light" },
             { name: "GaN Fast Chargers", path: "/products/charger" },
           ].map((link) => (
-            <Link
+            <a
               key={link.name}
               href={link.path}
               className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-slate-800 hover:bg-slate-800 hover:text-white"
             >
               {link.name}
-            </Link>
+            </a>
           ))}
         </div>
       </section>

@@ -48,6 +48,7 @@ const nextConfig = {
           { key: "Content-Security-Policy", value: "upgrade-insecure-requests; frame-ancestors 'self'" },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
+          { key: "Link", value: "<https://res.cloudinary.com>; rel=preconnect; crossorigin" },
         ],
       },
       {

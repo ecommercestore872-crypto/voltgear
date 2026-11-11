@@ -12,6 +12,10 @@ const adapter = readFileSync(
   path.join(root, "packages/shared/lib/db/store-order-store.ts"),
   "utf8",
 );
+const auditedMigration = readFileSync(
+  path.join(root, "supabase/migrations/20261111000000_audited_admin_order_deletion.sql"),
+  "utf8",
+);
 const communications = readFileSync(
   path.join(root, "packages/shared/lib/checkout-post-persist-communications.ts"),
   "utf8",
@@ -23,8 +27,19 @@ describe("safe order deletion", () => {
     assert.match(migration, /if not coalesce\(v_order\.is_demo, false\)/i);
     assert.match(migration, /live orders must be retained/i);
     assert.match(migration, /delete from public\.orders where id = v_order\.id/i);
-    assert.match(adapter, /\.rpc\("admin_delete_demo_order"/);
+    assert.match(adapter, /\.rpc\("admin_delete_order"/);
     assert.doesNotMatch(adapter, /from\("order_items"\)\.delete/);
+  });
+
+  it("audits only eligible practice-order deletion inside the database transaction", () => {
+    assert.match(auditedMigration, /create table if not exists public\.order_deletion_log/i);
+    assert.match(auditedMigration, /if not coalesce\(v_order\.is_demo, false\)/i);
+    assert.match(auditedMigration, /v_order\.status in \('shipped', 'delivered'\)/i);
+    assert.match(auditedMigration, /'rejected', 'live_order'/i);
+    assert.match(auditedMigration, /'rejected', 'fulfillment_started'/i);
+    assert.match(auditedMigration, /perform public\.admin_delete_demo_order/i);
+    assert.match(auditedMigration, /insert into public\.order_deletion_log/i);
+    assert.match(auditedMigration, /revoke all on function public\.admin_delete_order[\s\S]*authenticated/i);
   });
 
   it("repairs reserved inventory and deletes queued demo email events", () => {

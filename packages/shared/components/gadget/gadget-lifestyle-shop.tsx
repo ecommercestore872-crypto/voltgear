@@ -21,13 +21,13 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
 
   return (
     <section
-      className="bg-[var(--g-cream)] px-4 py-8 sm:py-12 lg:px-8"
+      className="bg-[var(--g-cream)] gadget-contain-lifestyle px-4 py-8 sm:py-12 lg:px-8"
       aria-label="Lifestyle shop"
     >
       <div className="mx-auto grid max-w-6xl gap-3 sm:gap-4 lg:grid-cols-2 lg:gap-5">
         {showBanner ? (
           <Link
-            href={featureHref}
+            href={featureHref} prefetch={false}
             className="group relative min-h-[18rem] overflow-hidden rounded-2xl bg-[var(--g-forest)] sm:min-h-[22rem] lg:min-h-full"
           >
             {banner.imageUrl ? (
@@ -74,7 +74,7 @@ export function GadgetLifestyleShop({ shop }: { shop: LifestyleShopConfig }) {
             {grid.map((tile) => (
               <Link
                 key={`${tile.href}-${tile.title}`}
-                href={tile.href}
+                href={tile.href} prefetch={false}
                 className="group relative flex min-h-[10.5rem] flex-col overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3.5 shadow-[0_1px_0_rgba(26,26,26,0.03)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(31,54,38,0.1)] sm:min-h-[13rem] sm:p-4"
               >
                 <div className="flex items-start justify-between gap-2">

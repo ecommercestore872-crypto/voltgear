@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Printer, Truck } from "lucide-react";
 
 import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
+import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { StatusBadge } from "@/components/admin/status-badge";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/db/order-rules";
 import type { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+import { pakistanProvinceLabel } from "@/lib/pakistan-locations";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   new: "New",
@@ -298,37 +300,6 @@ export function OrderDetail({
     }
   }
 
-  async function handleDelete() {
-    if (
-      !window.confirm(
-        "Delete this practice order permanently and restore its reserved inventory? This cannot be undone.",
-      )
-    ) {
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      await adminFetch(
-        `/api/admin/orders/${encodeURIComponent(order.orderId)}`,
-        {
-          method: "DELETE",
-        },
-      );
-      router.push("/admin/orders");
-      router.refresh();
-    } catch (err) {
-      if (err instanceof AdminAuthError) {
-        router.replace("/admin/login");
-        return;
-      }
-      setError(
-        err instanceof Error ? err.message : "Could not delete the order.",
-      );
-      setSaving(false);
-    }
-  }
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="space-y-4">
@@ -358,6 +329,11 @@ export function OrderDetail({
             {postexTracking ? (
               <p className="text-xs font-mono mt-1 text-blue-700 dark:text-blue-300">
                 PostEx tracking: {postexTracking}
+              </p>
+            ) : null}
+            {!postexTracking && customer.province ? (
+              <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+                Verify PostEx coverage for {customer.city || "this city"} before dispatch. Unlisted towns need manual review or a delivery alternative.
               </p>
             ) : null}
           </div>
@@ -471,6 +447,12 @@ export function OrderDetail({
             <dt className="text-muted-foreground">City</dt>
             <dd>{customer.city || "—"}</dd>
           </div>
+          {customer.province ? (
+            <div>
+              <dt className="text-muted-foreground">Province / region</dt>
+              <dd>{pakistanProvinceLabel(customer.province) ?? customer.province}</dd>
+            </div>
+          ) : null}
           <div className="sm:col-span-2">
             <dt className="text-muted-foreground">Address</dt>
             <dd>{customer.address || "—"}</dd>
@@ -617,15 +599,9 @@ export function OrderDetail({
           <p className="mt-1 text-sm text-muted-foreground">
             Permanently delete this practice order and restore any reserved inventory.
           </p>
-          <Button
-            type="button"
-            variant="destructive"
-            className="mt-4"
-            disabled={saving}
-            onClick={handleDelete}
-          >
-            Delete Practice Order
-          </Button>
+          <div className="mt-4">
+            <DeleteOrderButton orderId={order.orderId} isDemo={true} onDeleted={() => { router.push("/admin/orders"); router.refresh(); }} />
+          </div>
         </section>
       ) : (
         <section className="rounded-lg border p-4">
@@ -633,6 +609,9 @@ export function OrderDetail({
           <p className="mt-1 text-sm text-muted-foreground">
             Live orders are retained to preserve fulfillment, payment, inventory, and customer-service history.
           </p>
+          <div className="mt-4">
+            <DeleteOrderButton orderId={order.orderId} isDemo={false} compact onDeleted={() => { router.push("/admin/orders"); router.refresh(); }} />
+          </div>
         </section>
       )}
     </div>

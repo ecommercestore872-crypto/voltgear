@@ -1,9 +1,21 @@
-import dynamic from "next/dynamic";
+import {
+  DeferredBlogSection,
+  DeferredLifestyleSection,
+  DeferredReviewsSection,
+} from "@/components/gadget/gadget-home-deferred-sections";
 import { Fragment, type ReactNode } from "react";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
 import { GadgetTrustStrip } from "@/components/gadget/gadget-trust-strip";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
+import { imageUrl } from "@/lib/sanity/image";
+import type { BlogCardPost } from "./gadget-blog-section";
+import { sortBlogPostsForHome } from "@/lib/blog-desk-rules";
+import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
+import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
+import { categoryImageUrl } from "@/lib/site-static-image";
+import { gadgetImageSrc } from "@/components/gadget/gadget-image";
+import { PRODUCT_IMAGE } from "@/lib/product-image";
 import {
   fetchBlogPosts,
   fetchHomepageProducts,
@@ -36,39 +48,11 @@ import {
   filterProductsToActiveCategories,
   slugSetFromShopTypeLinks,
 } from "@/lib/home-active-categories";
+import { GadgetFeaturedProduct } from "@/components/gadget/gadget-featured-product";
+import { toRailProduct } from "@/lib/rail-product";
 import { formatPrice } from "@/lib/utils";
 
-const GadgetReviewsSlider = dynamic(
-  () =>
-    import("@/components/gadget/gadget-reviews-slider").then(
-      (m) => m.GadgetReviewsSlider,
-    ),
-  { loading: () => null, ssr: false },
-);
-
-const GadgetBlogSection = dynamic(
-  () =>
-    import("@/components/gadget/gadget-blog-section").then(
-      (m) => m.GadgetBlogSection,
-    ),
-  { loading: () => null },
-);
-
-const GadgetLifestyleShop = dynamic(
-  () =>
-    import("@/components/gadget/gadget-lifestyle-shop").then(
-      (m) => m.GadgetLifestyleShop,
-    ),
-  { loading: () => null },
-);
-
-const GadgetFeaturedProduct = dynamic(
-  () =>
-    import("@/components/gadget/gadget-featured-product").then(
-      (m) => m.GadgetFeaturedProduct,
-    ),
-  { loading: () => null },
-);
+export { toRailProduct };
 
 function hasUsableImage(product: Product) {
   return Boolean(product.images?.[0] || product.cloudinaryImages?.[0]);
@@ -79,7 +63,8 @@ export async function GadgetHomeSections() {
   const demo = false;
   let products: Product[] = [];
   let testimonials: Testimonial[] = [];
-  let blogPosts: Page[] = [];
+  let popularBlogCards: BlogCardPost[] = [];
+  let latestBlogCards: BlogCardPost[] = [];
   let settings = null;
   let shopTypes = gadgetShopTypeLinks(FALLBACK_SHOP_TYPES);
   let slotBestsellers: Product[] | null = null;
@@ -116,8 +101,17 @@ export async function GadgetHomeSections() {
     const colFeat = homeSlots?.featured ?? null;
     const colOffers = homeSlots?.offers ?? null;
     products = applyGadgetStudioImagesList(p);
-    testimonials = t.map((m) => ({ ...m, product: undefined }));
-    blogPosts = blogs.map((b) => ({ ...b, sections: [] }));
+    testimonials = t.slice(0, 6).map((m) => ({ customerName: m.customerName, reviewText: m.reviewText, rating: m.rating, verified: m.verified, isDemo: m.isDemo }));
+    const blogPool = blogs.length ? blogs : FALLBACK_BLOG_POSTS;
+    const toBlogCard = (p: Page): BlogCardPost => ({
+      slug: p.slug,
+      title: p.title,
+      excerpt: p.excerpt,
+      coverImage: p.coverImage ? imageUrl(p.coverImage, { w: 800 }) : undefined,
+      publishedAt: p.publishedAt,
+    });
+    popularBlogCards = sortBlogPostsForHome(blogPool, "popular").slice(0, 4).map(toBlogCard);
+    latestBlogCards = sortBlogPostsForHome(blogPool, "latest").slice(0, 4).map(toBlogCard);
     slotBestsellers = colBest
       ? applyGadgetStudioImagesList(colBest).map((prod) => ({
           ...prod,
@@ -192,13 +186,22 @@ export async function GadgetHomeSections() {
   const categoryCards = shopTypes
     .map((cat) => {
       const slug = cat.slug ?? (cat.href.split("/").pop() as string);
-      const candidates = products.filter((p) => p.category === slug);
-      const rep =
-        candidates.find(
+      const path = resolveCategoryImagePath(cat.imageUrl, slug);
+      let img = path ? categoryImageUrl(path, 256) : undefined;
+      if (!img) {
+        const candidates = products.filter((p) => p.category === slug);
+        const rep = candidates.find(
           (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p),
-        ) ?? undefined;
-      if (!rep && !cat.imageUrl) return null;
-      return { ...cat, product: rep };
+        );
+        if (rep) img = gadgetImageSrc(rep, PRODUCT_IMAGE.card) ?? undefined;
+      }
+      if (!img && !cat.imageUrl) return null;
+      return {
+        label: cat.label,
+        href: cat.href,
+        slug,
+        image: img ?? undefined,
+      };
     })
     .filter((c): c is NonNullable<typeof c> => c != null);
 
@@ -239,11 +242,11 @@ export async function GadgetHomeSections() {
 
   const newArrivals = products
     .filter((p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p))
-    .slice(0, 8);
+    .slice(0, 2);
 
   const railProducts = (
     slotBestsellers?.length ? slotBestsellers : newArrivals
-  ).slice(0, 8);
+  ).slice(0, 2).map(toRailProduct);
 
   const overrideSlug =
     settings?.homeFeaturedProductSlug?.trim() ||
@@ -287,9 +290,9 @@ export async function GadgetHomeSections() {
         !getStockState(p.stockStatus).soldOut &&
         hasUsableImage(p),
     )
-    .slice(0, 8);
+    .slice(0, 2);
 
-  const bestOffers =
+  const rawBestOffers =
     offerProducts.length >= 1
       ? offerProducts
       : products
@@ -303,7 +306,8 @@ export async function GadgetHomeSections() {
             (a, b) =>
               Number(b.featured) - Number(a.featured) || a.price - b.price,
           )
-          .slice(0, 8);
+          .slice(0, 2);
+  const bestOffers = rawBestOffers.map(toRailProduct);
 
   const lifestyleShop = normalizeLifestyleShop(settings?.lifestyleShop);
   const layout = homeLayoutIdsForLifestyle(
@@ -324,7 +328,7 @@ export async function GadgetHomeSections() {
     return extraRails.map((rail, index) => (
       <GadgetNewArrivals
         key={`collection-${rail.id}`}
-        products={rail.products}
+        products={rail.products.slice(0, 2).map(toRailProduct)}
         title={rail.name}
         headingId={`collection-${rail.slug}-heading`}
         viewAllHref={collectionHref(rail.slug)}
@@ -364,11 +368,14 @@ export async function GadgetHomeSections() {
             section = featuredProduct ? (
               <GadgetFeaturedProduct
                 key={id}
-                product={featuredProduct}
+                product={toRailProduct(featuredProduct)}
                 eyebrow={config.homeFeaturedEyebrow}
                 title={config.homeFeaturedTitle}
                 subtitle={config.homeFeaturedSubtitle}
-                productDescription={config.homeFeaturedProductDescription}
+                productDescription={
+                  config.homeFeaturedProductDescription ||
+                  featuredProduct.shortDescription
+                }
                 customImage={customImage}
               />
             ) : null;
@@ -387,7 +394,7 @@ export async function GadgetHomeSections() {
             break;
           case "lifestyle":
             section = lifestyleShopHasContent(lifestyleShop) ? (
-              <GadgetLifestyleShop key={id} shop={lifestyleShop} />
+              <DeferredLifestyleSection key={id} shop={lifestyleShop} />
             ) : null;
             break;
           case "categories":
@@ -400,10 +407,18 @@ export async function GadgetHomeSections() {
             );
             break;
           case "reviews":
-            section = <GadgetReviewsSlider key={id} reviews={testimonials} />;
+            section = (
+              <DeferredReviewsSection key={id} reviews={testimonials} />
+            );
             break;
           case "blog":
-            section = <GadgetBlogSection key={id} posts={blogPosts} />;
+            section = (
+              <DeferredBlogSection
+                key={id}
+                popularCards={popularBlogCards}
+                latestCards={latestBlogCards}
+              />
+            );
             break;
           default:
             section = null;

@@ -4,23 +4,19 @@ import Link from "next/link";
 import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
 import {
-  CaretDown,
+  ChevronDown,
   Headphones,
   Heart,
-  List,
+  HelpCircle,
+  Menu,
   Package,
   Phone,
-  Question,
   ShoppingBag,
   Truck,
   X,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 
 import { useCart } from "@/components/cart/cart-provider";
-import {
-  PHOSPHOR_HEADER,
-  PHOSPHOR_SEARCH,
-} from "@/components/icons/phosphor-chrome";
 import { useWishlist } from "@/components/wishlist/wishlist-provider";
 import { GadgetSearchInput } from "@/components/gadget/gadget-search-input";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
@@ -35,12 +31,14 @@ import {
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+const HEADER_ICON_PROPS = { size: 16, strokeWidth: 1.75 } as const;
+
 function helpIcon(href: string) {
   if (href.startsWith("/track")) return Package;
   if (href.startsWith("/shipping")) return Truck;
-  if (href.startsWith("/faq")) return Question;
+  if (href.startsWith("/faq")) return HelpCircle;
   if (href.startsWith("/contact")) return Headphones;
-  return Question;
+  return HelpCircle;
 }
 
 function IconHit({
@@ -75,15 +73,12 @@ export function GadgetNavbar({
   const { count: wishCount } = useWishlist();
   const [open, setOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const links = gadgetShopTypeLinks(shopTypes);
   const brandName = settings?.brandName?.trim() || SHOPPER_BRAND.spokenName;
   const tagline = settings?.tagline?.trim() || SHOPPER_BRAND.tagline;
   const phone = settings?.phone;
   const navLinks = resolveChromeLinks(settings?.navLinks, DEFAULT_NAV_LINKS);
   const helpLinks = resolveChromeLinks(settings?.helpLinks, DEFAULT_HELP_LINKS);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -99,131 +94,134 @@ export function GadgetNavbar({
     };
   }, [open]);
 
-  const menu =
-    open && mounted ? (
-      <div className="gadget-theme" role="presentation">
-        <button
-          type="button"
-          className="fixed inset-0 z-[90] bg-[var(--g-forest)]/35"
-          aria-label="Close menu"
-          onClick={() => setOpen(false)}
-        />
-        <div
-          className="fixed inset-y-0 right-0 z-[100] flex w-full max-w-sm flex-col overflow-y-auto overscroll-contain border-l border-[var(--g-line)] bg-[var(--g-cream)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation menu"
-        >
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <ShopBrandMark logo={settings?.logo} name={brandName} compact />
-            <button
-              type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] text-[var(--g-forest)]"
-              aria-label="Close menu"
-              onClick={() => setOpen(false)}
-            >
-              <X {...PHOSPHOR_HEADER} aria-hidden />
-            </button>
-          </div>
-
-          <form action={products2Href()} method="get" className="mb-6">
-            <label className="sr-only" htmlFor="gadget-search-mobile">
-              Search products
-            </label>
-            <GadgetSearchInput
-              id="gadget-search-mobile"
-              size="lg"
-              showSubmit
-              placeholder="Search the shop"
-            />
-          </form>
-
-          <p className="gadget-eyebrow mb-2">Shop</p>
-          <nav
-            className="mb-6 grid border-t border-[var(--g-line)]"
-            aria-label="Mobile shop"
+  const menu = open ? (
+    <div className="gadget-theme" role="presentation">
+      <button
+        type="button"
+        className="fixed inset-0 z-[90] bg-[var(--g-forest)]/35"
+        aria-label="Close menu"
+        onClick={() => setOpen(false)}
+      />
+      <div
+        className="fixed inset-y-0 right-0 z-[100] flex w-full max-w-sm flex-col overflow-y-auto overscroll-contain border-l border-[var(--g-line)] bg-[var(--g-cream)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <ShopBrandMark logo={settings?.logo} name={brandName} compact />
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] text-[var(--g-forest)]"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
           >
-            <Link
-              href={products2Href()}
-              onClick={() => setOpen(false)}
-              className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm font-semibold text-[var(--g-forest)]"
-            >
-              {settings?.navShopAllText?.trim() || "All products"}
-            </Link>
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+            <X {...HEADER_ICON_PROPS} aria-hidden />
+          </button>
+        </div>
 
-          {navLinks.length ? (
-            <>
-              <p className="gadget-eyebrow mb-2">Explore</p>
-              <nav
-                className="mb-6 grid border-t border-[var(--g-line)]"
-                aria-label="Mobile explore"
-              >
-                {navLinks.map((link) => (
+        <form action={products2Href()} method="get" className="mb-6">
+          <label className="sr-only" htmlFor="gadget-search-mobile">
+            Search products
+          </label>
+          <GadgetSearchInput
+            id="gadget-search-mobile"
+            size="lg"
+            showSubmit
+            placeholder="Search the shop"
+          />
+        </form>
+
+        <p className="gadget-eyebrow mb-2">Shop</p>
+        <nav
+          className="mb-6 grid border-t border-[var(--g-line)]"
+          aria-label="Mobile shop"
+        >
+          <Link
+            href={products2Href()}
+            prefetch={false}
+            onClick={() => setOpen(false)}
+            className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm font-semibold text-[var(--g-forest)]"
+          >
+            {settings?.navShopAllText?.trim() || "All products"}
+          </Link>
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              prefetch={false}
+              onClick={() => setOpen(false)}
+              className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {navLinks.length ? (
+          <>
+            <p className="gadget-eyebrow mb-2">Explore</p>
+            <nav
+              className="mb-6 grid border-t border-[var(--g-line)]"
+              aria-label="Mobile explore"
+            >
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href + link.label}
+                  href={link.href}
+                  prefetch={false}
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </>
+        ) : null}
+
+        {helpLinks.length ? (
+          <>
+            <p className="gadget-eyebrow mb-2">Help</p>
+            <nav
+              className="grid border-t border-[var(--g-line)]"
+              aria-label="Mobile help"
+            >
+              {helpLinks.map((link) => {
+                const Icon = helpIcon(link.href);
+                return (
                   <Link
                     key={link.href + link.label}
                     href={link.href}
+                    prefetch={false}
                     onClick={() => setOpen(false)}
-                    className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+                    className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
                   >
+                    <Icon
+                      {...HEADER_ICON_PROPS}
+                      className="text-[var(--g-sage)]"
+                      aria-hidden
+                    />
                     {link.label}
                   </Link>
-                ))}
-              </nav>
-            </>
-          ) : null}
+                );
+              })}
+            </nav>
+          </>
+        ) : null}
 
-          {helpLinks.length ? (
-            <>
-              <p className="gadget-eyebrow mb-2">Help</p>
-              <nav
-                className="grid border-t border-[var(--g-line)]"
-                aria-label="Mobile help"
-              >
-                {helpLinks.map((link) => {
-                  const Icon = helpIcon(link.href);
-                  return (
-                    <Link
-                      key={link.href + link.label}
-                      href={link.href}
-                      onClick={() => setOpen(false)}
-                      className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-                    >
-                      <Icon
-                        {...PHOSPHOR_HEADER}
-                        className="text-[var(--g-sage)]"
-                        aria-hidden
-                      />
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </>
-          ) : null}
-
-          {phone ? (
-            <a
-              href={`tel:${phone.replace(/\s+/g, "")}`}
-              className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--g-forest)] px-4 text-sm font-semibold text-[var(--g-cream)]"
-            >
-              <Phone {...PHOSPHOR_HEADER} aria-hidden />
-              Call {phone}
-            </a>
-          ) : null}
-        </div>
+        {phone ? (
+          <a
+            href={`tel:${phone.replace(/\s+/g, "")}`}
+            className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--g-forest)] px-4 text-sm font-semibold text-[var(--g-cream)]"
+          >
+            <Phone {...HEADER_ICON_PROPS} aria-hidden />
+            Call {phone}
+          </a>
+        ) : null}
       </div>
-    ) : null;
+    </div>
+  ) : null;
 
   return (
     <header
@@ -255,6 +253,7 @@ export function GadgetNavbar({
               <Link
                 key={link.href + link.label}
                 href={link.href}
+                prefetch={false}
                 className="transition hover:text-[var(--g-cream)]"
               >
                 {link.label}
@@ -264,23 +263,17 @@ export function GadgetNavbar({
         </div>
       </div>
 
-      <div className="gadget-main-nav border-b border-[var(--g-line)] backdrop-blur-md">
+      <div className="gadget-main-nav border-b border-[var(--g-line)] sm:backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-4 px-3 sm:h-[4.25rem] sm:px-4 lg:gap-6 lg:px-6 xl:px-8">
           <Link
             href="/"
+            prefetch={false}
             className="group flex min-h-11 shrink-0 items-center"
             aria-label={`${brandName} home`}
           >
             <ShopBrandMark
               logo={settings?.logo}
               name={brandName}
-              compact
-              className="sm:hidden"
-            />
-            <ShopBrandMark
-              logo={settings?.logo}
-              name={brandName}
-              className="hidden sm:inline-flex"
             />
           </Link>
 
@@ -298,8 +291,9 @@ export function GadgetNavbar({
                 onClick={() => setShopOpen((v) => !v)}
               >
                 Shop
-                <CaretDown
-                  {...PHOSPHOR_SEARCH}
+                <ChevronDown
+                  size={14}
+                  strokeWidth={1.75}
                   className={`text-[var(--g-sage)] transition ${shopOpen ? "rotate-180" : ""}`}
                   aria-hidden
                 />
@@ -308,6 +302,7 @@ export function GadgetNavbar({
                 <div className="absolute left-0 top-full z-50 w-60 overflow-hidden border border-[var(--g-line)] bg-[var(--g-cream)] p-1.5">
                   <Link
                     href={products2Href()}
+                    prefetch={false}
                     className="flex items-center justify-between px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-forest)] hover:bg-[color-mix(in_srgb,var(--g-sage)_12%,var(--g-cream))]"
                     onClick={() => setShopOpen(false)}
                   >
@@ -320,6 +315,7 @@ export function GadgetNavbar({
                       <Link
                         key={link.href}
                         href={link.href}
+                        prefetch={false}
                         className="block px-3 py-2 text-[13px] text-[var(--g-charcoal)] hover:bg-[color-mix(in_srgb,var(--g-sage)_12%,var(--g-cream))] hover:text-[var(--g-forest)]"
                         onClick={() => setShopOpen(false)}
                       >
@@ -335,6 +331,7 @@ export function GadgetNavbar({
               <Link
                 key={link.href + link.label}
                 href={link.href}
+                prefetch={false}
                 className="gadget-nav-link flex min-h-11 items-center px-3 text-[13px] font-medium tracking-[0.02em] text-[var(--g-charcoal)] hover:text-[var(--g-forest)]"
               >
                 {link.label}
@@ -359,13 +356,14 @@ export function GadgetNavbar({
           <div className={cn("flex items-center gap-1.5", "lg:ml-0 ml-auto")}>
             <Link
               href="/wishlist"
+              prefetch={false}
               aria-label={
                 wishCount ? `Wishlist, ${wishCount} items` : "Wishlist"
               }
               title="Wishlist"
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:h-11 sm:w-11"
             >
-              <Heart {...PHOSPHOR_HEADER} aria-hidden />
+              <Heart {...HEADER_ICON_PROPS} aria-hidden />
               {wishCount > 0 ? (
                 <span className="gadget-sale-badge absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold">
                   {wishCount}
@@ -377,7 +375,7 @@ export function GadgetNavbar({
               onClick={openCart}
               aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
             >
-              <ShoppingBag {...PHOSPHOR_HEADER} aria-hidden />
+              <ShoppingBag {...HEADER_ICON_PROPS} aria-hidden />
               {count > 0 ? (
                 <span className="gadget-sale-badge absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold">
                   {count}
@@ -392,9 +390,9 @@ export function GadgetNavbar({
               className="lg:hidden"
             >
               {open ? (
-                <X {...PHOSPHOR_HEADER} aria-hidden />
+                <X {...HEADER_ICON_PROPS} aria-hidden />
               ) : (
-                <List {...PHOSPHOR_HEADER} aria-hidden />
+                <Menu {...HEADER_ICON_PROPS} aria-hidden />
               )}
             </IconHit>
           </div>

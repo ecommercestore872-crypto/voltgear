@@ -37,12 +37,19 @@ export function GadgetShopFindBar({
 
   function go(next: { q?: string; sort?: string }) {
     const params = new URLSearchParams();
-    const nextQ = next.q !== undefined ? next.q : q;
+    const nextQ = (next.q !== undefined ? next.q : q).trim();
     const nextSort = next.sort !== undefined ? next.sort : sort;
-    if (nextQ.trim()) params.set("q", nextQ.trim());
+    if (nextQ) params.set("q", nextQ);
     if (nextSort && nextSort !== "featured") params.set("sort", nextSort);
     const qs = params.toString();
     const path = categorySlug ? products2Href(categorySlug) : basePath;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("voltgear:catalog-query", {
+          detail: { q: nextQ, sort: nextSort || "featured" },
+        }),
+      );
+    }
     startTransition(() => {
       router.push(qs ? `${path}?${qs}` : path);
     });
@@ -54,12 +61,7 @@ export function GadgetShopFindBar({
   }
 
   return (
-    <div
-      className="sticky z-30"
-      style={{
-        top: "calc(var(--g-header-offset, 3.5rem) + var(--g-safe-top, 0px))",
-      }}
-    >
+    <div className="relative z-10">
       <div className="gadget-glass rounded-2xl px-3 py-3 sm:rounded-[1.35rem] sm:px-4 sm:py-3.5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-5">
           {/* Search */}

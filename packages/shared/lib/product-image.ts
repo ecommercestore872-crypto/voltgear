@@ -12,7 +12,7 @@ export const PRODUCT_IMAGE = {
   /** PDP main image on phones (100vw gallery column) */
   pdpMobileMain: 828,
   /** PLP / grids — ~25–50vw on typical viewports */
-  card: 640,
+  card: 384,
   /** Hero / full-bleed banners */
   hero: 1200,
   thumb: 256,

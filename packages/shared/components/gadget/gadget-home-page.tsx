@@ -10,9 +10,7 @@ import { GadgetHomeSections } from "@/components/gadget/gadget-home-sections";
 export function GadgetHomePage() {
   return (
     <div className="text-[var(--g-charcoal)]">
-      <Suspense fallback={<GadgetHomeHeroFallback />}>
-        <GadgetHomeHero />
-      </Suspense>
+      <GadgetHomeHero />
       <Suspense fallback={null}>
         <GadgetHomeSections />
       </Suspense>

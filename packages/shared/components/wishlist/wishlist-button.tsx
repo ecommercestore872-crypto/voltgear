@@ -28,10 +28,10 @@ export function WishlistButton({ product }: { product: Product }) {
         });
       }}
       className={cn(
-        "absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--g-line)] shadow-none backdrop-blur-sm transition-colors",
+        "absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--g-line)] shadow-none transition-colors",
         active
           ? "bg-[var(--g-forest)] text-[var(--g-cream)]"
-          : "bg-[var(--g-cream)]/90 text-[var(--g-charcoal)] hover:bg-[var(--g-white)]",
+          : "bg-[var(--g-cream)]/95 text-[var(--g-charcoal)] hover:bg-[var(--g-white)]",
       )}
       aria-label={
         active

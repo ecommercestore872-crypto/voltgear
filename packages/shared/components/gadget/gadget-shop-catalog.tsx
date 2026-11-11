@@ -105,6 +105,7 @@ export function GadgetShopCatalog({
                 {crumb.href ? (
                   <Link
                     href={crumb.href}
+                    prefetch={false}
                     className="transition hover:text-[var(--g-forest)]"
                   >
                     {crumb.label}
@@ -127,6 +128,7 @@ export function GadgetShopCatalog({
             <p className="mt-2 text-sm">
               <Link
                 href={guideLink.href}
+                prefetch={false}
                 className="font-semibold text-[var(--g-forest)] underline-offset-2 hover:underline"
               >
                 Read: {guideLink.label}
@@ -138,7 +140,7 @@ export function GadgetShopCatalog({
 
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-3 sm:pb-12 sm:pt-4 lg:px-8">
         {useFlatGrid && !activeCategory ? null : (
-          <div className="sticky top-[3.75rem] z-20 -mx-4 bg-[var(--g-cream)]/95 px-4 pb-2 pt-3 backdrop-blur-md sm:top-[4.25rem] sm:mt-4 lg:-mx-0 lg:px-0">
+          <div className="sticky top-[3.75rem] z-20 -mx-4 bg-[var(--g-cream)] px-4 pb-2 pt-3 sm:top-[4.25rem] sm:mt-4 sm:bg-[var(--g-cream)]/95 sm:backdrop-blur-md lg:-mx-0 lg:px-0">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
               {activeCategory ? "Filter by type" : "Jump to category"}
             </p>
@@ -149,6 +151,7 @@ export function GadgetShopCatalog({
             >
               <Link
                 href={categoryHref()}
+                prefetch={false}
                 className={cn(
                   "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:px-5 sm:text-sm",
                   !activeCategory && !flattenGrid
@@ -160,18 +163,27 @@ export function GadgetShopCatalog({
               </Link>
               {shopTypes.map((t) => {
                 const active = t.slug === activeCategory;
+                const chipClass = cn(
+                  "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:text-sm",
+                  active ? "gadget-chip-active" : "gadget-chip-idle",
+                );
+                if (!activeCategory) {
+                  return (
+                    <a
+                      key={t.slug}
+                      href={`#category-${t.slug}`}
+                      className={chipClass}
+                    >
+                      {t.name}
+                    </a>
+                  );
+                }
                 return (
                   <Link
                     key={t.slug}
-                    href={
-                      activeCategory
-                        ? categoryHref(t.slug)
-                        : `#category-${t.slug}`
-                    }
-                    className={cn(
-                      "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:text-sm",
-                      active ? "gadget-chip-active" : "gadget-chip-idle",
-                    )}
+                    prefetch={false}
+                    href={categoryHref(t.slug)}
+                    className={chipClass}
                   >
                     {t.name}
                   </Link>
@@ -184,9 +196,9 @@ export function GadgetShopCatalog({
         {products.length ? (
           useFlatGrid ? (
             <ul className="gadget-product-grid mt-4 sm:mt-5 lg:mt-6">
-              {products.map((p) => (
+              {products.map((p, idx) => (
                 <li key={p._id} className="min-w-0">
-                  <GadgetArrivalCard product={p} isGrid />
+                  <GadgetArrivalCard product={p} isGrid priority={idx === 0} />
                 </li>
               ))}
             </ul>
@@ -216,17 +228,20 @@ export function GadgetShopCatalog({
                   groups[catSlug].products.push(p);
                 }
 
-                return Object.values(groups).map((group) => {
+                return Object.values(groups).map((group, index) => {
                   const visible =
                     typeof maxPerCategory === "number" && maxPerCategory > 0
                       ? group.products.slice(0, maxPerCategory)
                       : group.products;
                   const hiddenCount = group.products.length - visible.length;
-                  return (
+                  const sectionNode = (
                     <section
                       key={group.slug}
                       id={`category-${group.slug}`}
-                      className="scroll-mt-24"
+                      className={cn(
+                        "scroll-mt-24",
+                        index >= 3 && "gadget-contain-rail",
+                      )}
                     >
                       <div className="mb-3.5 flex items-center justify-between border-b border-[var(--g-line)] pb-2.5">
                         <div className="flex items-center gap-2.5">
@@ -240,23 +255,29 @@ export function GadgetShopCatalog({
                         </div>
                         <Link
                           href={categoryHref(group.slug)}
+                          prefetch={false}
                           className="text-xs font-semibold text-[var(--g-forest)] transition hover:underline"
                         >
                           View all {group.name} →
                         </Link>
                       </div>
                       <ul className="gadget-product-grid">
-                        {visible.map((p) => (
+                        {visible.map((p, cardIndex) => (
                           <li key={p._id} className="min-w-0">
-                            <GadgetArrivalCard product={p} isGrid />
+                            <GadgetArrivalCard
+                              product={p}
+                              isGrid
+                              priority={index === 0 && cardIndex === 0}
+                            />
                           </li>
                         ))}
                       </ul>
                       {hiddenCount > 0 ? (
-                        <div className="mt-4 text-center">
+                        <div className="mt-4 mb-8 text-center">
                           <Link
                             href={categoryHref(group.slug)}
-                            className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--g-forest)] hover:underline"
+                            prefetch={false}
+                            className="inline-flex min-h-12 items-center px-4 py-2 rounded-lg text-sm font-semibold text-[var(--g-forest)] hover:underline"
                           >
                             See {hiddenCount} more in {group.name}
                           </Link>
@@ -264,6 +285,7 @@ export function GadgetShopCatalog({
                       ) : null}
                     </section>
                   );
+                  return sectionNode;
                 });
               })()}
             </div>
@@ -277,6 +299,7 @@ export function GadgetShopCatalog({
             </p>
             <Link
               href={products2Href()}
+              prefetch={false}
               className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-[var(--g-forest)]"
             >
               {query ? "Clear search" : "Browse all products"}

@@ -39,7 +39,7 @@ const FAQS_BY_CATEGORY: Record<
       id: "q_orders_2",
       question: "Do you offer Cash on Delivery?",
       answer:
-        "Yes, we offer Cash on Delivery (COD) nationwide across Pakistan for all eligible orders. You can select this option at checkout.",
+        "Yes, Cash on Delivery (COD) is available in serviceable areas. Enter your delivery location at checkout; we will confirm courier coverage before dispatch.",
     },
     {
       id: "q_orders_3",
