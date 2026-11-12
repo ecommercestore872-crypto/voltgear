@@ -1,99 +1,141 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import { Cookie } from "lucide-react";
+import {
+  COOKIE_CONSENT_CHANGE_EVENT,
+  COOKIE_CONSENT_OPEN_EVENT,
+  COOKIE_CONSENT_STORAGE_KEY,
+  allowsAdvertising,
+  allowsAnalytics,
+  consentFromPreferences,
+  readCookieConsent,
+  type CookieConsentChoice,
+} from "@/lib/cookie-consent";
 
-export const COOKIE_CONSENT_STORAGE_KEY = "bnt-cookie-consent";
-export const COOKIE_CONSENT_CHANGE_EVENT = "bnt-cookie-consent-change";
-export type CookieConsentChoice = "all" | "essential";
-
-function readChoice(): CookieConsentChoice | null {
-  if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-  return raw === "all" || raw === "essential" ? raw : null;
+function recordConsentMetric(event: "shown" | "opened" | "saved", choice?: CookieConsentChoice) {
+  void fetch("/api/consent/aggregate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event, choice }),
+    cache: "no-store",
+    credentials: "omit",
+    keepalive: true,
+    referrerPolicy: "no-referrer",
+  }).catch(() => {});
 }
 
 export function CookieConsentBar() {
   const pathname = usePathname();
-  const [choice, setChoice] = useState<CookieConsentChoice | null | "unknown">(
-    "unknown",
-  );
+  const [choice, setChoice] = useState<CookieConsentChoice | null | "unknown">("unknown");
+  const [open, setOpen] = useState(false);
+  const [managing, setManaging] = useState(false);
+  const [analytics, setAnalytics] = useState(false);
+  const [advertising, setAdvertising] = useState(false);
+  const [error, setError] = useState("");
+  const analyticsInput = useRef<HTMLInputElement>(null);
+  const manageButton = useRef<HTMLButtonElement>(null);
+
+  function showManage() {
+    setManaging(true);
+    window.requestAnimationFrame(() => analyticsInput.current?.focus());
+  }
+
+  function leaveManage() {
+    setManaging(false);
+    window.requestAnimationFrame(() => manageButton.current?.focus());
+  }
 
   useEffect(() => {
-    setChoice(readChoice());
+    const saved = readCookieConsent();
+    setChoice(saved);
+    setOpen(!saved);
+    if (!saved) recordConsentMetric("shown");
+
+    const showPreferences = () => {
+      const current = readCookieConsent();
+      setAnalytics(allowsAnalytics(current));
+      setAdvertising(allowsAdvertising(current));
+      setManaging(true);
+      setError("");
+      setOpen(true);
+      recordConsentMetric("opened");
+      window.requestAnimationFrame(() => analyticsInput.current?.focus());
+    };
+    window.addEventListener(COOKIE_CONSENT_OPEN_EVENT, showPreferences);
+    return () => window.removeEventListener(COOKIE_CONSENT_OPEN_EVENT, showPreferences);
   }, []);
 
-  if (
-    pathname?.startsWith("/admin") ||
-    pathname?.startsWith("/studio") ||
-    pathname?.startsWith("/checkout")
-  ) {
-    return null;
-  }
-  if (choice === "unknown" || choice) return null;
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/studio") ||
+      choice === "unknown" || !open) return null;
 
   function save(next: CookieConsentChoice) {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, next);
+    const previous = readCookieConsent();
+    try {
+      window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, next);
+    } catch {
+      setError("Your browser could not save this choice. Please check storage settings and try again.");
+      return;
+    }
     setChoice(next);
-    window.dispatchEvent(
-      new CustomEvent(COOKIE_CONSENT_CHANGE_EVENT, { detail: next }),
-    );
+    setOpen(false);
+    setError("");
+    window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_CHANGE_EVENT, { detail: next }));
+    recordConsentMetric("saved", next);
+    // Reload to remove optional SDKs already loaded before a preference was revoked.
+    if (previous && (
+      (allowsAnalytics(previous) && !allowsAnalytics(next)) ||
+      (allowsAdvertising(previous) && !allowsAdvertising(next))
+    )) window.location.reload();
   }
+
+  const actionClass = "inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-primary px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
   return (
     <div
       role="dialog"
-      aria-label="Cookie consent banner"
-      className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[100] sm:left-6 sm:bottom-6 sm:max-w-[340px] animate-in fade-in slide-in-from-bottom-4 duration-700"
+      aria-modal="false"
+      aria-labelledby="cookie-consent-title"
+      aria-describedby="cookie-consent-description"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          if (choice) setOpen(false);
+          else leaveManage();
+        }
+      }}
+      className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[100] max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-xl border border-border bg-background p-4 text-foreground shadow-xl sm:inset-x-auto sm:bottom-6 sm:left-6 sm:w-[400px] sm:max-h-[calc(100dvh-3rem)]"
     >
-      <div className="flex flex-col gap-3 sm:gap-4 overflow-hidden rounded-[1.25rem] border border-primary bg-background/95 shadow-2xl backdrop-blur-2xl p-4 sm:p-5" style={{ WebkitBackdropFilter: 'blur(24px)' }}>
-        <div>
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Cookie className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-black tracking-tight text-foreground">
-              We value your privacy
-            </h3>
-          </div>
-          <p className="text-[11px] sm:text-xs leading-relaxed text-muted-foreground">
-            We use cookies to personalize content and ads, provide social media features, and analyze traffic to improve your experience. Read our{" "}
-            <Link
-              href="/privacy-policy"
-              className="font-semibold text-primary underline underline-offset-[3px] decoration-1 transition-colors hover:text-foreground"
-            >
-              Privacy Policy
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/cookies"
-              className="font-semibold text-primary underline underline-offset-[3px] decoration-1 transition-colors hover:text-foreground"
-            >
-              Cookie Policy
-            </Link>
-            .
-          </p>
+      <h2 id="cookie-consent-title" className="text-base font-bold">Your privacy choices</h2>
+      <p id="cookie-consent-description" className="mt-1 text-sm leading-relaxed text-muted-foreground">
+        Necessary storage keeps the shop and checkout working. With your permission, analytics helps us improve the site; advertising enables ads and purchase measurement.
+      </p>
+      {managing ? (
+        <div className="mt-4 space-y-3">
+          <p className="rounded-lg bg-muted px-3 py-2 text-sm">Necessary storage is always on.</p>
+          <label className="flex min-h-11 items-start gap-3 rounded-lg border border-border p-3 text-sm">
+            <input ref={analyticsInput} type="checkbox" checked={analytics} onChange={(event) => setAnalytics(event.target.checked)} className="mt-1 h-4 w-4 accent-primary" />
+            <span><strong className="block">Analytics</strong><span className="text-muted-foreground">Helps us understand site use and improve pages.</span></span>
+          </label>
+          <label className="flex min-h-11 items-start gap-3 rounded-lg border border-border p-3 text-sm">
+            <input type="checkbox" checked={advertising} onChange={(event) => setAdvertising(event.target.checked)} className="mt-1 h-4 w-4 accent-primary" />
+            <span><strong className="block">Advertising</strong><span className="text-muted-foreground">Allows Meta, TikTok and Google ad services and purchase measurement.</span></span>
+          </label>
+          <button type="button" className={actionClass} onClick={() => save(consentFromPreferences(analytics, advertising))}>Save preferences</button>
+          <button type="button" className="min-h-11 w-full rounded-lg text-sm underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onClick={leaveManage}>Back to choices</button>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            className="inline-flex min-h-[2.25rem] items-center justify-center rounded-lg bg-primary px-3 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-primary-foreground shadow-sm transition-all hover:scale-[1.02] hover:bg-primary/90"
-            onClick={() => save("all")}
-          >
-            Accept All
-          </button>
-          <button
-            type="button"
-            className="inline-flex min-h-[2.25rem] items-center justify-center rounded-lg border border-border bg-transparent px-3 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-foreground transition-all hover:scale-[1.02] hover:bg-muted"
-            onClick={() => save("essential")}
-          >
-            Essentials
-          </button>
+      ) : (
+        <div className="mt-4 grid gap-2">
+          <button type="button" className={actionClass} onClick={() => save("all")}>Accept all</button>
+          <button type="button" className={actionClass} onClick={() => save("essential")}>Reject optional</button>
+          <button ref={manageButton} type="button" className={actionClass} onClick={showManage}>Manage preferences</button>
         </div>
-      </div>
+      )}
+      {error ? <p role="alert" className="mt-3 text-sm text-destructive">{error}</p> : null}
+      <p className="mt-3 text-xs text-muted-foreground">
+        You can change this later from the footer. Read our <Link href="/privacy-policy" className="underline">Privacy Policy</Link> and <Link href="/cookies" className="underline">Cookie Policy</Link>.
+      </p>
     </div>
   );
 }

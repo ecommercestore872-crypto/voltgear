@@ -156,9 +156,7 @@ export function AppChrome({
               <GadgetFooter settings={settings} shopTypes={shopTypes} />
               <CartDrawerGate>{cartDrawer}</CartDrawerGate>
               {cartEffects}
-              <DeferredUntilIdle timeoutMs={3500}>
-                <CookieConsentBar />
-              </DeferredUntilIdle>
+              <CookieConsentBar />
             </div>
             <DeferredUntilIdle>
               <ShopWhatsAppButton settings={settings} />
@@ -178,9 +176,7 @@ export function AppChrome({
             {reviewReminder}
             {cartEffects}
             {compareBar}
-            <DeferredUntilIdle timeoutMs={3500}>
-              <CookieConsentBar />
-            </DeferredUntilIdle>
+            <CookieConsentBar />
           </>
         )}
       </WishlistProvider>

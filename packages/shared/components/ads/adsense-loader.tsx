@@ -2,18 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  COOKIE_CONSENT_CHANGE_EVENT,
-  COOKIE_CONSENT_STORAGE_KEY,
-  type CookieConsentChoice,
-} from "@/components/legal/cookie-consent-bar";
+import { COOKIE_CONSENT_CHANGE_EVENT, COOKIE_CONSENT_STORAGE_KEY, allowsAdvertising, browserPrivacyOptOut, parseCookieConsent, readCookieConsent, type CookieConsentChoice } from "@/lib/cookie-consent";
 
 export const ADSENSE_READY_EVENT = "bnt-adsense-ready";
 
 function readConsent(): CookieConsentChoice | null {
-  if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-  return value === "all" || value === "essential" ? value : null;
+  return readCookieConsent();
 }
 
 /** Loads the site-wide AdSense tag only after optional-cookie consent. */
@@ -25,15 +19,22 @@ export function AdSenseLoader({ src }: { src: string }) {
 
     function onConsent(event: Event) {
       const choice = (event as CustomEvent<CookieConsentChoice>).detail;
-      setConsent(choice === "all" || choice === "essential" ? choice : readConsent());
+      setConsent(parseCookieConsent(choice) ?? readConsent());
     }
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === COOKIE_CONSENT_STORAGE_KEY) setConsent(readConsent());
+    };
 
     window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
-    return () => window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   useEffect(() => {
-    if (consent !== "all" || !src) return;
+    if (!allowsAdvertising(consent) || browserPrivacyOptOut() || !src) return;
 
     const existing = document.getElementById("adsense-site-script");
     if (existing) {

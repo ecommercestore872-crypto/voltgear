@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { readSupabaseEnv } from "@/lib/db/migration-rules";
-import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
+import { supabaseRequestLogPath } from "./request-log-path";
 
 let cached: SupabaseClient | null = null;
 let cachedAdmin: SupabaseClient | null = null;
@@ -58,29 +58,33 @@ export function getServiceClient(options?: { admin?: boolean }): SupabaseClient 
   cached = createClient(env.url, env.serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
-      // Cache GETs briefly for ISR/storefront speed; keep mutations fresh.
+      // Service-role reads include orders and inventory. Public catalog callers
+      // use explicit unstable_cache/ISR boundaries instead of caching every GET.
       fetch: (input: RequestInfo | URL, init?: RequestInit) => {
         const method = (init?.method || "GET").toUpperCase();
         const t0 = performance.now();
-        const run =
-          method !== "GET" && method !== "HEAD"
-            ? fetch(input, { ...init, cache: "no-store" })
-            : fetch(input, {
-                ...init,
-                next: { revalidate: STOREFRONT_CATALOG_REVALIDATE },
-              });
+        const slow = Number(process.env.SHOP_SUPABASE_SLOW_MS ?? 700);
+        const run = fetch(input, { ...init, cache: "no-store" });
         return run.then((res) => {
           const ms = Math.round(performance.now() - t0);
-          const slow = Number(process.env.SHOP_SUPABASE_SLOW_MS ?? 700);
           if (ms >= slow) {
-            const url = typeof input === "string" ? input : String(input);
+            const url = input instanceof Request ? input.url : String(input);
             if (/supabase\.co/i.test(url)) {
-              console.warn(
-                JSON.stringify({ v: 1, kind: "shop_supabase_slow", ms, method }),
-              );
+              console.warn(JSON.stringify({ v: 1, kind: "shop_supabase_slow", ms, method,
+                path: supabaseRequestLogPath(input), status: res.status }));
             }
           }
           return res;
+        }, (error: unknown) => {
+          const ms = Math.round(performance.now() - t0);
+          const reason = error instanceof Error && ["AbortError", "TimeoutError", "TypeError"].includes(error.name)
+            ? error.name : "other";
+          // Next uses short-lived fetch exceptions while classifying dynamic routes at build time.
+          if (ms >= slow || reason !== "other") {
+            console.warn(JSON.stringify({ v: 1, kind: "shop_supabase_error", ms, method,
+              path: supabaseRequestLogPath(input), reason }));
+          }
+          throw error;
         });
       },
     },

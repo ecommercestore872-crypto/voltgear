@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
+import { CookieSettingsButton } from "@/components/legal/cookie-settings-button";
 import {
   ADSENSE_ABOUTADS_URL,
   ADSENSE_ADS_SETTINGS_URL,
@@ -31,10 +32,20 @@ export default function CookiesPage() {
         ads.
       </p>
 
-      <h2>Advertising cookies</h2>
+      <h2>Optional analytics</h2>
       <p>
-        If Google AdSense is connected, Google and its partners may use cookies
-        to serve ads based on visits to this site and other sites. You can opt
+        If you allow analytics, Microsoft Clarity may measure how visitors use
+        the shop so we can improve pages and checkout. It stays off when you
+        reject analytics.
+      </p>
+
+      <h2>Optional advertising</h2>
+      <p>
+        If you allow advertising, Meta and TikTok may measure shopping events,
+        and Google AdSense may show ads. Without advertising permission, these
+        services stay off. If Google AdSense is connected, Google and its
+        partners may use cookies to serve ads based on visits to this site and
+        other sites. You can opt
         out of personalized ads in{" "}
         <a
           href={ADSENSE_ADS_SETTINGS_URL}
@@ -57,10 +68,12 @@ export default function CookiesPage() {
 
       <h2>How to change your choice</h2>
       <p>
-        Use your browser settings to delete cookies. On this site, choose
-        Essential only or Accept on the cookie bar (it appears until you pick).
-        Clearing site data will show the bar again.
+        Choose Accept all, Reject optional, or set analytics and advertising
+        separately. Use Cookie settings in the footer whenever you want to
+        change your choice. Browser privacy opt-out signals override advertising
+        permission.
       </p>
+      <CookieSettingsButton className="min-h-11 rounded-lg border border-current px-4 font-semibold underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2" />
     </GadgetArticleShell>
   );
 }

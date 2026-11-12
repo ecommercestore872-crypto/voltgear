@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { syncTikTokPixel } from "@/lib/tiktok-pixel-runtime";
-import { COOKIE_CONSENT_CHANGE_EVENT } from "@/components/legal/cookie-consent-bar";
+import { COOKIE_CONSENT_CHANGE_EVENT } from "@/lib/cookie-consent";
 
 /** Mount promptly; the runtime performs all consent and configuration gating. */
 export function TikTokPixel() {

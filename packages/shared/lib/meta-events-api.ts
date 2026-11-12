@@ -1,4 +1,5 @@
 import { isIP } from "node:net";
+import { allowsAdvertising } from "./cookie-consent";
 import { metaCommerceData, metaEnvironmentAllowed, type MetaItem } from "./meta-commerce";
 import { purchaseTrackLog } from "./purchase-track-observability";
 import { buildMetaHashedCustomer } from "./meta-matching";
@@ -50,7 +51,7 @@ export function validMetaCookie(value?: string): boolean {
 /** Two bounded attempts. Every retry reuses the exact event ID/time/body. */
 export async function trackMetaServerPurchase(input: PurchaseInput): Promise<void> {
   const orderId = input.orderId;
-  if (input.consent !== "all") {
+  if (!allowsAdvertising(input.consent)) {
     purchaseTrackLog({ channel: "meta", outcome: "skipped_consent", orderId }); return;
   }
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;

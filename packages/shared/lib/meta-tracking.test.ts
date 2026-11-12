@@ -72,6 +72,8 @@ test("privacy opt-outs block Meta server events before any fetch", async () => {
   assert.equal(canSendMetaServerEvent("all", new Headers({ "sec-gpc": "1" })), false);
   assert.equal(canSendMetaServerEvent("all", new Headers({ dnt: "1" })), false);
   assert.equal(canSendMetaServerEvent("all", new Headers()), true);
+  assert.equal(canSendMetaServerEvent("advertising", new Headers()), true);
+  assert.equal(canSendMetaServerEvent("analytics", new Headers()), false);
   let sends = 0;
   global.fetch = (async () => { sends++; return new Response("{}"); }) as typeof fetch;
   await trackMetaServerPurchase({ ...purchase, consent: "essential" });
@@ -108,9 +110,12 @@ test("browser Purchase uses hashed matching and claims each order exactly once",
   const init = calls.find((call) => call[0] === "init")!;
   assert.equal((init[2] as Record<string, string>).em, metaHash("buyer@example.com"));
   assert.equal((init[2] as Record<string, string>).ph, metaHash("923001234567"));
-  store.set("bnt-cookie-consent", "essential");
+  store.set("bnt-cookie-consent", "advertising");
   await trackMetaPurchase({ ...purchase, orderId: "BNT-103", customer });
-  assert.equal(calls.filter((call) => call[2] === "Purchase").length, 2);
+  assert.deepEqual(calls.filter((call) => call[2] === "Purchase").map((call) => (call[4] as { eventID: string }).eventID), ["BNT-101", "BNT-102", "BNT-103"]);
+  store.set("bnt-cookie-consent", "analytics");
+  await trackMetaPurchase({ ...purchase, orderId: "BNT-104", customer });
+  assert.equal(calls.filter((call) => call[2] === "Purchase").length, 3);
 });
 
 test("admin actor signature rejects tampering", () => {

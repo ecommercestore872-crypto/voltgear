@@ -1,13 +1,15 @@
 import { shouldLoadTikTokPixel, tiktokPixelBootstrapSource } from "./tiktok-pixel-rules";
+import { browserPrivacyOptOut, readCookieConsent } from "./cookie-consent";
 import type {} from "./tiktok-browser-events";
 
 function allowed(): boolean {
   try {
-    const consent = window.localStorage.getItem("bnt-cookie-consent");
+    const consent = readCookieConsent();
     return shouldLoadTikTokPixel({
       pixelId: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID,
       enabled: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED,
-      consent: consent === "all" ? "all" : null,
+      consent,
+      privacyOptOut: browserPrivacyOptOut(),
       pathname: window.location.pathname,
       host: window.location.hostname,
       nodeEnv: process.env.NODE_ENV,

@@ -3,6 +3,7 @@ import { Mail, Phone } from "lucide-react";
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
 import { GadgetSocialGlyph } from "@/components/gadget/gadget-social-glyphs";
+import { CookieSettingsButton } from "@/components/legal/cookie-settings-button";
 import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import { getPublicSocialLinks } from "@/lib/social-links-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
@@ -216,6 +217,7 @@ export function GadgetFooter({
               >
                 Cookies
               </Link>
+              <CookieSettingsButton className="min-h-10 hover:text-[var(--g-white)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white" />
               <Link
                 href="/terms-of-service"
                 className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"

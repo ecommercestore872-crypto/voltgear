@@ -91,9 +91,11 @@ export default async function PrivacyPolicyPage() {
           <p>
             Essential cookies remember your cart, checkout progress, and cookie
             choice. They are required for the shop to function. Analytics tools
-            (if enabled) measure which pages are used so we can fix broken
-            flows. You can limit non-essential cookies from the cookie bar or
-            your browser. See our <Link href="/cookies">cookie policy</Link>.
+            (if you allow them) measure which pages are used so we can fix broken
+            flows. Advertising services require a separate choice. You can
+            change either choice from Cookie settings in the footer. The shop
+            also counts consent choices without storing identifiers or page URLs
+            in those counts. See our <Link href="/cookies">cookie policy</Link>.
           </p>
 
           <h2>Your choices</h2>

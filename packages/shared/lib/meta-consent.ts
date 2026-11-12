@@ -1,3 +1,5 @@
+import { allowsAdvertising } from "./cookie-consent";
+
 export const META_CONSENT_STORAGE_KEY = "bnt-cookie-consent";
 
 export function hasMetaPrivacyOptOut(input: {
@@ -12,7 +14,7 @@ export function canSendMetaServerEvent(
   consent: string | null | undefined,
   headers: Headers,
 ): boolean {
-  return consent === "all" && !hasMetaPrivacyOptOut({
+  return allowsAdvertising(consent) && !hasMetaPrivacyOptOut({
     gpc: headers.get("sec-gpc"),
     dnt: headers.get("dnt"),
   });
@@ -25,7 +27,7 @@ export function canSendMetaBrowserEvent(): boolean {
       globalPrivacyControl?: boolean;
       msDoNotTrack?: string;
     };
-    return window.localStorage.getItem(META_CONSENT_STORAGE_KEY) === "all" &&
+    return allowsAdvertising(window.localStorage.getItem(META_CONSENT_STORAGE_KEY)) &&
       !hasMetaPrivacyOptOut({
         gpc: browser.globalPrivacyControl,
         dnt: browser.doNotTrack || browser.msDoNotTrack,

@@ -2,11 +2,13 @@
  * Rules for loading the official TikTok Pixel base code.
  * No ecommerce events, Events API, or Advanced Matching here.
  */
+import { allowsAdvertising, type CookieConsentChoice } from "./cookie-consent";
 
 export function shouldLoadTikTokPixel(input: {
   pixelId?: string | null;
   enabled?: string | boolean | null;
-  consent: "all" | "essential" | null;
+  consent: CookieConsentChoice | null;
+  privacyOptOut?: boolean;
   pathname?: string | null;
   nodeEnv?: string | null;
   host?: string | null;
@@ -20,7 +22,7 @@ export function shouldLoadTikTokPixel(input: {
       .trim()
       .toLowerCase() === "true";
   if (!enabled) return false;
-  if (input.consent !== "all") return false;
+  if (!allowsAdvertising(input.consent) || input.privacyOptOut) return false;
 
   const nodeEnv = (input.nodeEnv ?? process.env.NODE_ENV ?? "").toLowerCase();
   if (nodeEnv === "development") return false;
