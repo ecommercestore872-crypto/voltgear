@@ -13,7 +13,7 @@ const adapter = readFileSync(
   "utf8",
 );
 const auditedDeletion = readFileSync(
-  path.join(root, "supabase/migrations/20261111000000_audited_admin_order_deletion.sql"),
+  path.join(root, "supabase/migrations/20261112062924_audited_admin_order_deletion.sql"),
   "utf8",
 );
 const communications = readFileSync(
