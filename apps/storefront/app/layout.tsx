@@ -35,7 +35,6 @@ import {
 } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { themeCssVars, themePreviewScript } from "@/lib/theme";
-import type { SiteSettings } from "@/lib/types";
 import "@fontsource-variable/manrope/wght.css";
 import "@fontsource-variable/newsreader/wght.css";
 import "./globals.css";
@@ -149,12 +148,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Avoid headers()/cookies() here — they force every page dynamic and kill CDN/ISR caching.
-  const settings: SiteSettings | null = await loadStorefrontSettings().catch(
-    () => null,
-  );
-  const shopTypes = await loadStorefrontShopTypes().catch(
-    () => FALLBACK_SHOP_TYPES,
-  );
+  const [settings, shopTypes] = await Promise.all([
+    loadStorefrontSettings().catch(() => null),
+    loadStorefrontShopTypes().catch(() => FALLBACK_SHOP_TYPES),
+  ]);
   const config = normalizeSettings(settings);
 
   const brandVars = themeCssVars(settings);

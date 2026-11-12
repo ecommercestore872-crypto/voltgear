@@ -18,9 +18,11 @@ export async function GadgetHomePage() {
     <div className="min-h-dvh text-[var(--g-charcoal)]">
       {hero}
       <GadgetHomeTrust settings={settings} />
-      <Suspense fallback={null}>
-        <GadgetHomeSections />
-      </Suspense>
+      <div className="min-h-dvh">
+        <Suspense fallback={null}>
+          <GadgetHomeSections />
+        </Suspense>
+      </div>
     </div>
   );
 }

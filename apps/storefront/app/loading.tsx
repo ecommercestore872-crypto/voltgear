@@ -2,7 +2,7 @@
 export default function StorefrontLoading() {
   return (
     <div
-      className="min-h-[60vh] bg-[var(--g-cream)] px-4 py-6 lg:px-8"
+      className="min-h-dvh bg-[var(--g-cream)] px-4 py-6 lg:px-8"
       role="status"
       aria-busy="true"
       aria-label="Loading the shop"

@@ -41,31 +41,28 @@ export default async function Products2Page() {
   let products: Product[] = [];
   let shopTypes = FALLBACK_SHOP_TYPES;
   const preview = localCatalogPreviewEnabled();
-  const settings = preview ? null : await loadStorefrontSettings().catch(() => null);
-  const config = normalizeSettings(settings);
-
-  const [p, types] = await Promise.all([
+  const [settings, p, types] = await Promise.all([
+    preview ? Promise.resolve(null) : loadStorefrontSettings().catch(() => null),
     fetchCatalogProductsShopOverview(16).catch(() => [] as Product[]),
     preview ? Promise.resolve(FALLBACK_SHOP_TYPES) : fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES),
   ]);
+  const config = normalizeSettings(settings);
   products = applyGadgetStudioImagesList(p);
   shopTypes = types.length ? types : FALLBACK_SHOP_TYPES;
 
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-[50vh] bg-[var(--g-cream)]" aria-hidden />
-      }
-    >
-      <GadgetShopCatalogClient
-        title="Shop electronics in Pakistan"
-        description={catalogDescription}
-        products={products}
-        shopTypes={shopTypes}
-        config={config}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "All products" }]}
-        maxPerCategory={8}
-      />
-    </Suspense>
+    <div className="min-h-dvh bg-[var(--g-cream)]">
+      <Suspense fallback={null}>
+        <GadgetShopCatalogClient
+          title="Shop electronics in Pakistan"
+          description={catalogDescription}
+          products={products}
+          shopTypes={shopTypes}
+          config={config}
+          breadcrumbs={[{ label: "Home", href: "/" }, { label: "All products" }]}
+          maxPerCategory={8}
+        />
+      </Suspense>
+    </div>
   );
 }
