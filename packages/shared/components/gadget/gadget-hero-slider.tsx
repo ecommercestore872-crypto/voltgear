@@ -203,7 +203,7 @@ export function GadgetHeroSlider({
                 }}
                 aria-hidden={!isActive}
               >
-                {shouldPaint ? (
+                {shouldPaint && !banner.textOnly ? (
                   <ResponsiveHeroImage banner={banner} eager={i === 0} />
                 ) : null}
               </div>

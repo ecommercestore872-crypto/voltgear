@@ -14,10 +14,23 @@ export type GadgetHeroBanner = {
   ctaDisabled?: boolean;
   ctaLabel?: string;
   artworkText?: boolean;
+  textOnly?: boolean;
 };
+
+// These published Cloudinary assets contain an unverified customer-count claim.
+// Use the slide's existing copy with a brand-color background until both assets
+// are replaced in Admin. Matching the asset IDs lets new artwork display normally.
+const CLAIMED_HERO_ASSET_IDS = ["stm72jeeup4qg0rcwrh9", "z0kxjmp7dmyfv9lfaytc"];
+
+export function hasClaimedHeroArtwork(slide: Pick<HeroSlide, "imageUrl" | "subtitle">): boolean {
+  return CLAIMED_HERO_ASSET_IDS.some((id) =>
+    slide.imageUrl.includes(id) || (slide.subtitle ?? "").includes(id),
+  );
+}
 
 export function heroSlidesToBanners(slides: HeroSlide[]): GadgetHeroBanner[] {
   return slides.map((slide) => {
+    const textOnly = hasClaimedHeroArtwork(slide);
     const cta = resolveSlideCta(slide.product.stockStatus);
     let subtitle = slide.subtitle;
     let ctaLabel = "Shop " + (slide.title || "this offer");
@@ -59,12 +72,13 @@ export function heroSlidesToBanners(slides: HeroSlide[]): GadgetHeroBanner[] {
       id: slide.id,
       title: slide.title,
       subtitle,
-      imageUrl: slide.imageUrl,
-      mobileImageUrl,
+      imageUrl: textOnly ? "" : slide.imageUrl,
+      mobileImageUrl: textOnly ? "" : mobileImageUrl,
       href,
       ctaDisabled: cta.disabled,
-      ctaLabel: ctaLabel === "Shop this offer" ? "" : ctaLabel,
-      artworkText,
+      ctaLabel: textOnly && !cta.disabled ? "Shop products" : ctaLabel === "Shop this offer" ? "" : ctaLabel,
+      artworkText: textOnly ? false : artworkText,
+      textOnly,
     };
   });
 }

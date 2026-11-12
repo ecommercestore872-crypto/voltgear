@@ -2,6 +2,7 @@ import { preload } from "react-dom";
 
 import { fetchHeroSlides } from "@/lib/db/store";
 import { gadgetDemoHeroBanners } from "@/lib/gadget-creatives";
+import { hasClaimedHeroArtwork } from "@/lib/gadget-hero-banners";
 import { heroLcpPreloads } from "@/lib/gadget-hero-lcp";
 import { products2Href } from "@/lib/gadget-preview";
 import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
@@ -20,7 +21,7 @@ export async function GadgetHomeHero() {
     }
   }
 
-  if (slides[0]) {
+  if (slides[0] && !hasClaimedHeroArtwork(slides[0])) {
     for (const image of heroLcpPreloads(slides[0])) {
       preload(image.href, {
         as: "image",
