@@ -112,8 +112,8 @@ export async function cancelOrder(
   return result;
 }
 
-export async function deleteOrder(orderId: string) {
-  return deleteOrderRow(orderId);
+export async function deleteOrder(orderId: string, actorId: string) {
+  return deleteOrderRow(orderId, actorId);
 }
 
 export async function enqueueEmailEvent(

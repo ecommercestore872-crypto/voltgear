@@ -400,11 +400,14 @@ export type DeleteOrderResult =
   | { ok: true }
   | { ok: false; error: string; status: 404 | 409 | 503 };
 
-export async function deleteOrderRow(orderId: string): Promise<DeleteOrderResult> {
-  const { data, error } = await db().rpc("admin_delete_demo_order", {
+export async function deleteOrderRow(orderId: string, actorId: string): Promise<DeleteOrderResult> {
+  const { data, error } = await db().rpc("admin_delete_order", {
     p_order_id: orderId.trim(),
+    p_admin_user_id: actorId,
   });
   if (!error && data?.ok) return { ok: true };
+  if (!error && data?.error) return { ok: false, error: String(data.error),
+    status: /not found/i.test(data.error) ? 404 : /could not safely delete/i.test(data.error) ? 503 : 409 };
 
   const businessError = atomicBusinessError(error?.message);
   if (businessError) {
@@ -414,6 +417,6 @@ export async function deleteOrderRow(orderId: string): Promise<DeleteOrderResult
       status: /not found/i.test(businessError) ? 404 : 409,
     };
   }
-  console.error("[orders] admin_delete_demo_order failed:", error);
+  console.error("[orders] admin_delete_order failed:", error);
   return { ok: false, error: "Could not delete the practice order.", status: 503 };
 }
