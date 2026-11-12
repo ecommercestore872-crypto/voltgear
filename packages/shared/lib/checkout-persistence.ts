@@ -1,4 +1,5 @@
 import { buildCheckoutIdempotencyFingerprint } from "@/lib/checkout-idempotency";
+import { checkoutClientIp } from "@/lib/checkout-guard";
 import { effectiveCheckoutTrackingConsent } from "@/lib/checkout-tracking-consent";
 import { readMetaCookieIds } from "@/lib/checkout-tracking-rules";
 import { buildMetaServerPurchasePayload } from "@/lib/meta-events-api";
@@ -33,6 +34,10 @@ export async function persistCheckoutOrder(
         price: line.price!, quantity: line.quantity!,
       })),
       email: order.customer.email, phone: order.customer.phone,
+      fullName: order.customer.name, city: order.customer.city,
+      postalCode: order.customer.postal, country: "pk",
+      clientIp: checkoutClientIp(tracking!.request),
+      userAgent: tracking!.request.headers.get("user-agent") || undefined,
       fbp, fbc,
     }) : null;
     const persisted = await createOrder({

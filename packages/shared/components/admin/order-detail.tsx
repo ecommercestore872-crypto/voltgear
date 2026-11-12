@@ -9,6 +9,7 @@ import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-g
 
 import { adminFetch, AdminAuthError } from "@/components/admin/admin-fetch";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -318,37 +319,6 @@ export function OrderDetail({
     }
   }
 
-  async function handleDelete() {
-    if (
-      !window.confirm(
-        "Delete this practice order permanently and restore its reserved inventory? This cannot be undone.",
-      )
-    ) {
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      await adminFetch(
-        `/api/admin/orders/${encodeURIComponent(order.orderId)}`,
-        {
-          method: "DELETE",
-        },
-      );
-      router.push("/admin/orders");
-      router.refresh();
-    } catch (err) {
-      if (err instanceof AdminAuthError) {
-        router.replace("/admin/login");
-        return;
-      }
-      setError(
-        err instanceof Error ? err.message : "Could not delete the order.",
-      );
-      setSaving(false);
-    }
-  }
-
   async function handleArchive() {
     const archived = !order.archivedAt;
     const verb = archived ? "Archive" : "Unarchive";
@@ -385,8 +355,8 @@ export function OrderDetail({
         </Link>
         <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
           <div className="space-y-1.5 max-w-2xl">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-              Order <span className="tabular-nums font-mono text-blue-600 dark:text-blue-400">{order.orderId}</span>
+            <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Order <span className="break-all tabular-nums font-mono text-blue-600 dark:text-blue-400">{order.orderId}</span>
               {order.isDemo ? (
                 <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
                   Demo
@@ -396,9 +366,7 @@ export function OrderDetail({
                 <Badge variant="outline">Archived</Badge>
               ) : null}
             </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Resolve fulfillment checkpoints, review comprehensive customer details, and modify the shipment lifecycle here. Manage this specific order’s ledger directly to ensure seamless last-mile delivery and accurate accounting.
-            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">Review the customer, items, fulfillment, and status for this order.</p>
             <p className="text-xs font-semibold text-muted-foreground mt-2">
               Placed {formatDate(order.createdAt)} 
               {order.statusUpdatedAt && ` • Line updated ${formatDate(order.statusUpdatedAt)}`}
@@ -521,7 +489,8 @@ export function OrderDetail({
         </p>
       ) : null}
 
-      <section className="rounded-lg border p-4">
+      <div className="grid gap-6 xl:grid-cols-2">
+      <section className="min-w-0 rounded-lg border p-4">
         <h2 className="text-sm font-semibold">Customer</h2>
         <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           <div>
@@ -530,7 +499,7 @@ export function OrderDetail({
           </div>
           <div>
             <dt className="text-muted-foreground">Email</dt>
-            <dd>{customer.email || "—"}</dd>
+            <dd className="break-all">{customer.email || "—"}</dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Phone</dt>
@@ -542,7 +511,7 @@ export function OrderDetail({
           </div>
           <div className="sm:col-span-2">
             <dt className="text-muted-foreground">Address</dt>
-            <dd>{customer.address || "—"}</dd>
+            <dd className="break-words">{customer.address || "—"}</dd>
           </div>
           {customer.postal ? (
             <div>
@@ -563,7 +532,7 @@ export function OrderDetail({
         </dl>
       </section>
 
-      <section className="rounded-lg border p-4">
+      <section className="min-w-0 rounded-lg border p-4">
         <h2 className="text-sm font-semibold">Items</h2>
         <ul className="mt-3 divide-y">
           {(order.items ?? []).map((item, i) => (
@@ -571,7 +540,7 @@ export function OrderDetail({
               key={`${item.name}-${i}`}
               className="flex items-center justify-between gap-4 py-2 text-sm"
             >
-              <span>
+              <span className="min-w-0 break-words">
                 {item.name}
                 {item.variantName ? (
                   <span className="text-muted-foreground">
@@ -583,7 +552,7 @@ export function OrderDetail({
                   × {item.quantity ?? 1}
                 </span>
               </span>
-              <span className="font-medium">
+              <span className="shrink-0 font-medium">
                 {formatPrice((item.price ?? 0) * (item.quantity ?? 1))}
               </span>
             </li>
@@ -617,7 +586,7 @@ export function OrderDetail({
         </dl>
       </section>
 
-      <section className="rounded-lg border p-4">
+      <section className="min-w-0 rounded-lg border p-4">
         <h2 className="text-sm font-semibold">Timeline</h2>
         {history.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
@@ -644,7 +613,7 @@ export function OrderDetail({
         )}
       </section>
 
-      <form onSubmit={submit} className="space-y-3 rounded-lg border p-4">
+      <form onSubmit={submit} className="min-w-0 space-y-3 rounded-lg border p-4">
         <h2 className="text-sm font-semibold">Update status</h2>
         <div className="space-y-1.5">
           <Label htmlFor="status">Status</Label>
@@ -679,7 +648,9 @@ export function OrderDetail({
           {saving ? "Updating…" : "Update"}
         </Button>
       </form>
+      </div>
 
+      <div className="grid gap-6 xl:grid-cols-2">
       <section className="rounded-lg border p-4">
         <h2 className="text-sm font-semibold">Order visibility</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -692,30 +663,16 @@ export function OrderDetail({
         </Button>
       </section>
 
-      {order.isDemo ? (
         <section className="rounded-lg border border-destructive/20 p-4">
-          <h2 className="text-sm font-semibold text-destructive">Practice data</h2>
+          <h2 className="text-sm font-semibold text-destructive">Permanent deletion</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Permanently delete this practice order and restore any reserved inventory.
+            {order.isDemo
+              ? "Eligible practice orders can be deleted with reserved inventory restored."
+              : "Live orders are retained while payment, fulfillment, and retention eligibility cannot be proven."}
           </p>
-          <Button
-            type="button"
-            variant="destructive"
-            className="mt-4"
-            disabled={saving}
-            onClick={handleDelete}
-          >
-            Delete Practice Order
-          </Button>
+          <div className="mt-4"><DeleteOrderButton orderId={order.orderId} isDemo={Boolean(order.isDemo)} onDeleted={() => { router.push("/admin/orders"); router.refresh(); }} /></div>
         </section>
-      ) : (
-        <section className="rounded-lg border p-4">
-          <h2 className="text-sm font-semibold">Commerce record retention</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Live orders are retained to preserve fulfillment, payment, inventory, and customer-service history.
-          </p>
-        </section>
-      )}
+      </div>
     </div>
   );
 }

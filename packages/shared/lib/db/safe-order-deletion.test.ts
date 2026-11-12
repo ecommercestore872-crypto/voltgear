@@ -12,6 +12,10 @@ const adapter = readFileSync(
   path.join(root, "packages/shared/lib/db/store-order-store.ts"),
   "utf8",
 );
+const auditedDeletion = readFileSync(
+  path.join(root, "supabase/migrations/20261112062924_audited_admin_order_deletion.sql"),
+  "utf8",
+);
 const communications = readFileSync(
   path.join(root, "packages/shared/lib/checkout-post-persist-communications.ts"),
   "utf8",
@@ -23,7 +27,10 @@ describe("safe order deletion", () => {
     assert.match(migration, /if not coalesce\(v_order\.is_demo, false\)/i);
     assert.match(migration, /live orders must be retained/i);
     assert.match(migration, /delete from public\.orders where id = v_order\.id/i);
-    assert.match(adapter, /\.rpc\("admin_delete_demo_order"/);
+    assert.match(auditedDeletion, /function public\.admin_delete_order/i);
+    assert.match(auditedDeletion, /p_admin_user_id uuid/i);
+    assert.match(auditedDeletion, /perform public\.admin_delete_demo_order/i);
+    assert.match(adapter, /\.rpc\("admin_delete_order"/);
     assert.doesNotMatch(adapter, /from\("order_items"\)\.delete/);
   });
 

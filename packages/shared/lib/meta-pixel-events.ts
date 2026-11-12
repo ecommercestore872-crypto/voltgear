@@ -1,4 +1,6 @@
 import { acceptedMetaPurchase, metaCommerceData, metaEnvironmentAllowed, metaStorefrontPath, type MetaItem } from "./meta-commerce";
+import { canSendMetaBrowserEvent } from "./meta-consent";
+import { buildMetaHashedCustomer, type MetaCustomer } from "./meta-matching";
 
 declare global {
   interface Window {
@@ -17,8 +19,7 @@ export function canSendMetaBrowserEvents(): boolean {
   if (typeof window === "undefined") return false;
   try {
     return (process.env.NODE_ENV !== "development" || process.env.NEXT_PUBLIC_META_TEST_MODE === "true") &&
-      process.env.NEXT_PUBLIC_META_PIXEL_ENABLED !== "false" && window.localStorage.getItem("bnt-cookie-consent") === "all" &&
-      !(window.navigator.globalPrivacyControl || window.navigator.doNotTrack === "1") &&
+      process.env.NEXT_PUBLIC_META_PIXEL_ENABLED !== "false" && canSendMetaBrowserEvent() &&
       metaStorefrontPath(window.location.pathname) &&
       // Pixel includes the document URL automatically. Suppress sensitive legacy URLs.
       !/(email|phone|address|token|password|name)=/i.test(window.location.search) &&
@@ -101,7 +102,7 @@ export function trackMetaInitiateCheckout(input: { items: MetaItem[]; value: num
   });
 }
 
-export async function trackMetaPurchase(input: { orderId: string; items: MetaItem[]; value: number }): Promise<void> {
+export async function trackMetaPurchase(input: { orderId: string; items: MetaItem[]; value: number; customer?: MetaCustomer }): Promise<void> {
   const data = metaCommerceData(input.items, input.value);
   const id = input.orderId?.trim();
   if (!id || !data) return;
@@ -115,7 +116,11 @@ export async function trackMetaPurchase(input: { orderId: string; items: MetaIte
         window.localStorage.setItem(key, "1");
         if (window.localStorage.getItem(key) !== "1") return;
       } catch { return; }
-      try { track("Purchase", { ...data, order_id: id }, id); }
+      try {
+        const matching = buildMetaHashedCustomer(input.customer ?? {});
+        if (matching.em || matching.ph) window.fbq?.("init", process.env.NEXT_PUBLIC_META_PIXEL_ID, matching);
+        track("Purchase", { ...data, order_id: id }, id);
+      }
       catch {
         // The SDK may throw after queueing/transmission. Retain the claim:
         // repeating an uncertain browser-only send can inflate conversions.
@@ -131,7 +136,7 @@ export async function trackMetaPurchase(input: { orderId: string; items: MetaIte
   else whenReady(() => { void execute(); });
 }
 
-export async function trackAcceptedMetaPurchase(status: number, data: unknown): Promise<void> {
+export async function trackAcceptedMetaPurchase(status: number, data: unknown, customer?: MetaCustomer): Promise<void> {
   const input = acceptedMetaPurchase(status, data);
-  if (input) await trackMetaPurchase(input);
+  if (input) await trackMetaPurchase({ ...input, customer });
 }

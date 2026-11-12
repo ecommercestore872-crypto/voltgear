@@ -6,6 +6,7 @@
 import { spawnSync } from "node:child_process";
 import { readdirSync } from "node:fs";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
 function findTests(directory) {
   const found = [];
@@ -32,9 +33,9 @@ if (!files.length) {
 }
 
 const result = spawnSync(
-  process.platform === "win32" ? "npx.cmd" : "npx",
-  ["tsx", "--test", "--test-isolation=none", "--test-concurrency=1", ...files],
-  { stdio: "inherit", shell: process.platform === "win32" },
+  process.execPath,
+  [fileURLToPath(import.meta.resolve("tsx/cli")), "--test", "--test-isolation=none", "--test-concurrency=1", ...files],
+  { stdio: "inherit" },
 );
 
 process.exit(result.status ?? 1);

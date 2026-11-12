@@ -410,7 +410,11 @@ export default function CheckoutPageClient() {
       orderNavigationRef.current = true;
       // Queue before navigation; replay recovery keeps the same deduplication ID.
       try { trackAcceptedTikTokPurchase(response.status, data); } catch {}
-      try { await trackAcceptedMetaPurchase(response.status, data); } catch {}
+      try { await trackAcceptedMetaPurchase(response.status, data, {
+        email: currentCustomer.email, phone: currentCustomer.phone,
+        fullName: currentCustomer.name, city: currentCustomer.city,
+        postalCode: currentCustomer.postal, country: "pk",
+      }); } catch {}
       void identifyTikTokCustomer({ email: currentCustomer.email, phone: currentCustomer.phone });
       window.scrollTo({ top: 0, behavior: "instant" });
       router.replace(`/order/${orderId}`);

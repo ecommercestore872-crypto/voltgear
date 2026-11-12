@@ -15,6 +15,7 @@ import { RemoveDemoData } from "@/components/admin/remove-demo-data";
 import { readAdminUiState, writeAdminUiState } from "@/lib/admin-ui-persist";
 
 import { StatusBadge } from "@/components/admin/status-badge";
+import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 
 const ORDERS_SEARCH_KEY = "admin.orders.search";
 const ORDERS_TAB_KEY = "admin.orders.tab";
@@ -226,12 +227,15 @@ export function OrderList({
                   </div>
                 </div>
 
-                <Link
-                  href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
-                  className="block w-full rounded-xl bg-muted/50 py-3 text-center text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
-                >
-                  Manage Order
-                </Link>
+                <div className="space-y-2">
+                  <Link
+                    href={`/admin/orders/${encodeURIComponent(o.orderId)}`}
+                    className="block w-full rounded-xl bg-muted/50 py-3 text-center text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
+                  >
+                    Manage Order
+                  </Link>
+                  <DeleteOrderButton orderId={o.orderId} isDemo={Boolean(o.isDemo)} compact onDeleted={() => router.refresh()} />
+                </div>
               </div>
             ))}
           </div>
@@ -255,6 +259,7 @@ export function OrderList({
                   <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">
                     Total
                   </th>
+                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -282,6 +287,9 @@ export function OrderList({
                     </td>
                     <td className="px-4 py-3 font-semibold tabular-nums">
                       {formatPrice(o.total)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <DeleteOrderButton orderId={o.orderId} isDemo={Boolean(o.isDemo)} compact onDeleted={() => router.refresh()} />
                     </td>
                   </tr>
                 ))}

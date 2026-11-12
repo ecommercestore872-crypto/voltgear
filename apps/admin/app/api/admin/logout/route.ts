@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { adminCookieOptions, isAdminRequest } from "@/lib/admin";
 import { ADMIN_COOKIE } from "@/lib/db/publish";
+import { ADMIN_ACTOR_COOKIE } from "@/lib/admin-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ async function POSTHandler(request: Request) {
   }
   const res = NextResponse.json({ ok: true });
   res.cookies.set(ADMIN_COOKIE, "", { ...adminCookieOptions(), maxAge: 0 });
+  res.cookies.set(ADMIN_ACTOR_COOKIE, "", { ...adminCookieOptions(), maxAge: 0 });
   return res;
 }
 

@@ -1,18 +1,19 @@
-import crypto from "node:crypto";
 import { isIP } from "node:net";
 import { metaCommerceData, metaEnvironmentAllowed, type MetaItem } from "./meta-commerce";
 import { purchaseTrackLog } from "./purchase-track-observability";
+import { buildMetaHashedCustomer } from "./meta-matching";
 
 export const META_CURRENCY = "PKR";
+export type MetaEventName = "PageView" | "ViewContent" | "AddToCart" | "InitiateCheckout" | "Purchase";
 // Current version in Meta's official Business SDK (verified 2026-11-02).
 export const META_GRAPH_API_VERSION = "v26.0";
 type PurchaseInput = {
   orderId: string; value: number; items: MetaItem[]; consent?: string | null;
   eventTime?: number; email?: string; phone?: string;
+  fullName?: string; city?: string; postalCode?: string; country?: string;
   clientIp?: string; userAgent?: string;
   eventSourceUrl?: string; fbp?: string; fbc?: string;
 };
-const hash = (value: string) => crypto.createHash("sha256").update(value).digest("hex");
 
 /** Normalized PII only enters hashed user_data; URLs never carry customer data. */
 export function buildMetaServerPurchasePayload(input: PurchaseInput) {
@@ -21,20 +22,20 @@ export function buildMetaServerPurchasePayload(input: PurchaseInput) {
   const eventTime = input.eventTime ?? Math.floor(Date.now() / 1000);
   if (!id || !data || !Number.isSafeInteger(eventTime) || eventTime <= 0 ||
     eventTime > Math.floor(Date.now() / 1000) + 60 || eventTime < Math.floor(Date.now() / 1000) - 7 * 86400) return null;
-  const user: Record<string, string | string[]> = {};
   const email = input.email?.trim().toLowerCase();
-  if (email && email.length <= 254 && !email.endsWith("@orders.buyntryy.com") && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) user.em = [hash(email)];
-  let phone = input.phone?.replace(/\D/g, "") ?? "";
-  if (phone.startsWith("0092")) phone = phone.slice(2);
-  if (/^03\d{9}$/.test(phone)) phone = `92${phone.slice(1)}`;
-  if (/^3\d{9}$/.test(phone)) phone = `92${phone}`;
-  if (/^923\d{9}$/.test(phone)) user.ph = [hash(phone)];
-  // Additional matching fields are optional; minimize the data sent.
+  const hashed = buildMetaHashedCustomer({
+    email: email && !email.endsWith("@orders.buyntryy.com") && email.length <= 254 ? email : undefined,
+    phone: input.phone, fullName: input.fullName, city: input.city,
+    postalCode: input.postalCode, country: input.country,
+  });
+  const user: Record<string, string | string[]> = Object.fromEntries(
+    Object.entries(hashed).map(([key, value]) => [key, [value]]),
+  );
   if (input.clientIp && isIP(input.clientIp)) user.client_ip_address = input.clientIp;
   if (input.userAgent) user.client_user_agent = input.userAgent.slice(0, 1024);
   if (validMetaCookie(input.fbp)) user.fbp = input.fbp!;
   if (validMetaCookie(input.fbc)) user.fbc = input.fbc!;
-  if (!Object.keys(user).length) return null;
+  if (!["em", "ph", "fbp", "fbc", "client_ip_address"].some((key) => key in user)) return null;
   return { data: [{
     event_name: "Purchase", event_time: eventTime, action_source: "website",
     event_id: id, event_source_url: "https://buyntryy.com/checkout",

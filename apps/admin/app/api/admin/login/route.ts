@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { adminCookieOptions, getAdminSecret } from "@/lib/admin";
 import { isAllowedAdminAuthEmail, normalizeAdminEmail } from "@/lib/admin-auth-email";
-import { deriveAdminSessionToken, sessionTokensEqual } from "@/lib/admin-session";
+import { ADMIN_ACTOR_COOKIE, deriveAdminSessionToken, sessionTokensEqual, signedAdminActor } from "@/lib/admin-session";
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { ADMIN_COOKIE } from "@/lib/db/publish";
 
@@ -38,6 +38,7 @@ async function POSTHandler(request: Request) {
 
   // Try legacy password-only fallback first (if no email is provided)
   let isValid = false;
+  let actorId: string | null = null;
   
   if (!email && password && sessionTokensEqual(password, secret)) {
     isValid = true;
@@ -53,6 +54,7 @@ async function POSTHandler(request: Request) {
     const authenticatedEmail = normalizeAdminEmail(data.user?.email ?? "");
     if (!error && data?.session && authenticatedEmail === email && isAllowedAdminAuthEmail(authenticatedEmail)) {
       isValid = true;
+      actorId = data.user?.id ?? null;
     }
   }
 
@@ -63,6 +65,9 @@ async function POSTHandler(request: Request) {
   // Cookie-only session — do not return the raw secret to the browser.
   const res = NextResponse.json({ ok: true });
   res.cookies.set(ADMIN_COOKIE, await deriveAdminSessionToken(secret), adminCookieOptions());
+  res.cookies.set(ADMIN_ACTOR_COOKIE, actorId ? signedAdminActor(actorId, secret) : "", {
+    ...adminCookieOptions(), ...(actorId ? {} : { maxAge: 0 }),
+  });
   return res;
 }
 
