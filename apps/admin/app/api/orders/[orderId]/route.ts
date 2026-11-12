@@ -2,6 +2,7 @@ import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { NextResponse } from "next/server";
 
 import { isAdminRequest, namedAdminActor } from "@/lib/admin";
+import { isAllowedAdminDeleteOrigin } from "@/lib/admin-delete-origin";
 import { deleteOrder } from "@/lib/order-store";
 
 export const runtime = "nodejs";
@@ -17,7 +18,7 @@ async function DELETEHandler(
 
   const actorId = namedAdminActor(request);
   if (!actorId) return NextResponse.json({ error: "Sign in with a named admin account to delete an order." }, { status: 403 });
-  if (request.headers.get("origin") !== new URL(request.url).origin) {
+  if (!isAllowedAdminDeleteOrigin(request.headers.get("origin"))) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
 
