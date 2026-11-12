@@ -79,6 +79,10 @@ export async function GadgetHomeSections() {
   let slotOffers: Product[] | null = null;
   let extraRails: Awaited<ReturnType<typeof fetchExtraCollectionRails>> = [];
   const preview = localCatalogPreviewEnabled();
+  // These reads do not depend on section settings; start them while settings load.
+  const homeProducts = fetchHomepageProducts(demo).catch(() => [] as Product[]);
+  const homeSlotsPromise = preview ? Promise.resolve(null) : fetchProductsForHomeSlots(demo).catch(() => null);
+  const collectionRailsPromise = preview ? Promise.resolve([]) : fetchExtraCollectionRails(demo).catch(() => []);
 
   try {
     const [set, types] = await Promise.all([
@@ -97,13 +101,13 @@ export async function GadgetHomeSections() {
     const needsBlog = layoutIds.includes("blog");
 
     const [p, t, blogs, homeSlots, extra] = await Promise.all([
-      fetchHomepageProducts(demo),
+      homeProducts,
       needsReviews && !preview
         ? fetchTestimonials(demo).catch(() => [] as Testimonial[])
         : Promise.resolve([] as Testimonial[]),
       needsBlog && !preview ? fetchBlogPosts(demo).catch(() => [] as Page[]) : Promise.resolve([] as Page[]),
-      preview ? Promise.resolve(null) : fetchProductsForHomeSlots(demo).catch(() => null),
-      preview ? Promise.resolve([]) : fetchExtraCollectionRails(demo).catch(() => []),
+      homeSlotsPromise,
+      collectionRailsPromise,
     ]);
     const colBest = homeSlots?.bestsellers ?? null;
     const colFeat = homeSlots?.featured ?? null;
@@ -199,8 +203,9 @@ export async function GadgetHomeSections() {
     .filter((p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p))
     .slice(0, 8);
 
+  const hasCuratedBestsellers = Boolean(slotBestsellers?.length);
   const railProducts = (
-    slotBestsellers?.length ? slotBestsellers : newArrivals
+    hasCuratedBestsellers ? slotBestsellers! : newArrivals
   ).slice(0, 8);
 
   const overrideSlug =
@@ -227,6 +232,9 @@ export async function GadgetHomeSections() {
       null);
 
   const featuredId = featuredProduct?._id;
+  const visibleRailProducts = railProducts.length > 1
+    ? railProducts.filter((p) => p._id !== featuredId)
+    : railProducts;
   const offerProducts = (
     slotOffers?.length
       ? slotOffers
@@ -242,26 +250,13 @@ export async function GadgetHomeSections() {
     .filter(
       (p) =>
         p._id !== featuredId &&
+        !visibleRailProducts.some((rail) => rail._id === p._id) &&
         !getStockState(p.stockStatus).soldOut &&
-        hasUsableImage(p),
+        hasUsableImage(p) &&
+        typeof p.compareAtPrice === "number" &&
+        p.compareAtPrice > p.price,
     )
     .slice(0, 8);
-
-  const bestOffers =
-    offerProducts.length >= 1
-      ? offerProducts
-      : products
-          .filter(
-            (p) =>
-              p._id !== featuredId &&
-              !getStockState(p.stockStatus).soldOut &&
-              hasUsableImage(p),
-          )
-          .sort(
-            (a, b) =>
-              Number(b.featured) - Number(a.featured) || a.price - b.price,
-          )
-          .slice(0, 8);
 
   const lifestyleShop = normalizeLifestyleShop(settings?.lifestyleShop);
   const layout = homeLayoutIdsForLifestyle(
@@ -297,10 +292,10 @@ export async function GadgetHomeSections() {
             section = (
               <GadgetNewArrivals
                 key={id}
-                products={railProducts}
-                title={config.homeBestsellersTitle || "Best Sellers"}
+                products={visibleRailProducts}
+                title={hasCuratedBestsellers ? config.homeBestsellersTitle || "Best Sellers" : "Explore products"}
                 headingId="best-sellers-heading"
-                viewAllHref={collectionHref("best-sellers")}
+                viewAllHref={hasCuratedBestsellers ? collectionHref("best-sellers") : "/products"}
                 tone="leaf"
               />
             );
@@ -322,7 +317,7 @@ export async function GadgetHomeSections() {
             section = (
               <GadgetNewArrivals
                 key={id}
-                products={bestOffers}
+                products={offerProducts}
                 title={config.homeOffersTitle || "Best Offers"}
                 viewAllHref={collectionHref("best-offers")}
                 headingId="best-offers-heading"

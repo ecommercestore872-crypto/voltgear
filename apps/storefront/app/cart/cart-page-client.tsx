@@ -94,7 +94,7 @@ function FreeShippingBar({
 }
 
 export default function CartPageClient() {
-  const { items, subtotal, updateQuantity, removeItem } = useCart();
+  const { items, subtotal, hydrated, updateQuantity, removeItem } = useCart();
   const config = useSiteConfig();
   const gadget = useGadgetPreview();
   const shopHref = gadget ? products2Href() : "/products";
@@ -107,6 +107,15 @@ export default function CartPageClient() {
     subtotal === 0 || subtotal >= threshold ? 0 : shippingFee;
   const orderTotal = subtotal + shipping;
   const checkoutLink = useMemo(() => checkoutHref(gadget), [gadget]);
+
+  if (!hydrated) {
+    return (
+      <div className="container mx-auto max-w-5xl px-4 py-10 lg:px-8" role="status" aria-label="Loading your cart" aria-busy="true">
+        <div className="h-8 w-48 animate-pulse rounded bg-[var(--g-cream-deep)]" aria-hidden />
+        <div className="mt-8 h-40 animate-pulse rounded-xl bg-[var(--g-cream-deep)]" aria-hidden />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -136,7 +145,7 @@ export default function CartPageClient() {
             gadget ? "text-[var(--g-taupe)]" : "text-muted-foreground",
           )}
         >
-          Add some products to get started.
+          Explore the shop and add something you like.
         </p>
         {gadget ? (
           <Link
@@ -150,6 +159,14 @@ export default function CartPageClient() {
             <Link href={shopHref}>Browse Products</Link>
           </Button>
         )}
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+          <Link href="/shipping-returns" className="inline-flex min-h-11 items-center font-medium text-[var(--g-forest)] underline-offset-2 hover:underline">
+            Shipping &amp; returns
+          </Link>
+          <Link href="/track" className="inline-flex min-h-11 items-center font-medium text-[var(--g-forest)] underline-offset-2 hover:underline">
+            Track an order
+          </Link>
+        </div>
       </div>
     );
   }
