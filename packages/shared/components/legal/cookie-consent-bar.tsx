@@ -153,7 +153,7 @@ export function CookieConsentBar() {
         </div>
       )}
       {error ? <p role="alert" className="mt-3 text-sm text-destructive">{error}</p> : null}
-      <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+      <p className="mt-2 text-xs leading-snug text-muted-foreground">
         Change this later in the footer. Read our <Link href="/privacy-policy" className="underline">Privacy Policy</Link> and <Link href="/cookies" className="underline">Cookie Policy</Link>.
       </p>
     </div>
