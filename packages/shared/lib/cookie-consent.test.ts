@@ -5,6 +5,7 @@ import {
   allowsAdvertising,
   allowsAnalytics,
   consentFromPreferences,
+  optionalConsentRevoked,
   parseConsentMetric,
   parseCookieConsent,
 } from "./cookie-consent";
@@ -24,4 +25,13 @@ test("legacy and separate optional choices preserve independent gates", () => {
   assert.deepEqual(parseConsentMetric({ event: "saved", choice: "advertising" }), { event: "saved", choice: "advertising" });
   assert.equal(parseConsentMetric({ event: "saved", choice: "all", email: "private" }), null);
   assert.equal(parseConsentMetric({ event: "saved", choice: "invalid" }), null);
+});
+
+test("revoking either optional purpose requires unloading already loaded SDKs", () => {
+  assert.equal(optionalConsentRevoked("all", "analytics"), true);
+  assert.equal(optionalConsentRevoked("all", "advertising"), true);
+  assert.equal(optionalConsentRevoked("advertising", "essential"), true);
+  assert.equal(optionalConsentRevoked("analytics", null), true);
+  assert.equal(optionalConsentRevoked("essential", "analytics"), false);
+  assert.equal(optionalConsentRevoked("analytics", "all"), false);
 });

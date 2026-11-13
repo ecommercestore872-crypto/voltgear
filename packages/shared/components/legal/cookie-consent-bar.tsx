@@ -11,6 +11,8 @@ import {
   allowsAdvertising,
   allowsAnalytics,
   consentFromPreferences,
+  optionalConsentRevoked,
+  parseCookieConsent,
   readCookieConsent,
   type CookieConsentChoice,
 } from "@/lib/cookie-consent";
@@ -64,8 +66,29 @@ export function CookieConsentBar() {
       recordConsentMetric("opened");
       window.requestAnimationFrame(() => analyticsInput.current?.focus());
     };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === null) {
+        // Clearing site data in another tab can revoke optional permission.
+        window.location.reload();
+        return;
+      }
+      if (event.key !== COOKIE_CONSENT_STORAGE_KEY) return;
+      const next = parseCookieConsent(event.newValue);
+      if (optionalConsentRevoked(event.oldValue, next)) {
+        // Already loaded third-party SDKs cannot reliably be unloaded in place.
+        window.location.reload();
+        return;
+      }
+      setChoice(next);
+      setOpen(!next);
+      setManaging(false);
+    };
     window.addEventListener(COOKIE_CONSENT_OPEN_EVENT, showPreferences);
-    return () => window.removeEventListener(COOKIE_CONSENT_OPEN_EVENT, showPreferences);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(COOKIE_CONSENT_OPEN_EVENT, showPreferences);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   if (pathname?.startsWith("/admin") || pathname?.startsWith("/studio") ||
@@ -85,10 +108,7 @@ export function CookieConsentBar() {
     window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_CHANGE_EVENT, { detail: next }));
     recordConsentMetric("saved", next);
     // Reload to remove optional SDKs already loaded before a preference was revoked.
-    if (previous && (
-      (allowsAnalytics(previous) && !allowsAnalytics(next)) ||
-      (allowsAdvertising(previous) && !allowsAdvertising(next))
-    )) window.location.reload();
+    if (optionalConsentRevoked(previous, next)) window.location.reload();
   }
 
   const actionClass = "inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-primary px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";

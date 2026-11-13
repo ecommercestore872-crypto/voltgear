@@ -19,6 +19,11 @@ export function allowsAdvertising(choice: unknown): boolean {
   return choice === "advertising" || choice === "all";
 }
 
+export function optionalConsentRevoked(previous: unknown, next: unknown): boolean {
+  return (allowsAnalytics(previous) && !allowsAnalytics(next)) ||
+    (allowsAdvertising(previous) && !allowsAdvertising(next));
+}
+
 export function consentFromPreferences(analytics: boolean, advertising: boolean): CookieConsentChoice {
   if (analytics && advertising) return "all";
   if (analytics) return "analytics";
