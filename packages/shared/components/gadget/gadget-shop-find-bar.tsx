@@ -18,12 +18,16 @@ export function GadgetShopFindBar({
   query,
   sort,
   resultCount,
+  loading = false,
+  onFiltersChange,
   categorySlug,
 }: {
   basePath: string;
   query: string;
   sort: string;
   resultCount: number;
+  loading?: boolean;
+  onFiltersChange?: (query: string, sort: string) => void;
   categorySlug?: string;
 }) {
   const router = useRouter();
@@ -43,6 +47,7 @@ export function GadgetShopFindBar({
     if (nextSort && nextSort !== "featured") params.set("sort", nextSort);
     const qs = params.toString();
     const path = categorySlug ? products2Href(categorySlug) : basePath;
+    onFiltersChange?.(nextQ.trim(), nextSort);
     startTransition(() => {
       router.push(qs ? `${path}?${qs}` : path);
     });
@@ -109,7 +114,7 @@ export function GadgetShopFindBar({
                   <button
                     type="button"
                     onClick={clearSearch}
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--g-taupe)] transition hover:bg-[var(--g-cream-deep)] hover:text-[var(--g-charcoal)]"
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--g-taupe)] transition hover:bg-[var(--g-cream-deep)] hover:text-[var(--g-charcoal)]"
                     aria-label="Clear search"
                   >
                     <X className="h-4 w-4" />
@@ -137,7 +142,8 @@ export function GadgetShopFindBar({
                 className="h-3.5 w-3.5 text-[var(--g-sage)]"
                 aria-hidden
               />
-              <span>
+              <span aria-live="polite">
+                {loading ? "Searching all products…" : <>
                 <span className="font-semibold tabular-nums text-[var(--g-charcoal)]">
                   {resultCount}
                 </span>{" "}
@@ -151,6 +157,7 @@ export function GadgetShopFindBar({
                     </span>
                   </>
                 ) : null}
+                </>}
               </span>
             </p>
 
@@ -173,7 +180,7 @@ export function GadgetShopFindBar({
                     aria-pressed={active}
                     onClick={() => go({ sort: s.id })}
                     className={cn(
-                      "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold sm:h-11 sm:px-4",
+                      "gadget-chip inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold sm:px-4",
                       active ? "gadget-chip-active" : "gadget-chip-idle",
                     )}
                   >

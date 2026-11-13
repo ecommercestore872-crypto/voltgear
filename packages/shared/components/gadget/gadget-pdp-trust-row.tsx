@@ -1,4 +1,5 @@
 import { Banknote, RefreshCw, ShieldCheck, Truck } from "lucide-react";
+import Link from "next/link";
 
 import type { PublicSiteConfig } from "@/lib/site-config";
 import { warrantyLabel } from "@/lib/site-config";
@@ -28,7 +29,8 @@ export function GadgetPdpTrustRow({ config }: { config: PublicSiteConfig }) {
   if (!items.length) return null;
 
   return (
-    <ul className="mt-4 grid grid-cols-2 gap-2">
+    <div className="mt-4">
+    <ul className="grid grid-cols-2 gap-2">
       {items.map(({ icon: Icon, label }) => (
         <li
           key={label}
@@ -43,5 +45,9 @@ export function GadgetPdpTrustRow({ config }: { config: PublicSiteConfig }) {
         </li>
       ))}
     </ul>
+    <Link href="/shipping-returns" className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-[var(--g-forest)] underline-offset-2 hover:underline">
+      Read shipping &amp; returns policy
+    </Link>
+    </div>
   );
 }

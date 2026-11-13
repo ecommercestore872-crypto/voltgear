@@ -291,9 +291,6 @@ export function GadgetBuyBox({
               )}
             >
               {stock.label}
-              {stock.status === "low-stock" && !outOfStock
-                ? " — order soon"
-                : null}
             </p>
           </div>
 

@@ -4,11 +4,12 @@
  */
 
 import { shouldLoadTikTokPixel } from "@/lib/tiktok-pixel-rules";
+import { browserPrivacyOptOut, readCookieConsent, type CookieConsentChoice } from "@/lib/cookie-consent";
 import { normalizePhone } from "@/lib/messaging";
 
 export const TIKTOK_CURRENCY = "PKR" as const;
 
-export type TikTokConsent = "all" | "essential" | null;
+export type TikTokConsent = CookieConsentChoice | null;
 
 export type TikTokContentItem = {
   content_id: string;
@@ -60,6 +61,7 @@ export function canSendTikTokBrowserEvents(input: {
   pixelId?: string | null;
   enabled?: string | boolean | null;
   consent: TikTokConsent;
+  privacyOptOut?: boolean;
   pathname?: string | null;
   nodeEnv?: string | null;
   host?: string | null;
@@ -70,13 +72,12 @@ export function canSendTikTokBrowserEvents(input: {
 function readBrowserGate(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const consentRaw = window.localStorage.getItem("bnt-cookie-consent");
-    const consent: TikTokConsent =
-      consentRaw === "all" || consentRaw === "essential" ? consentRaw : null;
+    const consent = readCookieConsent();
     return canSendTikTokBrowserEvents({
       pixelId: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID,
       enabled: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED,
       consent,
+      privacyOptOut: browserPrivacyOptOut(),
       pathname: window.location.pathname,
       nodeEnv: process.env.NODE_ENV,
       host: window.location.hostname,

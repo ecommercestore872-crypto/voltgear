@@ -2,17 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  COOKIE_CONSENT_CHANGE_EVENT,
-  COOKIE_CONSENT_STORAGE_KEY,
-  type CookieConsentChoice,
-} from "@/components/legal/cookie-consent-bar";
+import { COOKIE_CONSENT_CHANGE_EVENT, COOKIE_CONSENT_STORAGE_KEY, allowsAnalytics, parseCookieConsent, readCookieConsent, type CookieConsentChoice } from "@/lib/cookie-consent";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
 
 function readConsent(): CookieConsentChoice | null {
-  if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-  return value === "all" || value === "essential" ? value : null;
+  return readCookieConsent();
 }
 
 /** Loads Microsoft Clarity after idle — session replay for checkout/PDP funnels. */
@@ -30,16 +24,22 @@ export function ClarityDeferred({
     function onConsent(event: Event) {
       const choice = (event as CustomEvent<CookieConsentChoice>).detail;
       setConsent(
-        choice === "all" || choice === "essential" ? choice : readConsent(),
+        parseCookieConsent(choice) ?? readConsent(),
       );
     }
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === COOKIE_CONSENT_STORAGE_KEY) setConsent(readConsent());
+    };
     window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
-    return () =>
+    window.addEventListener("storage", onStorage);
+    return () => {
       window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   useEffect(() => {
-    if (consent !== "all") return;
+    if (!allowsAnalytics(consent)) return;
     if (
       !shouldLoadClarity({
         id: projectId,

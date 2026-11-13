@@ -100,7 +100,7 @@ export async function generateMetadata(
 function PdpDeferredFallback() {
   return (
     <div
-      className="mt-10 min-h-[240px] animate-pulse rounded-2xl bg-[var(--g-line)]/40"
+      className="mt-10 min-h-dvh animate-pulse rounded-2xl bg-[var(--g-line)]/40"
       aria-hidden
     />
   );
@@ -121,11 +121,11 @@ export default async function Product2Page(
 
   if (!product) notFound();
 
-  const reviewStats =
-    (await loadPdpReviewStats(product._id).catch(() => null)) ??
-    EMPTY_APPROVED_REVIEW_STATS;
-
-  const settings = await loadStorefrontSettings().catch(() => null);
+  const [reviewStatsResult, settings] = await Promise.all([
+    loadPdpReviewStats(product._id).catch(() => null),
+    loadStorefrontSettings().catch(() => null),
+  ]);
+  const reviewStats = reviewStatsResult ?? EMPTY_APPROVED_REVIEW_STATS;
 
   product = applyGadgetStudioImages(product);
   const trackingVariant = product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0];

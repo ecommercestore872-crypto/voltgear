@@ -1,15 +1,16 @@
-/** Lightweight shell while RSC pages resolve (mobile ad landings). */
+/** Keep the storefront shape stable while a route streams in. */
 export default function StorefrontLoading() {
   return (
     <div
-      className="flex min-h-dvh items-center justify-center bg-[var(--g-cream)] px-6 py-12 text-[var(--g-forest)]"
+      className="min-h-dvh bg-[var(--g-cream)] px-4 py-6 lg:px-8"
       role="status"
       aria-busy="true"
-      aria-label="Loading"
+      aria-label="Loading the shop"
     >
-      <div className="text-center">
-        <p className="text-lg font-semibold">Buy n Try</p>
-        <p className="mt-2 text-sm">Loading the shop…</p>
+      <div className="mx-auto max-w-6xl animate-pulse" aria-hidden>
+        <div className="h-5 w-32 rounded bg-[var(--g-cream-deep)]" />
+        <div className="mt-6 h-[min(60svh,32rem)] min-h-72 rounded-xl bg-[var(--g-cream-deep)]" />
+        <div className="mt-6 h-5 w-48 rounded bg-[var(--g-cream-deep)]" />
       </div>
     </div>
   );
