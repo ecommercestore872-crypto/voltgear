@@ -400,10 +400,11 @@ export type DeleteOrderResult =
   | { ok: true }
   | { ok: false; error: string; status: 404 | 409 | 503 };
 
-export async function deleteOrderRow(orderId: string, actorId: string): Promise<DeleteOrderResult> {
+export async function deleteOrderRow(orderId: string, actorId: string, sensitiveConfirmation?: string): Promise<DeleteOrderResult> {
   const { data, error } = await db().rpc("admin_delete_order", {
     p_order_id: orderId.trim(),
     p_admin_user_id: actorId,
+    p_sensitive_confirmation: sensitiveConfirmation ?? null,
   });
   if (!error && data?.ok) return { ok: true };
   if (!error && data?.error) return { ok: false, error: String(data.error),
@@ -418,5 +419,5 @@ export async function deleteOrderRow(orderId: string, actorId: string): Promise<
     };
   }
   console.error("[orders] admin_delete_order failed:", error);
-  return { ok: false, error: "Could not delete the practice order.", status: 503 };
+  return { ok: false, error: "Could not delete the order.", status: 503 };
 }
