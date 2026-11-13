@@ -22,6 +22,7 @@ CREATE TABLE public.order_deletion_evidence (
   status_updated_at timestamptz,
   archived_at timestamptz,
   inventory_restored boolean NOT NULL,
+  retention_until timestamptz NOT NULL,
   order_snapshot jsonb NOT NULL,
   items jsonb NOT NULL,
   status_history jsonb NOT NULL,
@@ -29,13 +30,34 @@ CREATE TABLE public.order_deletion_evidence (
   sent_email_events jsonb NOT NULL
 );
 CREATE INDEX order_deletion_evidence_created_idx ON public.order_deletion_evidence(created_at);
+CREATE INDEX order_deletion_evidence_expiry_idx ON public.order_deletion_evidence(retention_until);
 ALTER TABLE public.order_deletion_evidence ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.order_deletion_evidence FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT ON public.order_deletion_evidence TO service_role;
 
+-- Keep a finite audit window; successful real-order audits use the evidence deadline.
+ALTER TABLE public.order_deletion_log
+  ADD COLUMN retention_until timestamptz NOT NULL DEFAULT (now() + interval '1 year');
+CREATE INDEX order_deletion_log_expiry_idx ON public.order_deletion_log(retention_until);
+
+-- Litigation, courier disputes or a tax assessment can suspend routine disposal.
+-- Only a database administrator can manage holds; never exposed to the admin app.
+CREATE TABLE public.order_deletion_legal_holds (
+  order_id text PRIMARY KEY REFERENCES public.order_deletion_evidence(order_id),
+  reason text NOT NULL CHECK (length(btrim(reason)) BETWEEN 10 AND 1000),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.order_deletion_legal_holds ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.order_deletion_legal_holds FROM PUBLIC, anon, authenticated, service_role;
+
 CREATE OR REPLACE FUNCTION public.reject_deletion_record_change() RETURNS trigger
 LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 BEGIN
+  -- Only the DB-admin retention-disposal function may erase expired records.
+  IF current_user = 'postgres'
+     AND current_setting('app.order_deletion_retention_purge', true) = 'allowed' THEN
+    RETURN OLD;
+  END IF;
   RAISE EXCEPTION 'Deletion evidence and audits are immutable';
 END;
 $$;
@@ -189,24 +211,34 @@ BEGIN
     VALUES (v_order.order_id, v_order.id, v_order.idempotency_key);
     INSERT INTO public.order_deletion_evidence(
       order_id, admin_user_id, is_demo, status, payment, total, created_at,
-      status_updated_at, archived_at, inventory_restored, order_snapshot,
-      items, status_history, courier_events, sent_email_events
+      status_updated_at, archived_at, inventory_restored, retention_until,
+      order_snapshot, items, status_history, courier_events, sent_email_events
     ) VALUES (
       v_order.order_id, p_admin_user_id, COALESCE(v_order.is_demo, false), v_order.status,
       v_order.payment, v_order.total, v_order.created_at, v_order.status_updated_at,
       v_order.archived_at, v_restore,
+      CASE WHEN COALESCE(v_order.is_demo, false) THEN now() + interval '30 days'
+           ELSE greatest(v_order.created_at + interval '7 years', now() + interval '1 year') END,
       CASE WHEN v_order.status = 'delivered' OR v_order.postex_booking_state = 'confirmed'
              OR NULLIF(btrim(v_order.postex_tracking_number), '') IS NOT NULL
              OR v_courier <> '[]'::jsonb
-           THEN to_jsonb(v_order)
-           ELSE to_jsonb(v_order) - 'customer' END,
+           THEN to_jsonb(v_order) - 'attrib_ttclid' - 'attrib_fbclid' - 'attrib_gclid'
+                  - 'attrib_campaign' - 'attrib_content' - 'attrib_campaign_id'
+                  - 'attrib_ad_id' - 'attrib_medium' - 'attrib_source'
+                  - 'idempotency_fingerprint'
+           ELSE to_jsonb(v_order) - 'customer' - 'attrib_ttclid' - 'attrib_fbclid'
+                  - 'attrib_gclid' - 'attrib_campaign' - 'attrib_content'
+                  - 'attrib_campaign_id' - 'attrib_ad_id' - 'attrib_medium'
+                  - 'attrib_source' - 'idempotency_fingerprint' END,
       v_items, v_history, v_courier, v_email
     );
     DELETE FROM public.email_events WHERE data->>'orderId' = v_order.order_id AND sent_at IS NULL;
     DELETE FROM public.orders WHERE id = v_order.id;
     IF NOT FOUND THEN RAISE EXCEPTION 'Order changed during deletion'; END IF;
-    INSERT INTO public.order_deletion_log(order_id, admin_user_id, order_was_demo, outcome)
-    VALUES (v_order.order_id, p_admin_user_id, v_order.is_demo, 'deleted');
+    INSERT INTO public.order_deletion_log(order_id, admin_user_id, order_was_demo, outcome, retention_until)
+    VALUES (v_order.order_id, p_admin_user_id, v_order.is_demo, 'deleted',
+      CASE WHEN COALESCE(v_order.is_demo, false) THEN now() + interval '30 days'
+           ELSE greatest(v_order.created_at + interval '7 years', now() + interval '1 year') END);
   EXCEPTION WHEN OTHERS THEN
     INSERT INTO public.order_deletion_log(order_id, admin_user_id, order_was_demo, outcome, reason)
     VALUES (v_order.order_id, p_admin_user_id, v_order.is_demo, 'rejected', 'deletion_failed');
@@ -227,3 +259,42 @@ $$;
 REVOKE ALL ON FUNCTION public.admin_delete_order(text,uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_delete_order(text,uuid) TO service_role;
 REVOKE EXECUTE ON FUNCTION public.admin_delete_demo_order(text) FROM service_role;
+
+-- Explicit, DBA-run disposal; never called by the store/admin application.
+-- Identity tombstones remain to prevent public-ID or checkout-key reuse.
+CREATE OR REPLACE FUNCTION public.purge_expired_order_deletion_records(p_limit integer DEFAULT 100)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE
+  v_evidence_count integer;
+  v_audit_count integer;
+BEGIN
+  IF session_user <> 'postgres' THEN
+    RAISE EXCEPTION 'Database administrator required';
+  END IF;
+  IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 500 THEN
+    RAISE EXCEPTION 'Batch size must be between 1 and 500';
+  END IF;
+  PERFORM set_config('app.order_deletion_retention_purge', 'allowed', true);
+  WITH expired AS (
+    SELECT e.order_id FROM public.order_deletion_evidence e
+    WHERE e.retention_until <= now() AND NOT EXISTS (
+      SELECT 1 FROM public.order_deletion_legal_holds h WHERE h.order_id = e.order_id
+    )
+    ORDER BY e.retention_until LIMIT p_limit FOR UPDATE SKIP LOCKED
+  )
+  DELETE FROM public.order_deletion_evidence e USING expired x WHERE e.order_id = x.order_id;
+  GET DIAGNOSTICS v_evidence_count = ROW_COUNT;
+  WITH expired AS (
+    SELECT l.id FROM public.order_deletion_log l
+    WHERE l.retention_until <= now() AND NOT EXISTS (
+      SELECT 1 FROM public.order_deletion_legal_holds h WHERE h.order_id = l.order_id
+    )
+    ORDER BY l.retention_until LIMIT p_limit FOR UPDATE SKIP LOCKED
+  )
+  DELETE FROM public.order_deletion_log l USING expired x WHERE l.id = x.id;
+  GET DIAGNOSTICS v_audit_count = ROW_COUNT;
+  RETURN jsonb_build_object('purged_evidence', v_evidence_count, 'purged_audits', v_audit_count);
+END;
+$$;
+REVOKE ALL ON FUNCTION public.purge_expired_order_deletion_records(integer)
+  FROM PUBLIC, anon, authenticated, service_role;

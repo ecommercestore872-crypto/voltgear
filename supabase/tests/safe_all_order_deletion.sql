@@ -15,6 +15,10 @@ DECLARE
   v_status text;
   v_demo boolean;
 BEGIN
+  IF has_function_privilege('service_role', 'public.purge_expired_order_deletion_records(integer)', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.purge_expired_order_deletion_records(integer)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'Retention disposal is available outside the DBA role';
+  END IF;
   IF has_function_privilege('anon', 'public.admin_delete_order(text,uuid,text)', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.admin_delete_order(text,uuid,text)', 'EXECUTE')
      OR has_function_privilege('anon', 'public.admin_delete_order(text,uuid)', 'EXECUTE')
@@ -104,10 +108,18 @@ BEGIN
        OR NOT EXISTS (SELECT 1 FROM public.order_deletion_evidence
                       WHERE order_id = 'delete-test-' || v_case AND admin_user_id = v_actor)
        OR NOT EXISTS (SELECT 1 FROM public.order_deletion_log
-                      WHERE order_id = 'delete-test-' || v_case AND outcome = 'deleted') THEN
+                      WHERE order_id = 'delete-test-' || v_case AND outcome = 'deleted')
+       OR NOT EXISTS (SELECT 1 FROM public.order_deletion_evidence
+                      WHERE order_id = 'delete-test-' || v_case AND retention_until > now()) THEN
       RAISE EXCEPTION 'Operational deletion or evidence failed for %', v_case;
     END IF;
   END LOOP;
+  IF NOT EXISTS (SELECT 1 FROM public.order_deletion_evidence
+    WHERE order_id = 'delete-test-practice' AND retention_until <= now() + interval '31 days')
+    OR NOT EXISTS (SELECT 1 FROM public.order_deletion_evidence
+      WHERE order_id = 'delete-test-ordinary' AND retention_until >= now() + interval '6 years') THEN
+    RAISE EXCEPTION 'Retention windows are incorrect';
+  END IF;
   v_after := public.admin_order_dashboard_metrics();
   IF v_before->>'todayRevenue' IS DISTINCT FROM v_after->>'todayRevenue'
      OR v_before->>'monthDeliveredRevenue' IS DISTINCT FROM v_after->>'monthDeliveredRevenue' THEN
