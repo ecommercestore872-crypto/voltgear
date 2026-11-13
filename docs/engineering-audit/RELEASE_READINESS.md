@@ -2,7 +2,7 @@
 
 ## 2026-11-13 VoltGear checkpoint
 
-- PR #43 remains Draft on `main` at `5983c02`; exact-head Monorepo CI and both Vercel previews passed. PR #45 remains Draft, stacked on #43 at `841ce57`; its combined source passed local tests, lint, types, both builds, privacy browser checks at 320/360/390/768/1440px, and a mocked COD journey. The #45-to-#43 merge was rejected by automatic approval review, so #43 does not yet contain the privacy patch. No production merge or deployment occurred.
+- PR #45 (`841ce57`) was merged into PR #43's release branch with explicit user approval; PR #43 remains Draft on `main` at `a379b4d`. The merge tree exactly matches the tested #45 tree. Its combined source passed local tests, lint, types, both builds, privacy browser checks at 320/360/390/768/1440px, and a mocked COD journey. Exact-head PR #43 CI and previews are required before production authorization. No production merge or deployment occurred.
 - PR #44 remains Draft on `main`. A fresh, distinct local Supabase project applied all migrations; the rollback SQL and deterministic concurrent deletion test passed. Synthetic admin dialogs passed at 360/390/1440px with mocked DELETE requests. Both PR #44 migrations remain unapplied to the hosted VoltGear project.
 - Admin release gate: business/privacy approval of evidence fields and retention/disposal is missing. Hosted migration, real-order deletion and admin deployment remain blocked. See `docs/order-deletion-policy.md` for the sequencing and recovery runbook.
 
