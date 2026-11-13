@@ -1,4 +1,5 @@
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
+import { CookieSettingsButton } from "@/components/legal/cookie-settings-button";
 import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import {
   FALLBACK_SHOP_TYPES,
@@ -238,6 +239,7 @@ export function Footer({
           <Link href="/cookies" className="hover:text-white transition-colors">
             Cookies
           </Link>
+          <CookieSettingsButton className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white" />
           <Link
             href="/terms-of-service"
             className="hover:text-white transition-colors"

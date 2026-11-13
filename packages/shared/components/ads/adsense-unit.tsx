@@ -3,11 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import {
-  COOKIE_CONSENT_CHANGE_EVENT,
-  COOKIE_CONSENT_STORAGE_KEY,
-  type CookieConsentChoice,
-} from "@/components/legal/cookie-consent-bar";
+import { COOKIE_CONSENT_CHANGE_EVENT, allowsAdvertising, browserPrivacyOptOut, readCookieConsent, type CookieConsentChoice } from "@/lib/cookie-consent";
 import { ADSENSE_READY_EVENT } from "@/components/ads/adsense-loader";
 import { allowsAdsenseDisplayAds } from "@/lib/adsense-placement";
 import { resolveAdsensePublisherId } from "@/lib/adsense-policy";
@@ -34,16 +30,20 @@ export function AdSenseUnit({
   useEffect(() => {
     const syncConsent = () => {
       setAdsAllowed(
-        window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "all",
+        allowsAdvertising(readCookieConsent()) && !browserPrivacyOptOut(),
       );
     };
     const onConsent = (event: Event) => {
       const choice = (event as CustomEvent<CookieConsentChoice>).detail;
-      setAdsAllowed(choice === "all");
+      setAdsAllowed(allowsAdvertising(choice) && !browserPrivacyOptOut());
     };
     syncConsent();
     window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
-    return () => window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+    window.addEventListener("storage", syncConsent);
+    return () => {
+      window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, onConsent);
+      window.removeEventListener("storage", syncConsent);
+    };
   }, [pathname]);
 
   useEffect(() => {

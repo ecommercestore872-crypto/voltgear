@@ -1,4 +1,5 @@
 import type { MetaEventName } from "@/lib/meta-events-api";
+import { allowsAdvertising } from "@/lib/cookie-consent";
 
 export type BrowserMetaEvent = {
   eventName: Exclude<MetaEventName, "Purchase">;
@@ -17,7 +18,7 @@ export function parseBrowserMetaEvent(raw: unknown, requestOrigin: string): Brow
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const row = raw as Record<string, unknown>;
   if (!EVENT_NAMES.has(String(row.eventName))) return null;
-  if (row.consent !== "all") return null;
+  if (!allowsAdvertising(row.consent)) return null;
   if (typeof row.eventId !== "string" || !/^[A-Za-z0-9_-]{10,100}$/.test(row.eventId)) return null;
   if (typeof row.pageUrl !== "string" || row.pageUrl.length > 2048) return null;
   let pageUrl: string;

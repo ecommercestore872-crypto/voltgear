@@ -23,6 +23,10 @@ export function GadgetShopCatalog({
   flattenGrid,
   guideLink,
   maxPerCategory,
+  searchLoading = false,
+  searchError = false,
+  onSearchRetry,
+  onFiltersChange,
 }: {
   title: string;
   description: string;
@@ -38,6 +42,10 @@ export function GadgetShopCatalog({
   guideLink?: { href: string; label: string } | null;
   /** When grouping the all-products page, cap cards per category for faster first paint. */
   maxPerCategory?: number;
+  searchLoading?: boolean;
+  searchError?: boolean;
+  onSearchRetry?: () => void;
+  onFiltersChange?: (query: string, sort: string) => void;
 }) {
   const trust: { icon: typeof Wallet; label: string; detail: string }[] = [];
   if (config.codEnabled) {
@@ -90,6 +98,8 @@ export function GadgetShopCatalog({
               query={query}
               sort={sort}
               resultCount={products.length}
+              loading={searchLoading}
+              onFiltersChange={onFiltersChange}
               categorySlug={activeCategory || undefined}
             />
           </div>
@@ -150,7 +160,7 @@ export function GadgetShopCatalog({
               <Link
                 href={categoryHref()}
                 className={cn(
-                  "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:px-5 sm:text-sm",
+                  "gadget-chip inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:px-5 sm:text-sm",
                   !activeCategory && !flattenGrid
                     ? "gadget-chip-active"
                     : "gadget-chip-idle",
@@ -169,7 +179,7 @@ export function GadgetShopCatalog({
                         : `#category-${t.slug}`
                     }
                     className={cn(
-                      "gadget-chip inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:h-11 sm:text-sm",
+                      "gadget-chip inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold sm:text-sm",
                       active ? "gadget-chip-active" : "gadget-chip-idle",
                     )}
                   >
@@ -181,7 +191,20 @@ export function GadgetShopCatalog({
           </div>
         )}
 
-        {products.length ? (
+        {searchLoading ? (
+          <div className="mt-8 space-y-3" role="status" aria-live="polite">
+            <p className="text-sm text-[var(--g-taupe)]">Searching all products…</p>
+            <div className="h-40 animate-pulse rounded-xl bg-[var(--g-cream-deep)]" aria-hidden />
+          </div>
+        ) : searchError ? (
+          <div className="mt-8 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-6 py-10 text-center" role="alert">
+            <p className="text-[var(--g-charcoal)]">Search is unavailable right now.</p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+              <button type="button" onClick={onSearchRetry} className="inline-flex min-h-11 items-center font-semibold text-[var(--g-forest)] hover:underline">Try again</button>
+              <Link href={products2Href()} className="inline-flex min-h-11 items-center font-semibold text-[var(--g-forest)] hover:underline">Browse all products</Link>
+            </div>
+          </div>
+        ) : products.length ? (
           useFlatGrid ? (
             <ul className="gadget-product-grid mt-4 sm:mt-5 lg:mt-6">
               {products.map((p) => (

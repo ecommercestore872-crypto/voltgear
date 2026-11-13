@@ -13,5 +13,9 @@ const CartPageClient = dynamic(() => import("./cart-page-client"), {
 });
 
 export default function CartPage() {
-  return <CartPageClient />;
+  return (
+    <div className="min-h-dvh">
+      <CartPageClient />
+    </div>
+  );
 }

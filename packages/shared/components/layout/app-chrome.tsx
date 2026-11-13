@@ -13,7 +13,7 @@ const TikTokPixel = dynamic(
 );
 import { captureClickAttribution, persistClickAttribution } from "@/lib/click-attribution";
 import { captureMetaClick } from "@/lib/meta-click-attribution";
-import { CartProvider } from "@/components/cart/cart-provider";
+import { CartProvider, useCart } from "@/components/cart/cart-provider";
 import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
 const CookieConsentBar = dynamic(
   () =>
@@ -31,8 +31,8 @@ const ShopWhatsAppButton = dynamic(
   { ssr: false, loading: () => null },
 );
 import { DeferredUntilIdle } from "@/components/ui/deferred-until-idle";
-import { Footer } from "@/components/layout/footer";
-import { Navbar } from "@/components/layout/navbar";
+const Footer = dynamic(() => import("@/components/layout/footer").then((m) => m.Footer));
+const Navbar = dynamic(() => import("@/components/layout/navbar").then((m) => m.Navbar));
 import { GadgetFooter } from "@/components/gadget/gadget-footer";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { GadgetNavbar } from "@/components/gadget/gadget-navbar";
@@ -45,6 +45,26 @@ import {
 import { isInvoicePath } from "@/lib/invoice-template-rules";
 import type { ShopType } from "@/lib/categories";
 import type { SiteSettings } from "@/lib/types";
+
+function CartDrawerGate({ children }: { children: ReactNode }) {
+  const { isOpen } = useCart();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const win = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (win.requestIdleCallback) {
+      const id = win.requestIdleCallback(() => setReady(true), { timeout: 4500 });
+      return () => win.cancelIdleCallback?.(id);
+    }
+    const id = window.setTimeout(() => setReady(true), 2200);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  return ready || isOpen ? <>{children}</> : null;
+}
 
 export function AppChrome({
   children,
@@ -134,11 +154,9 @@ export function AppChrome({
                 {pageNodes}
               </main>
               <GadgetFooter settings={settings} shopTypes={shopTypes} />
-              {cartDrawer}
+              <CartDrawerGate>{cartDrawer}</CartDrawerGate>
               {cartEffects}
-              <DeferredUntilIdle timeoutMs={3500}>
-                <CookieConsentBar />
-              </DeferredUntilIdle>
+              <CookieConsentBar />
             </div>
             <DeferredUntilIdle>
               <ShopWhatsAppButton settings={settings} />
@@ -154,13 +172,11 @@ export function AppChrome({
             <DeferredUntilIdle>
               <ShopWhatsAppButton settings={settings} />
             </DeferredUntilIdle>
-            {cartDrawer}
+            <CartDrawerGate>{cartDrawer}</CartDrawerGate>
             {reviewReminder}
             {cartEffects}
             {compareBar}
-            <DeferredUntilIdle timeoutMs={3500}>
-              <CookieConsentBar />
-            </DeferredUntilIdle>
+            <CookieConsentBar />
           </>
         )}
       </WishlistProvider>

@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { allowsAdvertising } from "@/lib/cookie-consent";
 
 import { buildPurchasePayload, normalizeTikTokEmail, normalizeTikTokPhone, purchaseEventId } from "@/lib/tiktok-browser-events";
 import { purchaseTrackLog } from "@/lib/purchase-track-observability";
@@ -69,7 +70,7 @@ export async function trackTikTokServerPurchase(input: PurchaseInput): Promise<v
   const pixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID?.trim();
   const token = (process.env.TIKTOK_EVENTS_API_ACCESS_TOKEN || process.env.TIKTOK_ACCESS_TOKEN)?.trim();
 
-  if (input.consent !== "all") {
+  if (!allowsAdvertising(input.consent)) {
     purchaseTrackLog({ channel: "tiktok", outcome: "skipped_consent" });
     return;
   }

@@ -24,7 +24,7 @@ const nextConfig = {
     loader: "custom",
     loaderFile: "./cloudinary-loader.ts",
     formats: ["image/webp"],
-    deviceSizes: [640, 828, 1080, 1200],
+    deviceSizes: [480, 640, 828, 1080, 1200],
     imageSizes: [48, 96, 128, 256],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [

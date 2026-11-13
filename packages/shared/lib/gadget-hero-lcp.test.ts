@@ -50,6 +50,7 @@ describe("gadget-hero-lcp", () => {
       { mobile: false, quality: 65 },
     );
     assert.match(preload.href, /q_65/);
+    assert.match(preload.imageSrcSet ?? "", /w_480\/.* 480w/);
     assert.match(preload.imageSrcSet ?? "", /w_640\/.* 640w/);
     assert.match(preload.imageSrcSet ?? "", /w_1200\/.* 1200w/);
   });

@@ -100,9 +100,9 @@ describe("storefront shell must not suspend on ad query strings", () => {
     assert.match(meta, /if \(!canSendMetaBrowserEvents\(\)\)/);
     const metaEvents = readShared("lib/meta-pixel-events.ts");
     assert.match(metaEvents, /canSendMetaBrowserEvent\(\)/);
-    assert.match(readShared("lib/meta-consent.ts"), /getItem\(META_CONSENT_STORAGE_KEY\) === "all"/);
-    assert.match(adsense, /consent !== "all"/);
-    assert.match(clarity, /consent !== "all"/);
+    assert.match(readShared("lib/meta-consent.ts"), /allowsAdvertising\(window\.localStorage\.getItem\(META_CONSENT_STORAGE_KEY\)\)/);
+    assert.match(adsense, /allowsAdvertising\(consent\)/);
+    assert.match(clarity, /allowsAnalytics\(consent\)/);
   });
 
   it("shopper links avoid speculative route downloads by default", () => {

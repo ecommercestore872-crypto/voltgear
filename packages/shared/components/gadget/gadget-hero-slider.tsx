@@ -203,7 +203,7 @@ export function GadgetHeroSlider({
                 }}
                 aria-hidden={!isActive}
               >
-                {shouldPaint ? (
+                {shouldPaint && !banner.textOnly ? (
                   <ResponsiveHeroImage banner={banner} eager={i === 0} />
                 ) : null}
               </div>
@@ -212,7 +212,7 @@ export function GadgetHeroSlider({
 
           {/* A fixed overlay keeps the copy readable without changing contrast on slide transitions. */}
           {!active.artworkText && (active.title || active.subtitle || active.ctaLabel) ? (
-            <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(0deg,rgba(8,27,19,.96)_0%,rgba(8,27,19,.46)_47%,rgba(8,27,19,.08)_100%)] sm:bg-[linear-gradient(90deg,rgba(8,27,19,.94)_0%,rgba(8,27,19,.72)_35%,rgba(8,27,19,.08)_76%)]" />
+            <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(0deg,rgba(8,27,19,.96)_0%,rgba(8,27,19,.46)_47%,rgba(8,27,19,.08)_100%)] sm:bg-[linear-gradient(90deg,rgba(8,27,19,1)_0%,rgba(8,27,19,1)_42%,rgba(8,27,19,.94)_53%,rgba(8,27,19,.08)_82%)]" />
           ) : null}
 
           {/* Controls remain visible for touch, keyboard and pointer users. */}

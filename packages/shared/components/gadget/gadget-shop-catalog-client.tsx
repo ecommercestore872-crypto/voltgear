@@ -58,24 +58,29 @@ export function GadgetShopCatalogClient({
 }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("featured");
-  const [remoteProducts, setRemoteProducts] = useState<Product[] | null>(null);
-
   const pathname = usePathname();
+  const [remoteResult, setRemoteResult] = useState<{
+    key: string;
+    items: Product[];
+  } | null>(null);
+  const [failedQuery, setFailedQuery] = useState<string | null>(null);
+  const [searchAttempt, setSearchAttempt] = useState(0);
+  const searchKey = `${query}\u0000${sort}`;
 
   useEffect(() => {
-    const raw =
-      typeof window !== "undefined" ? window.location.search : "";
-    const params = new URLSearchParams(
-      raw.startsWith("?") ? raw.slice(1) : raw,
-    );
-    setQuery((params.get("q") || "").trim());
-    setSort(params.get("sort") || "featured");
+    function readUrlFilters() {
+      const params = new URLSearchParams(window.location.search);
+      setQuery((params.get("q") || "").trim());
+      setSort(params.get("sort") || "featured");
+    }
+    readUrlFilters();
+    window.addEventListener("popstate", readUrlFilters);
+    return () => window.removeEventListener("popstate", readUrlFilters);
   }, [pathname]);
 
   useEffect(() => {
     const q = query.trim();
     if (activeCategory || !q) {
-      setRemoteProducts(null);
       return;
     }
     let cancelled = false;
@@ -85,26 +90,29 @@ export function GadgetShopCatalogClient({
       .then((data) => {
         if (cancelled) return;
         const items = data?.result?.items;
-        setRemoteProducts(Array.isArray(items) ? items : []);
+        if (!Array.isArray(items)) throw new Error("Invalid search response");
+        setRemoteResult({ key: searchKey, items });
+        setFailedQuery(null);
       })
       .catch(() => {
-        if (!cancelled) setRemoteProducts([]);
+        if (!cancelled) setFailedQuery(searchKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [activeCategory, query, sort]);
+  }, [activeCategory, query, sort, searchKey, searchAttempt]);
 
   const filtered = useMemo(() => {
     const qLower = query.toLowerCase();
-    const useRemote = !activeCategory && qLower && remoteProducts !== null;
-    let list = (useRemote ? remoteProducts : products).filter((p) =>
+    const searchAll = !activeCategory && Boolean(qLower);
+    const remoteProducts = remoteResult?.key === searchKey ? remoteResult.items : null;
+    let list = (searchAll ? remoteProducts ?? [] : products).filter((p) =>
       hasImage(p),
     );
     if (activeCategory) {
       list = list.filter((p) => p.category === activeCategory);
     }
-    if (qLower && !useRemote) {
+    if (qLower && !searchAll) {
       list = list.filter(
         (p) =>
           p.name.toLowerCase().includes(qLower) ||
@@ -113,9 +121,11 @@ export function GadgetShopCatalogClient({
       );
     }
     return sortProducts(list, sort);
-  }, [products, remoteProducts, activeCategory, query, sort]);
+  }, [products, remoteResult, searchKey, activeCategory, query, sort]);
 
   const hubSearchActive = !activeCategory && Boolean(query.trim());
+  const searchLoading = hubSearchActive && remoteResult?.key !== searchKey && failedQuery !== searchKey;
+  const searchError = hubSearchActive && failedQuery === searchKey;
 
   return (
     <GadgetShopCatalog
@@ -132,6 +142,16 @@ export function GadgetShopCatalogClient({
       flattenGrid={flattenGrid || hubSearchActive}
       guideLink={guideLink}
       maxPerCategory={maxPerCategory}
+      searchLoading={searchLoading}
+      searchError={searchError}
+      onSearchRetry={() => {
+        setFailedQuery(null);
+        setSearchAttempt((attempt) => attempt + 1);
+      }}
+      onFiltersChange={(nextQuery, nextSort) => {
+        setQuery(nextQuery);
+        setSort(nextSort);
+      }}
     />
   );
 }

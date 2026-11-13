@@ -1,7 +1,7 @@
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import type { HeroSlide } from "@/lib/types";
 
-export const HERO_RESPONSIVE_WIDTHS = [640, 828, 1080, 1200] as const;
+export const HERO_RESPONSIVE_WIDTHS = [480, 640, 828, 1080, 1200] as const;
 
 export function parseHeroSlideMeta(subtitle?: string | null): {
   text?: string;
