@@ -150,7 +150,7 @@ export function AppChrome({
             >
               {demoBanner}
               <GadgetNavbar settings={settings} shopTypes={shopTypes} />
-              <main className="min-w-0 flex-1 bg-[var(--g-cream)] pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
+              <main className="min-w-0 flex-1 bg-[var(--g-cream)] pb-0">
                 {pageNodes}
               </main>
               <GadgetFooter settings={settings} shopTypes={shopTypes} />

@@ -29,7 +29,7 @@ export function GadgetFooterNewsletter() {
 
   return (
     <div>
-      <p className="text-sm text-white/90">Get exclusive offers and updates.</p>
+      <p className="text-sm font-bold text-[var(--g-charcoal)]">Get exclusive offers and updates</p>
       <form onSubmit={onSubmit} className="relative mt-3">
         <label htmlFor="gadget-footer-email" className="sr-only">
           Email address
@@ -44,13 +44,13 @@ export function GadgetFooterNewsletter() {
             if (status !== "idle" && status !== "loading") setStatus("idle");
           }}
           placeholder="Email address"
-          className="h-12 w-full min-w-0 rounded-full border border-white/35 bg-transparent pl-5 pr-14 text-base text-[var(--g-white)] outline-none placeholder:text-white/70 focus:border-[var(--g-sage)] sm:text-sm"
+          className="h-12 w-full min-w-0 rounded-2xl border border-transparent bg-[#f1f1f1] pl-4 pr-14 text-base text-[var(--g-charcoal)] outline-none placeholder:text-[var(--g-taupe)] focus:border-[var(--g-forest)] sm:text-sm"
         />
         <button
           type="submit"
           disabled={status === "loading"}
           aria-label="Subscribe"
-          className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--g-white)] text-[var(--g-forest)] transition hover:bg-[var(--g-cream)] disabled:opacity-60"
+          className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--g-forest)] text-white transition hover:bg-[var(--g-sage)] disabled:opacity-60"
         >
           {status === "loading" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -62,10 +62,10 @@ export function GadgetFooterNewsletter() {
         </button>
       </form>
       {status === "ok" ? (
-        <p className="mt-2 text-xs text-[var(--g-sage)]">You’re on the list.</p>
+        <p className="mt-2 text-xs font-semibold text-emerald-700">You’re on the list.</p>
       ) : null}
       {status === "err" ? (
-        <p className="mt-2 text-xs text-red-300">
+        <p className="mt-2 text-xs text-red-600">
           Couldn’t subscribe — try again.
         </p>
       ) : null}

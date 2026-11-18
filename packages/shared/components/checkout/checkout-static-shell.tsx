@@ -12,12 +12,12 @@ export async function CheckoutStaticShell() {
   const threshold = Number(config.freeShippingThreshold ?? 0);
 
   return (
-    <div className="border-b border-[var(--g-line)] bg-[var(--g-cream)]">
-      <div className="mx-auto max-w-6xl px-4 py-4 sm:py-5 lg:px-8">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--g-forest)]">
+    <div className="px-2 pt-2 sm:px-5 lg:px-8">
+      <div className="mx-auto max-w-6xl rounded-[1.5rem] bg-white px-4 py-4 sm:px-6 sm:py-5">
+        <p className="gadget-eyebrow">
           Cash on delivery
         </p>
-        <h1 className="mt-1 text-2xl font-semibold leading-tight tracking-tight text-[var(--g-charcoal)] lg:text-3xl">
+        <h1 className="mt-1 login-section-title text-2xl lg:text-3xl">
           Checkout
         </h1>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--g-taupe)]">

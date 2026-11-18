@@ -1766,6 +1766,328 @@
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────
+   Storefront UI refresh (Login-style reference)
+   Light-gray canvas, white rounded cards, black actions, red accents.
+   Scoped to .gadget-theme only so the admin theme is untouched.
+   ────────────────────────────────────────────────────────────────── */
+.gadget-theme {
+  --g-cream: #ececec;
+  --g-cream-deep: #dedede;
+  --g-forest: #111111;
+  --g-forest-mid: #2b2b2b;
+  --g-sage: #e11d2e;
+  --g-leaf: #e11d2e;
+  --g-olive: #5b5b5b;
+  --g-charcoal: #141414;
+  --g-taupe: #5f5f5f;
+  --g-sand: #f6f6f6;
+  --g-blush: #f1f1f1;
+  --g-line: #e1e1e1;
+  --g-card-border: #e1e1e1;
+  --g-amber: #e11d2e;
+  --g-amber-hover: #c8101f;
+  --g-amber-text: #b3101e;
+  --g-gold: #e11d2e;
+  --g-terracotta: #e11d2e;
+  --g-sale: #e11d2e;
+  --g-price-strike: #8a8a8a;
+  --g-glow-forest: rgba(0, 0, 0, 0.16);
+  --g-glow-gold: rgba(225, 29, 46, 0.22);
+  --g-radius-card: 1.5rem;
+  --g-header-offset: 4.5rem;
+  --font-heading: var(--font-gadget-sans);
+  --background: 0 0% 92.5%;
+  --foreground: 0 0% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 8%;
+  --primary: 0 0% 7%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 94%;
+  --secondary-foreground: 0 0% 8%;
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 38%;
+  --accent: 0 0% 94%;
+  --accent-foreground: 0 0% 8%;
+  --border: 0 0% 88%;
+  --input: 0 0% 88%;
+  --ring: 0 0% 7%;
+  background: var(--g-cream);
+  letter-spacing: -0.003em;
+}
+
+@media (min-width: 768px) {
+  .gadget-theme {
+    --g-header-offset: 7rem;
+  }
+}
+
+/* Bold geometric sans for headings (replaces the serif display face) */
+.gadget-theme .gadget-display,
+.gadget-theme .gadget-h1,
+.gadget-theme .gadget-h2 {
+  font-family: var(--font-gadget-sans), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+/* Section eyebrow: small red dash + gray caps label */
+.gadget-theme .gadget-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--g-olive);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.gadget-theme .gadget-eyebrow::before {
+  content: "";
+  width: 1rem;
+  height: 2px;
+  background: var(--g-sage);
+}
+
+/* Flat section bands — the gray canvas carries the page */
+.gadget-theme .gadget-band-leaf,
+.gadget-theme .gadget-band-clay,
+.gadget-theme .gadget-band-forest {
+  background: transparent;
+}
+
+/* White rounded surfaces, no blur */
+.gadget-theme .gadget-surface,
+.gadget-theme .gadget-glass,
+.gadget-theme .gadget-glass-deep {
+  background: var(--g-white);
+  border: 0;
+  border-radius: var(--g-radius-card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Product image stage sits on a soft light panel inside the white card */
+.gadget-theme .gadget-studio-stage {
+  background: #f4f4f4;
+  box-shadow: none;
+}
+
+.gadget-theme .group:hover .gadget-studio-stage {
+  box-shadow: none;
+}
+
+/* Chips */
+.gadget-theme .gadget-chip-active {
+  background: var(--g-forest);
+  color: var(--g-white);
+  box-shadow: none;
+}
+
+.gadget-theme .gadget-chip-idle {
+  background: var(--g-white);
+  color: var(--g-charcoal);
+  border: 0;
+  box-shadow: none;
+}
+
+.gadget-theme .gadget-chip-idle:hover {
+  background: var(--g-white);
+  color: var(--g-sage);
+  box-shadow: none;
+}
+
+/* Primary actions: black pills with a thin red-to-violet edge on hover/focus */
+.gadget-theme .gadget-btn-primary,
+.gadget-theme .gadget-buy-cta {
+  border: 1px solid var(--g-forest);
+  background: var(--g-forest);
+  color: var(--g-white);
+  border-radius: 9999px;
+}
+
+.gadget-theme .gadget-btn-primary:hover,
+.gadget-theme .gadget-buy-cta:hover {
+  background: var(--g-forest-mid);
+}
+
+.gadget-theme .gadget-buy-cta:focus-visible,
+.gadget-theme .gadget-btn-primary:focus-visible {
+  outline: 2px solid var(--g-sage);
+  outline-offset: 2px;
+}
+
+.gadget-theme .gadget-nav-link::after {
+  background: var(--g-sage);
+}
+
+.gadget-theme .gadget-sale-badge {
+  background: var(--g-sale);
+  color: var(--g-white);
+}
+
+.gadget-theme .gadget-price-accent {
+  color: var(--g-charcoal);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gadget-theme .gadget-hover-lift:hover {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Floating rounded header + utility bar */
+.gadget-theme .gadget-topbar-premium {
+  background: var(--g-forest);
+  box-shadow: none;
+}
+
+.gadget-theme .gadget-main-nav {
+  background: rgba(255, 255, 255, 0.92);
+  border: 0;
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Hero: large rounded image, no glow */
+.gadget-theme .gadget-hero-shell {
+  border: 0;
+  border-radius: 1.75rem;
+  background: var(--g-forest);
+  box-shadow: none;
+}
+
+.gadget-theme .gadget-hero-shell::before {
+  display: none;
+}
+
+.gadget-theme .gadget-hero-shell .gadget-hero-cta {
+  background: var(--g-white);
+  border-color: transparent;
+  color: var(--g-forest);
+  box-shadow: none;
+}
+
+.gadget-theme .gadget-hero-shell .gadget-hero-cta:hover {
+  background: var(--g-sage);
+  color: var(--g-white);
+}
+
+/* Announcement / urgency bars */
+.gadget-theme .gadget-urgency-bar,
+.gadget-theme .gadget-announce-premium {
+  background: var(--g-forest);
+  border-bottom: 0;
+}
+
+.gadget-theme .gadget-premium-dialog::before {
+  background: var(--g-sage);
+}
+
+.gadget-theme .gadget-trust-pill {
+  background: var(--g-white);
+  border: 0;
+  color: var(--g-charcoal);
+}
+
+/* Section heading used on home rails and categories */
+.gadget-theme .login-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.gadget-theme .login-section-title {
+  font-family: var(--font-gadget-sans), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--g-charcoal);
+}
+
+/* Vertical corner ribbon used for admin-set product badges */
+.gadget-theme .login-ribbon {
+  position: absolute;
+  right: -0.375rem;
+  top: 55%;
+  z-index: 15;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: 0.75rem 0.3rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, #e11d2e, #7a2cff);
+  color: var(--g-white);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  max-height: 7.5rem;
+  overflow: hidden;
+}
+
+/* Product card shell */
+.gadget-theme .login-card {
+  background: var(--g-white);
+  border-radius: var(--g-radius-card);
+  padding: 0.625rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Product-card Buy button: outlined dark, gradient edge on focus */
+.gadget-theme .login-card .gadget-buy-cta {
+  min-height: 2.75rem;
+}
+
+/* Drawer / list rows used by the mobile menu */
+.gadget-theme .login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  background: #f4f4f4;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--g-charcoal);
+}
+
+.gadget-theme .login-gradient-text {
+  background: linear-gradient(90deg, #a8148c, #e11d2e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+/* Checkout / cart surfaces */
+.gadget-theme .premium-royal-surface {
+  background: var(--g-white);
+  border-radius: var(--g-radius-card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.gadget-theme .premium-royal-surface::before {
+  display: none;
+}
+
+/* On phones the hero slides under the floating header, like the reference */
+.gadget-theme .login-hero-pull {
+  margin-top: -4rem;
+}
+
+@media (min-width: 768px) {
+  .gadget-theme .login-hero-pull {
+    margin-top: 0;
+  }
+}
+
 .admin-theme .admin-nav-link {
   color: color-mix(in srgb, var(--g-cream) 72%, var(--g-taupe));
 }

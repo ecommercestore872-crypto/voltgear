@@ -569,7 +569,7 @@ export default function CheckoutPageClient() {
                   </div>
                 )}
 
-                <div className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-2 min-w-0 rounded-xl border-0 p-3 sm:rounded-2xl sm:p-5">
+                <div className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-2 min-w-0 rounded-[1.5rem] border-0 p-3 sm:p-5">
                   <form
                     id="details-form"
                     className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"

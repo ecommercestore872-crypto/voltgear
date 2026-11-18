@@ -76,7 +76,7 @@ export const CheckoutMobileOrderBox = forwardRef<
       ref={ref}
       id="checkout-order-box"
       className={cn(
-        "premium-royal-surface scroll-mt-4 rounded-xl border-0 p-4",
+        "premium-royal-surface scroll-mt-4 rounded-[1.5rem] border-0 p-4",
         className,
       )}
     >

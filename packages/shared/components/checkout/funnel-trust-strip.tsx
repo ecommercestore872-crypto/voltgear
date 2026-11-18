@@ -29,7 +29,7 @@ export function FunnelTrustStrip({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "grid grid-cols-2 gap-2 rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:grid-cols-4 sm:gap-3 sm:p-4",
+        "grid grid-cols-2 gap-2 rounded-[1.5rem] bg-[var(--g-white)] p-3 sm:grid-cols-4 sm:gap-3 sm:p-4",
         className,
       )}
       role="list"

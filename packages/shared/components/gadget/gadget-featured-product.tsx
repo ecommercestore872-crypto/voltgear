@@ -86,7 +86,7 @@ export function GadgetFeaturedProduct({
 
   return (
     <section
-      className="gadget-band-forest px-4 py-10 sm:py-14 lg:px-8"
+      className="gadget-band-forest px-3 py-10 sm:px-5 sm:py-14 lg:px-8"
       aria-labelledby="featured-product-heading"
     >
       <div className="mx-auto max-w-6xl">
@@ -101,11 +101,11 @@ export function GadgetFeaturedProduct({
           <p className="gadget-body mt-2 max-w-lg">{subtitle}</p>
         ) : null}
 
-        <div className="mt-8 grid items-stretch overflow-hidden rounded-[12px] border border-[var(--g-line)] bg-[var(--g-white)] dark:bg-[var(--g-charcoal)] lg:grid-cols-2 lg:gap-0">
+        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.5rem] bg-[var(--g-white)] lg:grid-cols-2 lg:gap-0">
           <Link
             href={href}
             prefetch={false}
-            className="flex relative min-h-[23rem] sm:min-h-[26rem] lg:min-h-0 h-full bg-[var(--g-cream)]"
+            className="flex relative min-h-[23rem] sm:min-h-[26rem] lg:min-h-0 h-full bg-[#f4f4f4]"
           >
             {image ? (
               <div className="relative w-full h-full flex items-center justify-center p-0 sm:p-8 lg:p-8">

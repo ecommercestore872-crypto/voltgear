@@ -2,10 +2,11 @@
 
 import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
-import { Grid2X2, House, Search as SearchIcon, ShoppingCart as CartIcon } from "lucide-react";
+import Image from "next/image";
+import { Search as SearchIcon } from "lucide-react";
 import {
   CaretDown,
+  CaretRight,
   Headphones,
   Heart,
   List,
@@ -28,6 +29,8 @@ import { useWishlist } from "@/components/wishlist/wishlist-provider";
 import { GadgetSearchInput } from "@/components/gadget/gadget-search-input";
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
+import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
+import { categoryImageUrl } from "@/lib/site-static-image";
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { SHOPPER_BRAND } from "@/lib/brand";
 import {
@@ -55,8 +58,8 @@ function IconHit({
     <button
       type="button"
       className={cn(
-        "relative flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors",
-        "hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)]",
+        "relative flex h-11 w-11 items-center justify-center rounded-full bg-[#f1f1f1] text-[var(--g-forest)] transition-colors",
+        "hover:bg-[var(--g-forest)] hover:text-white",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest)]",
         className,
       )}
@@ -75,10 +78,10 @@ export function GadgetNavbar({
   shopTypes?: ShopType[];
 }) {
   const { count, openCart } = useCart();
-  const pathname = usePathname() || "/";
   const { count: wishCount } = useWishlist();
   const [open, setOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const [universeOpen, setUniverseOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const links = gadgetShopTypeLinks(shopTypes);
   const brandName = settings?.brandName?.trim() || SHOPPER_BRAND.spokenName;
@@ -108,118 +111,146 @@ export function GadgetNavbar({
       <div className="gadget-theme" role="presentation">
         <button
           type="button"
-          className="fixed inset-0 z-[90] bg-[var(--g-forest)]/35"
+          className="fixed inset-0 z-[90] bg-black/45"
           aria-label="Close menu"
           onClick={() => setOpen(false)}
         />
         <div
-          className="fixed inset-y-0 right-0 z-[100] flex w-full max-w-sm flex-col overflow-y-auto overscroll-contain border-l border-[var(--g-line)] bg-[var(--g-cream)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5"
+          className="fixed inset-y-0 left-0 z-[100] flex w-[92%] max-w-sm flex-col overflow-y-auto overscroll-contain rounded-r-[1.5rem] bg-white pb-[max(1.5rem,env(safe-area-inset-bottom))]"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
         >
-          <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--g-line)] px-5 py-4">
             <ShopBrandMark logo={settings?.logo} name={brandName} compact />
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--g-line)] text-[var(--g-forest)]"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--g-forest)] hover:bg-[#f1f1f1]"
               aria-label="Close menu"
               onClick={() => setOpen(false)}
             >
-              <X {...PHOSPHOR_HEADER} aria-hidden />
+              <X size={20} weight="regular" aria-hidden />
             </button>
           </div>
 
-          <form action={products2Href()} method="get" className="mb-6">
-            <label className="sr-only" htmlFor="gadget-search-mobile">
-              Search products
-            </label>
-            <GadgetSearchInput
-              id="gadget-search-mobile"
-              size="lg"
-              showSubmit
-              placeholder="Search the shop"
-            />
-          </form>
+          <div className="px-4 pt-5">
+            <form action={products2Href()} method="get" className="mb-5">
+              <label className="sr-only" htmlFor="gadget-search-mobile">
+                Search products
+              </label>
+              <GadgetSearchInput
+                id="gadget-search-mobile"
+                size="lg"
+                showSubmit
+                placeholder="Search the shop"
+              />
+            </form>
 
-          <p className="gadget-eyebrow mb-2">Shop</p>
-          <nav
-            className="mb-6 grid border-t border-[var(--g-line)]"
-            aria-label="Mobile shop"
-          >
-            <Link
-              href={products2Href()}
-              onClick={() => setOpen(false)}
-              className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm font-semibold text-[var(--g-forest)]"
+            <button
+              type="button"
+              onClick={() => setUniverseOpen((v) => !v)}
+              aria-expanded={universeOpen}
+              className="mb-3 flex min-h-11 w-full items-center justify-between text-left"
             >
-              {settings?.navShopAllText?.trim() || "All products"}
-            </Link>
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+              <span className="login-gradient-text text-xl">Shop by category</span>
+              <CaretDown
+                size={18}
+                weight="bold"
+                className={cn(
+                  "text-[var(--g-charcoal)] transition-transform",
+                  universeOpen ? "rotate-180" : "",
+                )}
+                aria-hidden
+              />
+            </button>
 
-          {navLinks.length ? (
-            <>
-              <p className="gadget-eyebrow mb-2">Explore</p>
-              <nav
-                className="mb-6 grid border-t border-[var(--g-line)]"
-                aria-label="Mobile explore"
-              >
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href + link.label}
-                    href={link.href}
-                    onClick={() => setOpen(false)}
-                    className="flex min-h-12 items-center border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-            </>
-          ) : null}
-
-          {helpLinks.length ? (
-            <>
-              <p className="gadget-eyebrow mb-2">Help</p>
-              <nav
-                className="grid border-t border-[var(--g-line)]"
-                aria-label="Mobile help"
-              >
-                {helpLinks.map((link) => {
-                  const Icon = helpIcon(link.href);
+            {universeOpen ? (
+              <nav className="grid gap-2" aria-label="Mobile shop">
+                <Link
+                  href={products2Href()}
+                  onClick={() => setOpen(false)}
+                  className="login-row"
+                >
+                  <span>{settings?.navShopAllText?.trim() || "All products"}</span>
+                  <CaretRight size={16} weight="bold" aria-hidden />
+                </Link>
+                {links.map((link) => {
+                  const path = resolveCategoryImagePath(link.imageUrl, link.slug);
+                  const img = path ? categoryImageUrl(path, 128) : undefined;
                   return (
                     <Link
-                      key={link.href + link.label}
+                      key={link.href}
                       href={link.href}
                       onClick={() => setOpen(false)}
-                      className="flex min-h-12 items-center gap-2.5 border-b border-[var(--g-line)] text-sm text-[var(--g-charcoal)]"
+                      className="login-row"
                     >
-                      <Icon
-                        {...PHOSPHOR_HEADER}
-                        className="text-[var(--g-sage)]"
-                        aria-hidden
-                      />
-                      {link.label}
+                      <span className="min-w-0 flex-1 truncate">{link.label}</span>
+                      {img ? (
+                        <span className="relative h-11 w-14 shrink-0">
+                          <Image
+                            src={img}
+                            alt=""
+                            fill
+                            sizes="56px"
+                            quality={80}
+                            className="object-contain"
+                          />
+                        </span>
+                      ) : null}
+                      <CaretRight size={16} weight="bold" aria-hidden />
                     </Link>
                   );
                 })}
               </nav>
-            </>
+            ) : null}
+          </div>
+
+          {navLinks.length ? (
+            <nav className="mt-6 grid gap-2 px-4" aria-label="Mobile explore">
+              <p className="gadget-eyebrow mb-1">Explore</p>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href + link.label}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className="login-row"
+                >
+                  <span>{link.label}</span>
+                  <CaretRight size={16} weight="bold" aria-hidden />
+                </Link>
+              ))}
+            </nav>
+          ) : null}
+
+          {helpLinks.length ? (
+            <nav className="mt-6 grid gap-2 px-4" aria-label="Mobile help">
+              <p className="gadget-eyebrow mb-1">Help</p>
+              {helpLinks.map((link) => {
+                const Icon = helpIcon(link.href);
+                return (
+                  <Link
+                    key={link.href + link.label}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className="login-row justify-start"
+                  >
+                    <Icon
+                      {...PHOSPHOR_HEADER}
+                      className="text-[var(--g-sage)]"
+                      aria-hidden
+                    />
+                    <span className="flex-1">{link.label}</span>
+                    <CaretRight size={16} weight="bold" aria-hidden />
+                  </Link>
+                );
+              })}
+            </nav>
           ) : null}
 
           {phone ? (
             <a
               href={`tel:${phone.replace(/\s+/g, "")}`}
-              className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--g-forest)] px-4 text-sm font-semibold text-[var(--g-cream)]"
+              className="mx-4 mt-6 flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--g-forest)] px-4 text-sm font-semibold text-white"
             >
               <Phone {...PHOSPHOR_HEADER} aria-hidden />
               Call {phone}
@@ -268,11 +299,20 @@ export function GadgetNavbar({
         </div>
       </div>
 
-      <div className="gadget-main-nav border-b border-[var(--g-line)] backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-4 px-3 sm:h-[4.25rem] sm:px-4 lg:gap-6 lg:px-6 xl:px-8">
+      <div className="px-2 pt-2 sm:px-3 md:pt-3">
+      <div className="gadget-main-nav mx-auto max-w-[90rem]">
+        <div className="grid h-14 grid-cols-[2.75rem_1fr_auto] items-center gap-2 px-2 sm:h-16 sm:px-4 lg:flex lg:h-[4.25rem] lg:gap-6 lg:px-6 xl:px-8">
+          <IconHit
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="lg:hidden"
+          >
+            <List size={20} weight="regular" aria-hidden />
+          </IconHit>
           <Link
             href="/"
-            className="group flex min-h-11 shrink-0 items-center"
+            className="group flex min-h-11 shrink-0 items-center justify-self-center lg:justify-self-auto"
           >
             <ShopBrandMark
               logo={settings?.logo}
@@ -361,12 +401,20 @@ export function GadgetNavbar({
 
           <div className={cn("flex items-center gap-1.5", "lg:ml-0 ml-auto")}>
             <Link
+              href="/search"
+              aria-label="Search products"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#f1f1f1] text-[var(--g-forest)] transition-colors hover:bg-[var(--g-forest)] hover:text-white lg:hidden"
+            >
+              <SearchIcon className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+            </Link>
+
+            <Link
               href="/wishlist"
               aria-label={
                 wishCount ? `Wishlist, ${wishCount} items` : "Wishlist"
               }
               title="Wishlist"
-              className="relative hidden h-11 w-11 items-center justify-center rounded-full border border-[var(--g-line)] bg-[var(--g-sand)] text-[var(--g-forest)] transition-colors hover:border-[var(--g-forest)] hover:bg-[var(--g-forest)] hover:text-[var(--g-cream)] sm:inline-flex"
+              className="relative hidden h-11 w-11 items-center justify-center rounded-full bg-[#f1f1f1] text-[var(--g-forest)] transition-colors hover:bg-[var(--g-forest)] hover:text-white sm:inline-flex"
             >
               <Heart {...PHOSPHOR_HEADER} aria-hidden />
               {wishCount > 0 ? (
@@ -379,50 +427,21 @@ export function GadgetNavbar({
             <IconHit
               onClick={openCart}
               aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
-              className="hidden sm:flex"
             >
-              <ShoppingBag {...PHOSPHOR_HEADER} aria-hidden />
+              <ShoppingBag size={18} weight="regular" aria-hidden />
               {count > 0 ? (
                 <span className="gadget-sale-badge absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold">
                   {count}
                 </span>
               ) : null}
             </IconHit>
-
-            <IconHit
-              aria-label={open ? "Close menu" : "Open menu"}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-              className="lg:hidden"
-            >
-              {open ? (
-                <X {...PHOSPHOR_HEADER} aria-hidden />
-              ) : (
-                <List {...PHOSPHOR_HEADER} aria-hidden />
-              )}
-            </IconHit>
           </div>
         </div>
+      </div>
       </div>
       {menu && typeof document !== "undefined"
         ? createPortal(menu, document.body)
         : null}
-      {!pathname.startsWith("/checkout") && !pathname.startsWith("/product/") && !pathname.startsWith("/order/") ? (
-        <nav aria-label="Mobile primary" className="gadget-mobile-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-[var(--g-line)] bg-[var(--g-cream)] px-[env(safe-area-inset-left)] pb-[env(safe-area-inset-bottom)] pr-[env(safe-area-inset-right)] shadow-[0_-8px_24px_rgba(14,36,25,.08)] sm:hidden">
-          {[
-            { href: "/", label: "Home", icon: House, active: pathname === "/" },
-            { href: "/products", label: "All Products", icon: Grid2X2, active: pathname.startsWith("/products") },
-            { href: "/search", label: "Search", icon: SearchIcon, active: pathname.startsWith("/search") },
-            { href: "/cart", label: "Cart", icon: CartIcon, active: pathname.startsWith("/cart") },
-          ].map(({ href, label, icon: Icon, active }) => (
-            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-[62px] flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--g-forest)]", active ? "text-[var(--g-forest)]" : "text-[var(--g-taupe)]")}>
-              <Icon className="h-5 w-5" strokeWidth={active ? 2.3 : 1.8} aria-hidden />
-              <span>{label}</span>
-              {href === "/cart" && count > 0 ? <span className="absolute right-1 top-1 rounded-full bg-[var(--g-sale)] px-1 text-[9px] text-white">{count}</span> : null}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
     </header>
   );
 }

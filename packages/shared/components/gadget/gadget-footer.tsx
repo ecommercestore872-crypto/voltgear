@@ -1,4 +1,4 @@
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Plus } from "lucide-react";
 
 import { ShopBrandMark } from "@/components/brand/shop-brand-mark";
 import { GadgetFooterNewsletter } from "@/components/gadget/gadget-footer-newsletter";
@@ -17,19 +17,37 @@ import { gadgetShopTypeLinks, products2Href } from "@/lib/gadget-preview";
 import type { SiteSettings } from "@/lib/types";
 import { normalizeSettings } from "@/lib/site-config";
 
-function splitTwo<T>(items: T[]): [T[], T[]] {
-  const mid = Math.ceil(items.length / 2);
-  return [items.slice(0, mid), items.slice(mid)];
-}
-
 function FooterLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="block py-1.5 text-[13px] text-white/90 transition hover:text-[var(--g-white)] min-h-[36px] flex items-center"
+      className="flex min-h-[40px] items-center py-1 text-[13px] text-[var(--g-taupe)] transition hover:text-[var(--g-charcoal)]"
     >
       {label}
     </Link>
+  );
+}
+
+type FooterGroup = { title: string; links: { href: string; label: string }[] };
+
+function FooterAccordion({ group }: { group: FooterGroup }) {
+  return (
+    <details className="group border-b border-[var(--g-line)] py-1 [&_summary::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between text-[17px] font-extrabold tracking-tight text-[var(--g-charcoal)]">
+        {group.title}
+        <Plus
+          className="h-5 w-5 transition-transform group-open:rotate-45"
+          aria-hidden
+        />
+      </summary>
+      <ul className="pb-3">
+        {group.links.map((l) => (
+          <li key={l.href + l.label}>
+            <FooterLink href={l.href} label={l.label} />
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
@@ -53,90 +71,27 @@ export function GadgetFooter({
     settings?.footerCareLinks,
     DEFAULT_FOOTER_CARE_LINKS,
   );
-  const [shopA, shopB] = splitTwo(shopLinks);
-  const [companyA, companyB] = splitTwo(companyLinks);
   const phone = settings?.phone;
   const email = settings?.email;
   const config = normalizeSettings(settings);
   const socialLinks = getPublicSocialLinks(config);
 
+  const groups: FooterGroup[] = [
+    { title: "Shop", links: shopLinks },
+    ...(companyLinks.length ? [{ title: "Company", links: companyLinks }] : []),
+    ...(careLinks.length ? [{ title: "Care", links: careLinks }] : []),
+  ];
+
   return (
-    <footer className="bg-[var(--g-cream)] pt-6 sm:px-3 sm:pb-3 sm:pt-8">
-      <div className="overflow-hidden rounded-t-[2.25rem] border-t-4 border-[var(--g-gold)] bg-[var(--g-forest)] text-[var(--g-white)] shadow-[0_-12px_40px_rgba(14,36,25,0.2)] sm:rounded-[2.25rem]">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.15fr_1fr_0.85fr_1.1fr] lg:gap-8 lg:py-14 xl:gap-12">
-          {/* Shop */}
-          <div>
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--g-white)]">
-              Shop
-            </h2>
-            <div className="mt-4 grid grid-cols-2 gap-x-4">
-              <ul>
-                {shopA.map((l) => (
-                  <li key={l.href}>
-                    <FooterLink href={l.href} label={l.label} />
-                  </li>
-                ))}
-              </ul>
-              <ul>
-                {shopB.map((l) => (
-                  <li key={l.href}>
-                    <FooterLink href={l.href} label={l.label} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {companyLinks.length ? (
-            <div>
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--g-white)]">
-                Company
-              </h2>
-              <div className="mt-4 grid grid-cols-2 gap-x-4">
-                <ul>
-                  {companyA.map((l) => (
-                    <li key={l.href + l.label}>
-                      <FooterLink href={l.href} label={l.label} />
-                    </li>
-                  ))}
-                </ul>
-                <ul>
-                  {companyB.map((l) => (
-                    <li key={l.href + l.label}>
-                      <FooterLink href={l.href} label={l.label} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ) : null}
-
-          {careLinks.length ? (
-            <div>
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--g-white)]">
-                Care
-              </h2>
-              <ul className="mt-4">
-                {careLinks.map((l) => (
-                  <li key={l.href + l.label}>
-                    <FooterLink href={l.href} label={l.label} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          {/* Brand + contact + newsletter */}
-          <div className="flex flex-col">
-            <Link
-              href="/"
-              className="inline-flex min-h-11 w-fit items-center"
-            >
-              <ShopBrandMark logo={settings?.logo} name={brandName} invert />
+    <footer className="px-2 pb-2 pt-6 sm:px-3 sm:pb-3 sm:pt-8">
+      <div className="mx-auto max-w-[90rem] overflow-hidden rounded-[1.75rem] bg-white text-[var(--g-charcoal)]">
+        <div className="px-5 pb-6 pt-8 sm:px-8 lg:px-12 lg:pt-12">
+          <div className="flex flex-col items-center gap-5">
+            <Link href="/" className="inline-flex min-h-11 items-center">
+              <ShopBrandMark logo={settings?.logo} name={brandName} />
             </Link>
-
             {socialLinks.length ? (
-              <div className="mt-5 flex flex-wrap gap-2.5">
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 {socialLinks.map((social) => (
                   <a
                     key={social.id}
@@ -144,60 +99,86 @@ export function GadgetFooter({
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`${social.label} (${social.handle})`}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 transition hover:border-white/40 hover:bg-white/15"
+                    className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-[#f1f1f1]"
                   >
                     <GadgetSocialGlyph platform={social.id} className="h-7 w-7" />
                   </a>
                 ))}
               </div>
             ) : null}
+          </div>
 
-            <div className="mt-6 space-y-2.5">
-              <p className="text-sm text-white/90">We’re here to help.</p>
+          {/* Mobile: accordions */}
+          <div className="mt-6 lg:hidden">
+            {groups.map((g) => (
+              <FooterAccordion key={g.title} group={g} />
+            ))}
+          </div>
+
+          {/* Desktop: open columns */}
+          <div className="mt-10 hidden gap-10 lg:grid lg:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
+            {groups.map((g) => (
+              <div key={g.title}>
+                <h2 className="text-[17px] font-extrabold tracking-tight">
+                  {g.title}
+                </h2>
+                <ul
+                  className={
+                    g.links.length > 7 ? "mt-3 columns-2 gap-6" : "mt-3"
+                  }
+                >
+                  {g.links.map((l) => (
+                    <li key={l.href + l.label} className="break-inside-avoid">
+                      <FooterLink href={l.href} label={l.label} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <div className="min-w-0">
+              <GadgetFooterNewsletter />
+            </div>
+          </div>
+
+          {/* Help + contact */}
+          <div className="mt-6 flex items-start justify-between gap-4 border-b border-[var(--g-line)] pb-5">
+            <p className="text-[15px] font-extrabold tracking-tight">
+              We’re here to help.
+            </p>
+            <div className="space-y-1.5 text-right text-[13px]">
               {phone ? (
                 <a
                   href={`tel:${phone.replace(/\s+/g, "")}`}
-                  className="flex items-center gap-2 text-sm text-white/85 transition hover:text-[var(--g-white)]"
+                  className="flex min-h-9 items-center justify-end gap-1.5 text-[var(--g-taupe)] hover:text-[var(--g-charcoal)]"
                 >
-                  <Phone
-                    className="h-4 w-4 shrink-0 text-[var(--g-sage)]"
-                    aria-hidden
-                  />
-                  <span>
-                    Call Us:{" "}
-                    <span className="font-medium text-[var(--g-white)]">
-                      {phone}
-                    </span>
+                  <Phone className="h-3.5 w-3.5" aria-hidden />
+                  <span className="font-semibold text-[var(--g-charcoal)]">
+                    {phone}
                   </span>
                 </a>
               ) : null}
               {email ? (
                 <a
                   href={`mailto:${email}`}
-                  className="flex items-center gap-2 text-sm text-white/85 transition hover:text-[var(--g-white)]"
+                  className="flex min-h-9 items-center justify-end gap-1.5 text-[var(--g-taupe)] hover:text-[var(--g-charcoal)]"
                 >
-                  <Mail
-                    className="h-4 w-4 shrink-0 text-[var(--g-sage)]"
-                    aria-hidden
-                  />
-                  <span>
-                    Email Us:{" "}
-                    <span className="font-medium text-[var(--g-white)]">
-                      {email}
-                    </span>
+                  <Mail className="h-3.5 w-3.5" aria-hidden />
+                  <span className="font-semibold text-[var(--g-charcoal)]">
+                    {email}
                   </span>
                 </a>
               ) : null}
             </div>
+          </div>
 
-            <div className="mt-6">
-              <GadgetFooterNewsletter />
-            </div>
+          {/* Mobile newsletter */}
+          <div className="mt-5 lg:hidden">
+            <GadgetFooterNewsletter />
           </div>
         </div>
 
-        <div className="border-t border-white/10 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs text-white/80">
+        <div className="border-t border-[var(--g-line)] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8 lg:px-12">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs text-[var(--g-taupe)]">
             <p>
               © {new Date().getFullYear()} {brandName}. All rights reserved.
             </p>
@@ -205,37 +186,32 @@ export function GadgetFooter({
               aria-label="Legal"
               className="flex flex-wrap items-center gap-x-4 gap-y-1"
             >
-              <Link
-                href="/privacy-policy"
-                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="/cookies"
-                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
-              >
-                Cookies
-              </Link>
-              <CookieSettingsButton className="min-h-10 hover:text-[var(--g-white)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white" />
-              <Link
-                href="/terms-of-service"
-                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
-              >
-                Terms
-              </Link>
-              <Link
-                href="/about"
-                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="min-h-10 inline-flex items-center hover:text-[var(--g-white)]"
-              >
-                Contact
-              </Link>
+              {[
+                ["/privacy-policy", "Privacy"],
+                ["/cookies", "Cookies"],
+              ].map(([href, label]) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="inline-flex min-h-10 items-center hover:text-[var(--g-charcoal)]"
+                >
+                  {label}
+                </Link>
+              ))}
+              <CookieSettingsButton className="min-h-10 hover:text-[var(--g-charcoal)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--g-forest)]" />
+              {[
+                ["/terms-of-service", "Terms"],
+                ["/about", "About"],
+                ["/contact", "Contact"],
+              ].map(([href, label]) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="inline-flex min-h-10 items-center hover:text-[var(--g-charcoal)]"
+                >
+                  {label}
+                </Link>
+              ))}
             </nav>
           </div>
         </div>

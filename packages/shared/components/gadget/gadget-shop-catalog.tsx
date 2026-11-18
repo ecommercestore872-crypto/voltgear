@@ -85,13 +85,9 @@ export function GadgetShopCatalog({
   }
 
   return (
-    <div className="bg-[var(--g-cream)] text-[var(--g-charcoal)]">
-      <div className="relative overflow-hidden border-b border-[var(--g-line)]">
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,color-mix(in_srgb,var(--g-sage)_22%,transparent),transparent_55%),linear-gradient(180deg,var(--g-cream-deep),var(--g-cream))]"
-          aria-hidden
-        />
-        <div className="relative mx-auto max-w-6xl px-4 py-5 sm:py-6 lg:px-8">
+    <div className="text-[var(--g-charcoal)]">
+      <div className="px-2 pt-2 sm:px-5 lg:px-8">
+        <div className="relative mx-auto max-w-6xl rounded-[1.5rem] bg-white px-4 py-5 sm:px-6 sm:py-6">
           <div className="mb-4">
             <GadgetShopFindBar
               basePath={basePath}
@@ -127,7 +123,7 @@ export function GadgetShopCatalog({
               </span>
             ))}
           </nav>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--g-charcoal)] sm:text-3xl">
+          <h1 className="login-section-title mt-2 text-2xl sm:text-3xl">
             {title}
           </h1>
           <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--g-taupe)] sm:text-[15px]">
@@ -146,10 +142,10 @@ export function GadgetShopCatalog({
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 pb-10 pt-3 sm:pb-12 sm:pt-4 lg:px-8">
+      <div className="mx-auto max-w-6xl px-3 pb-10 pt-3 sm:px-5 sm:pb-12 sm:pt-4 lg:px-8">
         {useFlatGrid && !activeCategory ? null : (
-          <div className="sticky top-[3.75rem] z-20 -mx-4 bg-[var(--g-cream)]/95 px-4 pb-2 pt-3 backdrop-blur-md sm:top-[4.25rem] sm:mt-4 lg:-mx-0 lg:px-0">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-sage)]">
+          <div className="sticky top-[4.25rem] z-20 -mx-3 bg-[var(--g-cream)]/95 px-3 pb-2 pt-3 sm:top-[5rem] sm:mx-0 sm:mt-4 sm:px-0">
+            <p className="gadget-eyebrow mb-2">
               {activeCategory ? "Filter by type" : "Jump to category"}
             </p>
             <div
@@ -194,10 +190,10 @@ export function GadgetShopCatalog({
         {searchLoading ? (
           <div className="mt-8 space-y-3" role="status" aria-live="polite">
             <p className="text-sm text-[var(--g-taupe)]">Searching all products…</p>
-            <div className="h-40 animate-pulse rounded-xl bg-[var(--g-cream-deep)]" aria-hidden />
+            <div className="h-40 animate-pulse rounded-[1.5rem] bg-white" aria-hidden />
           </div>
         ) : searchError ? (
-          <div className="mt-8 rounded-xl border border-[var(--g-line)] bg-[var(--g-white)] px-6 py-10 text-center" role="alert">
+          <div className="mt-8 rounded-[1.5rem] bg-[var(--g-white)] px-6 py-10 text-center" role="alert">
             <p className="text-[var(--g-charcoal)]">Search is unavailable right now.</p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
               <button type="button" onClick={onSearchRetry} className="inline-flex min-h-11 items-center font-semibold text-[var(--g-forest)] hover:underline">Try again</button>
@@ -253,10 +249,10 @@ export function GadgetShopCatalog({
                     >
                       <div className="mb-3.5 flex items-center justify-between border-b border-[var(--g-line)] pb-2.5">
                         <div className="flex items-center gap-2.5">
-                          <h2 className="gadget-display text-lg font-semibold tracking-tight text-[var(--g-charcoal)] sm:text-xl capitalize">
+                          <h2 className="text-lg font-extrabold tracking-tight text-[var(--g-charcoal)] sm:text-xl capitalize">
                             {group.name}
                           </h2>
-                          <span className="rounded-full bg-[var(--g-cream-deep)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--g-taupe)]">
+                          <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold text-[var(--g-taupe)]">
                             {group.products.length}{" "}
                             {group.products.length === 1 ? "item" : "items"}
                           </span>
@@ -292,7 +288,7 @@ export function GadgetShopCatalog({
             </div>
           )
         ) : (
-          <div className="gadget-glass mt-8 rounded-2xl px-6 py-14 text-center">
+          <div className="gadget-glass mt-8 px-6 py-14 text-center">
             <p className="text-[var(--g-taupe)]">
               {query
                 ? `No products match “${query}”.`

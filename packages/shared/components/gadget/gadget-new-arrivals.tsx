@@ -67,28 +67,33 @@ export function GadgetNewArrivals({
     <section
       className={
         tone === "clay"
-          ? "gadget-band-clay px-4 py-8 sm:py-10 lg:px-8"
+          ? "gadget-band-clay px-3 py-8 sm:px-5 sm:py-10 lg:px-8"
           : tone === "leaf"
-            ? "gadget-band-leaf px-4 py-8 sm:py-10 lg:px-8"
-            : "px-4 py-8 sm:py-10 lg:px-8"
+            ? "gadget-band-leaf px-3 py-8 sm:px-5 sm:py-10 lg:px-8"
+            : "px-3 py-8 sm:px-5 sm:py-10 lg:px-8"
       }
       aria-labelledby={heading}
     >
       <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
-          <h2
-            id={heading}
-            className="text-2xl font-bold tracking-tight text-[var(--g-charcoal)] sm:text-3xl"
-          >
-            {title}
-          </h2>
+        <div className="login-section-head mb-5 sm:mb-7">
+          <div>
+            <p className="gadget-eyebrow mb-1.5">
+              {tone === "clay" ? "Offers" : tone === "leaf" ? "Shop" : "Collection"}
+            </p>
+            <h2
+              id={heading}
+              className="login-section-title text-2xl sm:text-3xl"
+            >
+              {title}
+            </h2>
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label={`Previous ${title}`}
               disabled={!canPrev}
               onClick={() => scrollByDir(-1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
+              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full bg-white text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -97,13 +102,13 @@ export function GadgetNewArrivals({
               aria-label={`Next ${title}`}
               disabled={!canNext}
               onClick={() => scrollByDir(1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
+              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full bg-white text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
             <Link
               href={viewAllHref}
-              className="inline-flex min-h-10 items-center rounded-[10px] border border-[var(--g-line)] bg-[var(--g-white)] px-3.5 text-sm font-semibold text-[var(--g-forest)] transition hover:border-[var(--g-forest)]/30"
+              className="inline-flex min-h-10 items-center rounded-full bg-white px-4 text-[13px] font-bold text-[var(--g-charcoal)] transition hover:bg-[var(--g-forest)] hover:text-white"
             >
               View all
             </Link>

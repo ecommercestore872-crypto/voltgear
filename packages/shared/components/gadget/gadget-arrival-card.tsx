@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ShoppingBag } from "lucide-react";
+import { Check, ShoppingBag, Star } from "lucide-react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
@@ -81,7 +81,7 @@ export function GadgetArrivalCard({
   return (
     <article
       className={cn(
-        "gadget-hover-lift group relative flex flex-col bg-transparent",
+        "gadget-hover-lift login-card group relative flex flex-col",
         isGrid ? "h-full w-full min-w-0" : "gadget-rail-card h-full",
       )}
     >
@@ -90,7 +90,7 @@ export function GadgetArrivalCard({
           href={href}
           prefetch={false}
           className={cn(
-            "gadget-studio-stage relative block overflow-hidden rounded-[10px]",
+            "gadget-studio-stage relative block overflow-hidden rounded-[1.1rem]",
             isGrid ? "aspect-square" : "aspect-square",
           )}
         >
@@ -98,16 +98,6 @@ export function GadgetArrivalCard({
             {stock.soldOut ? (
               <span className="shrink-0 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white z-20">
                 Out of Stock
-              </span>
-            ) : null}
-            {!stock.soldOut && off ? (
-              <span className="gadget-sale-badge shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide z-20">
-                −{off}%
-              </span>
-            ) : null}
-            {!off && tag ? (
-              <span className="max-w-[70%] truncate rounded-md border border-[var(--g-line)] bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-black z-20">
-                {tag}
               </span>
             ) : null}
           </div>
@@ -131,41 +121,57 @@ export function GadgetArrivalCard({
           )}
         </Link>
         <WishlistButton product={product} />
+        {tag && !stock.soldOut ? (
+          <span className="login-ribbon" aria-label={tag}>
+            {tag}
+          </span>
+        ) : null}
       </div>
 
       <div
         className={cn(
           "flex flex-1 flex-col",
-          isGrid ? "px-0.5 pb-1 pt-3" : "px-0.5 pb-1 pt-3",
+          "px-1.5 pb-1 pt-3",
         )}
       >
         <Link href={href} prefetch={false} className="min-w-0">
           <h3
             className={cn(
-              "font-bold tracking-tight text-[var(--g-charcoal)] dark:text-white transition group-hover:text-[var(--g-forest)]",
-              isGrid
-                ? "line-clamp-2 text-[14px] leading-snug sm:text-[15px]"
-                : "line-clamp-2 text-[14px] sm:text-[15px]",
+              "font-extrabold uppercase tracking-tight text-[var(--g-charcoal)] transition",
+              "line-clamp-2 text-[13px] leading-snug sm:text-[14px]",
             )}
           >
             {product.name}
           </h3>
         </Link>
 
+        {product.sku ? (
+          <p className="mt-0.5 truncate text-[12px] font-medium text-[var(--g-taupe)]">
+            {product.sku}
+          </p>
+        ) : null}
+
         {hasRealReviews ? (
-          <p className="mt-1 text-[11px] font-medium text-[var(--g-charcoal)]/80 dark:text-gray-300">
-            {product.rating?.toFixed(1)} · {product.reviewCount} reviews
+          <p className="mt-1.5 flex items-center gap-1 border-b border-[var(--g-line)] pb-2 text-[12px] font-semibold text-[var(--g-charcoal)]">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />
+            {product.rating?.toFixed(1)}
+            <span className="font-medium text-[var(--g-taupe)]">
+              ({product.reviewCount})
+            </span>
           </p>
         ) : null}
 
         <div className="mt-auto flex flex-col pt-2.5">
+          {!stock.soldOut && off ? (
+            <span className="text-[12px] font-bold text-[var(--g-sale)]">
+              {off}% Off
+            </span>
+          ) : null}
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
             <span
               className={cn(
-                "text-[1.05rem] font-bold tabular-nums sm:text-[1.15rem]",
-                priceWas
-                  ? "text-[var(--g-sale)]"
-                  : "text-[var(--g-charcoal)] dark:text-white",
+                "text-[1.05rem] font-extrabold tabular-nums sm:text-[1.15rem]",
+                "text-[var(--g-charcoal)]",
               )}
             >
               {priceNow}
@@ -177,7 +183,7 @@ export function GadgetArrivalCard({
             ) : null}
           </div>
           <span className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--g-charcoal)]/75">
-            <span className={cn("h-1.5 w-1.5 rounded-full", stock.soldOut ? "bg-red-600" : "bg-[var(--g-forest-mid)]")} aria-hidden />
+            <span className={cn("h-1.5 w-1.5 rounded-full", stock.soldOut ? "bg-red-600" : "bg-emerald-600")} aria-hidden />
             {stock.label}
           </span>
 
@@ -185,7 +191,7 @@ export function GadgetArrivalCard({
             {!canBuy ? (
               <Link
                 href={href}
-                className="flex h-11 w-full items-center justify-center rounded-[10px] bg-[var(--g-cream-deep)] text-[13px] font-semibold text-[var(--g-taupe)] transition hover:bg-[var(--g-line)]"
+                className="flex h-11 w-full items-center justify-center rounded-full bg-[#f1f1f1] text-[13px] font-semibold text-[var(--g-charcoal)] transition hover:bg-[var(--g-line)]"
               >
                 {stock.soldOut
                   ? "View product"
@@ -204,7 +210,7 @@ export function GadgetArrivalCard({
                     ? `Added to cart: ${product.name}`
                     : `Add to cart: ${product.name}`
                 }
-                className="gadget-buy-cta flex h-12 w-full items-center justify-center gap-1.5 rounded-[10px] text-[13px] font-semibold transition duration-200 active:scale-[0.99]"
+                className="gadget-buy-cta flex h-11 w-full items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold transition duration-200 active:scale-[0.99]"
               >
                 {added ? (
                   <>

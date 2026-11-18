@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { cn, formatPrice } from "@/lib/utils";
 
 const SUMMARY_CARD =
-  "min-w-0 overflow-hidden rounded-xl border border-[var(--g-line)] bg-card p-4 shadow-sm sm:rounded-2xl sm:p-5";
+  "min-w-0 overflow-hidden rounded-[1.5rem] bg-card p-4 sm:p-5";
 
 type ActivePromo = {
   code: string;
