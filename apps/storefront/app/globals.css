@@ -2077,6 +2077,28 @@
   display: none;
 }
 
+/* Product card: image rises above the white card (reference style) */
+.gadget-theme .login-card {
+  margin-top: 3.25rem;
+  overflow: visible;
+}
+
+.gadget-theme .login-card .gadget-studio-stage {
+  margin-top: -3.25rem;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.gadget-theme .login-card .gadget-studio-stage img {
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.12));
+}
+
+.gadget-theme .login-card:hover .gadget-studio-stage img {
+  transform: translateY(-4px) scale(1.03);
+}
+
 /* On phones the hero slides under the floating header, like the reference */
 .gadget-theme .login-hero-pull {
   margin-top: -4rem;

@@ -214,7 +214,7 @@ export default async function Product2Page(
         variantSku={trackingVariant?.sku}
         variantKey={trackingVariant?._key}
       />
-      <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
+      <div className="mx-auto max-w-[90rem] px-2 py-4 sm:px-5 lg:px-5 lg:py-6">
         <GadgetPdpServerFacts product={product} config={config} />
 
         <nav
