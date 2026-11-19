@@ -6,6 +6,7 @@ import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import {
   fetchBlogPosts,
+  fetchCategoryCounts,
   fetchHomepageProducts,
   fetchProductBySlug,
   fetchTestimonials,
@@ -81,6 +82,9 @@ export async function GadgetHomeSections() {
   const preview = localCatalogPreviewEnabled();
   // These reads do not depend on section settings; start them while settings load.
   const homeProducts = fetchHomepageProducts(demo).catch(() => [] as Product[]);
+  const categoryCountsPromise: Promise<Record<string, number>> = preview
+    ? Promise.resolve({})
+    : fetchCategoryCounts(demo).catch(() => ({}));
   const homeSlotsPromise = preview ? Promise.resolve(null) : fetchProductsForHomeSlots(demo).catch(() => null);
   const collectionRailsPromise = preview ? Promise.resolve([]) : fetchExtraCollectionRails(demo).catch(() => []);
 
@@ -184,6 +188,7 @@ export async function GadgetHomeSections() {
   }));
 
   const config = normalizeSettings(settings);
+  const categoryCounts = await categoryCountsPromise;
 
   const categoryCards = shopTypes
     .map((cat) => {
@@ -194,7 +199,7 @@ export async function GadgetHomeSections() {
           (p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p),
         ) ?? undefined;
       if (!rep && !cat.imageUrl) return null;
-      return { ...cat, product: rep };
+      return { ...cat, product: rep, count: categoryCounts[slug] };
     })
     .filter((c): c is NonNullable<typeof c> => c != null);
 

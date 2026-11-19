@@ -77,15 +77,85 @@ export function GadgetFooter({
   const socialLinks = getPublicSocialLinks(config);
 
   const groups: FooterGroup[] = [
-    { title: "Shop", links: shopLinks },
-    ...(companyLinks.length ? [{ title: "Company", links: companyLinks }] : []),
-    ...(careLinks.length ? [{ title: "Care", links: careLinks }] : []),
+    { title: "Products", links: shopLinks },
+    ...(companyLinks.length ? [{ title: "Discover", links: companyLinks }] : []),
+    ...(careLinks.length ? [{ title: "Support", links: careLinks }] : []),
   ];
 
   return (
     <footer className="px-2 pb-2 pt-6 sm:px-3 sm:pb-3 sm:pt-8">
       <div className="mx-auto max-w-[90rem] overflow-hidden rounded-[1.75rem] bg-white text-[var(--g-charcoal)]">
-        <div className="px-5 pb-6 pt-8 sm:px-8 lg:px-12 lg:pt-12">
+        {/* Desktop footer */}
+        <div className="hidden px-12 pb-8 pt-12 lg:block">
+          <div className="grid grid-cols-[minmax(17rem,21rem)_1fr] gap-10">
+            <div className="min-w-0 border-r border-[var(--g-line)] pr-10">
+              <Link href="/" className="inline-flex min-h-11 items-center">
+                <ShopBrandMark logo={settings?.logo} name={brandName} />
+              </Link>
+              {socialLinks.length ? (
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  {socialLinks.map((social) => (
+                    <a
+                      key={social.id}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${social.label} (${social.handle})`}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f1f1f1] transition hover:bg-[#e4e4e4]"
+                    >
+                      <GadgetSocialGlyph platform={social.id} className="h-5 w-5" />
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+              <p className="mt-8 inline-block border-b-2 border-[var(--g-forest)] pb-1 text-[17px] font-extrabold tracking-tight">
+                We’re here to help.
+              </p>
+              <div className="mt-4 space-y-2 text-[14px] font-bold">
+                {phone ? (
+                  <a href={`tel:${phone.replace(/\s+/g, "")}`} className="block hover:text-[var(--g-sage)]">
+                    Call us: <span className="font-extrabold">{phone}</span>
+                  </a>
+                ) : null}
+                {email ? (
+                  <a href={`mailto:${email}`} className="block hover:text-[var(--g-sage)]">
+                    Email us: <span className="font-extrabold">{email}</span>
+                  </a>
+                ) : null}
+              </div>
+              <div className="mt-6">
+                <GadgetFooterNewsletter />
+              </div>
+            </div>
+
+            <div className="grid min-w-0 grid-cols-3 gap-0">
+              {groups.map((g, i) => (
+                <div
+                  key={g.title}
+                  className={`min-w-0 px-8 ${i > 0 ? "border-l border-[var(--g-line)]" : "pl-2"}`}
+                >
+                  <h2 className="inline-block border-b-2 border-[var(--g-sage)] pb-1.5 text-[14px] font-extrabold uppercase tracking-[0.06em]">
+                    {g.title}
+                  </h2>
+                  <ul className="mt-5">
+                    {g.links.map((l) => (
+                      <li key={l.href + l.label}>
+                        <Link
+                          href={l.href}
+                          className="flex min-h-[34px] items-center py-1 text-[13.5px] font-bold text-[var(--g-charcoal)] transition hover:text-[var(--g-sage)]"
+                        >
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="px-5 pb-6 pt-8 sm:px-8 lg:hidden">
           <div className="flex flex-col items-center gap-5">
             <Link href="/" className="inline-flex min-h-11 items-center">
               <ShopBrandMark logo={settings?.logo} name={brandName} />
@@ -109,35 +179,10 @@ export function GadgetFooter({
           </div>
 
           {/* Mobile: accordions */}
-          <div className="mt-6 lg:hidden">
+          <div className="mt-6">
             {groups.map((g) => (
               <FooterAccordion key={g.title} group={g} />
             ))}
-          </div>
-
-          {/* Desktop: open columns */}
-          <div className="mt-10 hidden gap-10 lg:grid lg:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
-            {groups.map((g) => (
-              <div key={g.title}>
-                <h2 className="text-[17px] font-extrabold tracking-tight">
-                  {g.title}
-                </h2>
-                <ul
-                  className={
-                    g.links.length > 7 ? "mt-3 columns-2 gap-6" : "mt-3"
-                  }
-                >
-                  {g.links.map((l) => (
-                    <li key={l.href + l.label} className="break-inside-avoid">
-                      <FooterLink href={l.href} label={l.label} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-            <div className="min-w-0">
-              <GadgetFooterNewsletter />
-            </div>
           </div>
 
           {/* Help + contact */}
@@ -172,7 +217,7 @@ export function GadgetFooter({
           </div>
 
           {/* Mobile newsletter */}
-          <div className="mt-5 lg:hidden">
+          <div className="mt-5">
             <GadgetFooterNewsletter />
           </div>
         </div>

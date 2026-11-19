@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 
 import { CategoryGlyph } from "@/components/gadget/gadget-category-glyphs";
 import { gadgetImageSrc } from "@/lib/gadget-image";
@@ -13,6 +13,8 @@ import { categoryImageUrl } from "@/lib/site-static-image";
 import type { Product } from "@/lib/types";
 
 export type CategoryIconTile = {
+  /** Live product count for this category (omitted when unknown). */
+  count?: number;
   label: string;
   href: string;
   slug?: string;
@@ -21,6 +23,7 @@ export type CategoryIconTile = {
 };
 
 type SlideTile = {
+  count?: number;
   key: string;
   label: string;
   href: string;
@@ -31,6 +34,7 @@ type SlideTile = {
 
 function buildSlides(tiles: CategoryIconTile[]): SlideTile[] {
   const fromProducts: SlideTile[] = tiles.map((t) => ({
+    count: t.count,
     key: `p-${t.href}`,
     label: t.label,
     href: t.href,
@@ -73,6 +77,16 @@ function CategoryTileImage({
   );
 }
 
+const SPANS = [
+  "lg:col-span-6",
+  "lg:col-span-3",
+  "lg:col-span-3",
+  "lg:col-span-3",
+  "lg:col-span-3",
+  "lg:col-span-3",
+  "lg:col-span-3",
+];
+
 export function GadgetShopCategories({
   tiles,
   title,
@@ -111,14 +125,14 @@ export function GadgetShopCategories({
           </Link>
         </div>
 
-        <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 lg:gap-4">
-          {slides.map((tile) => (
-            <li key={tile.key} className="min-w-0">
+        <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-12 lg:gap-4">
+          {slides.slice(0, 7).map((tile, i) => (
+            <li key={tile.key} className={`min-w-0 ${SPANS[i % SPANS.length]}`}>
               <Link
                 href={tile.href}
-                className="group flex h-full min-h-[44px] flex-col rounded-[1.5rem] bg-white p-2.5 transition hover:shadow-[0_14px_34px_rgba(0,0,0,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--g-forest)] sm:p-3"
+                className="group relative flex h-full min-h-[44px] flex-col rounded-[1.5rem] bg-white p-2.5 transition hover:shadow-[0_14px_34px_rgba(0,0,0,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--g-forest)] sm:p-3 lg:min-h-[10.5rem] lg:flex-row lg:items-center lg:gap-4 lg:px-6"
               >
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.1rem] bg-[#f4f4f4]">
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.1rem] bg-[#f4f4f4] lg:aspect-auto lg:h-36 lg:w-32 lg:shrink-0 xl:w-40 lg:bg-transparent">
                   {tile.image ? (
                     <CategoryTileImage src={tile.image} slug={tile.slug} />
                   ) : (
@@ -130,26 +144,74 @@ export function GadgetShopCategories({
                     </span>
                   )}
                 </div>
-                <div className="flex items-end justify-between gap-2 px-1.5 pb-1 pt-3">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--g-taupe)]">
-                      Explore
+                <div className="flex min-w-0 flex-1 items-end justify-between gap-2 px-1.5 pb-1 pt-3 lg:h-full lg:flex-col lg:items-stretch lg:justify-between lg:p-0 lg:py-2">
+                  {typeof tile.count === "number" && tile.count > 0 ? (
+                    <p className="hidden text-right text-[13px] text-[var(--g-taupe)] lg:block">
+                      {tile.count} {tile.count === 1 ? "Product" : "Products"}
                     </p>
-                    <p className="mt-0.5 line-clamp-2 text-[15px] font-extrabold leading-tight tracking-tight text-[var(--g-charcoal)] sm:text-base">
-                      {tile.label}
-                    </p>
+                  ) : (
+                    <span className="hidden lg:block" />
+                  )}
+                  <div className="flex min-w-0 items-end justify-between gap-2">
+                    <div className="min-w-0 lg:pr-12">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--g-taupe)] lg:text-[13px] lg:tracking-[0.06em]">
+                        Explore
+                      </p>
+                      <p className="mt-0.5 line-clamp-2 text-[15px] font-extrabold leading-tight tracking-tight text-[var(--g-charcoal)] sm:text-base">
+                        {tile.label}
+                      </p>
+                      {typeof tile.count === "number" && tile.count > 0 ? (
+                        <p className="mt-0.5 text-[11px] text-[var(--g-taupe)] lg:hidden">
+                          {tile.count} {tile.count === 1 ? "Product" : "Products"}
+                        </p>
+                      ) : null}
+                    </div>
+                    <span
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ececec] text-[var(--g-charcoal)] transition group-hover:bg-[var(--g-forest)] group-hover:text-white lg:absolute lg:bottom-4 lg:right-5 lg:h-10 lg:w-11"
+                      aria-hidden
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
                   </div>
-                  <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--g-forest)] text-white transition group-hover:bg-[var(--g-sage)]"
-                    aria-hidden
-                  >
-                    <ArrowUpRight className="h-4 w-4" />
-                  </span>
                 </div>
               </Link>
             </li>
           ))}
         </ul>
+
+        <div className="mt-3 flex items-center gap-2 rounded-[1.5rem] bg-white py-3 pl-3 pr-4 sm:mt-4 sm:pl-5">
+          <ul className="flex min-w-0 flex-1 gap-5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-8">
+            {slides.map((tile) => (
+              <li key={`strip-${tile.key}`} className="shrink-0">
+                <Link
+                  href={tile.href}
+                  className="flex min-h-11 flex-col items-center gap-1 text-center"
+                >
+                  <span className="relative block h-8 w-8">
+                    {tile.image ? (
+                      <Image
+                        src={categoryImageUrl(tile.image, 96) ?? tile.image}
+                        alt=""
+                        fill
+                        sizes="32px"
+                        className="object-contain"
+                      />
+                    ) : null}
+                  </span>
+                  <span className="max-w-[6rem] truncate text-[11px] font-bold text-[var(--g-charcoal)]">
+                    {tile.label}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/products"
+            className="hidden shrink-0 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--g-taupe)] hover:text-[var(--g-sage)] sm:inline"
+          >
+            View all categories
+          </Link>
+        </div>
       </div>
     </section>
   );

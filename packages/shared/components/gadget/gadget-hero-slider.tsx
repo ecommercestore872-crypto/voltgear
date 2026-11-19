@@ -38,7 +38,7 @@ function ResponsiveHeroImage({
         fetchPriority={eager ? "high" : "auto"}
         quality={eager ? 65 : 72}
         className={banner.artworkText ? "object-contain z-[1]" : "object-cover object-[68%_center] sm:object-center z-[1]"}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 94vw, 1800px"
       />
     );
   }
@@ -63,7 +63,7 @@ function ResponsiveHeroImage({
     priority: eager,
     fetchPriority: eager ? "high" : "auto",
     quality: eager ? 65 : 72,
-    sizes: "(max-width: 1024px) 90vw, 1280px",
+    sizes: "(max-width: 1024px) 94vw, 1800px",
   }).props;
 
   return (
@@ -166,7 +166,7 @@ export function GadgetHeroSlider({
 
   return (
     <section
-      className="login-hero-pull relative px-2 pb-4 pt-2 sm:px-5 sm:pb-7 sm:pt-5 lg:px-8"
+      className="login-hero-pull relative px-2 pb-4 pt-2 sm:px-5 sm:pb-7 sm:pt-5 lg:px-5 lg:pt-2"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocusCapture={() => setFocused(true)}
@@ -184,8 +184,8 @@ export function GadgetHeroSlider({
       aria-label="Featured collections"
       tabIndex={0}
     >
-      <div className="gadget-hero-shell group relative mx-auto max-w-[80rem] overflow-hidden rounded-[1.5rem] bg-[var(--g-forest)] sm:rounded-[1.75rem]">
-        <div className="relative h-[min(68svh,600px)] min-h-[460px] w-full sm:h-[520px] sm:min-h-0 lg:h-[570px]">
+      <div className="gadget-hero-shell group relative mx-auto max-w-[120rem] overflow-hidden rounded-[1.5rem] bg-[var(--g-forest)] sm:rounded-[1.75rem]">
+        <div className="relative h-[min(68svh,600px)] min-h-[460px] w-full sm:h-[520px] sm:min-h-0 lg:h-[min(84svh,780px)] lg:min-h-[560px]">
           {banners.map((banner, i) => {
             const isActive = i === index;
             const shouldPaint = isActive || i === 0;
