@@ -202,7 +202,15 @@ export function ReviewsSection({
       className="mt-16 scroll-mt-24"
       aria-labelledby="reviews"
     >
-      <SectionHeading eyebrow="Reviews" title="Customer Reviews" />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <SectionHeading eyebrow="Reviews" title="Customer Reviews" />
+        <a
+          href="#write-review"
+          className="mb-6 inline-flex items-center rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background"
+        >
+          Write a review
+        </a>
+      </div>
 
       {real.length ? (
         <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
@@ -321,7 +329,7 @@ export function ReviewsSection({
         </div>
       )}
 
-      <div className="mt-8">
+      <div id="write-review" className="mt-8 scroll-mt-24">
         <ReviewForm slug={product.slug} />
       </div>
     </section>

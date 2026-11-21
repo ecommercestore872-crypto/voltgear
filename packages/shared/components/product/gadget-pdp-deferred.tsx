@@ -105,7 +105,7 @@ export async function GadgetPdpDeferred({
       <div className="mt-10 scroll-mt-24">
         <GadgetProductTabs product={product} />
       </div>
-      <div className="mt-12 scroll-mt-24">
+      <div className="mt-12 scroll-mt-24 rounded-[1.75rem] bg-white p-4 sm:p-6 lg:p-8 [&>section]:mt-0">
         <ReviewsSection
           product={product}
           reviews={product.reviews ?? []}

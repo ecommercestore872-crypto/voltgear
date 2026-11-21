@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Camera, Loader2, Send, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { uploadImage } from "@/lib/upload";
 
 export function ReviewForm({ slug }: { slug: string }) {
+  const uid = useId();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -109,11 +110,11 @@ export function ReviewForm({ slug }: { slug: string }) {
       {/* Name + Email */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="review-name" className="text-xs">
+          <Label htmlFor={`${uid}-name`} className="text-xs">
             Name *
           </Label>
           <Input
-            id="review-name"
+            id={`${uid}-name`}
             name="name"
             required
             autoComplete="name"
@@ -121,11 +122,11 @@ export function ReviewForm({ slug }: { slug: string }) {
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="review-email" className="text-xs">
+          <Label htmlFor={`${uid}-email`} className="text-xs">
             Email *
           </Label>
           <Input
-            id="review-email"
+            id={`${uid}-email`}
             name="email"
             type="email"
             required
@@ -137,11 +138,11 @@ export function ReviewForm({ slug }: { slug: string }) {
 
       {/* Comment */}
       <div className="space-y-1">
-        <Label htmlFor="review-comment" className="text-xs">
+        <Label htmlFor={`${uid}-comment`} className="text-xs">
           Review *
         </Label>
         <Textarea
-          id="review-comment"
+          id={`${uid}-comment`}
           name="comment"
           rows={3}
           required
