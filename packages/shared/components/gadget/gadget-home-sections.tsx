@@ -39,14 +39,6 @@ import {
   slugSetFromShopTypeLinks,
 } from "@/lib/home-active-categories";
 
-const GadgetBlogSection = dynamic(
-  () =>
-    import("@/components/gadget/gadget-blog-section").then(
-      (m) => m.GadgetBlogSection,
-    ),
-  { loading: () => null },
-);
-
 const GadgetFeaturedProduct = dynamic(
   () =>
     import("@/components/gadget/gadget-featured-product").then(
@@ -94,7 +86,7 @@ export async function GadgetHomeSections() {
       lifestyleShopDraft,
     );
     const needsReviews = layoutIds.includes("reviews");
-    const needsBlog = layoutIds.includes("blog");
+    const needsBlog = false; // Blog removed from the homepage
 
     const [p, t, blogs, homeSlots, extra] = await Promise.all([
       homeProducts,
@@ -341,7 +333,7 @@ export async function GadgetHomeSections() {
             );
             break;
           case "blog":
-            section = <GadgetBlogSection key={id} posts={blogPosts} />;
+            section = null; // Blog removed from the homepage
             break;
           default:
             section = null;

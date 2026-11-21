@@ -2099,9 +2099,9 @@
   transform: translateY(-4px) scale(1.03);
 }
 
-/* On phones the hero slides under the floating header, like the reference */
+/* Phones: header, announcement bar and hero stack cleanly with no overlap */
 .gadget-theme .login-hero-pull {
-  margin-top: -4rem;
+  margin-top: 0;
 }
 
 @media (min-width: 768px) {
