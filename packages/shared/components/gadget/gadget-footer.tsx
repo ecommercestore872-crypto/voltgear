@@ -72,7 +72,8 @@ export function GadgetFooter({
     DEFAULT_FOOTER_CARE_LINKS,
   );
   const phone = settings?.phone;
-  const email = settings?.email;
+  // Footer shows the public support address (admin settings email is unchanged).
+  const email = "support@buyntryy.com";
   const config = normalizeSettings(settings);
   const socialLinks = getPublicSocialLinks(config);
 
