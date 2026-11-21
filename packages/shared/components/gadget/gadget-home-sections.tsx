@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import { Fragment, type ReactNode } from "react";
+import { GadgetConfidenceFaq } from "@/components/gadget/gadget-confidence-faq";
 import { GadgetNewArrivals } from "@/components/gadget/gadget-new-arrivals";
 import { GadgetReviewsSliderLoader } from "@/components/gadget/gadget-reviews-slider-loader";
 import { GadgetShopCategories } from "@/components/gadget/gadget-shop-categories";
@@ -17,7 +18,6 @@ import {
 } from "@/lib/db/storefront-shell";
 import {
   homeLayoutIdsForLifestyle,
-  lifestyleShopHasContent,
   normalizeLifestyleShop,
 } from "@/lib/db/lifestyle-shop-rules";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
@@ -43,14 +43,6 @@ const GadgetBlogSection = dynamic(
   () =>
     import("@/components/gadget/gadget-blog-section").then(
       (m) => m.GadgetBlogSection,
-    ),
-  { loading: () => null },
-);
-
-const GadgetLifestyleShop = dynamic(
-  () =>
-    import("@/components/gadget/gadget-lifestyle-shop").then(
-      (m) => m.GadgetLifestyleShop,
     ),
   { loading: () => null },
 );
@@ -331,9 +323,8 @@ export async function GadgetHomeSections() {
             );
             break;
           case "lifestyle":
-            section = lifestyleShopHasContent(lifestyleShop) ? (
-              <GadgetLifestyleShop key={id} shop={lifestyleShop} />
-            ) : null;
+            // "Shop lifestyle picks" removed from the homepage.
+            section = null;
             break;
           case "categories":
             section = (
@@ -364,6 +355,7 @@ export async function GadgetHomeSections() {
         );
       })}
       {!lastMerchId ? extraCollectionSections() : null}
+      <GadgetConfidenceFaq />
     </div>
   );
 }

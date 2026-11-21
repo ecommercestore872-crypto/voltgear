@@ -84,147 +84,165 @@ export function GadgetFeaturedProduct({
     window.setTimeout(() => setAdded(false), 1600);
   }
 
+  const lowStock = !stock.soldOut && stock.status === "low-stock";
+
   return (
     <section
-      className="gadget-band-forest px-3 py-10 sm:px-5 sm:py-14 lg:px-8"
+      className="px-3 py-8 sm:px-5 sm:py-12 lg:px-8"
       aria-labelledby="featured-product-heading"
     >
       <div className="mx-auto max-w-6xl">
-        {eyebrow ? <p className="gadget-eyebrow">{eyebrow}</p> : null}
-        <h2
-          id="featured-product-heading"
-          className="gadget-h2 mt-2 text-[var(--g-charcoal)] dark:text-white"
-        >
-          {title || "In focus"}
-        </h2>
-        {subtitle ? (
-          <p className="gadget-body mt-2 max-w-lg">{subtitle}</p>
-        ) : null}
+        <div className="relative overflow-hidden rounded-[1.75rem] bg-[#0b0b0f] text-white sm:rounded-[2.25rem]">
+          <div
+            className="pointer-events-none absolute -right-24 -top-24 h-[26rem] w-[26rem] rounded-full bg-[var(--g-sale)] opacity-30 blur-3xl"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -bottom-32 left-1/4 h-[22rem] w-[22rem] rounded-full bg-violet-600 opacity-25 blur-3xl"
+            aria-hidden
+          />
 
-        <div className="mt-8 grid items-stretch overflow-hidden rounded-[1.5rem] bg-[var(--g-white)] lg:grid-cols-2 lg:gap-0">
-          <Link
-            href={href}
-            prefetch={false}
-            className="flex relative min-h-[23rem] sm:min-h-[26rem] lg:min-h-0 h-full bg-[#f4f4f4]"
-          >
-            {image ? (
-              <div className="relative w-full h-full flex items-center justify-center p-0 sm:p-8 lg:p-8">
+          <div className="relative grid items-center gap-6 p-5 sm:p-8 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:p-12">
+            <Link
+              href={href}
+              prefetch={false}
+              aria-label={product.name}
+              className="relative mx-auto block aspect-square w-full max-w-[26rem] lg:max-w-none"
+            >
+              <div className="absolute inset-[6%] rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(225,29,46,0.55)]" />
+              {image ? (
                 <Image
                   src={image}
                   alt={product.name}
                   fill
                   quality={90}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
-                  className="object-contain transition duration-500 hover:scale-[1.03] p-2 sm:p-4 lg:p-6 mix-blend-multiply"
+                  sizes="(max-width: 1024px) 90vw, 520px"
+                  className="object-contain p-[10%] drop-shadow-[0_24px_28px_rgba(0,0,0,0.25)] transition duration-500 hover:scale-[1.04]"
                 />
-              </div>
-            ) : (
-              <span className="flex w-full h-full min-h-[18rem] items-center justify-center text-[var(--g-taupe)]">
-                No image
-              </span>
-            )}
-            {off ? (
-              <span className="gadget-sale-badge absolute left-4 top-4 rounded-md px-2.5 py-1 text-xs font-semibold">
-                −{off}%
-              </span>
-            ) : null}
-          </Link>
-
-          <div className="flex flex-col px-5 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--g-forest)]">
-              {product.category.replace(/-/g, " ")}
-              {product.badge ? ` · ${product.badge}` : ""}
-            </p>
-            <Link href={href} prefetch={false}>
-              <h3 className="gadget-display mt-1 sm:mt-2 text-[1.35rem] sm:text-3xl font-semibold tracking-[-0.03em] leading-tight text-[var(--g-charcoal)] dark:text-white hover:text-[var(--g-forest)]">
-                {product.name}
-              </h3>
+              ) : (
+                <span className="absolute inset-0 flex items-center justify-center text-sm text-neutral-500">
+                  No image
+                </span>
+              )}
+              {off ? (
+                <span className="g-sale-chip absolute left-1 top-1 px-3.5 py-1.5 text-sm sm:text-base">
+                  SALE −{off}%
+                </span>
+              ) : null}
             </Link>
 
-            {rating != null ? (
-              <div
-                className="mt-3 flex items-center gap-1.5"
-                role="img"
-                aria-label={`Rated ${rating.toFixed(1)} of 5`}
+            <div className="flex flex-col">
+              <p className="inline-flex w-fit items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-white/90 ring-1 ring-white/15">
+                {eyebrow || "In focus"}
+              </p>
+              <h2
+                id="featured-product-heading"
+                className="mt-4 text-white text-3xl font-black italic uppercase leading-[0.95] tracking-tight sm:text-5xl"
               >
-                <Star
-                  className="h-4 w-4 fill-amber-400 text-amber-400"
-                  strokeWidth={1.75}
-                />
-                <span className="text-sm font-semibold tabular-nums">
-                  {rating.toFixed(1)}
+                {title || product.name}
+              </h2>
+              {subtitle ? (
+                <p className="mt-3 max-w-md text-sm text-white/70 sm:text-base">
+                  {subtitle}
+                </p>
+              ) : null}
+
+              <Link href={href} prefetch={false}>
+                <h3 className="mt-5 text-lg font-extrabold tracking-tight text-white hover:underline sm:text-xl">
+                  {product.name}
+                </h3>
+              </Link>
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">
+                {product.category.replace(/-/g, " ")}
+                {product.badge ? ` · ${product.badge}` : ""}
+              </p>
+
+              {rating != null ? (
+                <div
+                  className="mt-3 flex items-center gap-1.5"
+                  role="img"
+                  aria-label={`Rated ${rating.toFixed(1)} of 5`}
+                >
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" strokeWidth={1.75} />
+                  <span className="text-sm font-semibold tabular-nums">{rating.toFixed(1)}</span>
+                  {product.reviewCount ? (
+                    <span className="text-sm text-white/60">({product.reviewCount} reviews)</span>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {productDescription || product.shortDescription ? (
+                <p className="mt-4 line-clamp-3 text-[15px] leading-relaxed text-white/75">
+                  {productDescription || product.shortDescription}
+                </p>
+              ) : null}
+
+              {features.length ? (
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {features.map((f) => (
+                    <li
+                      key={f}
+                      className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 ring-1 ring-white/15"
+                    >
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              <div className="mt-5 flex flex-wrap items-end gap-x-3 gap-y-1">
+                <span className="g-price-pop text-4xl font-black tabular-nums text-white sm:text-5xl">
+                  {formatPrice(product.price)}
                 </span>
-                {product.reviewCount ? (
-                  <span className="text-sm text-[var(--g-charcoal)]/75">
-                    ({product.reviewCount} reviews)
+                {product.compareAtPrice && product.compareAtPrice > product.price ? (
+                  <span className="pb-1.5 text-lg text-white/55 line-through">
+                    {formatPrice(product.compareAtPrice)}
                   </span>
                 ) : null}
               </div>
-            ) : null}
 
-            {productDescription || product.shortDescription ? (
-              <p className="mt-4 text-[15px] leading-relaxed text-[var(--g-charcoal)]/80 dark:text-gray-300 line-clamp-2">
-                {productDescription || product.shortDescription}
-              </p>
-            ) : null}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-white/80">{stock.label}</span>
+                {lowStock ? (
+                  <span className="g-scarcity-chip px-2.5 py-0.5 text-xs">
+                    Limited stock · Almost gone
+                  </span>
+                ) : null}
+              </div>
 
-            <div className="mt-4 sm:mt-6 flex flex-wrap items-end gap-2.5 sm:gap-3">
-              <span className="text-2xl sm:text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-white">
-                {formatPrice(product.price)}
-              </span>
-              {product.compareAtPrice &&
-              product.compareAtPrice > product.price ? (
-                <span className="pb-1 text-base sm:text-lg text-[var(--g-charcoal)]/70 dark:text-gray-400 line-through">
-                  {formatPrice(product.compareAtPrice)}
-                </span>
-              ) : null}
-            </div>
-
-            <p
-              className={`mt-2 text-sm font-semibold ${
-                stock.soldOut
-                  ? "text-[var(--g-charcoal)]/80"
-                  : stock.status === "low-stock"
-                    ? "text-amber-700"
-                    : "text-[var(--g-forest)]"
-              }`}
-            >
-              {stock.label}
-            </p>
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              {!canBuy ? (
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                {!canBuy ? (
+                  <Link
+                    href={href}
+                    className="inline-flex h-12 items-center justify-center rounded-full bg-white px-7 text-sm font-bold text-[#111]"
+                  >
+                    View details
+                  </Link>
+                ) : (
+                  <button
+                    ref={btnRef}
+                    type="button"
+                    onClick={handleBuy}
+                    className="gadget-buy-cta gadget-press inline-flex h-12 items-center justify-center gap-2 rounded-full !border-white !bg-white px-8 text-sm font-bold !text-[#111] transition hover:!bg-white/90"
+                  >
+                    {added ? (
+                      <>
+                        <Check className="h-4 w-4" strokeWidth={2} /> Added
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="h-4 w-4" strokeWidth={2} /> Add to cart
+                      </>
+                    )}
+                  </button>
+                )}
                 <Link
                   href={href}
-                  className="inline-flex h-12 items-center justify-center rounded-[10px] border border-[var(--g-line)] px-6 text-sm font-semibold text-[var(--g-charcoal)]"
+                  className="inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/10"
                 >
-                  View details
+                  See full details
                 </Link>
-              ) : (
-                <button
-                  ref={btnRef}
-                  type="button"
-                  onClick={handleBuy}
-                  className="gadget-buy-cta gadget-press inline-flex h-12 items-center justify-center gap-2 rounded-[10px] px-7 text-sm font-bold transition"
-                >
-                  {added ? (
-                    <>
-                      <Check className="h-4 w-4" strokeWidth={1.75} /> Added
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="h-4 w-4" strokeWidth={1.75} /> Add
-                      to cart
-                    </>
-                  )}
-                </button>
-              )}
-              <Link
-                href={href}
-                className="inline-flex h-12 items-center justify-center rounded-[10px] px-4 text-sm font-semibold text-[var(--g-forest)] hover:underline"
-              >
-                See full details
-              </Link>
+              </div>
             </div>
           </div>
         </div>

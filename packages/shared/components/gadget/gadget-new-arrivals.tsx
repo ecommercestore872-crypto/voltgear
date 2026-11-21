@@ -1,8 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { GadgetArrivalCard } from "@/components/gadget/gadget-arrival-card";
 import type { Product } from "@/lib/types";
@@ -20,9 +16,6 @@ export function GadgetNewArrivals({
   headingId?: string;
   tone?: "default" | "clay" | "leaf";
 }) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
   const heading =
     headingId ||
     `rail-${
@@ -31,35 +24,6 @@ export function GadgetNewArrivals({
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "") || "products"
     }`;
-
-  const updateArrows = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setCanPrev(el.scrollLeft > 6);
-    setCanNext(max > 6 && el.scrollLeft < max - 6);
-  }, []);
-
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    updateArrows();
-    el.addEventListener("scroll", updateArrows, { passive: true });
-    const ro = new ResizeObserver(updateArrows);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("scroll", updateArrows);
-      ro.disconnect();
-    };
-  }, [updateArrows, products.length]);
-
-  function scrollByDir(dir: -1 | 1) {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>("[data-rail-card]");
-    const step = card ? card.offsetWidth + 16 : 280;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-  }
 
   if (!products.length) return null;
 
@@ -87,51 +51,21 @@ export function GadgetNewArrivals({
               {title}
             </h2>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label={`Previous ${title}`}
-              disabled={!canPrev}
-              onClick={() => scrollByDir(-1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full bg-white text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label={`Next ${title}`}
-              disabled={!canNext}
-              onClick={() => scrollByDir(1)}
-              className="gadget-icon-btn hidden h-10 w-10 items-center justify-center rounded-full bg-white text-[var(--g-charcoal)] disabled:opacity-30 sm:inline-flex"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            <Link
-              href={viewAllHref}
-              className="inline-flex min-h-10 items-center rounded-full bg-white px-4 text-[13px] font-bold text-[var(--g-charcoal)] transition hover:bg-[var(--g-forest)] hover:text-white"
-            >
-              View all
-            </Link>
-          </div>
+          <Link
+            href={viewAllHref}
+            className="inline-flex min-h-10 items-center rounded-full bg-white px-4 text-[13px] font-bold text-[var(--g-charcoal)] transition hover:bg-[var(--g-forest)] hover:text-white"
+          >
+            View all
+          </Link>
         </div>
 
-        <div
-          ref={scrollerRef}
-          className="overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ scrollSnapType: "x proximity" }}
-        >
-          <ul className="flex items-stretch gap-3.5 pb-1 sm:gap-4">
-            {products.map((product) => (
-              <li
-                key={product._id}
-                data-rail-card
-                className="flex shrink-0 snap-start"
-              >
-                <GadgetArrivalCard product={product} />
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="grid grid-cols-2 items-stretch gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          {products.map((product) => (
+            <li key={product._id} className="flex min-w-0">
+              <GadgetArrivalCard product={product} isGrid />
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
