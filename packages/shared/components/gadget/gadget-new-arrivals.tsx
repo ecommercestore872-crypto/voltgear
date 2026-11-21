@@ -25,7 +25,8 @@ export function GadgetNewArrivals({
         .replace(/(^-|-$)/g, "") || "products"
     }`;
 
-  if (!products.length) return null;
+  const shown = products.slice(0, 6); // 2 columns x 3 rows on phones
+  if (!shown.length) return null;
 
   return (
     <section
@@ -59,8 +60,8 @@ export function GadgetNewArrivals({
           </Link>
         </div>
 
-        <ul className="grid grid-cols-2 items-stretch gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-          {products.map((product) => (
+        <ul className="grid grid-cols-2 items-stretch gap-2.5 sm:grid-cols-3 sm:gap-4">
+          {shown.map((product) => (
             <li key={product._id} className="flex min-w-0">
               <GadgetArrivalCard product={product} isGrid />
             </li>

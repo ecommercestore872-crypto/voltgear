@@ -31,8 +31,8 @@ export function cloudinaryAssetPathAfterUpload(uploadTail: string): string {
  * Returns an auto-optimized Cloudinary image URL (f_auto, q_auto,
  * responsive width). Accepts either a full URL or a bare public ID.
  */
-/** Cream pad for square product cards (matches storefront `--g-cream` / studio stage). */
-export const CLOUDINARY_CARD_PAD_RGB = "e3d2b8";
+/** White pad for square product cards so photos sit cleanly on the white card. */
+export const CLOUDINARY_CARD_PAD_RGB = "ffffff";
 
 export function cloudinaryImageUrl(
   src: string | undefined | null,

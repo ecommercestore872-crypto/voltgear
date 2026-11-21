@@ -22,7 +22,7 @@ describe("cloudinaryImageUrl", () => {
       "https://res.cloudinary.com/demo/image/upload/v1/folder/phone-photo.jpg";
     const url = cloudinaryImageUrl(src, { w: 640, fit: "pad" });
     assert.match(url, /c_pad,w_640,h_640/);
-    assert.match(url, /b_rgb:e3d2b8/);
+    assert.match(url, /b_rgb:ffffff/);
     assert.match(url, /g_center/);
   });
 

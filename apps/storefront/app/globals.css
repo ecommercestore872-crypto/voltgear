@@ -2352,3 +2352,8 @@
     animation: none;
   }
 }
+
+/* Product photos: white photo backgrounds melt into the white card for a clean cut-out look */
+.gadget-theme .gadget-studio-stage img {
+  mix-blend-mode: multiply;
+}
