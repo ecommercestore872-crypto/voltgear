@@ -224,9 +224,14 @@ export function GadgetFooter({
 
         <div className="border-t border-[var(--g-line)] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8 lg:px-12">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs text-[var(--g-taupe)]">
-            <p>
-              © {new Date().getFullYear()} {brandName}. All rights reserved.
-            </p>
+            <div>
+              <p>
+                © {new Date().getFullYear()} {brandName}. All rights reserved.
+              </p>
+              <p className="mt-0.5 font-semibold text-[var(--g-charcoal)]">
+                Design and Developed by Abdul Manan
+              </p>
+            </div>
             <nav
               aria-label="Legal"
               className="flex flex-wrap items-center gap-x-4 gap-y-1"

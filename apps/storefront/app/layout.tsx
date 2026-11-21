@@ -202,7 +202,7 @@ export default async function RootLayout({
         />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="flex min-h-dvh flex-col bg-background font-sans antialiased overflow-x-hidden w-full relative">
+      <body className="flex min-h-dvh flex-col bg-background font-sans antialiased overflow-x-clip w-full relative">
         <AppChrome
           settings={settings}
           shopTypes={shopTypes}
