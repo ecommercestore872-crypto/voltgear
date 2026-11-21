@@ -266,7 +266,14 @@ export function GadgetBuyBox({
 
           <div className="mt-5 border-y border-[var(--g-line)] py-4">
             <div className="flex flex-wrap items-end gap-3">
-              <span className="text-3xl font-bold tabular-nums text-[var(--g-charcoal)] dark:text-foreground sm:text-4xl">
+              <span
+                className={cn(
+                  "g-price-pop text-3xl font-bold tabular-nums sm:text-4xl",
+                  off
+                    ? "text-[var(--g-sale)]"
+                    : "text-[var(--g-charcoal)] dark:text-foreground",
+                )}
+              >
                 {formatPrice(displayPrice)}
               </span>
               {compareAtPrice && compareAtPrice > price ? (
@@ -275,8 +282,8 @@ export function GadgetBuyBox({
                 </span>
               ) : null}
               {off ? (
-                <span className="mb-1 rounded-[8px] bg-[var(--g-sale)] px-2 py-0.5 text-xs font-semibold text-[var(--g-cream)]">
-                  −{off}%
+                <span className="g-sale-chip mb-1 px-3 py-1 text-sm">
+                  SALE −{off}%
                 </span>
               ) : null}
             </div>
@@ -292,6 +299,11 @@ export function GadgetBuyBox({
             >
               {stock.label}
             </p>
+            {!outOfStock && stock.status === "low-stock" ? (
+              <p className="g-scarcity-chip mt-2 px-3 py-1 text-xs">
+                Limited stock · Almost gone
+              </p>
+            ) : null}
           </div>
 
           <GadgetPdpTrustRow config={config} />

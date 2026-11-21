@@ -162,16 +162,26 @@ export function GadgetArrivalCard({
         ) : null}
 
         <div className="mt-auto flex flex-col pt-2.5">
-          {!stock.soldOut && off ? (
-            <span className="text-[12px] font-bold text-[var(--g-sale)]">
-              {off}% Off
-            </span>
+          {!stock.soldOut && (off || stock.status === "low-stock") ? (
+            <div className="mb-1 flex flex-wrap items-center gap-1">
+              {off ? (
+                <span className="g-sale-chip px-2 py-0.5 text-[11px]">
+                  SALE {off}% OFF
+                </span>
+              ) : null}
+              {stock.status === "low-stock" ? (
+                <span className="g-scarcity-chip px-2 py-0.5 text-[11px]">
+                  Limited stock · Almost gone
+                </span>
+              ) : null}
+            </div>
           ) : null}
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
             <span
               className={cn(
                 "text-[1.05rem] font-extrabold tabular-nums sm:text-[1.15rem]",
-                "text-[var(--g-charcoal)]",
+                "g-price-pop",
+                off ? "text-[var(--g-sale)]" : "text-[var(--g-charcoal)]",
               )}
             >
               {priceNow}
