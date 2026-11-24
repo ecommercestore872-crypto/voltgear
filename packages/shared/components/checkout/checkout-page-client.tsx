@@ -55,7 +55,7 @@ import {
   tagCheckoutClarityEvent,
   tagCheckoutClarityStep,
 } from "@/lib/checkout-clarity";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 import { trackMetaInitiateCheckout, trackAcceptedMetaPurchase, rememberMetaCustomer } from "@/lib/meta-pixel-events";
 import {
   validateCheckoutFormField,

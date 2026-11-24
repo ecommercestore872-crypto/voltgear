@@ -1,3 +1,11 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+  analyzerMode: "json",
+  openAnalyzer: false,
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
@@ -11,7 +19,6 @@ const nextConfig = {
     optimizePackageImports: [
       "lucide-react",
       "lucide-react/dist/esm/icons",
-      "@phosphor-icons/react",
       "@supabase/supabase-js",
       "@radix-ui/react-accordion",
       "@radix-ui/react-dialog",
@@ -137,4 +144,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

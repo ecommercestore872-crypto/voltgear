@@ -5,7 +5,7 @@
 
 import { shouldLoadTikTokPixel } from "@/lib/tiktok-pixel-rules";
 import { browserPrivacyOptOut, readCookieConsent, type CookieConsentChoice } from "@/lib/cookie-consent";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 
 export const TIKTOK_CURRENCY = "PKR" as const;
 

@@ -33,8 +33,6 @@ import {
 } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { themeCssVars, themePreviewScript } from "@/lib/theme";
-import "@fontsource-variable/manrope/wght.css";
-import "@fontsource-variable/newsreader/wght.css";
 import "./globals.css";
 
 const SITE_URL = indexSiteUrl();

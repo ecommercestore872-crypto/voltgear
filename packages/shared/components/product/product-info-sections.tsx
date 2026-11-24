@@ -1,6 +1,5 @@
 import { BadgeCheck, Box, Check } from "lucide-react";
 
-import { FAQAccordion } from "@/components/sections/faq-accordion";
 import { RichText } from "@/components/product/rich-text";
 import { StarRating } from "@/components/product/star-rating";
 import { ReviewFormLazy } from "@/components/product/review-form-lazy";
@@ -318,23 +317,6 @@ export function ReviewsSection({
       <div id="write-review" className="mt-8 scroll-mt-24">
         <ReviewFormLazy slug={product.slug} />
       </div>
-    </section>
-  );
-}
-
-/** Product FAQ — only renders real, configured Q&A. */
-export function ProductFaqSection({ product }: { product: Product }) {
-  const items =
-    product.productFaq?.filter(
-      (f) => f?.question?.trim() && f?.answer?.trim(),
-    ) ?? [];
-  if (!items.length) return null;
-  return (
-    <section className="mt-14" aria-labelledby="product-faq">
-      <SectionHeading eyebrow="FAQ" title="Frequently Asked Questions" />
-      <FAQAccordion
-        items={items.map((f) => ({ question: f.question, answer: f.answer }))}
-      />
     </section>
   );
 }

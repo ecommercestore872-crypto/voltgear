@@ -254,7 +254,7 @@ export function ProductGallery({
                   src={source.thumb}
                   alt=""
                   fill
-                  sizes="15vw"
+                  sizes="(max-width: 767px) 15vw, 9vw"
                   className="object-cover"
                 />
               ) : null}

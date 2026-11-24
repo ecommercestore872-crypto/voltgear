@@ -1,5 +1,5 @@
 import { normalizePhoneForCheckout } from "@/lib/checkout-customer-rules";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 import type { PostExBaseEnv, PostExOrderPayload } from "@/lib/postex";
 import type { Order, OrderItem } from "@/lib/types";
 

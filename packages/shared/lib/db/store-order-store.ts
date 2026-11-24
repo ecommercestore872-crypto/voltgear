@@ -1,7 +1,7 @@
 import { formatOrderId, nextSequentialNumber } from "@/lib/db/order-id";
 import type { OrderAttributionSnapshot } from "@/lib/db/order-attribution-rules";
 import { getServiceClient } from "@/lib/supabase/server";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 import type {
   Order,
   OrderCustomer,

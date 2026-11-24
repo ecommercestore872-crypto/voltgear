@@ -1,4 +1,4 @@
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 
 /** Build a wa.me URL from a configured number, or null if unusable. */
 export function whatsappHref(raw: string | null | undefined): string | null {
