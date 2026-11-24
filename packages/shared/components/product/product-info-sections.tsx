@@ -4,7 +4,7 @@ import { FAQAccordion } from "@/components/sections/faq-accordion";
 import { RichText } from "@/components/product/rich-text";
 import { StarRating } from "@/components/product/star-rating";
 import { ReviewForm } from "@/components/product/review-form";
-import { CLOUDINARY_CLOUD_NAME } from "@/lib/cloudinary";
+import { galleryVideoForProduct } from "@/lib/product-gallery-video";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product, ProductReview } from "@/lib/types";
 
@@ -131,25 +131,11 @@ export function DescriptionSection({ product }: { product: Product }) {
   );
 }
 
-function videoSource(product: Product): string | null {
-  const v = product.productVideo;
-  if (!v) return null;
-  if (v.cloudinaryPublicId?.trim() && CLOUDINARY_CLOUD_NAME) {
-    return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/${v.cloudinaryPublicId
-      .trim()
-      .replace(/^\/+/, "")}`;
-  }
-  if (v.url?.trim() && /^https?:\/\//i.test(v.url.trim())) {
-    return v.url.trim();
-  }
-  return null;
-}
-
 /** See It in Action — only renders when a genuine product video exists. */
 export function ProductVideoSection({ product }: { product: Product }) {
-  const src = videoSource(product);
-  if (!src) return null;
-  const poster = product.productVideo?.poster;
+  const video = galleryVideoForProduct(product);
+  if (!video) return null;
+  const { src, poster } = video;
   return (
     <section className="mt-14" aria-labelledby="product-video">
       <SectionHeading eyebrow="Demo" title="See It in Action" />
