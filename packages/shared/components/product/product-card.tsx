@@ -134,6 +134,9 @@ export function ProductCard({
           </div>
           <Badge variant={stock.badgeVariant}>{stock.label}</Badge>
         </div>
+        {product.freeShipping ? (
+          <p className="text-xs font-medium text-[var(--g-charcoal)]">Free delivery</p>
+        ) : null}
 
         {outOfStock || !canDirectAdd ? (
           <Button

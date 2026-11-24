@@ -69,7 +69,7 @@ export function BlogSectionEditor({
 
       {sections.length === 0 ? (
         <p className="rounded-lg border border-dashed px-3 py-6 text-sm text-muted-foreground">
-          Add headings, paragraphs, lists, and an FAQ. Search and AdSense both
+          Add headings, paragraphs, lists, and an FAQ. Search engines
           want a real guide, not a thin blurb.
         </p>
       ) : null}

@@ -671,7 +671,7 @@ export function ProductForm({
               checked={Boolean(doc.freeShipping)}
               onChange={(e) => set("freeShipping", e.target.checked)}
             />
-            Free Shipping — waive shipping fee if this is in cart
+            Free shipping — waived when every item in the cart has it
           </label>
           <ProductCollectionsFields
             collections={collectionList}

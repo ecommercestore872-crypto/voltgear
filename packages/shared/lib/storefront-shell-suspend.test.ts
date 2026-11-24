@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -85,24 +86,23 @@ describe("storefront shell must not suspend on ad query strings", () => {
     assert.match(fallback, /aria-busy="true"/);
   });
 
-  it("optional marketing scripts require explicit cookie consent", () => {
+  it("optional marketing scripts respect an explicit reject; Meta needs no banner answer", (t) => {
+  legacyConsentPolicy(t);
     const layoutPath = join(
       sharedRoot,
       "../../apps/storefront/app/layout.tsx",
     );
     const layout = readFileSync(layoutPath, "utf8");
     const meta = readShared("components/analytics/meta-pixel.tsx");
-    const adsense = readShared("components/ads/adsense-loader.tsx");
     const clarity = readShared("components/analytics/clarity-deferred.tsx");
 
     assert.doesNotMatch(layout, /setTimeout\(load,\s*9000\)/);
-    assert.match(layout, /<AdSenseLoaderClientOnly/);
+    assert.doesNotMatch(layout, /AdSense|adsense/);
     assert.match(meta, /if \(!canSendMetaBrowserEvents\(\)\)/);
     const metaEvents = readShared("lib/meta-pixel-events.ts");
     assert.match(metaEvents, /canSendMetaBrowserEvent\(\)/);
-    assert.match(readShared("lib/meta-consent.ts"), /allowsAdvertising\(window\.localStorage\.getItem\(META_CONSENT_STORAGE_KEY\)\)/);
-    assert.match(adsense, /allowsAdvertising\(consent\)/);
-    assert.match(clarity, /allowsAnalytics\(consent\)/);
+    assert.match(readShared("lib/meta-consent.ts"), /metaConsentAllows\(window\.localStorage\.getItem\(META_CONSENT_STORAGE_KEY\)\)/);
+    assert.match(clarity, /analyticsTrackingAllowed\(consent\)/);
   });
 
   it("shopper links avoid speculative route downloads by default", () => {

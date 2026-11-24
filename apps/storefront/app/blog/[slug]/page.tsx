@@ -5,7 +5,6 @@ import { CalendarDays, Clock, User } from "lucide-react";
 
 import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
 import { ContentBlocks } from "@/components/sections/content-blocks";
-import { BlogGuideAd } from "@/components/ads/blog-guide-ad";
 import { fetchBlogPosts, fetchPageBySlug } from "@/lib/db/store";
 import { publicSiteUrl } from "@/lib/deploy-rules";
 import { imageUrl } from "@/lib/sanity/image";
@@ -14,7 +13,6 @@ import type { ContentBlock, Page } from "@/lib/types";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { mergeBlogCatalog } from "@/lib/blog-desk-rules";
 import {
-  blogInventoryReadyForAds,
   sanitizeBlogSections,
 } from "@/lib/blog-safety-rules";
 
@@ -117,13 +115,6 @@ export default async function BlogPostPage(
   const mins = readingMinutes(sections);
   const siteUrl = publicSiteUrl();
   const cover = post.coverImage ? imageUrl(post.coverImage, { w: 1200 }) : null;
-  const showAd = blogInventoryReadyForAds({
-    title: post.title,
-    excerpt: post.excerpt,
-    coverImage: post.coverImage,
-    sections,
-  }).ok;
-
   const faqs = sections
     .filter(
       (block): block is Extract<ContentBlock, { _type: "faq" }> =>
@@ -226,7 +217,6 @@ export default async function BlogPostPage(
             This post has no content yet.
           </p>
         )}
-        {showAd ? <BlogGuideAd /> : null}
       </GadgetArticleShell>
     </>
   );

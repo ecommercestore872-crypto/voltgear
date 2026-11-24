@@ -20,7 +20,6 @@ async function main() {
   await head("/products");
   await head("/api/settings");
   await head("/llms.txt");
-  await head("/ads.txt");
   await head("/sitemap.xml");
 
   const tiktok = await fetch(`${SHOP}/api/catalog/tiktok.csv`, { redirect: "follow" });

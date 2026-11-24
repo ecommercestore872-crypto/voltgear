@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { test } from "node:test";
 import { captureClickAttribution, parseClickAttributionBody } from "./click-attribution";
 import { orderAttributionFromClick } from "./db/order-attribution-rules";
@@ -26,7 +27,8 @@ test("dynamic Meta URL parameters survive capture and map to order fields", () =
   assert.deepEqual(parseClickAttributionBody(click), click);
 });
 
-test("fbc uses the real click timestamp only after consent and never invents a click", () => {
+test("fbc uses the real click timestamp only after consent and never invents a click", (t) => {
+  legacyConsentPolicy(t);
   const keys = ["window", "document"];
   const descriptors = keys.map((key) => Object.getOwnPropertyDescriptor(globalThis, key));
   const oldEnv = { ...process.env };

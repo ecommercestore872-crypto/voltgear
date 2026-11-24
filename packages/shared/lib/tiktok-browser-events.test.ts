@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { createHash } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
 
@@ -60,7 +61,8 @@ describe("canSendTikTokBrowserEvents", () => {
     host: "buyntryy.com",
   };
 
-  it("blocks when disabled, no consent, essential-only, development, localhost, or excluded routes", () => {
+  it("blocks when disabled, no consent, essential-only, development, localhost, or excluded routes", (t) => {
+  legacyConsentPolicy(t);
     assert.equal(canSendTikTokBrowserEvents(base), true);
     assert.equal(canSendTikTokBrowserEvents({ ...base, enabled: "false" }), false);
     assert.equal(canSendTikTokBrowserEvents({ ...base, consent: null }), false);

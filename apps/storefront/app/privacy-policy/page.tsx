@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AdsensePrivacyDisclosures } from "@/components/legal/adsense-privacy-disclosures";
 import {
   GadgetArticleShell,
   GadgetCmsSections,
@@ -20,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       page?.seo?.description ||
       page?.excerpt ||
-      "How Buy n Try collects, uses, and shares information, including Google advertising cookies.",
+      "How Buy n Try collects, uses, and shares information, including visit and advertising measurement.",
     alternates: { canonical: "/privacy-policy" },
   };
 }
@@ -89,13 +88,13 @@ export default async function PrivacyPolicyPage() {
 
           <h2>First-party cookies</h2>
           <p>
-            Essential cookies remember your cart, checkout progress, and cookie
-            choice. They are required for the shop to function. Analytics tools
-            (if you allow them) measure which pages are used so we can fix broken
-            flows. Advertising services require a separate choice. You can
-            change either choice from Cookie settings in the footer. The shop
-            also counts consent choices without storing identifiers or page URLs
-            in those counts. See our <Link href="/cookies">cookie policy</Link>.
+            Essential cookies remember your cart and checkout progress and are
+            required for the shop to function. Measurement tools (Microsoft
+            Clarity, Meta and TikTok) are always on for every visitor and
+            cannot be switched off in the shop, including by a Global Privacy
+            Control or Do Not Track signal. They measure which pages are used,
+            which ads lead to visits and orders, and help us fix broken flows.
+            See our <Link href="/cookies">cookie policy</Link>.
           </p>
 
           <h2>Your choices</h2>
@@ -107,7 +106,6 @@ export default async function PrivacyPolicyPage() {
           </p>
         </div>
       )}
-      <AdsensePrivacyDisclosures />
     </GadgetArticleShell>
   );
 }
