@@ -4,7 +4,7 @@ import { attachOrderAttribution } from "@/lib/db/order-attribution";
 import { processMetaPurchaseOutboxForOrder } from "@/lib/meta-purchase-outbox";
 import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
 import { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed } from "@/lib/checkout-tracking-consent";
-import { allowsAdvertising } from "@/lib/cookie-consent";
+import { advertisingTrackingAllowed } from "@/lib/tracking-policy";
 
 export async function runCheckoutTracking(
   input: CheckoutPostPersistInput,
@@ -22,7 +22,7 @@ export async function runCheckoutTracking(
 
   let ttclid: string | null = null;
   try {
-    const snapshot = allowsAdvertising(consent) ? await attachOrderAttribution(
+    const snapshot = advertisingTrackingAllowed(consent) ? await attachOrderAttribution(
       input.orderId,
       input.request,
       input.body,

@@ -10,6 +10,7 @@ import { deferAfterResponse } from "./defer-after-response";
 import { checkoutReplayMatches } from "./checkout-replay-rules";
 import { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed } from "./checkout-tracking-consent";
 import { allowsAdvertising } from "./cookie-consent";
+import { advertisingTrackingAllowed, privacySignalStopsTracking, analyticsTrackingAllowed, trackAllVisitors } from "./tracking-policy";
 
 function load(source: URL, dependencies: Record<string, unknown>) {
   const module = { exports: {} as Record<string, (...args: any[]) => any> };
@@ -84,9 +85,12 @@ describe("actual checkout route → post-persist tracking → Events API", () =>
     }
   });
 
-  for (const mode of ["success", "replay", "distributed_replay", "distributed_conflict", "price_changed", "rate_limit", "persistence_failure", "consent_denied", "demo", "cache_conflict"]) {
+  for (const mode of ["success", "replay", "distributed_replay", "distributed_conflict", "price_changed", "rate_limit", "persistence_failure", "consent_denied", "reject_ignored", "demo", "cache_conflict"]) {
     it(mode, async () => {
       const originalFetch = global.fetch;
+      const policyBefore = process.env.NEXT_PUBLIC_TRACK_ALL_VISITORS;
+      // consent_denied = the optional "wait for the visitor's choice" policy; reject_ignored = the default.
+      if (mode === "consent_denied") process.env.NEXT_PUBLIC_TRACK_ALL_VISITORS = "false";
       const keys = ["NEXT_PUBLIC_TIKTOK_PIXEL_ID", "NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED", "TIKTOK_EVENTS_API_ACCESS_TOKEN"];
       const env = keys.map((key) => process.env[key]);
       process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID = "PIXEL";
@@ -113,6 +117,7 @@ describe("actual checkout route → post-persist tracking → Events API", () =>
         "@/lib/tiktok-events-api": { trackTikTokServerPurchase },
         "@/lib/checkout-tracking-consent": { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed },
         "@/lib/cookie-consent": { allowsAdvertising },
+        "@/lib/tracking-policy": { advertisingTrackingAllowed, privacySignalStopsTracking, analyticsTrackingAllowed, trackAllVisitors },
       });
       const route = load(new URL("../../../apps/storefront/app/api/checkout/route.ts", import.meta.url), {
         "next/server": { NextResponse: { json: (data: unknown, init?: ResponseInit) => Response.json(data, init) } },
@@ -144,16 +149,16 @@ describe("actual checkout route → post-persist tracking → Events API", () =>
       try {
         const response: Response = await route.POST(new Request("https://buyntryy.test/api/checkout", {
           method: "POST", headers: { "Content-Type": "application/json", cookie: "_ttp=QA-COOKIE" },
-          body: JSON.stringify({ items: lines, customer, consent: mode === "consent_denied" ? "essential" : "all" }),
+          body: JSON.stringify({ items: lines, customer, consent: mode === "consent_denied" || mode === "reject_ignored" ? "essential" : "all" }),
         }));
         const data = await response.json();
         assert.equal(sent.length, 0, "post-response task must not delay acceptance");
         for (const task of tasks) await task();
         const expectedStatus = mode === "rate_limit" ? 429 : ["price_changed", "cache_conflict", "distributed_conflict"].includes(mode) ? 409 : mode === "persistence_failure" ? 500 : 200;
         assert.equal(response.status, expectedStatus);
-        assert.equal(sent.length, mode === "success" ? 1 : 0);
+        assert.equal(sent.length, mode === "success" || mode === "reject_ignored" ? 1 : 0);
         assert.equal(persisted, ["price_changed", "rate_limit", "cache_conflict", "distributed_replay", "distributed_conflict"].includes(mode) ? 0 : 1);
-        if (mode === "success") {
+        if (mode === "success" || mode === "reject_ignored") {
           const browser = acceptedTikTokPurchase(response.status, data)!;
           assert.equal(sent[0].data[0].event_id, `purchase_${browser.orderId}`);
           assert.equal(sent[0].data[0].properties.value, browser.total);
@@ -161,6 +166,7 @@ describe("actual checkout route → post-persist tracking → Events API", () =>
           assert.equal(sent[0].data[0].user.ttclid, "QA-CLICK");
         }
         if (mode === "consent_denied" || mode === "demo") assert.equal(attributionWrites, 0);
+        if (mode === "reject_ignored") assert.equal(attributionWrites, 1, "a Reject choice no longer stops attribution");
         if (expectedStatus !== 200 || mode === "demo") assert.equal(acceptedTikTokPurchase(response.status, data), null);
         if (mode === "replay" || mode === "distributed_replay") {
           assert.equal(tasks.length, 0, "replay must not repeat side effects");
@@ -168,6 +174,7 @@ describe("actual checkout route → post-persist tracking → Events API", () =>
         }
       } finally {
         global.fetch = originalFetch;
+        if (policyBefore === undefined) delete process.env.NEXT_PUBLIC_TRACK_ALL_VISITORS; else process.env.NEXT_PUBLIC_TRACK_ALL_VISITORS = policyBefore;
         keys.forEach((key, index) => { if (env[index] === undefined) delete process.env[key]; else process.env[key] = env[index]; });
       }
     });

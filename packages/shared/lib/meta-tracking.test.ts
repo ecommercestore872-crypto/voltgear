@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { afterEach, test } from "node:test";
 import { signedAdminActor, verifiedAdminActor } from "./admin-session";
 import { canSendMetaServerEvent } from "./meta-consent";
@@ -68,7 +69,8 @@ test("server Purchase uses accepted value, stable order ID, hashed PII and raw b
   assert.equal(buildMetaServerPurchasePayload(purchase), null, "do not invent a customer identifier");
 });
 
-test("privacy opt-outs block Meta server events before any fetch", async () => {
+test("privacy opt-outs block Meta server events before any fetch", async (t) => {
+  legacyConsentPolicy(t);
   assert.equal(canSendMetaServerEvent("all", new Headers({ "sec-gpc": "1" })), false);
   assert.equal(canSendMetaServerEvent("all", new Headers({ dnt: "1" })), false);
   assert.equal(canSendMetaServerEvent("all", new Headers()), true);
@@ -84,7 +86,8 @@ test("pre-purchase event parser rejects Purchase and foreign origins", () => {
   assert.equal(parseBrowserMetaEvent(event, "https://buyntryy.com")?.pageUrl, "https://buyntryy.com/product/buds");
 });
 
-test("browser Purchase uses hashed matching and claims each order exactly once", async () => {
+test("browser Purchase uses hashed matching and claims each order exactly once", async (t) => {
+  legacyConsentPolicy(t);
   process.env.NEXT_PUBLIC_META_PIXEL_ID = "123456789";
   process.env.NEXT_PUBLIC_META_TEST_MODE = "true";
   process.env.NEXT_PUBLIC_META_PIXEL_ENABLED = "true";

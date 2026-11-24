@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { test } from "node:test";
 import { acceptedTikTokPurchase, trackAcceptedTikTokPurchase } from "./tiktok-checkout-result";
 import { buildTikTokServerPurchasePayload } from "./tiktok-events-api";
@@ -36,7 +37,8 @@ test("accepted COD order and replay use the persisted snapshot and identical cha
   assert.equal(server.data[0].properties.currency, "PKR");
 });
 
-test("browser retries release pending state, recheck consent and deduplicate with unavailable persistent storage", () => {
+test("browser retries release pending state, recheck consent and deduplicate with unavailable persistent storage", (t) => {
+  legacyConsentPolicy(t);
   const descriptors = ["window", "localStorage", "sessionStorage"].map((key) => Object.getOwnPropertyDescriptor(globalThis, key));
   const keys = ["NODE_ENV", "NEXT_PUBLIC_TIKTOK_PIXEL_ID", "NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED"];
   const env = keys.map((key) => process.env[key]);

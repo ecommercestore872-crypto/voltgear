@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { createHash } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
 
@@ -182,7 +183,8 @@ describe("TikTok Events API 2.0 Purchase", () => {
     assert.deepEqual(payload, buildTikTokServerPurchasePayload(input, "PIXEL", (payload as { data: Array<{event_time: number}> }).data[0].event_time));
   });
 
-  it("does not send without advertising consent or a valid order", async () => {
+  it("does not send without advertising consent or a valid order", async (t) => {
+  legacyConsentPolicy(t);
     process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID = "PIXEL";
     process.env.TIKTOK_EVENTS_API_ACCESS_TOKEN = "TEST_TOKEN";
     process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED = "true";

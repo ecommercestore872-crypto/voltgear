@@ -1,11 +1,10 @@
-"use client";
+import Link from "next/link";
 
-import { COOKIE_CONSENT_OPEN_EVENT } from "@/lib/cookie-consent";
-
+/** Footer link to the cookie notice. There are no switches: measurement is always on. */
 export function CookieSettingsButton({ className }: { className?: string }) {
   return (
-    <button type="button" className={className} onClick={() => window.dispatchEvent(new Event(COOKIE_CONSENT_OPEN_EVENT))}>
-      Cookie settings
-    </button>
+    <Link href="/cookies" className={className}>
+      Cookie notice
+    </Link>
   );
 }

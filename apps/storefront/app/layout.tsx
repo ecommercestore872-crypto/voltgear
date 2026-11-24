@@ -25,6 +25,7 @@ import {
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { metaPixelHeadScript } from "@/lib/meta-pixel-head-script";
 import { metaEnvironmentAllowed } from "@/lib/meta-commerce";
+import { trackAllVisitors } from "@/lib/tracking-policy";
 import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import {
   loadStorefrontSettings,
@@ -164,7 +165,7 @@ export default async function RootLayout({
       vercelEnv: process.env.NEXT_PUBLIC_VERCEL_ENV,
       host: "buyntryy.com",
     })
-      ? metaPixelHeadScript({ pixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID!, testMode: metaTestMode })
+      ? metaPixelHeadScript({ pixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID!, testMode: metaTestMode, requireConsent: !trackAllVisitors() })
       : "";
 
   const jsonLd = [

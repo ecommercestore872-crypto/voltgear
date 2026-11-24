@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { acceptedMetaPurchase, metaCommerceData, metaEnvironmentAllowed, META_PRODUCTION_PIXEL_ID } from "./meta-commerce";
@@ -52,7 +53,8 @@ test("production dataset stays off previews, localhost and isolated test mode", 
   assert.equal(metaEnvironmentAllowed({ pixelId: "'malicious'", host: "buyntryy.com" }), false);
 });
 
-test("actual browser helpers enforce consent, route exclusions, payloads and persistent Purchase claims", async () => {
+test("actual browser helpers enforce consent, route exclusions, payloads and persistent Purchase claims", async (t) => {
+  legacyConsentPolicy(t);
   const previous = Object.getOwnPropertyDescriptor(globalThis, "window");
   const beforeEnv = { ...process.env };
   const storage = new Map([["bnt-cookie-consent", "all"]]);

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -161,7 +162,8 @@ test("fbc is fb.1.<milliseconds>.<fbclid> with the click ID case preserved", () 
   assert.match(fbc, /^fb\.1\.\d{13}\.AbCdEf_123-xYz$/);
 });
 
-test("typed email and phone are remembered as hashes and merged, never overwritten", () => {
+test("typed email and phone are remembered as hashes and merged, never overwritten", (t) => {
+  legacyConsentPolicy(t);
   prodEnv();
   const store = new Map([["bnt-cookie-consent", "all"]]);
   browser(store, "/checkout");

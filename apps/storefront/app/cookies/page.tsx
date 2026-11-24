@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
-import { CookieSettingsButton } from "@/components/legal/cookie-settings-button";
 import { SHOPPER_BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -17,43 +16,50 @@ export default function CookiesPage() {
     <GadgetArticleShell
       eyebrow="Legal"
       title="Cookie policy"
-      description={`${SHOPPER_BRAND.spokenName} uses cookies so the shop works, and — if you allow them — to measure visits and show ads.`}
+      description={`${SHOPPER_BRAND.spokenName} uses cookies so the shop works and to measure visits, orders and our own ads.`}
       backHref="/privacy-policy"
       backLabel="Privacy policy"
     >
       <h2>Essential cookies</h2>
       <p>
-        These keep your cart, checkout details, and cookie preference. The store
-        cannot complete an order without them. They are not used to personalize
-        ads.
+        These keep your cart and checkout details. The store cannot complete an
+        order without them.
       </p>
 
-      <h2>Optional analytics</h2>
+      <h2>Visit and order measurement</h2>
       <p>
-        If you allow analytics, Microsoft Clarity may measure how visitors use
-        the shop so we can improve pages and checkout. It stays off when you
-        reject analytics.
+        We measure how visitors use the shop so we can fix problems and know
+        whether our ads lead to orders. This is always on for every visitor:
+        there is no setting to turn it off here.
       </p>
-
-      <h2>Advertising measurement</h2>
+      <ul>
+        <li>
+          Microsoft Clarity records how pages are used (clicks, scrolling and
+          screen recordings) to improve pages and checkout.
+        </li>
+        <li>
+          Meta (Facebook and Instagram) records page views, product views,
+          add-to-cart, checkout and order events, from your first visit and
+          from our server after you place an order.
+        </li>
+        <li>
+          TikTok records the same kinds of shopping events for our TikTok
+          ads.
+        </li>
+        <li>
+          We store which ad or link brought you to the shop and attach it to
+          your order.
+        </li>
+      </ul>
       <p>
-        To measure whether our own ads lead to orders, Meta records shopping
-        events such as page views, product views and orders from your first
-        visit, without waiting for a choice. Choose Reject optional, or send
-        a Global Privacy Control signal from your browser, to turn it off.
-        TikTok measurement stays off until you allow advertising. See the
-        advertising section of our{" "}
+        These tools may receive a random visitor ID, cookie IDs, your IP
+        address and browser details, and, after you place an order, your
+        details in hashed (scrambled) form. This continues even if your browser
+        sends a Global Privacy Control or Do Not Track signal. If you do not
+        want to be measured, please do not use the shop, or contact us. See
+        the advertising section of our{" "}
         <Link href="/privacy-policy">privacy policy</Link>.
       </p>
-
-      <h2>How to change your choice</h2>
-      <p>
-        Choose Accept all, Reject optional, or set analytics and advertising
-        separately. Use Cookie settings in the footer whenever you want to
-        change your choice. Browser privacy opt-out signals override advertising
-        permission.
-      </p>
-      <CookieSettingsButton className="min-h-11 rounded-lg border border-current px-4 font-semibold underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2" />
     </GadgetArticleShell>
   );
 }

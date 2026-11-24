@@ -264,3 +264,16 @@ remain operator gates. The bounded-delivery limitation above remains explicit.
   `eventId`; `_fbp`, `_fbc` (from `fbclid`) and `bnt_xid` are present. "Reject optional" and
   Global Privacy Control send nothing. Meta's real `fbevents.js` could not be loaded from the
   sandbox, so a stand-in script that follows the same call rules was used.
+
+## Update: track every visitor (owner decision)
+
+- **One switch:** `lib/tracking-policy.ts`. Default: every visitor is measured by Meta (browser pixel and
+  server copies), TikTok (pixel and Events API), Microsoft Clarity and order-attribution storage. A saved
+  "Reject optional" choice and Global Privacy Control / Do Not Track signals no longer stop anything.
+- **Rollback without code:** set `NEXT_PUBLIC_TRACK_ALL_VISITORS=false` in Vercel and redeploy; tracking then
+  waits for the visitor's choice again (restore the banner choices first, because the notice has none).
+- **Banner** is now a notice with one "OK" button (no accept/reject that would change nothing). The footer
+  "Cookie settings" button became a "Cookie notice" link. The cookie and privacy pages say tracking is always on.
+- **Still required for each channel:** TikTok needs `NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED=true`, the pixel ID and
+  `TIKTOK_EVENTS_API_ACCESS_TOKEN`; Clarity needs `NEXT_PUBLIC_CLARITY_ID`; Meta needs the pixel ID and
+  `META_CONVERSIONS_API_ACCESS_TOKEN`. Pixels stay off on localhost, previews, admin and test pages.

@@ -1,4 +1,5 @@
-import { allowsAdvertising, parseCookieConsent } from "./cookie-consent";
+import { parseCookieConsent } from "./cookie-consent";
+import { advertisingTrackingAllowed, privacySignalStopsTracking } from "./tracking-policy";
 
 export const META_CONSENT_STORAGE_KEY = "bnt-cookie-consent";
 
@@ -6,18 +7,14 @@ export function hasMetaPrivacyOptOut(input: {
   gpc?: string | boolean | null;
   dnt?: string | null;
 }): boolean {
-  return input.gpc === true || input.gpc === "1" ||
-    input.dnt === "1" || input.dnt?.toLowerCase() === "yes";
+  return privacySignalStopsTracking(input.gpc === true || input.gpc === "1" ||
+    input.dnt === "1" || input.dnt?.toLowerCase() === "yes");
 }
 
-/**
- * Meta measurement does not need the cookie banner to be answered. It runs
- * unless the visitor explicitly saved a choice without advertising
- * ("Reject optional" or analytics-only). No saved choice counts as allowed.
- */
+/** Under the current policy (see tracking-policy.ts) every visitor is measured. */
 export function metaConsentAllows(stored: unknown): boolean {
   const choice = parseCookieConsent(stored);
-  return choice === null || allowsAdvertising(choice);
+  return choice === null || advertisingTrackingAllowed(choice);
 }
 
 export function canSendMetaServerEvent(

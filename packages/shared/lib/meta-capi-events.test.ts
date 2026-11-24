@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { createHash } from "node:crypto";
 import { test } from "node:test";
 import vm from "node:vm";
@@ -65,7 +66,8 @@ test("browser event parser keeps only valid hashes and still refuses Purchase", 
   assert.equal(parseBrowserMetaEvent({ ...raw, eventName: "Purchase" }, "https://buyntryy.com"), null);
 });
 
-test("server copy is skipped without consent or token and never hard-codes a token", async () => {
+test("server copy is skipped without consent or token and never hard-codes a token", async (t) => {
+  legacyConsentPolicy(t);
   const before = { ...process.env };
   const realFetch = globalThis.fetch;
   let calls = 0;
@@ -109,7 +111,7 @@ function runHead(opts: { consent?: string; dnt?: string; path?: string; search?:
     get cookie() { return jar.join("; "); }, set cookie(v: string) { jar.push(v.split(";")[0]); },
     head: { appendChild: (el: any) => appended.push(el) }, createElement: () => ({}),
   };
-  vm.runInNewContext(metaPixelHeadScript({ pixelId: "1707417188053568", testMode: false }), win);
+  vm.runInNewContext(metaPixelHeadScript({ pixelId: "1707417188053568", testMode: false, requireConsent: process.env.NEXT_PUBLIC_TRACK_ALL_VISITORS === "false" }), win);
   return { win, posts, appended, jar };
 }
 
@@ -127,7 +129,8 @@ test("head script fires PageView immediately with event_id shared with the serve
   assert.equal(win.__META_PIXEL_LAST_PATHNAME__, "/");
 });
 
-test("head script runs with no banner answer, but not after an explicit reject, with privacy signals, or on excluded pages/hosts", () => {
+test("head script runs with no banner answer, but not after an explicit reject, with privacy signals, or on excluded pages/hosts", (t) => {
+  legacyConsentPolicy(t);
   const fresh = runHead({});
   assert.equal(fresh.win.fbq.queue.find((a: any) => a[0] === "trackSingle")[2], "PageView");
   assert.equal(fresh.posts[0].body.consent, null);
@@ -140,7 +143,8 @@ test("head script runs with no banner answer, but not after an explicit reject, 
   }
 });
 
-test("Meta needs no banner answer: unanswered runs; only an explicit reject or privacy signal stops it", async () => {
+test("Meta needs no banner answer: unanswered runs; only an explicit reject or privacy signal stops it", async (t) => {
+  legacyConsentPolicy(t);
   const { metaConsentAllows, canSendMetaServerEvent } = await import("./meta-consent");
   for (const stored of [null, undefined, "", "garbage", "all", "advertising"]) assert.equal(metaConsentAllows(stored), true, String(stored));
   for (const stored of ["essential", "analytics"]) assert.equal(metaConsentAllows(stored), false, stored);

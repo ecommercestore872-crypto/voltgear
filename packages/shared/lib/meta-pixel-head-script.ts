@@ -5,18 +5,21 @@
  * idle (up to ~5 seconds). Shoppers who left before that were never counted as
  * landing page views. This script starts the pixel and sends PageView at once.
  *
- * It only runs for visitors who have already accepted advertising cookies and have
- * no Global Privacy Control / Do Not Track signal, on storefront pages. Everyone
- * else is handled by components/analytics/meta-pixel.tsx when they accept the
- * banner. Keep the checks below in step with canSendMetaBrowserEvents().
+ * It runs for every visitor on storefront pages. Neither a cookie-banner choice
+ * nor a privacy signal stops it (see tracking-policy.ts). It stays off only on
+ * admin/test/order pages and non-production hosts. Keep the checks below in
+ * step with canSendMetaBrowserEvents().
  */
-export function metaPixelHeadScript(input: { pixelId: string; testMode: boolean }): string {
-  if (!/^\d{5,30}$/.test(input.pixelId)) return "";
-  return `(function(w,d,id,test){try{
-var c=w.localStorage.getItem('bnt-cookie-consent');
+/** Only used when NEXT_PUBLIC_TRACK_ALL_VISITORS=false: honour saved choices and privacy signals. */
+const CONSENT_GATE = `var c=w.localStorage.getItem('bnt-cookie-consent');
 if(c!=='all'&&c!=='advertising'){if(c==='essential'||c==='analytics')return;c=null}
 var n=w.navigator,dnt=n.doNotTrack||n.msDoNotTrack;
-if(n.globalPrivacyControl===true||n.globalPrivacyControl==='1'||dnt==='1'||String(dnt).toLowerCase()==='yes')return;
+if(n.globalPrivacyControl===true||n.globalPrivacyControl==='1'||dnt==='1'||String(dnt).toLowerCase()==='yes')return;`;
+
+export function metaPixelHeadScript(input: { pixelId: string; testMode: boolean; requireConsent?: boolean }): string {
+  if (!/^\d{5,30}$/.test(input.pixelId)) return "";
+  return `(function(w,d,id,test){try{
+${input.requireConsent ? CONSENT_GATE : "var c=null;"}
 var l=w.location,p=l.pathname;
 if(/^\\/(admin|studio|demo|test|api|order|track)(\\/|$)/i.test(p)||l.hash||/(email|phone|address|token|password|name)=/i.test(l.search))return;
 if(!test&&l.hostname!=='buyntryy.com'&&l.hostname!=='www.buyntryy.com')return;
@@ -42,7 +45,7 @@ q('trackSingle',id,'PageView',{},{eventID:e});
 w.__META_PIXEL_LAST_PATHNAME__=p;w.__META_PAGEVIEW_SEQUENCE__=1;
 var t=0;(function m(){
 if(!/(?:^|;\\s*)_fbp=/.test(d.cookie)&&t++<5){w.setTimeout(m,200);return}
-var b={eventName:'PageView',eventId:e,consent:c,pageUrl:l.origin+p};
+var b={eventName:'PageView',eventId:e,consent:null,pageUrl:l.origin+p};
 if(um.em)b.em=um.em;if(um.ph)b.ph=um.ph;
 w.fetch('/api/meta/events',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).catch(function(){})
 })();

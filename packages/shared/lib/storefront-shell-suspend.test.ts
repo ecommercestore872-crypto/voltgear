@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -85,7 +86,8 @@ describe("storefront shell must not suspend on ad query strings", () => {
     assert.match(fallback, /aria-busy="true"/);
   });
 
-  it("optional marketing scripts respect an explicit reject; Meta needs no banner answer", () => {
+  it("optional marketing scripts respect an explicit reject; Meta needs no banner answer", (t) => {
+  legacyConsentPolicy(t);
     const layoutPath = join(
       sharedRoot,
       "../../apps/storefront/app/layout.tsx",
@@ -100,7 +102,7 @@ describe("storefront shell must not suspend on ad query strings", () => {
     const metaEvents = readShared("lib/meta-pixel-events.ts");
     assert.match(metaEvents, /canSendMetaBrowserEvent\(\)/);
     assert.match(readShared("lib/meta-consent.ts"), /metaConsentAllows\(window\.localStorage\.getItem\(META_CONSENT_STORAGE_KEY\)\)/);
-    assert.match(clarity, /allowsAnalytics\(consent\)/);
+    assert.match(clarity, /analyticsTrackingAllowed\(consent\)/);
   });
 
   it("shopper links avoid speculative route downloads by default", () => {
