@@ -11,7 +11,8 @@ import { GadgetPdpDeferred } from "@/components/product/gadget-pdp-deferred";
 import { ProductViewTrackerLoader } from "./product-view-tracker-loader";
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
-import { loadPdpProductBySlug, loadPdpReviewStats } from "@/lib/db/product-pdp";
+import { loadPdpProductBySlug, loadPdpProductDetailsBySlug, loadPdpReviewStats } from "@/lib/db/product-pdp";
+import { productSeoTitle } from "@/lib/onpage-seo";
 import { EMPTY_APPROVED_REVIEW_STATS } from "@/lib/product-review-stats";
 import { fetchProductSlugs } from "@/lib/db/store";
 import { stripProductForPdpClient } from "@/lib/pdp-client-payload";
@@ -46,18 +47,12 @@ export async function generateMetadata(
   const product = await loadPdpProductBySlug(params.slug).catch(() => null);
   if (!product) return { robots: { index: false, follow: false } };
 
-  let title = `${product.name} Price in Pakistan | Buy n Try`;
-  const lowerName = product.name.toLowerCase();
-  if (lowerName.includes("20000mah") && lowerName.includes("power bank")) {
-    title = `Best 20000mAh Power Bank Pakistan: ${product.name} | COD`;
-  } else if (
-    lowerName.includes("j10") ||
-    (lowerName.includes("mic") && lowerName.includes("wireless"))
-  ) {
-    title = `${product.name} Wireless Mic Price in Pakistan | Buy n Try`;
-  } else if (lowerName.includes("smartwatch") || lowerName.includes("watch")) {
-    title = `${product.name} Price in Pakistan | Smartwatches at Buy n Try`;
-  }
+  const details = await loadPdpProductDetailsBySlug(params.slug).catch(() => null);
+  const title = productSeoTitle({
+    name: product.name,
+    specifications: details?.specifications,
+    seoTitle: product.seoTitle,
+  });
 
   const description = product.shortDescription
     ? `${product.shortDescription} View product details and the listed price at Buy n Try.`

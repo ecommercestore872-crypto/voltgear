@@ -24,6 +24,12 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
     shopType?.sortOrder != null ? String(shopType.sortOrder) : "",
   );
   const [active, setActive] = useState(shopType?.active ?? true);
+  const [seoTitle, setSeoTitle] = useState(shopType?.seoTitle ?? "");
+  const [metaDescription, setMetaDescription] = useState(shopType?.metaDescription ?? "");
+  const [seoH1, setSeoH1] = useState(shopType?.seoH1 ?? "");
+  const [seoIntro, setSeoIntro] = useState(shopType?.seoIntro ?? "");
+  const [guideText, setGuideText] = useState(shopType?.guideText ?? "");
+  const [faq, setFaq] = useState<{ question: string; answer: string }[]>(shopType?.faq ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,8 +40,14 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
       imageUrl,
       sortOrder,
       active,
+      seoTitle,
+      metaDescription,
+      seoH1,
+      seoIntro,
+      guideText,
+      faq,
     }),
-    [name, description, imageUrl, sortOrder, active],
+    [name, description, imageUrl, sortOrder, active, seoTitle, metaDescription, seoH1, seoIntro, guideText, faq],
   );
   const { dirty, syncSaved } = useAdminFormDirty(
     formSnapshot,
@@ -51,6 +63,12 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
       imageUrl: imageUrl || undefined,
       sortOrder: sortOrder === "" ? undefined : Number(sortOrder),
       active,
+      seoTitle,
+      metaDescription,
+      seoH1,
+      seoIntro,
+      guideText,
+      faq,
     };
     try {
       if (isNew) {
@@ -219,6 +237,65 @@ export function CategoryForm({ shopType }: { shopType?: ShopType | null }) {
                 </div>
               </label>
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-6 bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-foreground">Search and page content</h2>
+            <p className="text-xs text-muted-foreground">
+              All optional. Leave a field empty to use the default; empty fields are not shown on the storefront.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-title" className="text-foreground font-semibold">SEO title</Label>
+            <Input id="seo-title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className="bg-muted/50 border-border/50" />
+            <p className="text-xs text-muted-foreground">{seoTitle.length} / 60 characters recommended</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-meta" className="text-foreground font-semibold">Meta description</Label>
+            <Textarea id="seo-meta" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} className="resize-none h-20 bg-muted/50 border-border/50" />
+            <p className="text-xs text-muted-foreground">{metaDescription.length} / 160 characters recommended</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-h1" className="text-foreground font-semibold">H1 heading</Label>
+            <Input id="seo-h1" value={seoH1} onChange={(e) => setSeoH1(e.target.value)} className="bg-muted/50 border-border/50" placeholder="Defaults to the category name" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-intro" className="text-foreground font-semibold">Intro (above products, about two lines)</Label>
+            <Textarea id="seo-intro" value={seoIntro} onChange={(e) => setSeoIntro(e.target.value)} className="resize-none h-20 bg-muted/50 border-border/50" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-guide" className="text-foreground font-semibold">Guide text (below products)</Label>
+            <Textarea id="seo-guide" value={guideText} onChange={(e) => setGuideText(e.target.value)} className="h-40 bg-muted/50 border-border/50" />
+            <p className="text-xs text-muted-foreground">Separate paragraphs with a blank line.</p>
+          </div>
+          <div className="space-y-3">
+            <Label className="text-foreground font-semibold">FAQ (below products)</Label>
+            {faq.map((item, i) => (
+              <div key={i} className="space-y-2 rounded-xl border p-3">
+                <Input
+                  aria-label={`FAQ question ${i + 1}`}
+                  placeholder="Question"
+                  value={item.question}
+                  onChange={(e) => setFaq((rows) => rows.map((r, j) => (j === i ? { ...r, question: e.target.value } : r)))}
+                  className="bg-muted/50 border-border/50"
+                />
+                <Textarea
+                  aria-label={`FAQ answer ${i + 1}`}
+                  placeholder="Answer"
+                  value={item.answer}
+                  onChange={(e) => setFaq((rows) => rows.map((r, j) => (j === i ? { ...r, answer: e.target.value } : r)))}
+                  className="resize-none h-20 bg-muted/50 border-border/50"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => setFaq((rows) => rows.filter((_, j) => j !== i))}>
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button type="button" variant="outline" onClick={() => setFaq((rows) => [...rows, { question: "", answer: "" }])}>
+              Add question
+            </Button>
           </div>
         </div>
       </div>

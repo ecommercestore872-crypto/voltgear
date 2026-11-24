@@ -94,6 +94,8 @@ export interface Product {
   tiktokUrl?: string;
   addons?: ProductAddon[];
   freeShipping?: boolean;
+  /** Admin override for the page <title>; empty = generated from name and key spec. */
+  seoTitle?: string;
 }
 
 export interface HeroSection {

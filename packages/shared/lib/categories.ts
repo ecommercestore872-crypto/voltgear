@@ -7,6 +7,13 @@ export type ShopType = {
   sortOrder: number;
   productCount?: number;
   active?: boolean;
+  /** On-page SEO fields; all optional, empty means use the default. */
+  seoTitle?: string;
+  metaDescription?: string;
+  seoH1?: string;
+  seoIntro?: string;
+  guideText?: string;
+  faq?: { question: string; answer: string }[];
 };
 
 export const FALLBACK_SHOP_TYPES: ShopType[] = [

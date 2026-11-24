@@ -11,6 +11,7 @@ import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import type { Product } from "@/lib/types";
+import { resolveCategorySeo } from "@/lib/onpage-seo";
 import {
   categoryHubCopy,
   categoryRelatedGuide,
@@ -46,9 +47,15 @@ export async function generateMetadata(
     name,
     description: shop?.description,
   });
-  return {
-    title: { absolute: meta.title },
+  const seo = resolveCategorySeo(shop, {
+    title: meta.title,
     description: meta.description,
+    intro: "",
+    faq: [],
+  });
+  return {
+    title: { absolute: seo.title },
+    description: seo.description,
     keywords: meta.keywords,
     alternates: {
       canonical: `/products/${params.category}`,
@@ -56,8 +63,8 @@ export async function generateMetadata(
         .languages,
     },
     openGraph: {
-      title: meta.title,
-      description: meta.description,
+      title: seo.title,
+      description: seo.description,
       type: "website",
     },
   };
@@ -91,19 +98,26 @@ export default async function Products2CategoryPage(
     (p) => p.category === params.category,
   );
   const hubCopy = categoryHubCopy({ slug: params.category, name: title });
+  const seo = resolveCategorySeo(shop, {
+    title: "",
+    description: "",
+    intro: hubCopy,
+    faq: CATEGORY_FAQS[params.category] || [],
+  });
+  const faqs = seo.faq;
   const structured = categoryStructuredData({
+    faqs,
     siteUrl: indexSiteUrl(),
     name: title,
     path: `/products/${params.category}`,
     slug: params.category,
-    description: hubCopy,
+    description: seo.intro,
     items: categoryProducts.slice(0, 20).map((product) => ({
       name: product.name,
       path: `/product/${product.slug}`,
     })),
   });
 
-  const faqs = CATEGORY_FAQS[params.category] || [];
 
   return (
     <>
@@ -123,8 +137,8 @@ export default async function Products2CategoryPage(
       <div className="min-h-dvh bg-[var(--g-cream)]">
         <Suspense fallback={null}>
           <GadgetShopCatalogClient
-            title={title}
-            description={hubCopy}
+            title={seo.h1 ?? title}
+            description={seo.intro}
             products={products}
             shopTypes={shopTypes}
             activeCategory={params.category}
@@ -139,6 +153,14 @@ export default async function Products2CategoryPage(
           />
         </Suspense>
       </div>
+
+      {seo.guide.length > 0 && (
+        <section className="mx-auto max-w-4xl space-y-4 px-4 py-12 text-base leading-relaxed text-slate-600 sm:px-6 lg:px-8">
+          {seo.guide.map((para, i) => (
+            <p key={i}>{para}</p>
+          ))}
+        </section>
+      )}
 
       {faqs.length > 0 && (
         <section className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8">

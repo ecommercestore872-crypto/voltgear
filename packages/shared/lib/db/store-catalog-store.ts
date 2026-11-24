@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
+import { cleanFaq, cleanText } from "@/lib/onpage-seo";
 import { resolveCategoryImagePath } from "@/lib/category-image-resolve";
 import { categoryIsStorefrontVisible } from "@/lib/catalog-visibility-rules";
 import { ensureFallbackShopTypes } from "@/lib/db/admin-store";
@@ -40,7 +41,7 @@ export const CATALOG_PRODUCT_EMBED =
 /** PDP above-the-fold: buy box + gallery — excludes long JSON copy (loaded in deferred chunk). */
 const PDP_SHELL_EMBED = `
   id, name, slug, category, price, compare_at_price, sale_price, sale_ends_at, cloudinary_images, short_description, sku, brand,
-  stock_status, quantity, rating, review_count, featured, badge, is_demo, status, free_shipping,
+  stock_status, quantity, rating, review_count, featured, badge, is_demo, status, free_shipping, seo_title,
   color_enabled, size_enabled, color_options, size_options, product_video,
   product_images ( url, sort_order, source ),
   product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )
@@ -765,7 +766,7 @@ export const fetchShopTypes = unstable_cache(
     let dbTypes: ShopType[] = [];
     const { data, error } = await db()
       .from("categories")
-      .select("id, name, slug, description, image_url, sort_order, active")
+      .select("id, name, slug, description, image_url, sort_order, active, seo_title, meta_description, seo_h1, seo_intro, guide_text, faq")
       .eq("active", true)
       .order("sort_order", { ascending: true });
 
@@ -782,6 +783,12 @@ export const fetchShopTypes = unstable_cache(
             slug,
           ),
           sortOrder: Number(row.sort_order ?? 0),
+          seoTitle: cleanText(row.seo_title),
+          metaDescription: cleanText(row.meta_description),
+          seoH1: cleanText(row.seo_h1),
+          seoIntro: cleanText(row.seo_intro),
+          guideText: cleanText(row.guide_text),
+          faq: cleanFaq(row.faq),
         };
       });
     }
@@ -806,7 +813,7 @@ export const fetchShopTypes = unstable_cache(
       .filter((t) => withLiveProducts.has(t.slug))
       .sort((a, b) => a.sortOrder - b.sortOrder);
   },
-  ["shop-types-v3"],
+  ["shop-types-v4"],
   { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_SHOP_TYPES_CACHE_TAG] },
 );
 

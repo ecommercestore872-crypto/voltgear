@@ -14,6 +14,8 @@ import {
   findCitySeoHub,
 } from "@/lib/city-seo";
 import { fetchShopTypes } from "@/lib/db/store";
+import { fetchCityIntros } from "@/lib/db/city-seo-store";
+import { cityMetaDescription, cleanText } from "@/lib/onpage-seo";
 import { indexSiteUrl, storeAlternatesLanguages } from "@/lib/seo-rules";
 
 export const revalidate = 3600;
@@ -27,7 +29,8 @@ export async function generateMetadata(props: { params: Promise<{ city: string }
   const hub = findCitySeoHub(params.city);
   if (!hub) return { robots: { index: false, follow: false } };
   const title = cityHubTitle(hub);
-  const description = cityHubDescription(hub);
+  const intros = await fetchCityIntros().catch(() => ({}) as Record<string, string>);
+  const description = cityMetaDescription(intros[hub.slug], cityHubDescription(hub));
   const path = `/cod/${hub.slug}`;
   return {
     title: { absolute: title },
@@ -45,6 +48,8 @@ export default async function CityCodHubPage(props: { params: Promise<{ city: st
   const path = `/cod/${hub.slug}`;
   const structured = cityHubStructuredData({ siteUrl, city: hub, path });
   const faqs = cityHubFaqs(hub);
+  const intros = await fetchCityIntros().catch(() => ({}) as Record<string, string>);
+  const intro = cleanText(intros[hub.slug]) ?? cityHubIntro(hub);
   let categories = FALLBACK_SHOP_TYPES;
   try {
     const types = await fetchShopTypes();
@@ -58,7 +63,7 @@ export default async function CityCodHubPage(props: { params: Promise<{ city: st
       <GadgetSupportLayout
         eyebrow="Delivery"
         title={`Electronics with COD in ${hub.name}`}
-        description={cityHubIntro(hub)}
+        description={intro}
         related={[
           { href: "/products", label: "All categories" },
           { href: "/shipping-returns", label: "Shipping and returns" },

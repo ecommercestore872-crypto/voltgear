@@ -409,9 +409,11 @@ export function categoryStructuredData(input: {
   description?: string;
   items: { name: string; path: string }[];
   slug?: string;
+  /** Overrides the built-in per-slug FAQs (e.g. admin-edited). */
+  faqs?: { question: string; answer: string }[];
 }) {
   const pageUrl = absoluteUrl(input.path, input.siteUrl);
-  const faqs = (input.slug && CATEGORY_FAQS[input.slug]) || [];
+  const faqs = input.faqs ?? ((input.slug && CATEGORY_FAQS[input.slug]) || []);
   
   return {
     collection: {

@@ -73,6 +73,7 @@ export interface ProductDocument {
     description?: string;
   }>;
   freeShipping?: boolean;
+  seoTitle?: string;
 }
 
 export function shopVisible(status: unknown): boolean {
@@ -182,6 +183,7 @@ export function mergeProductForm(
     instagramUrl: form.instagramUrl ?? existing?.instagramUrl,
     addons: form.addons ?? existing?.addons ?? [],
     freeShipping: form.freeShipping ?? existing?.freeShipping ?? false,
+    seoTitle: form.seoTitle ?? existing?.seoTitle,
   };
 }
 
