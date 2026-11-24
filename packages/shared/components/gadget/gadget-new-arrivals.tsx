@@ -9,12 +9,15 @@ export function GadgetNewArrivals({
   viewAllHref = "/products",
   headingId,
   tone = "default",
+  pickLabel,
 }: {
   products: Product[];
   title?: string;
   viewAllHref?: string;
   headingId?: string;
   tone?: "default" | "clay" | "leaf";
+  /** Badge shown on every product; only pass for admin-picked rails. */
+  pickLabel?: string;
 }) {
   const heading =
     headingId ||
@@ -63,7 +66,7 @@ export function GadgetNewArrivals({
         <ul className="grid grid-cols-2 items-stretch gap-2.5 sm:grid-cols-3 sm:gap-4">
           {shown.map((product) => (
             <li key={product._id} className="flex min-w-0">
-              <GadgetArrivalCard product={product} isGrid />
+              <GadgetArrivalCard product={product} isGrid badgeTag={pickLabel} />
             </li>
           ))}
         </ul>

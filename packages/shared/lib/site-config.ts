@@ -162,3 +162,7 @@ export function warrantyLabel(months: number): string {
 export function returnsLabel(days: number): string {
   return `${days}-day returns`;
 }
+/** Free if every item ships free OR the order reaches the site-wide threshold. */
+export function isShippingFree(subtotal: number, threshold: number, allFreeShipping: boolean): boolean {
+  return allFreeShipping || subtotal >= threshold;
+}

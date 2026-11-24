@@ -37,7 +37,7 @@ export function CollectionEditor({
       description: doc.description ?? "",
       homeSlot: doc.homeSlot ?? null,
       active: doc.active,
-      productIds: [...selected].sort(),
+      productIds: [...selected], // order matters
     }),
     [doc, selected],
   );
@@ -74,6 +74,17 @@ export function CollectionEditor({
     if (needle.length >= 2) return searchHits;
     return selectedProducts.filter((p) => selected.has(p._id));
   }, [q, searchHits, selectedProducts, selected]);
+
+  function move(id: string, dir: -1 | 1) {
+    setSelected((prev) => {
+      const ids = [...prev];
+      const i = ids.indexOf(id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= ids.length) return prev;
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+      return new Set(ids);
+    });
+  }
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -205,14 +216,7 @@ export function CollectionEditor({
         {doc.autoRule ? ` · rule ${doc.autoRule}` : null}
       </p>
 
-      {doc.mode !== "manual" ? (
-        <p className="rounded-lg border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-          This is an automatic collection — products are chosen by the{" "}
-          <strong>{doc.autoRule ?? "rule"}</strong> rule. Switch to manual mode in
-          Collections settings if you need to pick products by hand.
-        </p>
-      ) : (
-        <div className="space-y-3">
+      <div className="space-y-3">
           <h2 className="font-medium">Products in this collection</h2>
           <Input
             placeholder="Search catalog (2+ characters)"
@@ -252,16 +256,26 @@ export function CollectionEditor({
           </ul>
           {selected.size > 0 ? (
             <div className="rounded-lg border bg-muted/20 p-3 text-sm">
-              <p className="font-medium">{selected.size} selected</p>
-              <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-muted-foreground">
-                {[...selected].map((id) => (
-                  <li key={id}>{selectedById.get(id)?.name ?? id}</li>
+              <p className="font-medium">
+                {selected.size} selected · shown in this order
+              </p>
+              <ol className="mt-2 max-h-72 space-y-1 overflow-y-auto">
+                {[...selected].map((id, i, all) => (
+                  <li key={id} className="flex items-center gap-2 text-xs">
+                    <span className="min-w-0 flex-1 truncate">
+                      {i + 1}. {selectedById.get(id)?.name ?? id}
+                      <span className="ml-2 text-muted-foreground">
+                        {selectedById.get(id)?.category}
+                      </span>
+                    </span>
+                    <Button type="button" size="sm" variant="outline" className="h-9 w-9 p-0" disabled={i === 0} aria-label="Move up" onClick={() => move(id, -1)}>↑</Button>
+                    <Button type="button" size="sm" variant="outline" className="h-9 w-9 p-0" disabled={i === all.length - 1} aria-label="Move down" onClick={() => move(id, 1)}>↓</Button>
+                  </li>
                 ))}
-              </ul>
+              </ol>
             </div>
           ) : null}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

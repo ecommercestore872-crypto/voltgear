@@ -188,14 +188,9 @@ export async function GadgetHomeSections() {
     .filter((c): c is NonNullable<typeof c> => c != null);
 
 
-  const newArrivals = products
-    .filter((p) => !getStockState(p.stockStatus).soldOut && hasUsableImage(p))
-    .slice(0, 8);
-
   const hasCuratedBestsellers = Boolean(slotBestsellers?.length);
-  const railProducts = (
-    hasCuratedBestsellers ? slotBestsellers! : newArrivals
-  ).slice(0, 8);
+  // Best sellers = admin picks only; no picks hides the rail.
+  const railProducts = hasCuratedBestsellers ? slotBestsellers!.slice(0, 8) : [];
 
   const overrideSlug =
     settings?.homeFeaturedProductSlug?.trim() ||
@@ -217,7 +212,6 @@ export async function GadgetHomeSections() {
           !getStockState(p.stockStatus).soldOut &&
           hasUsableImage(p),
       ) ??
-      railProducts.find((p) => hasUsableImage(p)) ??
       null);
 
   const featuredId = featuredProduct?._id;
@@ -278,16 +272,17 @@ export async function GadgetHomeSections() {
             // Rendered beside the hero so it never waits for catalog data.
             break;
           case "bestsellers":
-            section = (
+            section = hasCuratedBestsellers ? (
               <GadgetNewArrivals
                 key={id}
                 products={visibleRailProducts}
-                title={hasCuratedBestsellers ? config.homeBestsellersTitle || "Best Sellers" : "Explore products"}
+                title={config.homeBestsellersTitle || "Best Sellers"}
                 headingId="best-sellers-heading"
-                viewAllHref={hasCuratedBestsellers ? collectionHref("best-sellers") : "/products"}
+                viewAllHref={collectionHref("best-sellers")}
                 tone="leaf"
+                pickLabel="Best seller"
               />
-            );
+            ) : null;
             break;
           case "featured":
             section = featuredProduct ? (
