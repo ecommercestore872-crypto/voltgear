@@ -2011,7 +2011,7 @@
 /* Vertical corner ribbon used for admin-set product badges */
 .gadget-theme .login-ribbon {
   position: absolute;
-  right: -0.375rem;
+  right: 0;
   top: 55%;
   z-index: 15;
   writing-mode: vertical-rl;
@@ -2027,6 +2027,8 @@
   white-space: nowrap;
   max-height: 7.5rem;
   overflow: hidden;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* Product card shell */
@@ -2078,15 +2080,12 @@
 
 /* Product card: image rises above the white card (reference style) */
 .gadget-theme .login-card {
-  margin-top: 3.25rem;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .gadget-theme .login-card .gadget-studio-stage {
-  margin-top: -3.25rem;
   background: transparent;
-  border-radius: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .gadget-theme .login-card .gadget-studio-stage img {
@@ -2302,7 +2301,7 @@
     transform: scale(1);
   }
   68% {
-    transform: scale(1.22);
+    transform: scale(1.1);
   }
   82% {
     transform: scale(1);

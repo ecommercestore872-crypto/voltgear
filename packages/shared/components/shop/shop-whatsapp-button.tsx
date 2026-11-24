@@ -59,11 +59,11 @@ export function ShopWhatsAppButton({
   const showLabel = expanded || pinnedOpen;
 
   return (
-    <div className="pointer-events-none fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-[calc(1.25rem+env(safe-area-inset-right))] z-[40] sm:bottom-6 sm:right-6 transform-gpu">
+    <div className="pointer-events-none fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-[calc(0.5rem+env(safe-area-inset-right))] z-[40] sm:bottom-6 sm:right-6 transform-gpu">
       <div className="relative inline-flex items-center justify-end">
         <span
           className={cn(
-            "shop-wa-pulse pointer-events-none absolute right-0 top-1/2 z-0 h-14 w-14 -translate-y-1/2 rounded-full",
+            "shop-wa-pulse pointer-events-none absolute right-0 top-1/2 z-0 h-12 w-12 sm:h-14 sm:w-14 -translate-y-1/2 rounded-full",
             showLabel && "opacity-40",
           )}
           aria-hidden
@@ -84,15 +84,15 @@ export function ShopWhatsAppButton({
           }}
           onBlur={() => setPinnedOpen(false)}
           className={cn(
-            "shop-wa-launcher pointer-events-auto relative z-[1] inline-flex h-14 items-center rounded-full bg-[#25D366] text-white",
+            "shop-wa-launcher pointer-events-auto relative z-[1] inline-flex h-12 items-center sm:h-14 rounded-full bg-[#25D366] text-white",
             "shadow-[0_10px_28px_rgba(37,211,102,0.38)] transition-[width,background-color,box-shadow,transform] duration-300 ease-out",
             "hover:bg-[#20bd5a] hover:shadow-[0_14px_32px_rgba(37,211,102,0.45)] hover:-translate-y-0.5",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-forest,#1b3d29)]",
-            showLabel ? "w-[min(100vw-2.5rem,15.75rem)]" : "w-14",
+            showLabel ? "w-[min(100vw-2.5rem,15.75rem)]" : "w-12 sm:w-14",
           )}
         >
           {/* Fixed 56×56 icon cell — keeps the glyph perfectly centered when collapsed */}
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+          <span className="flex h-12 w-12 shrink-0 sm:h-14 sm:w-14 items-center justify-center">
             <WhatsAppIcon className="block h-[1.65rem] w-[1.65rem] shrink-0" />
           </span>
           <span

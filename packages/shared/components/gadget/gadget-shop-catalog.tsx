@@ -144,7 +144,7 @@ export function GadgetShopCatalog({
 
       <div className="mx-auto max-w-6xl px-3 pb-10 pt-3 sm:px-5 sm:pb-12 sm:pt-4 lg:px-8">
         {useFlatGrid && !activeCategory ? null : (
-          <div className="sticky top-[4.25rem] z-20 -mx-3 bg-[var(--g-cream)]/95 px-3 pb-2 pt-3 sm:top-[5rem] sm:mx-0 sm:mt-4 sm:px-0">
+          <div className="sticky top-[4.25rem] z-20 -mx-3 bg-[var(--g-cream)] px-3 pb-2 pt-3 sm:top-[5rem] sm:mx-0 sm:mt-4 sm:px-0">
             <p className="gadget-eyebrow mb-2">
               {activeCategory ? "Filter by type" : "Jump to category"}
             </p>
