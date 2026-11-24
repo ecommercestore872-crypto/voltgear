@@ -9,9 +9,13 @@ export type BrowserMetaEvent = {
   productIds?: string[];
   value?: number;
   numItems?: number;
+  /** Already-hashed matching values for a returning, known customer. */
+  em?: string;
+  ph?: string;
 };
 
 const EVENT_NAMES = new Set(["PageView", "ViewContent", "AddToCart", "InitiateCheckout"]);
+const SHA256_HEX = /^[a-f0-9]{64}$/;
 const PRODUCT_ID = /^[A-Za-z0-9_.:/-]{1,120}$/;
 
 export function parseBrowserMetaEvent(raw: unknown, requestOrigin: string): BrowserMetaEvent | null {
@@ -30,7 +34,11 @@ export function parseBrowserMetaEvent(raw: unknown, requestOrigin: string): Brow
     return null;
   }
   const eventName = row.eventName as BrowserMetaEvent["eventName"];
-  if (eventName === "PageView") return { eventName, eventId: row.eventId, consent: "all", pageUrl };
+  const hashes = {
+    ...(typeof row.em === "string" && SHA256_HEX.test(row.em) ? { em: row.em } : {}),
+    ...(typeof row.ph === "string" && SHA256_HEX.test(row.ph) ? { ph: row.ph } : {}),
+  };
+  if (eventName === "PageView") return { eventName, eventId: row.eventId, consent: "all", pageUrl, ...hashes };
   if (typeof row.value !== "number" || !Number.isFinite(row.value) || row.value < 0 || row.value > 100_000_000) return null;
   const productIds = row.productIds;
   if (productIds !== undefined && (!Array.isArray(productIds) || productIds.length > 50 ||
@@ -39,7 +47,7 @@ export function parseBrowserMetaEvent(raw: unknown, requestOrigin: string): Brow
   const count = row.numItems;
   if (count !== undefined && (typeof count !== "number" || !Number.isInteger(count) || count < 1 || count > 1000)) return null;
   return {
-    eventName, eventId: row.eventId, consent: "all", pageUrl,
+    eventName, eventId: row.eventId, consent: "all", pageUrl, ...hashes,
     ...(Array.isArray(productIds) && productIds.length ? { productIds } : {}),
     value: row.value,
     ...(typeof count === "number" ? { numItems: count } : {}),

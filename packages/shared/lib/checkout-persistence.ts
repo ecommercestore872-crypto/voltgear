@@ -27,7 +27,7 @@ export async function persistCheckoutOrder(
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const orderId = await nextPublicOrderId();
     const eligible = !order.isDemo && tracking && allowsAdvertising(effectiveCheckoutTrackingConsent(tracking));
-    const { fbp, fbc } = eligible ? readMetaCookieIds(tracking.request.headers.get("cookie") ?? "") : {};
+    const { fbp, fbc, externalId } = eligible ? readMetaCookieIds(tracking.request.headers.get("cookie") ?? "") : {};
     const metaPayload = eligible ? buildMetaServerPurchasePayload({
       orderId, value: order.total,
       items: order.items.map((line) => ({
@@ -39,7 +39,7 @@ export async function persistCheckoutOrder(
       postalCode: order.customer.postal, country: "pk",
       clientIp: checkoutClientIp(tracking!.request),
       userAgent: tracking!.request.headers.get("user-agent") || undefined,
-      fbp, fbc,
+      fbp, fbc, externalId,
     }) : null;
     const persisted = await createOrder({
       ...order,
