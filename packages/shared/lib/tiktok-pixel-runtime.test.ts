@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import { runInNewContext } from "node:vm";
 import { syncTikTokPixel } from "./tiktok-pixel-runtime";
@@ -74,7 +75,8 @@ for (const readyState of ["loading", "complete"]) {
   });
 }
 
-test("late consent, navigation, withdrawal and regrant count each active page once", () => {
+test("late consent, navigation, withdrawal and regrant count each active page once", (t) => {
+  legacyConsentPolicy(t);
   consent = "essential";
   syncTikTokPixel();
   assert.equal(nodes.size, 0);
@@ -95,7 +97,8 @@ test("late consent, navigation, withdrawal and regrant count each active page on
 });
 
 for (const choice of [null, "essential"]) {
-  test(`does not initialize for consent ${choice}`, () => {
+  test(`does not initialize for consent ${choice}`, (t) => {
+  legacyConsentPolicy(t);
     consent = choice;
     syncTikTokPixel();
     assert.equal(nodes.size, 0);
@@ -103,7 +106,8 @@ for (const choice of [null, "essential"]) {
   });
 }
 
-test("storage failure fails closed", () => {
+test("storage failure fails closed", (t) => {
+  legacyConsentPolicy(t);
   window.localStorage.getItem = () => { throw new Error("blocked"); };
   syncTikTokPixel();
   assert.equal(nodes.size, 0);
@@ -133,7 +137,8 @@ test("SDK errors retry twice with the same queue and no duplicate PageView", () 
   assert.equal(nodes.size, 2);
 });
 
-test("withdrawing consent cancels a pending SDK retry", () => {
+test("withdrawing consent cancels a pending SDK retry", (t) => {
+  legacyConsentPolicy(t);
   syncTikTokPixel();
   const sdk = nodes.get("tiktok-pixel-sdk");
   sdk!.listeners.error();

@@ -156,6 +156,8 @@ describe("toLiveProductRow", () => {
   });
 
   it("writes units on hand and leaves empty as unlimited", () => {
+    assert.equal(toLiveProductRow(sample).free_shipping, false);
+    assert.equal(toLiveProductRow({ ...sample, freeShipping: true }).free_shipping, true);
     assert.equal(toLiveProductRow(sample).quantity, null);
     assert.equal(toLiveProductRow({ ...sample, quantity: 8 }).quantity, 8);
   });

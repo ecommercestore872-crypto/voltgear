@@ -248,7 +248,7 @@ export function GadgetHeroSlider({
                   aria-label={`Go to slide ${i + 1}`}
                   onClick={() => setIndex(i)}
                   aria-current={i === index ? "true" : undefined}
-                  className="flex h-11 w-6 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white"
+                  className="relative flex h-11 min-w-11 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white"
                 >
                   <span
                     className={`block h-2 rounded-full transition-all duration-300 ${

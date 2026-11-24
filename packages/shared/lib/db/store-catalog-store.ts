@@ -407,6 +407,39 @@ export async function fetchCatalogProductsBySlugs(
   if (!unique.length) return [];
   const preview = localPreviewProducts();
   if (preview) return preview.filter((product) => unique.includes(product.slug));
+  return loadCatalogProductsBySlugs(unique);
+}
+
+/**
+ * Same rows, but safe to call while a page is being prerendered/ISR-rendered.
+ *
+ * Every Supabase request is "no-store" (see supabase/server.ts), so a public
+ * catalog read made during page render MUST sit inside unstable_cache. Called
+ * bare from a product page it makes Next.js refuse to prerender the page
+ * ("Dynamic server usage ... used no-store fetch") and the whole build fails as
+ * soon as any product has a deal partner. Only use this from server-rendered
+ * pages with slugs the server chose itself; request-driven callers (the
+ * wishlist API) use fetchCatalogProductsBySlugs so visitors can't create cache
+ * entries. Order is restored after the cache read so the key can be sorted.
+ */
+export async function fetchCachedCatalogProductsBySlugs(
+  slugs: string[],
+): Promise<Product[]> {
+  const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))];
+  if (!unique.length) return [];
+  const preview = localPreviewProducts();
+  if (preview) return preview.filter((product) => unique.includes(product.slug));
+  const sorted = [...unique].sort();
+  const rows = await unstable_cache(
+    async () => loadCatalogProductsBySlugs(sorted),
+    ["fetchCachedCatalogProductsBySlugs-v1", ...sorted],
+    { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG] },
+  )();
+  const bySlug = new Map(rows.map((p) => [p.slug, p]));
+  return unique.map((slug) => bySlug.get(slug)).filter(Boolean) as Product[];
+}
+
+async function loadCatalogProductsBySlugs(unique: string[]): Promise<Product[]> {
   const { data, error } = await execDemoQuery(() =>
     demoFilter(
       db()

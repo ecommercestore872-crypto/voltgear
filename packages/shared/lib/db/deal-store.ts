@@ -142,8 +142,19 @@ export async function fetchDealCatalogBasics(): Promise<
 export async function fetchDealCatalogForSlugs(
   slugs: string[],
 ): Promise<DealCatalogProduct[]> {
-  const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))];
+  const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))].sort();
   if (!unique.length) return [];
+  // Supabase reads are "no-store"; during a product-page prerender they must be
+  // inside unstable_cache or Next.js fails the build. Only the PDP calls this,
+  // with slugs the server chose (not visitor input).
+  return unstable_cache(
+    async () => loadDealCatalogForSlugs(unique),
+    ["deal-catalog-for-slugs-v1", ...unique],
+    { revalidate: STOREFRONT_CATALOG_REVALIDATE, tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, "product-deals"] },
+  )();
+}
+
+async function loadDealCatalogForSlugs(unique: string[]): Promise<DealCatalogProduct[]> {
   const { data, error } = await db()
     .from("products")
     .select("id, slug, name, price, cost_price, is_demo, product_images(url, sort_order)")

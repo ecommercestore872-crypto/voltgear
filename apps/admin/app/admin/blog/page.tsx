@@ -30,7 +30,7 @@ export default async function AdminBlogPage() {
       {pages.length === 0 ? (
         <p className="rounded-lg border border-dashed px-4 py-10 text-sm text-muted-foreground">
           No blog posts yet. Publish a guide so /blog and the homepage have real
-          pages for search and AdSense.
+          pages for search.
         </p>
       ) : (
         <ul className="divide-y rounded-lg border">

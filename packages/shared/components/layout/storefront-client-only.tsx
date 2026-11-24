@@ -8,14 +8,6 @@ export const MetaPixelClientOnly = dynamic(
   { ssr: false, loading: () => null },
 );
 
-export const AdSenseLoaderClientOnly = dynamic(
-  () =>
-    import("@/components/ads/adsense-loader").then(
-      (module) => module.AdSenseLoader,
-    ),
-  { ssr: false, loading: () => null },
-);
-
 export const ClarityClientOnly = dynamic(
   () =>
     import("@/components/analytics/clarity-deferred").then(

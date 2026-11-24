@@ -225,3 +225,55 @@ deduplication are verified. No actual Meta API acceptance, Events Manager receip
 or Meta-recognized deduplication is claimed. Token/configuration, asset ownership,
 ad-account sharing, hosted deployment mapping and publication/deployment approval
 remain operator gates. The bounded-delivery limitation above remains explicit.
+
+## Update: early pixel and server copies of every event
+
+- **Early pixel.** `lib/meta-pixel-head-script.ts` is rendered in `<head>` by `app/layout.tsx`.
+  For visitors who already accepted advertising cookies it starts the pixel and sends
+  PageView before React hydrates (previously up to ~5 s later, via an idle-deferred
+  component). New visitors are still handled by `components/analytics/meta-pixel.tsx` the
+  moment they accept the banner. No consent, no Meta request.
+- **Same event_id on both sides.** PageView, ViewContent, AddToCart and InitiateCheckout now
+  carry a random `eventID` in the browser pixel call and POST the same ID to
+  `/api/meta/events`, which forwards a Conversions API copy. Purchase keeps using the order ID
+  and the database outbox (unique per order).
+- **Matching data on server events:** `fbp`, `fbc`, `external_id` (first-party `bnt_xid`
+  cookie, hashed), client IP, user agent, and hashed email/phone when the visitor has ordered
+  before (`bnt-meta-match` holds hashes only). Purchase also sends hashed email/phone.
+- **Token.** `META_CONVERSIONS_API_ACCESS_TOKEN` is read from the environment only.
+- **One server sender for Purchase.** The old direct sender `trackMetaServerPurchase` was removed.
+  Purchase leaves the server only through the order queue (`meta-purchase-outbox.ts`), sent
+  right after the order is saved; the 30-minute job is only a retry. Tests enforce this.
+- **Returning visitors.** Once a visitor types an email or phone, only the hashes are kept
+  (`bnt-meta-match`) and added to every later browser and server event.
+- **Meta's built-in "Conversions API with Meta" connection** sends its own Purchase events with
+  different IDs and cannot be deduplicated by this code. Disconnect it in Events Manager.
+
+## Update: Meta tracking no longer waits for the cookie banner; AdSense removed
+
+- **Consent rule (owner decision).** Meta tracking (browser pixel and server copies) starts on the
+  visitor's first page load without any banner answer. It stays off only when the visitor
+  explicitly saved "Reject optional" / analytics-only, or their browser sends a Global Privacy
+  Control or Do Not Track signal. TikTok, Clarity and order-attribution storage still follow the
+  banner. The banner text and the cookie and privacy pages were updated to say this.
+- **AdSense removed completely:** loader, head script, `ads.txt`, `google-adsense-account` meta tag,
+  blog ad slot, privacy/cookie disclosures, robots rule, policy code, tests and env example lines.
+  The `NEXT_PUBLIC_ADSENSE_*` variables in Vercel can be deleted; nothing reads them.
+- **Browser test (headless Chromium, production-style pages, test pixel ID).** Fresh visitor: PageView,
+  ViewContent, AddToCart, InitiateCheckout each fire once; browser `eventID` equals the server copy's
+  `eventId`; `_fbp`, `_fbc` (from `fbclid`) and `bnt_xid` are present. "Reject optional" and
+  Global Privacy Control send nothing. Meta's real `fbevents.js` could not be loaded from the
+  sandbox, so a stand-in script that follows the same call rules was used.
+
+## Update: track every visitor (owner decision)
+
+- **One switch:** `lib/tracking-policy.ts`. Default: every visitor is measured by Meta (browser pixel and
+  server copies), TikTok (pixel and Events API), Microsoft Clarity and order-attribution storage. A saved
+  "Reject optional" choice and Global Privacy Control / Do Not Track signals no longer stop anything.
+- **Rollback without code:** set `NEXT_PUBLIC_TRACK_ALL_VISITORS=false` in Vercel and redeploy; tracking then
+  waits for the visitor's choice again (restore the banner choices first, because the notice has none).
+- **Banner** is now a notice with one "OK" button (no accept/reject that would change nothing). The footer
+  "Cookie settings" button became a "Cookie notice" link. The cookie and privacy pages say tracking is always on.
+- **Still required for each channel:** TikTok needs `NEXT_PUBLIC_TIKTOK_PIXEL_ENABLED=true`, the pixel ID and
+  `TIKTOK_EVENTS_API_ACCESS_TOKEN`; Clarity needs `NEXT_PUBLIC_CLARITY_ID`; Meta needs the pixel ID and
+  `META_CONVERSIONS_API_ACCESS_TOKEN`. Pixels stay off on localhost, previews, admin and test pages.
