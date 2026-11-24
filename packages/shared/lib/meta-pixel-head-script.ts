@@ -5,7 +5,7 @@
  * idle (up to ~5 seconds). Shoppers who left before that were never counted as
  * landing page views. This script starts the pixel and sends PageView at once.
  *
- * It only runs for visitors who already accepted advertising cookies and have
+ * It only runs for visitors who have already accepted advertising cookies and have
  * no Global Privacy Control / Do Not Track signal, on storefront pages. Everyone
  * else is handled by components/analytics/meta-pixel.tsx when they accept the
  * banner. Keep the checks below in step with canSendMetaBrowserEvents().
