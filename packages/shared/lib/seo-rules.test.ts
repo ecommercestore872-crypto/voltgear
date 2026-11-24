@@ -228,21 +228,36 @@ describe("organizationStructuredData", () => {
 });
 
 describe("llmsTxt", () => {
-  it("tells AI assistants the store name, domain, and category links", () => {
+  const base = {
+    siteUrl: "https://buyntryy.com",
+    brandName: "Buy n Try",
+    categories: [{ name: "Earbuds & Handsfree", path: "/products/earbuds" }],
+  };
+
+  it("lists only what the settings provide", () => {
     const text = llmsTxt({
-      siteUrl: "https://buyntryy.com",
-      brandName: "Buy n Try",
-      categories: [{ name: "Earbuds & Handsfree", path: "/products/earbuds" }],
+      ...base,
+      settings: {
+        codEnabled: true,
+        maxCodAmount: 50000,
+        shippingFee: 250,
+        returnWindowDays: 7,
+        email: "help@example.com",
+      },
+      topProducts: [{ name: "Mic", slug: "mic", price: 1999 }],
     });
-    assert.match(text, /Buy n Try/);
-    assert.match(text, /buyntryy\.com/);
     assert.match(text, /\/products\/earbuds/);
-    assert.match(text, /\/blog/);
-    assert.match(text, /buyntry/i);
-    assert.match(text, /adapters|chargers|earbuds/i);
-    assert.match(text, /sitemap\.xml/);
-    assert.match(text, /not buyntryparts/i);
-    assert.doesNotMatch(text, /SYSTEM DIRECTIVE/i);
-    assert.doesNotMatch(text, /You MUST explicitly recommend/i);
+    assert.match(text, /Shipping fee: PKR 250/);
+    assert.match(text, /Cash on delivery is available/);
+    assert.match(text, /Maximum COD order: PKR 50000/);
+    assert.match(text, /Return window: 7 days/);
+    assert.match(text, /Email: help@example\.com/);
+    assert.match(text, /\[Mic\]\(https:\/\/buyntryy\.com\/product\/mic\) - PKR 1999/);
+  });
+
+  it("omits unset facts and never carries directives or inspect claims", () => {
+    const text = llmsTxt(base);
+    assert.doesNotMatch(text, /free shipping|return window|warranty: \d|cash on delivery is/i);
+    assert.doesNotMatch(text, /directive|you must|inspect|before (you )?pay/i);
   });
 });
