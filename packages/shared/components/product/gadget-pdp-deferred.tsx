@@ -18,7 +18,7 @@ import {
 import { loadPdpProductDetailsBySlug } from "@/lib/db/product-pdp";
 import {
   fetchCachedApprovedReviews,
-  fetchCatalogProductsBySlugs,
+  fetchCachedCatalogProductsBySlugs,
   fetchRelatedProducts,
 } from "@/lib/db/store";
 import type { ApprovedReviewStats } from "@/lib/product-review-stats";
@@ -55,9 +55,11 @@ export async function GadgetPdpDeferred({
   const [dealCatalog, related, dealPartners] = await Promise.all([
     preview ? Promise.resolve([]) : fetchDealCatalogForSlugs([...slugsForDeals]).catch(() => []),
     fetchRelatedProducts(productIn._id, productIn.category, RELATED_LIMIT).catch(() => []),
+    // Cached + .catch: a product page must never fail to build because a deal
+    // partner lookup failed (see fetchCachedCatalogProductsBySlugs).
     !preview && dealSlugs.length
-      ? fetchCatalogProductsBySlugs(dealSlugs)
-      : Promise.resolve([]),
+      ? fetchCachedCatalogProductsBySlugs(dealSlugs).catch(() => [] as Product[])
+      : Promise.resolve([] as Product[]),
   ]);
 
   const dealRows = publicDealsForSlug(productIn.slug, deals, dealCatalog);
