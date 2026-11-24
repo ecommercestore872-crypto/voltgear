@@ -1,4 +1,4 @@
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 
 export function emailsMatchLoose(a: string, b: string): boolean {
   const x = a.trim().toLowerCase();

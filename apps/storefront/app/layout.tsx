@@ -33,8 +33,6 @@ import {
 } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
 import { themeCssVars, themePreviewScript } from "@/lib/theme";
-import "@fontsource-variable/manrope/wght.css";
-import "@fontsource-variable/newsreader/wght.css";
 import "./globals.css";
 
 const SITE_URL = indexSiteUrl();
@@ -188,9 +186,9 @@ export default async function RootLayout({
   return (
     <html lang="en-PK" className={gadgetFontClass}>
       <head>
-        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
-        <link rel="dns-prefetch" href="https://zeuhfqevqjkbzwdaxjuv.supabase.co" />
-        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        {/* No crossOrigin: <img> fetches are anonymous no-CORS, so a CORS preconnect would not be reused. */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://connect.facebook.net" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

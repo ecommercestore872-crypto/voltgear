@@ -1,4 +1,4 @@
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 import { resolveCheckoutLocation } from "@/lib/pakistan-locations";
 
 export type CheckoutCustomerInput = {

@@ -1,5 +1,5 @@
 import { normalizePhoneForCheckout } from "@/lib/checkout-customer-rules";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 
 import { EMAIL_SEND_ISSUE_PREFIX } from "../email-rules";
 import type {

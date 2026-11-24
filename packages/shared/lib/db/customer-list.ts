@@ -1,5 +1,5 @@
 import { getServiceClient } from "@/lib/supabase/server";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 
 import { mapLightweightOrderRow } from "./admin-orders-store";
 

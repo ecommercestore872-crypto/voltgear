@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import type { PdpGalleryVariantImage } from "@/components/gadget/gadget-pdp-variant-context";
+import { PDP_HERO_SIZES } from "@/lib/gadget-pdp-lcp";
 
 /** Instant variant swap before / beside the interactive gallery mounts. */
 export function GadgetPdpVariantHero({
@@ -18,7 +19,7 @@ export function GadgetPdpVariantHero({
         fill
         priority
         quality={62}
-        sizes="(max-width: 768px) 100vw, 50vw"
+        sizes={PDP_HERO_SIZES}
         className="object-contain"
       />
     </div>

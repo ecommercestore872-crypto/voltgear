@@ -12,5 +12,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^15.5.29"
   }
 }

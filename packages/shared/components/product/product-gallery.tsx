@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Expand, ImageOff, Play } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PDP_HERO_SIZES } from "@/lib/gadget-pdp-lcp";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import { galleryVideoForProduct } from "@/lib/product-gallery-video";
@@ -180,7 +181,7 @@ export function ProductGallery({
             fill
             priority
             quality={75}
-            sizes="(max-width: 1024px) 100vw, min(600px, 50vw)"
+            sizes={PDP_HERO_SIZES}
             className="object-contain pointer-events-none"
           />
         ) : (
@@ -253,7 +254,7 @@ export function ProductGallery({
                   src={source.thumb}
                   alt=""
                   fill
-                  sizes="15vw"
+                  sizes="(max-width: 767px) 15vw, 9vw"
                   className="object-cover"
                 />
               ) : null}

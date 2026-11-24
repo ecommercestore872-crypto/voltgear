@@ -5,7 +5,7 @@ import {
   suppressedPhoneSet,
 } from "@/lib/broadcast-contact-rules";
 import { listOrderPhoneContacts } from "@/lib/db/broadcast-order-contacts";
-import { normalizePhone } from "@/lib/messaging";
+import { normalizePhone } from "@/lib/phone";
 import { getServiceClient } from "@/lib/supabase/server";
 import type { BroadcastContact } from "@/lib/types";
 
