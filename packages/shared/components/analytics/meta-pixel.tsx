@@ -2,10 +2,16 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { canSendMetaBrowserEvents, ensureMetaPageView } from "@/lib/meta-pixel-events";
+import { canSendMetaBrowserEvents, ensureMetaPageView, knownMetaCustomer } from "@/lib/meta-pixel-events";
 import { persistMetaClick } from "@/lib/meta-click-attribution";
+import { ensureMetaExternalId } from "@/lib/meta-identity";
 
-/** One consent-aware SDK and initialization, including StrictMode/remounts. */
+/**
+ * Consent-aware pixel for visitors who grant consent after the page loaded, and
+ * for every client-side page change. Visitors who already consented are set up
+ * even earlier by the inline <head> script (see meta-pixel-head-script.ts);
+ * the __META_PIXEL_BOOTSTRAPPED__ flag keeps the two from initializing twice.
+ */
 export function MetaPixel() {
   const pathname = usePathname();
   useEffect(() => {
@@ -28,7 +34,8 @@ export function MetaPixel() {
         const id = process.env.NEXT_PUBLIC_META_PIXEL_ID!;
         window.fbq("consent", "grant");
         window.fbq("set", "autoConfig", false, id);
-        window.fbq("init", id);
+        const externalId = ensureMetaExternalId();
+        window.fbq("init", id, { ...knownMetaCustomer(), ...(externalId ? { external_id: externalId } : {}) });
         window.__META_PIXEL_BOOTSTRAPPED__ = true;
         if (!document.querySelector('script[src*="connect.facebook.net"][src*="fbevents.js"]')) {
           const script = document.createElement("script");
@@ -37,7 +44,10 @@ export function MetaPixel() {
           script.src = "https://connect.facebook.net/en_US/fbevents.js";
           document.head.appendChild(script);
         }
-      } else window.fbq?.("consent", "grant");
+      } else {
+        window.fbq?.("consent", "grant");
+        ensureMetaExternalId();
+      }
       persistMetaClick();
       ensureMetaPageView(window.location.pathname);
       window.dispatchEvent(new Event("meta:pixel-ready"));

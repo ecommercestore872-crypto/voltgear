@@ -1,3 +1,5 @@
+import { trackAllVisitors } from "./tracking-policy";
+
 export const COOKIE_CONSENT_STORAGE_KEY = "bnt-cookie-consent";
 export const COOKIE_CONSENT_CHANGE_EVENT = "bnt-cookie-consent-change";
 export const COOKIE_CONSENT_OPEN_EVENT = "bnt-cookie-consent-open";
@@ -42,7 +44,7 @@ export function readCookieConsent(): CookieConsentChoice | null {
 
 /** Respect an explicit browser privacy signal for optional advertising. */
 export function browserPrivacyOptOut(): boolean {
-  if (typeof navigator === "undefined") return false;
+  if (typeof navigator === "undefined" || trackAllVisitors()) return false;
   const browser = navigator as Navigator & { globalPrivacyControl?: boolean; msDoNotTrack?: string };
   return browser.globalPrivacyControl === true || browser.doNotTrack === "1" ||
     browser.msDoNotTrack === "1";

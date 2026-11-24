@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { describe, it } from "node:test";
 
 import {
@@ -20,7 +21,8 @@ describe("shouldLoadTikTokPixel", () => {
     assert.equal(shouldLoadTikTokPixel(base), true);
   });
 
-  it("stays off without id, without enable flag, without advertising consent, in development, on localhost, or on admin", () => {
+  it("stays off without id, without enable flag, without advertising consent, in development, on localhost, or on admin", (t) => {
+  legacyConsentPolicy(t);
     assert.equal(shouldLoadTikTokPixel({ ...base, pixelId: "" }), false);
     assert.equal(shouldLoadTikTokPixel({ ...base, enabled: "false" }), false);
     assert.equal(shouldLoadTikTokPixel({ ...base, consent: "essential" }), false);

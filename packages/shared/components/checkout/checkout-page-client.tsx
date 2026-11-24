@@ -56,7 +56,7 @@ import {
   tagCheckoutClarityStep,
 } from "@/lib/checkout-clarity";
 import { normalizePhone } from "@/lib/messaging";
-import { trackMetaInitiateCheckout, trackAcceptedMetaPurchase } from "@/lib/meta-pixel-events";
+import { trackMetaInitiateCheckout, trackAcceptedMetaPurchase, rememberMetaCustomer } from "@/lib/meta-pixel-events";
 import {
   validateCheckoutFormField,
   validateCheckoutFormFields,
@@ -160,7 +160,13 @@ export default function CheckoutPageClient() {
     }
   }, []);
 
+  /** Keep only hashes of a typed phone/email so later events can use them. */
+  function rememberTyped(field: "phone" | "email", value: string) {
+    try { rememberMetaCustomer({ [field]: value }); } catch {}
+  }
+
   function touchField(field: CheckoutFormField, value: string) {
+    if (field === "phone") rememberTyped("phone", value);
     const msg = validateCheckoutFormField(field, value, {
       province: province || undefined,
     });
@@ -718,6 +724,7 @@ export default function CheckoutPageClient() {
                         autoComplete="email"
                         placeholder="Order updates"
                         className="h-11"
+                        onBlur={(e) => rememberTyped("email", e.target.value)}
                         defaultValue={customer.email}
                       />
                     </div>
@@ -767,6 +774,7 @@ export default function CheckoutPageClient() {
                         autoComplete="email"
                         placeholder="For order confirmation"
                         className="h-11"
+                        onBlur={(e) => rememberTyped("email", e.target.value)}
                         defaultValue={customer.email}
                       />
                     </div>

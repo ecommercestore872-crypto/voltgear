@@ -1,7 +1,6 @@
 import { buildCheckoutIdempotencyFingerprint } from "@/lib/checkout-idempotency";
-import { checkoutClientIp } from "@/lib/checkout-guard";
-import { effectiveCheckoutTrackingConsent } from "@/lib/checkout-tracking-consent";
-import { allowsAdvertising } from "@/lib/cookie-consent";
+import { metaClientIp } from "@/lib/meta-ip";
+import { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed } from "@/lib/checkout-tracking-consent";
 import { readMetaCookieIds } from "@/lib/checkout-tracking-rules";
 import { buildMetaServerPurchasePayload } from "@/lib/meta-events-api";
 import {
@@ -26,8 +25,8 @@ export async function persistCheckoutOrder(
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const orderId = await nextPublicOrderId();
-    const eligible = !order.isDemo && tracking && allowsAdvertising(effectiveCheckoutTrackingConsent(tracking));
-    const { fbp, fbc } = eligible ? readMetaCookieIds(tracking.request.headers.get("cookie") ?? "") : {};
+    const eligible = !order.isDemo && tracking && metaCheckoutTrackingAllowed(tracking);
+    const { fbp, fbc, externalId } = eligible ? readMetaCookieIds(tracking.request.headers.get("cookie") ?? "") : {};
     const metaPayload = eligible ? buildMetaServerPurchasePayload({
       orderId, value: order.total,
       items: order.items.map((line) => ({
@@ -37,9 +36,9 @@ export async function persistCheckoutOrder(
       email: order.customer.email, phone: order.customer.phone,
       fullName: order.customer.name, city: order.customer.city,
       postalCode: order.customer.postal, country: "pk",
-      clientIp: checkoutClientIp(tracking!.request),
+      clientIp: metaClientIp(tracking!.request.headers),
       userAgent: tracking!.request.headers.get("user-agent") || undefined,
-      fbp, fbc,
+      fbp, fbc, externalId,
     }) : null;
     const persisted = await createOrder({
       ...order,

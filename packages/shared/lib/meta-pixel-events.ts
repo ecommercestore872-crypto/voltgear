@@ -1,6 +1,8 @@
 import { acceptedMetaPurchase, metaCommerceData, metaEnvironmentAllowed, metaStorefrontPath, type MetaItem } from "./meta-commerce";
 import { canSendMetaBrowserEvent } from "./meta-consent";
 import { buildMetaHashedCustomer, type MetaCustomer } from "./meta-matching";
+import { newMetaEventId } from "./meta-identity";
+import { readCookieConsent } from "./cookie-consent";
 
 declare global {
   interface Window {
@@ -36,7 +38,7 @@ export function ensureMetaPageView(pathname: string): number | null {
     if (pathname !== "/checkout") {
       try { window.sessionStorage.removeItem("bnt-meta-checkout"); } catch {}
     }
-    window.fbq("trackSingle", process.env.NEXT_PUBLIC_META_PIXEL_ID, "PageView");
+    track("PageView", {}, newMetaEventId(), { pageView: true });
     window.__META_PIXEL_LAST_PATHNAME__ = pathname;
     window.__META_PAGEVIEW_SEQUENCE__ = (window.__META_PAGEVIEW_SEQUENCE__ || 0) + 1;
   }
@@ -58,8 +60,74 @@ function whenReady(execute: () => void): void | (() => void) {
   return cleanup;
 }
 
-function track(event: string, data: Record<string, unknown>, eventID?: string) {
-  window.fbq?.("trackSingle", process.env.NEXT_PUBLIC_META_PIXEL_ID, event, data, ...(eventID ? [{ eventID }] : []));
+const KNOWN_CUSTOMER_KEY = "bnt-meta-match";
+
+/**
+ * Hashes only (never the raw email or phone) of a visitor who has typed them.
+ * New values are merged with what was stored, so entering a phone later never
+ * erases an email entered earlier. Only stored with advertising consent.
+ */
+export function rememberMetaCustomer(customer: MetaCustomer): void {
+  if (!canSendMetaBrowserEvents()) return;
+  const { em, ph } = buildMetaHashedCustomer(customer);
+  if (!em && !ph) return;
+  try {
+    const next = { ...knownMetaCustomer(), ...(em ? { em } : {}), ...(ph ? { ph } : {}) };
+    window.localStorage.setItem(KNOWN_CUSTOMER_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+export function knownMetaCustomer(): { em?: string; ph?: string } {
+  try {
+    const row = JSON.parse(window.localStorage.getItem(KNOWN_CUSTOMER_KEY) || "{}");
+    const ok = (v: unknown) => typeof v === "string" && /^[a-f0-9]{64}$/.test(v);
+    return { ...(ok(row.em) ? { em: row.em } : {}), ...(ok(row.ph) ? { ph: row.ph } : {}) };
+  } catch { return {}; }
+}
+
+type ServerCopy = { eventName: string; eventId: string; productIds?: string[]; value?: number; numItems?: number };
+
+/**
+ * Send the server (Conversions API) copy with the SAME eventId as the pixel call.
+ * The first PageView waits briefly for the pixel's _fbp cookie so the server copy
+ * can carry it.
+ */
+function mirrorToServer(copy: ServerCopy): void {
+  const send = () => {
+    try {
+      window.fetch?.("/api/meta/events", {
+        method: "POST", keepalive: true, headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...copy, consent: readCookieConsent(),
+          pageUrl: `${window.location.origin}${window.location.pathname}`, ...knownMetaCustomer(),
+        }),
+      })?.catch(() => {});
+    } catch { /* tracking must never break the page */ }
+  };
+  let tries = 0;
+  const wait = () => {
+    if (!/(?:^|;\s*)_fbp=/.test(document.cookie) && tries++ < 5) { window.setTimeout(wait, 200); return; }
+    send();
+  };
+  if (typeof document === "undefined" || typeof window.setTimeout !== "function") return send();
+  wait();
+}
+
+function track(
+  event: string, data: Record<string, unknown>, eventID: string,
+  options: { pageView?: boolean } = {},
+) {
+  window.fbq?.("trackSingle", process.env.NEXT_PUBLIC_META_PIXEL_ID, event, data, { eventID });
+  if (event === "Purchase") return; // Purchase has its own database-backed server copy.
+  const productIds = Array.isArray(data.content_ids) ? (data.content_ids as string[]) : undefined;
+  mirrorToServer({
+    eventName: event, eventId: eventID,
+    ...(options.pageView ? {} : {
+      value: typeof data.value === "number" ? data.value : 0,
+      ...(productIds ? { productIds } : {}),
+      ...(typeof data.num_items === "number" ? { numItems: data.num_items } : {}),
+    }),
+  });
 }
 
 export function trackMetaViewContent(input: { productId?: string; name?: string; price?: number; category?: string; available?: boolean }): void | (() => void) {
@@ -70,7 +138,7 @@ export function trackMetaViewContent(input: { productId?: string; name?: string;
     if (!sequence) return;
     const key = `${sequence}:${input.productId}`;
     if (window.__META_VIEWCONTENT_LAST_KEY__ === key) return;
-    track("ViewContent", { ...data, content_name: input.name, ...(input.category ? { content_category: input.category } : {}) });
+    track("ViewContent", { ...data, content_name: input.name, ...(input.category ? { content_category: input.category } : {}) }, newMetaEventId());
     window.__META_VIEWCONTENT_LAST_KEY__ = key;
   });
 }
@@ -78,7 +146,7 @@ export function trackMetaViewContent(input: { productId?: string; name?: string;
 export function trackMetaAddToCart(input: { productId?: string; name?: string; price?: number; quantity?: number }): void {
   const data = metaCommerceData([{ ...input, price: input.price!, quantity: input.quantity! }], input.price! * input.quantity!);
   if (!data || !input.name?.trim()) return;
-  whenReady(() => track("AddToCart", { ...data, content_name: input.name }));
+  whenReady(() => track("AddToCart", { ...data, content_name: input.name }, newMetaEventId()));
 }
 
 export function trackMetaInitiateCheckout(input: { items: MetaItem[]; value: number }): void | (() => void) {
@@ -97,7 +165,7 @@ export function trackMetaInitiateCheckout(input: { items: MetaItem[]; value: num
     } catch {
       // Same-document sequence still prevents rerender duplicates.
     }
-    track("InitiateCheckout", data);
+    track("InitiateCheckout", data, newMetaEventId());
     window.__META_INITIATECHECKOUT_LAST_SEQUENCE__ = sequence;
   });
 }
@@ -117,8 +185,10 @@ export async function trackMetaPurchase(input: { orderId: string; items: MetaIte
         if (window.localStorage.getItem(key) !== "1") return;
       } catch { return; }
       try {
-        const matching = buildMetaHashedCustomer(input.customer ?? {});
-        if (matching.em || matching.ph) window.fbq?.("init", process.env.NEXT_PUBLIC_META_PIXEL_ID, matching);
+        if (input.customer) rememberMetaCustomer(input.customer);
+        // Each value is hashed exactly once here; an existing digest is never hashed again.
+        const matching = { ...knownMetaCustomer(), ...buildMetaHashedCustomer(input.customer ?? {}) };
+        if (Object.keys(matching).length) window.fbq?.("init", process.env.NEXT_PUBLIC_META_PIXEL_ID, matching);
         track("Purchase", { ...data, order_id: id }, id);
       }
       catch {

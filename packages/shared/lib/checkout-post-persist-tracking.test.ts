@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { legacyConsentPolicy } from "./test-support/consent-required";
 import { test } from "node:test";
 import { effectiveCheckoutTrackingConsent } from "./checkout-tracking-consent";
 
-test("GPC and DNT override stored marketing consent for all post-order tracking", () => {
+test("GPC and DNT override stored marketing consent for all post-order tracking", (t) => {
+  legacyConsentPolicy(t);
   const request = (headers: Record<string, string>) => new Request("https://buyntryy.com/api/checkout", { headers });
   assert.equal(effectiveCheckoutTrackingConsent({ request: request({ "sec-gpc": "1" }), consent: "all" }), "essential");
   assert.equal(effectiveCheckoutTrackingConsent({ request: request({ dnt: "1" }), consent: "all" }), "essential");

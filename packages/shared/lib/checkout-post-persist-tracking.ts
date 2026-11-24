@@ -3,8 +3,8 @@ import type { CheckoutPostPersistInput } from "@/lib/checkout-post-persist-contr
 import { attachOrderAttribution } from "@/lib/db/order-attribution";
 import { processMetaPurchaseOutboxForOrder } from "@/lib/meta-purchase-outbox";
 import { trackTikTokServerPurchase } from "@/lib/tiktok-events-api";
-import { effectiveCheckoutTrackingConsent } from "@/lib/checkout-tracking-consent";
-import { allowsAdvertising } from "@/lib/cookie-consent";
+import { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed } from "@/lib/checkout-tracking-consent";
+import { advertisingTrackingAllowed } from "@/lib/tracking-policy";
 
 export async function runCheckoutTracking(
   input: CheckoutPostPersistInput,
@@ -14,7 +14,7 @@ export async function runCheckoutTracking(
   if (input.isDemo) return;
   const consent = effectiveCheckoutTrackingConsent(input);
   // Meta starts before attribution storage or TikTok; those cannot delay it.
-  const metaDelivery = allowsAdvertising(consent)
+  const metaDelivery = metaCheckoutTrackingAllowed(input)
     ? processMetaPurchaseOutboxForOrder(input.orderId).catch(() => {
       console.error("[meta-outbox] immediate delivery failed");
     })
@@ -22,7 +22,7 @@ export async function runCheckoutTracking(
 
   let ttclid: string | null = null;
   try {
-    const snapshot = allowsAdvertising(consent) ? await attachOrderAttribution(
+    const snapshot = advertisingTrackingAllowed(consent) ? await attachOrderAttribution(
       input.orderId,
       input.request,
       input.body,

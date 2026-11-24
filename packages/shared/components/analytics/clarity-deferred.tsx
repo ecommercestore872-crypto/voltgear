@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import { COOKIE_CONSENT_CHANGE_EVENT, COOKIE_CONSENT_STORAGE_KEY, allowsAnalytics, parseCookieConsent, readCookieConsent, type CookieConsentChoice } from "@/lib/cookie-consent";
+import { COOKIE_CONSENT_CHANGE_EVENT, COOKIE_CONSENT_STORAGE_KEY, parseCookieConsent, readCookieConsent, type CookieConsentChoice } from "@/lib/cookie-consent";
+import { analyticsTrackingAllowed } from "@/lib/tracking-policy";
 import { shouldLoadClarity } from "@/lib/clarity-rules";
 
 function readConsent(): CookieConsentChoice | null {
@@ -39,7 +40,7 @@ export function ClarityDeferred({
   }, []);
 
   useEffect(() => {
-    if (!allowsAnalytics(consent)) return;
+    if (!analyticsTrackingAllowed(consent)) return;
     if (
       !shouldLoadClarity({
         id: projectId,
