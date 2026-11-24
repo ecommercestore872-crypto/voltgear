@@ -13,6 +13,8 @@ function emptyBlock(type: ContentBlock["_type"]): ContentBlock {
   if (type === "list") return { _type: "list", type: "bullet", items: [""] };
   if (type === "faq")
     return { _type: "faq", items: [{ question: "", answer: "" }] };
+  if (type === "comparison")
+    return { _type: "comparison", heading: "", category: "", productSlugs: [] };
   if (type === "callout") return { _type: "callout", title: "", text: "" };
   if (type === "cta")
     return { _type: "cta", label: "Shop the collection", href: "/products" };
@@ -49,6 +51,7 @@ export function BlogSectionEditor({
               ["heading", "Heading"],
               ["list", "List"],
               ["faq", "FAQ"],
+              ["comparison", "Product comparison"],
               ["callout", "Callout"],
               ["cta", "Shop button"],
             ] as const
@@ -182,6 +185,29 @@ export function BlogSectionEditor({
                   onChange={(e) =>
                     update(index, { ...block, text: e.target.value })
                   }
+                />
+              </div>
+            ) : null}
+
+            {block._type === "comparison" ? (
+              <div className="space-y-2">
+                <Input
+                  value={block.heading ?? ""}
+                  onChange={(e) => update(index, { ...block, heading: e.target.value })}
+                  placeholder="Table heading"
+                />
+                <Input
+                  value={block.category ?? ""}
+                  onChange={(e) => update(index, { ...block, category: e.target.value })}
+                  placeholder="Category slug for the link, e.g. earbuds"
+                />
+                <Textarea
+                  rows={3}
+                  value={(block.productSlugs ?? []).join("\n")}
+                  onChange={(e) =>
+                    update(index, { ...block, productSlugs: e.target.value.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean) })
+                  }
+                  placeholder="One live product slug per line (max 6). Prices and specs come from the catalog."
                 />
               </div>
             ) : null}

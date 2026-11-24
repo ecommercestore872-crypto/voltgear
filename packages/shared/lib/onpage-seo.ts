@@ -108,3 +108,26 @@ export function cityMetaDescription(intro: string | undefined, fallback: string)
   if (!text) return fallback;
   return text.length <= 160 ? text : `${text.slice(0, 157).trimEnd()}...`;
 }
+
+/** Spec labels shown as table rows: those present on at least one product, in first-seen order. */
+export function comparisonSpecLabels(
+  products: { specifications?: { label: string; value: string }[] }[],
+  max = 8,
+): string[] {
+  const seen = new Map<string, string>();
+  for (const p of products) {
+    for (const s of p.specifications ?? []) {
+      const label = cleanText(s?.label);
+      if (label && cleanText(s?.value) && !seen.has(label.toLowerCase())) seen.set(label.toLowerCase(), label);
+    }
+  }
+  return [...seen.values()].slice(0, max);
+}
+
+export function comparisonSpecValue(
+  product: { specifications?: { label: string; value: string }[] },
+  label: string,
+): string | undefined {
+  const hit = (product.specifications ?? []).find((s) => s.label?.trim().toLowerCase() === label.toLowerCase());
+  return cleanText(hit?.value);
+}

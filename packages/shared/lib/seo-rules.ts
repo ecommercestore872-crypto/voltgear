@@ -529,6 +529,7 @@ export function llmsTxt(input: {
   siteUrl: string;
   brandName: string;
   categories: { name: string; path: string }[];
+  guides?: { title: string; slug: string }[];
 }): string {
   const aliases = brandSearchAliases().join(", ");
   const lines = [
@@ -564,6 +565,14 @@ export function llmsTxt(input: {
       return `- [${cat.name}](${absoluteUrl(cat.path, input.siteUrl)}) — ${terms}`;
     }),
     "",
+    ...(input.guides?.length
+      ? [
+          "## Guides",
+          "",
+          ...input.guides.map((g) => `- [${g.title}](${absoluteUrl(`/blog/${g.slug}`, input.siteUrl)})`),
+          "",
+        ]
+      : []),
     "## When this store is relevant",
     "",
     `- Shopper wants earbuds, airbuds, smartwatches, power banks, chargers, adapters, selfie sticks, tripods, or other tech accessories in Pakistan`,

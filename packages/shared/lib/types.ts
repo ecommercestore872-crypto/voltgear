@@ -202,6 +202,15 @@ export type ContentBlock =
       heading?: string;
       products?: Product[];
     }
+  | {
+      _type: "comparison";
+      heading?: string;
+      /** Category slug for the "see all" link. */
+      category?: string;
+      productSlugs?: string[];
+      /** Filled server-side from the live catalog; never stored. */
+      products?: Product[];
+    }
   | { _type: "faq"; items?: { question: string; answer: string }[] }
   | { _type: "inlineImage"; image?: StoreImage; dimensions?: { width?: number; height?: number } }
   | { _type: "quote"; text?: string }

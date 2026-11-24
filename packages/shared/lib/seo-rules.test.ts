@@ -233,7 +233,9 @@ describe("llmsTxt", () => {
       siteUrl: "https://buyntryy.com",
       brandName: "Buy n Try",
       categories: [{ name: "Earbuds & Handsfree", path: "/products/earbuds" }],
+      guides: [{ title: "Guide One", slug: "guide-one" }],
     });
+    assert.match(text, /\[Guide One\]\(https:\/\/buyntryy\.com\/blog\/guide-one\)/);
     assert.match(text, /Buy n Try/);
     assert.match(text, /buyntryy\.com/);
     assert.match(text, /\/products\/earbuds/);

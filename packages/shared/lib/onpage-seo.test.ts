@@ -64,3 +64,15 @@ describe("cityMetaDescription", () => {
     assert.equal(cityMetaDescription("a".repeat(200), "F").length, 160);
   });
 });
+
+import { comparisonSpecLabels, comparisonSpecValue } from "./onpage-seo";
+
+describe("comparison specs", () => {
+  const a = { specifications: [{ label: "Battery", value: "5000mAh" }, { label: "Empty", value: " " }] };
+  const b = { specifications: [{ label: "battery", value: "10000mAh" }, { label: "Weight", value: "200g" }] };
+  it("unions real labels case-insensitively and skips empty values", () => {
+    assert.deepEqual(comparisonSpecLabels([a, b]), ["Battery", "Weight"]);
+    assert.equal(comparisonSpecValue(b, "Battery"), "10000mAh");
+    assert.equal(comparisonSpecValue(a, "Weight"), undefined);
+  });
+});
