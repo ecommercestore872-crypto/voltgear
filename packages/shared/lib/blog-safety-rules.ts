@@ -1,9 +1,6 @@
 /**
- * Blog safety for accessibility, XSS, performance, and AdSense inventory.
+ * Blog safety for accessibility, XSS, performance, and content quality.
  *
- * @see https://support.google.com/adsense/answer/10502938 (valuable inventory)
- * @see https://support.google.com/adsense/answer/48182 (program policies / ad labels)
- * @see https://support.google.com/adsense/answer/1282097 (placement near content)
  * @see https://www.w3.org/WAI/WCAG22/quickref/ (alt text, contrast, names)
  */
 
@@ -49,7 +46,7 @@ function clipText(raw: unknown, max = MAX_TEXT): string {
 /**
  * Public blog bodies must stay plain, link-safe, and free of heavy/policy-risky blocks.
  * contactForm + relatedProducts are dropped: forms/product grids next to ads hurt
- * UX, Core Web Vitals, and AdSense placement clarity.
+ * UX, Core Web Vitals, and content clarity.
  */
 export function sanitizeBlogSections(blocks: ContentBlock[] | undefined): ContentBlock[] {
   if (!Array.isArray(blocks)) return [];
@@ -133,7 +130,7 @@ export type BlogInventoryInput = {
 };
 
 /**
- * AdSense wants original, useful pages — not thin stubs with a display unit.
+ * Readers want original, useful pages — not thin stubs with a display unit.
  */
 export function blogInventoryReadyForAds(
   doc: BlogInventoryInput

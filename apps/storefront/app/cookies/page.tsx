@@ -3,10 +3,6 @@ import Link from "next/link";
 
 import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
 import { CookieSettingsButton } from "@/components/legal/cookie-settings-button";
-import {
-  ADSENSE_ABOUTADS_URL,
-  ADSENSE_ADS_SETTINGS_URL,
-} from "@/lib/adsense-policy";
 import { SHOPPER_BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -39,30 +35,14 @@ export default function CookiesPage() {
         reject analytics.
       </p>
 
-      <h2>Optional advertising</h2>
+      <h2>Advertising measurement</h2>
       <p>
-        If you allow advertising, Meta and TikTok may measure shopping events,
-        and Google AdSense may show ads. Without advertising permission, these
-        services stay off. If Google AdSense is connected, Google and its
-        partners may use cookies to serve ads based on visits to this site and
-        other sites. You can opt
-        out of personalized ads in{" "}
-        <a
-          href={ADSENSE_ADS_SETTINGS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Google Ads Settings
-        </a>{" "}
-        or at{" "}
-        <a
-          href={ADSENSE_ABOUTADS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          www.aboutads.info
-        </a>
-        . See the advertising section of our{" "}
+        To measure whether our own ads lead to orders, Meta records shopping
+        events such as page views, product views and orders from your first
+        visit, without waiting for a choice. Choose Reject optional, or send
+        a Global Privacy Control signal from your browser, to turn it off.
+        TikTok measurement stays off until you allow advertising. See the
+        advertising section of our{" "}
         <Link href="/privacy-policy">privacy policy</Link>.
       </p>
 

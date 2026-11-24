@@ -8,7 +8,6 @@ import {
   CartEffectsClientOnly,
   ClarityClientOnly,
   CompareBarClientOnly,
-  AdSenseLoaderClientOnly,
   MetaPixelClientOnly,
   ReviewReminderClientOnly,
   ScrollToTopClientOnly,
@@ -23,10 +22,6 @@ import {
   organizationStructuredData,
   websiteStructuredData,
 } from "@/lib/seo-rules";
-import {
-  BUY_N_TRY_ADSENSE_PUB_ID,
-  adsenseHeadScriptSrc,
-} from "@/lib/adsense-policy";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { metaPixelHeadScript } from "@/lib/meta-pixel-head-script";
 import { metaEnvironmentAllowed } from "@/lib/meta-commerce";
@@ -133,16 +128,9 @@ export const metadata: Metadata = {
         : {}),
     },
   },
-  other: {
-    "google-adsense-account": BUY_N_TRY_ADSENSE_PUB_ID,
-  },
 };
 
 export const revalidate = 300;
-
-const ADSENSE_SCRIPT_SRC = adsenseHeadScriptSrc(
-  process.env.NEXT_PUBLIC_ADSENSE_PUB_ID,
-);
 
 export default async function RootLayout({
   children,
@@ -264,7 +252,6 @@ export default async function RootLayout({
         </AppChrome>
         {/* Not deferred: it must see consent changes and route changes immediately. */}
         <MetaPixelClientOnly />
-        <AdSenseLoaderClientOnly src={ADSENSE_SCRIPT_SRC} />
         <ClarityClientOnly projectId={CLARITY_ID} host={clarityHost} />
       </body>
     </html>

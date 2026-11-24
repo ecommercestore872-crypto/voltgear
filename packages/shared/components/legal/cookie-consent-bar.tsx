@@ -129,7 +129,7 @@ export function CookieConsentBar() {
     >
       <h2 id="cookie-consent-title" className="text-sm font-bold">Your privacy choices</h2>
       <p id="cookie-consent-description" className="mt-1 text-xs leading-snug text-muted-foreground">
-        Necessary storage keeps the shop working. Optional analytics improves pages; advertising enables ads and purchase measurement.
+        Necessary storage keeps the shop working. Optional analytics improves pages. To measure our own ads, Meta records visits and orders from the start; choose Reject optional to turn that off.
       </p>
       {managing ? (
         <div className="mt-3 space-y-2">
@@ -140,7 +140,7 @@ export function CookieConsentBar() {
           </label>
           <label className="flex min-h-11 items-start gap-3 rounded-lg border border-border p-2 text-xs">
             <input type="checkbox" checked={advertising} onChange={(event) => setAdvertising(event.target.checked)} className="mt-1 h-4 w-4 accent-primary" />
-            <span><strong className="block">Advertising</strong><span className="text-muted-foreground">Allows Meta, TikTok and Google ad services and purchase measurement.</span></span>
+            <span><strong className="block">Advertising</strong><span className="text-muted-foreground">Meta and TikTok ad and order measurement. Meta measurement is on by default; untick this and save to turn it off.</span></span>
           </label>
           <button type="button" className={actionClass} onClick={() => save(consentFromPreferences(analytics, advertising))}>Save preferences</button>
           <button type="button" className="min-h-11 w-full rounded-lg text-xs underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onClick={leaveManage}>Back to choices</button>

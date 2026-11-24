@@ -127,12 +127,29 @@ test("head script fires PageView immediately with event_id shared with the serve
   assert.equal(win.__META_PIXEL_LAST_PATHNAME__, "/");
 });
 
-test("head script stays silent without consent, with privacy signals, or on excluded pages/hosts", () => {
-  for (const o of [{}, { consent: "essential" }, { consent: "analytics" }, { consent: "all", dnt: "1" },
+test("head script runs with no banner answer, but not after an explicit reject, with privacy signals, or on excluded pages/hosts", () => {
+  const fresh = runHead({});
+  assert.equal(fresh.win.fbq.queue.find((a: any) => a[0] === "trackSingle")[2], "PageView");
+  assert.equal(fresh.posts[0].body.consent, null);
+  for (const o of [{ consent: "essential" }, { consent: "analytics" }, { consent: "all", dnt: "1" },
     { consent: "all", path: "/order/BNT-1" }, { consent: "all", path: "/checkout", search: "?email=a@b.com" },
     { consent: "all", host: "preview.vercel.app" }]) {
     const { win, posts } = runHead(o);
     assert.equal(win.fbq, undefined, JSON.stringify(o));
     assert.equal(posts.length, 0);
   }
+});
+
+test("Meta needs no banner answer: unanswered runs; only an explicit reject or privacy signal stops it", async () => {
+  const { metaConsentAllows, canSendMetaServerEvent } = await import("./meta-consent");
+  for (const stored of [null, undefined, "", "garbage", "all", "advertising"]) assert.equal(metaConsentAllows(stored), true, String(stored));
+  for (const stored of ["essential", "analytics"]) assert.equal(metaConsentAllows(stored), false, stored);
+  assert.equal(canSendMetaServerEvent(null, new Headers()), true);
+  assert.equal(canSendMetaServerEvent(null, new Headers({ "sec-gpc": "1" })), false);
+  assert.equal(canSendMetaServerEvent("essential", new Headers()), false);
+  const ev = { eventName: "PageView", eventId: "evt-1234567890", pageUrl: "https://buyntryy.com/" };
+  assert.equal(parseBrowserMetaEvent({ ...ev, consent: null }, "https://buyntryy.com")?.consent, null);
+  assert.equal(parseBrowserMetaEvent({ ...ev }, "https://buyntryy.com")?.eventName, "PageView");
+  assert.equal(parseBrowserMetaEvent({ ...ev, consent: "essential" }, "https://buyntryy.com"), null);
+  assert.equal(parseBrowserMetaEvent({ ...ev, consent: "bogus" }, "https://buyntryy.com"), null);
 });

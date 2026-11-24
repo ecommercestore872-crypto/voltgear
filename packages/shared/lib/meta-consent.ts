@@ -1,4 +1,4 @@
-import { allowsAdvertising } from "./cookie-consent";
+import { allowsAdvertising, parseCookieConsent } from "./cookie-consent";
 
 export const META_CONSENT_STORAGE_KEY = "bnt-cookie-consent";
 
@@ -10,11 +10,21 @@ export function hasMetaPrivacyOptOut(input: {
     input.dnt === "1" || input.dnt?.toLowerCase() === "yes";
 }
 
+/**
+ * Meta measurement does not need the cookie banner to be answered. It runs
+ * unless the visitor explicitly saved a choice without advertising
+ * ("Reject optional" or analytics-only). No saved choice counts as allowed.
+ */
+export function metaConsentAllows(stored: unknown): boolean {
+  const choice = parseCookieConsent(stored);
+  return choice === null || allowsAdvertising(choice);
+}
+
 export function canSendMetaServerEvent(
   consent: string | null | undefined,
   headers: Headers,
 ): boolean {
-  return allowsAdvertising(consent) && !hasMetaPrivacyOptOut({
+  return metaConsentAllows(consent) && !hasMetaPrivacyOptOut({
     gpc: headers.get("sec-gpc"),
     dnt: headers.get("dnt"),
   });
@@ -27,7 +37,7 @@ export function canSendMetaBrowserEvent(): boolean {
       globalPrivacyControl?: boolean;
       msDoNotTrack?: string;
     };
-    return allowsAdvertising(window.localStorage.getItem(META_CONSENT_STORAGE_KEY)) &&
+    return metaConsentAllows(window.localStorage.getItem(META_CONSENT_STORAGE_KEY)) &&
       !hasMetaPrivacyOptOut({
         gpc: browser.globalPrivacyControl,
         dnt: browser.doNotTrack || browser.msDoNotTrack,

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AdsensePrivacyDisclosures } from "@/components/legal/adsense-privacy-disclosures";
 import {
   GadgetArticleShell,
   GadgetCmsSections,
@@ -20,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       page?.seo?.description ||
       page?.excerpt ||
-      "How Buy n Try collects, uses, and shares information, including Google advertising cookies.",
+      "How Buy n Try collects, uses, and shares information, including advertising measurement.",
     alternates: { canonical: "/privacy-policy" },
   };
 }
@@ -92,8 +91,10 @@ export default async function PrivacyPolicyPage() {
             Essential cookies remember your cart, checkout progress, and cookie
             choice. They are required for the shop to function. Analytics tools
             (if you allow them) measure which pages are used so we can fix broken
-            flows. Advertising services require a separate choice. You can
-            change either choice from Cookie settings in the footer. The shop
+            flows. Meta advertising measurement runs from your first visit unless you
+            choose Reject optional or send a Global Privacy Control signal;
+            TikTok measurement requires a separate choice. You can
+            change your choices from Cookie settings in the footer. The shop
             also counts consent choices without storing identifiers or page URLs
             in those counts. See our <Link href="/cookies">cookie policy</Link>.
           </p>
@@ -107,7 +108,6 @@ export default async function PrivacyPolicyPage() {
           </p>
         </div>
       )}
-      <AdsensePrivacyDisclosures />
     </GadgetArticleShell>
   );
 }

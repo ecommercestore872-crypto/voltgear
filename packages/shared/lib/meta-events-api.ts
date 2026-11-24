@@ -1,5 +1,5 @@
 import { isIP } from "node:net";
-import { allowsAdvertising } from "./cookie-consent";
+import { metaConsentAllows } from "./meta-consent";
 import { metaCommerceData, metaEnvironmentAllowed, type MetaItem } from "./meta-commerce";
 import { buildMetaHashedCustomer } from "./meta-matching";
 
@@ -103,7 +103,7 @@ export function buildMetaServerEventPayload(input: BrowserSignalInput) {
 
 /** One bounded attempt; the browser already counted the event, so no retry storm. */
 export async function trackMetaServerEvent(input: BrowserSignalInput & { consent?: string | null }): Promise<boolean> {
-  if (!allowsAdvertising(input.consent)) return false;
+  if (!metaConsentAllows(input.consent)) return false;
   const config = metaServerConfig();
   const version = process.env.META_GRAPH_API_VERSION || META_GRAPH_API_VERSION;
   if (config.skipReason || !/^v(2[4-6])\.0$/.test(version)) return false;

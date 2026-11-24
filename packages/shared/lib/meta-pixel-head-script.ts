@@ -14,7 +14,7 @@ export function metaPixelHeadScript(input: { pixelId: string; testMode: boolean 
   if (!/^\d{5,30}$/.test(input.pixelId)) return "";
   return `(function(w,d,id,test){try{
 var c=w.localStorage.getItem('bnt-cookie-consent');
-if(c!=='all'&&c!=='advertising')return;
+if(c!=='all'&&c!=='advertising'){if(c==='essential'||c==='analytics')return;c=null}
 var n=w.navigator,dnt=n.doNotTrack||n.msDoNotTrack;
 if(n.globalPrivacyControl===true||n.globalPrivacyControl==='1'||dnt==='1'||String(dnt).toLowerCase()==='yes')return;
 var l=w.location,p=l.pathname;

@@ -1,7 +1,6 @@
 import { buildCheckoutIdempotencyFingerprint } from "@/lib/checkout-idempotency";
 import { metaClientIp } from "@/lib/meta-ip";
-import { effectiveCheckoutTrackingConsent } from "@/lib/checkout-tracking-consent";
-import { allowsAdvertising } from "@/lib/cookie-consent";
+import { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed } from "@/lib/checkout-tracking-consent";
 import { readMetaCookieIds } from "@/lib/checkout-tracking-rules";
 import { buildMetaServerPurchasePayload } from "@/lib/meta-events-api";
 import {
@@ -26,7 +25,7 @@ export async function persistCheckoutOrder(
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const orderId = await nextPublicOrderId();
-    const eligible = !order.isDemo && tracking && allowsAdvertising(effectiveCheckoutTrackingConsent(tracking));
+    const eligible = !order.isDemo && tracking && metaCheckoutTrackingAllowed(tracking);
     const { fbp, fbc, externalId } = eligible ? readMetaCookieIds(tracking.request.headers.get("cookie") ?? "") : {};
     const metaPayload = eligible ? buildMetaServerPurchasePayload({
       orderId, value: order.total,

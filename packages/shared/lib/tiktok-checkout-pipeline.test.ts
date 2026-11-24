@@ -8,7 +8,7 @@ import { trackTikTokServerPurchase } from "./tiktok-events-api";
 import { acceptedTikTokPurchase } from "./tiktok-checkout-result";
 import { deferAfterResponse } from "./defer-after-response";
 import { checkoutReplayMatches } from "./checkout-replay-rules";
-import { effectiveCheckoutTrackingConsent } from "./checkout-tracking-consent";
+import { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed } from "./checkout-tracking-consent";
 import { allowsAdvertising } from "./cookie-consent";
 
 function load(source: URL, dependencies: Record<string, unknown>) {
@@ -111,7 +111,7 @@ describe("actual checkout route → post-persist tracking → Events API", () =>
         "@/lib/db/order-attribution": { attachOrderAttribution: async () => { attributionWrites++; return { attrib_ttclid: "QA-CLICK" }; } },
         "@/lib/meta-purchase-outbox": { processMetaPurchaseOutboxForOrder: async () => {} },
         "@/lib/tiktok-events-api": { trackTikTokServerPurchase },
-        "@/lib/checkout-tracking-consent": { effectiveCheckoutTrackingConsent },
+        "@/lib/checkout-tracking-consent": { effectiveCheckoutTrackingConsent, metaCheckoutTrackingAllowed },
         "@/lib/cookie-consent": { allowsAdvertising },
       });
       const route = load(new URL("../../../apps/storefront/app/api/checkout/route.ts", import.meta.url), {

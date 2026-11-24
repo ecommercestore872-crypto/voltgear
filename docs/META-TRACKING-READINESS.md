@@ -248,3 +248,19 @@ remain operator gates. The bounded-delivery limitation above remains explicit.
   (`bnt-meta-match`) and added to every later browser and server event.
 - **Meta's built-in "Conversions API with Meta" connection** sends its own Purchase events with
   different IDs and cannot be deduplicated by this code. Disconnect it in Events Manager.
+
+## Update: Meta tracking no longer waits for the cookie banner; AdSense removed
+
+- **Consent rule (owner decision).** Meta tracking (browser pixel and server copies) starts on the
+  visitor's first page load without any banner answer. It stays off only when the visitor
+  explicitly saved "Reject optional" / analytics-only, or their browser sends a Global Privacy
+  Control or Do Not Track signal. TikTok, Clarity and order-attribution storage still follow the
+  banner. The banner text and the cookie and privacy pages were updated to say this.
+- **AdSense removed completely:** loader, head script, `ads.txt`, `google-adsense-account` meta tag,
+  blog ad slot, privacy/cookie disclosures, robots rule, policy code, tests and env example lines.
+  The `NEXT_PUBLIC_ADSENSE_*` variables in Vercel can be deleted; nothing reads them.
+- **Browser test (headless Chromium, production-style pages, test pixel ID).** Fresh visitor: PageView,
+  ViewContent, AddToCart, InitiateCheckout each fire once; browser `eventID` equals the server copy's
+  `eventId`; `_fbp`, `_fbc` (from `fbclid`) and `bnt_xid` are present. "Reject optional" and
+  Global Privacy Control send nothing. Meta's real `fbevents.js` could not be loaded from the
+  sandbox, so a stand-in script that follows the same call rules was used.
