@@ -135,13 +135,15 @@ export function SaleCountdown({ endsAt, className = "" }: { endsAt: string; clas
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
-  if (now === null || new Date(endsAt).getTime() <= now) return null;
+  // Reserve the box (h-10) until mounted so the countdown appearing does not shift the page.
+  if (now === null) return <div className={`h-10 ${className}`} aria-hidden />;
+  if (new Date(endsAt).getTime() <= now) return null;
   const t = getTimeRemaining(endsAt);
   const hh = String(t.days * 24 + t.hours).padStart(2, "0");
   const pad = (n: number) => String(n).padStart(2, "0");
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-lg bg-[var(--g-sale)] px-3.5 py-2.5 text-white ${className}`}
+      className={`flex h-10 items-center justify-between gap-3 rounded-lg bg-[var(--g-sale)] px-3.5 text-white ${className}`}
       role="timer"
     >
       <span className="text-sm font-semibold">Sale ends in</span>

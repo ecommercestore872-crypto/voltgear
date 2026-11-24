@@ -3,7 +3,7 @@ import { BadgeCheck, Box, Check } from "lucide-react";
 import { FAQAccordion } from "@/components/sections/faq-accordion";
 import { RichText } from "@/components/product/rich-text";
 import { StarRating } from "@/components/product/star-rating";
-import { ReviewForm } from "@/components/product/review-form";
+import { ReviewFormLazy } from "@/components/product/review-form-lazy";
 import { galleryVideoForProduct } from "@/lib/product-gallery-video";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product, ProductReview } from "@/lib/types";
@@ -316,7 +316,7 @@ export function ReviewsSection({
       )}
 
       <div id="write-review" className="mt-8 scroll-mt-24">
-        <ReviewForm slug={product.slug} />
+        <ReviewFormLazy slug={product.slug} />
       </div>
     </section>
   );
