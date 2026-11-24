@@ -306,6 +306,10 @@ export function GadgetBuyBox({
             ) : null}
           </div>
 
+          {product.freeShipping ? (
+            <p className="mt-2 text-sm font-medium text-[var(--g-charcoal)]">Free delivery</p>
+          ) : null}
+
           <GadgetPdpTrustRow config={config} />
 
           <div id="gadget-buy-options">

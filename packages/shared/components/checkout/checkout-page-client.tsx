@@ -207,11 +207,11 @@ export default function CheckoutPageClient() {
 
   const GIFT_WRAP_FEE = 199;
 
-  const hasFreeShippingItem = items.some((item) => item.freeShipping);
+  const allFreeShipping = items.length > 0 && items.every((item) => item.freeShipping);
   const baseShipping =
     merchandise === 0 ||
     merchandise >= config.freeShippingThreshold ||
-    hasFreeShippingItem
+    allFreeShipping
       ? 0
       : config.shippingFee;
   const promoStacks = !(dealDiscount > 0);

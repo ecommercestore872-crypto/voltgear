@@ -1,5 +1,5 @@
 import { fetchProductBySlug, fetchSiteSettings } from "@/lib/db/store";
-import { normalizeSettings } from "@/lib/site-config";
+import { isShippingFree, normalizeSettings } from "@/lib/site-config";
 import { getStockState } from "@/lib/stock";
 import { decideStockAction } from "@/lib/db/stock-rules";
 import type { OrderItem, Product, ProductVariant, SiteSettings } from "@/lib/types";
@@ -60,6 +60,8 @@ export interface ResolvedCheckout {
   subtotal: number;
   shipping: number;
   total: number;
+  /** True when every line is a free-shipping product. */
+  allFreeShipping: boolean;
 }
 
 export interface CheckoutResolution {
@@ -128,7 +130,7 @@ export async function resolveCheckout(
   const lines: ResolvedOrderItem[] = [];
   const mismatched: PriceMismatch[] = [];
   let subtotal = 0;
-  let hasFreeShippingItem = false;
+  let allFreeShipping = items.length > 0;
 
   for (const line of items) {
     const slug = typeof line.slug === "string" ? line.slug.trim() : "";
@@ -172,9 +174,7 @@ export async function resolveCheckout(
       return { ok: false, error: CHECKOUT_ERRORS.unavailable };
     }
 
-    if (product.freeShipping) {
-      hasFreeShippingItem = true;
-    }
+    if (!product.freeShipping) allFreeShipping = false;
 
     const variants = product.variants ?? [];
     const variantKey = typeof line.variantKey === "string" ? line.variantKey : undefined;
@@ -256,8 +256,8 @@ export async function resolveCheckout(
     });
   }
 
-  const { shipping, total } = await resolveShippingAndTotal(subtotal, giftWrap, hasFreeShippingItem);
-  const checkout: ResolvedCheckout = { lines, subtotal, shipping, total };
+  const { shipping, total } = await resolveShippingAndTotal(subtotal, giftWrap, allFreeShipping);
+  const checkout: ResolvedCheckout = { lines, subtotal, shipping, total, allFreeShipping };
 
   if (mismatched.length > 0) {
     return { ok: "price_changed", items: mismatched, checkout };
@@ -272,7 +272,7 @@ export async function resolveCheckout(
 export async function resolveShippingAndTotal(
   subtotal: number,
   giftWrap: boolean,
-  hasFreeShippingItem: boolean = false
+  allFreeShipping: boolean = false
 ): Promise<{ shipping: number; total: number }> {
   let settings: SiteSettings | null = null;
   try {
@@ -281,8 +281,9 @@ export async function resolveShippingAndTotal(
     settings = null;
   }
   const config = normalizeSettings(settings);
-  const shipping =
-    subtotal >= config.freeShippingThreshold || hasFreeShippingItem ? 0 : config.shippingFee;
+  const shipping = isShippingFree(subtotal, config.freeShippingThreshold, allFreeShipping)
+    ? 0
+    : config.shippingFee;
   const total = Math.round((subtotal + shipping + (giftWrap ? GIFT_WRAP_FEE : 0)) * 100) / 100;
   return { shipping, total };
 }
