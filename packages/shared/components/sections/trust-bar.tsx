@@ -14,8 +14,8 @@ export function TrustBar() {
     },
     {
       icon: ShieldCheck,
-      label: "Inspect at the door",
-      sub: "Open before you pay",
+      label: "Order tracking",
+      sub: "Track after ordering",
     },
     {
       icon: Lock,
