@@ -225,3 +225,20 @@ deduplication are verified. No actual Meta API acceptance, Events Manager receip
 or Meta-recognized deduplication is claimed. Token/configuration, asset ownership,
 ad-account sharing, hosted deployment mapping and publication/deployment approval
 remain operator gates. The bounded-delivery limitation above remains explicit.
+
+## Update: early pixel and server copies of every event
+
+- **Early pixel.** `lib/meta-pixel-head-script.ts` is rendered in `<head>` by `app/layout.tsx`.
+  For visitors who already accepted advertising cookies it starts the pixel and sends
+  PageView before React hydrates (previously up to ~5 s later, via an idle-deferred
+  component). New visitors are still handled by `components/analytics/meta-pixel.tsx` the
+  moment they accept the banner. No consent, no Meta request.
+- **Same event_id on both sides.** PageView, ViewContent, AddToCart and InitiateCheckout now
+  carry a random `eventID` in the browser pixel call and POST the same ID to
+  `/api/meta/events`, which forwards a Conversions API copy. Purchase keeps using the order ID
+  and the database outbox (unique per order).
+- **Matching data on server events:** `fbp`, `fbc`, `external_id` (first-party `bnt_xid`
+  cookie, hashed), client IP, user agent, and hashed email/phone when the visitor has ordered
+  before (`bnt-meta-match` holds hashes only). Purchase also sends hashed email/phone.
+- **Token.** `META_CONVERSIONS_API_ACCESS_TOKEN` is read from the environment only.
+- `trackMetaServerPurchase` is a legacy direct sender; production uses the outbox. Never call both.

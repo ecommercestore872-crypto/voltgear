@@ -13,7 +13,7 @@ type PurchaseInput = {
   eventTime?: number; email?: string; phone?: string;
   fullName?: string; city?: string; postalCode?: string; country?: string;
   clientIp?: string; userAgent?: string;
-  eventSourceUrl?: string; fbp?: string; fbc?: string;
+  eventSourceUrl?: string; fbp?: string; fbc?: string; externalId?: string;
 };
 
 /** Normalized PII only enters hashed user_data; URLs never carry customer data. */
@@ -27,7 +27,7 @@ export function buildMetaServerPurchasePayload(input: PurchaseInput) {
   const hashed = buildMetaHashedCustomer({
     email: email && !email.endsWith("@orders.buyntryy.com") && email.length <= 254 ? email : undefined,
     phone: input.phone, fullName: input.fullName, city: input.city,
-    postalCode: input.postalCode, country: input.country,
+    postalCode: input.postalCode, country: input.country, externalId: input.externalId,
   });
   const user: Record<string, string | string[]> = Object.fromEntries(
     Object.entries(hashed).map(([key, value]) => [key, [value]]),
@@ -36,7 +36,7 @@ export function buildMetaServerPurchasePayload(input: PurchaseInput) {
   if (input.userAgent) user.client_user_agent = input.userAgent.slice(0, 1024);
   if (validMetaCookie(input.fbp)) user.fbp = input.fbp!;
   if (validMetaCookie(input.fbc)) user.fbc = input.fbc!;
-  if (!["em", "ph", "fbp", "fbc", "client_ip_address"].some((key) => key in user)) return null;
+  if (!["em", "ph", "fbp", "fbc", "external_id", "client_ip_address"].some((key) => key in user)) return null;
   return { data: [{
     event_name: "Purchase", event_time: eventTime, action_source: "website",
     event_id: id, event_source_url: "https://buyntryy.com/checkout",
@@ -44,16 +44,11 @@ export function buildMetaServerPurchasePayload(input: PurchaseInput) {
   }] };
 }
 
-export function validMetaCookie(value?: string): boolean {
-  return typeof value === "string" && value.length <= 512 && /^fb\.\d+\.\d{10,16}\.[A-Za-z0-9_-]+$/.test(value);
-}
-
-/** Two bounded attempts. Every retry reuses the exact event ID/time/body. */
-export async function trackMetaServerPurchase(input: PurchaseInput): Promise<void> {
-  const orderId = input.orderId;
-  if (!allowsAdvertising(input.consent)) {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_consent", orderId }); return;
-  }
+/**
+ * One place that decides whether the server may talk to Meta. The access token
+ * is read from the environment only; it is never written into source code.
+ */
+function metaServerConfig() {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const token = process.env.META_CONVERSIONS_API_ACCESS_TOKEN;
   const testMode = process.env.NEXT_PUBLIC_META_TEST_MODE;
@@ -62,14 +57,91 @@ export async function trackMetaServerPurchase(input: PurchaseInput): Promise<voi
   const pixelAllowed = metaEnvironmentAllowed({
     pixelId, testMode, vercelEnv: process.env.VERCEL_ENV, host: "buyntryy.com",
   });
-  const skipReason = !token ? "missing_token" :
-    environmentBlocked ? "environment_blocked" :
-    process.env.NEXT_PUBLIC_META_PIXEL_ENABLED === "false" ? "pixel_disabled" :
-    !pixelAllowed ? "pixel_configuration" :
+  const skipReason = !token ? "missing_token" as const :
+    environmentBlocked ? "environment_blocked" as const :
+    process.env.NEXT_PUBLIC_META_PIXEL_ENABLED === "false" ? "pixel_disabled" as const :
+    !pixelAllowed ? "pixel_configuration" as const :
     (testMode === "true" && !process.env.META_TEST_EVENT_CODE) ||
-    (testMode !== "true" && process.env.META_TEST_EVENT_CODE) ? "test_code_configuration" : null;
-  if (skipReason) {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_config", orderId, reason: skipReason }); return;
+    (testMode !== "true" && process.env.META_TEST_EVENT_CODE) ? "test_code_configuration" as const : null;
+  return { pixelId, token, testMode, skipReason };
+}
+
+type BrowserSignalInput = {
+  eventName: Exclude<MetaEventName, "Purchase">; eventId: string; pageUrl: string;
+  customData?: Record<string, unknown>; eventTime?: number;
+  clientIp?: string; userAgent?: string; fbp?: string; fbc?: string; externalId?: string;
+  /** SHA-256 hex of the normalized email / phone, when the visitor is already known. */
+  emHash?: string; phHash?: string;
+};
+
+const SHA256_HEX = /^[a-f0-9]{64}$/;
+
+/**
+ * PageView / ViewContent / AddToCart / InitiateCheckout copy of a browser event.
+ * `event_id` is the exact ID the browser pixel used, so Meta merges the pair.
+ * Customer details are only ever sent hashed.
+ */
+export function buildMetaServerEventPayload(input: BrowserSignalInput) {
+  const eventTime = input.eventTime ?? Math.floor(Date.now() / 1000);
+  if (!/^[A-Za-z0-9_-]{10,100}$/.test(input.eventId) || !input.pageUrl.startsWith("https://")) return null;
+  const hashed = buildMetaHashedCustomer({ externalId: input.externalId });
+  const user: Record<string, string | string[]> = Object.fromEntries(
+    Object.entries(hashed).map(([key, value]) => [key, [value]]),
+  );
+  if (input.emHash && SHA256_HEX.test(input.emHash)) user.em = [input.emHash];
+  if (input.phHash && SHA256_HEX.test(input.phHash)) user.ph = [input.phHash];
+  if (input.clientIp && isIP(input.clientIp)) user.client_ip_address = input.clientIp;
+  if (input.userAgent) user.client_user_agent = input.userAgent.slice(0, 1024);
+  if (validMetaCookie(input.fbp)) user.fbp = input.fbp!;
+  if (validMetaCookie(input.fbc)) user.fbc = input.fbc!;
+  if (!["em", "ph", "fbp", "fbc", "external_id", "client_ip_address"].some((key) => key in user)) return null;
+  return { data: [{
+    event_name: input.eventName, event_time: eventTime, action_source: "website",
+    event_id: input.eventId, event_source_url: input.pageUrl,
+    user_data: user, ...(input.customData ? { custom_data: input.customData } : {}),
+  }] };
+}
+
+/** One bounded attempt; the browser already counted the event, so no retry storm. */
+export async function trackMetaServerEvent(input: BrowserSignalInput & { consent?: string | null }): Promise<boolean> {
+  if (!allowsAdvertising(input.consent)) return false;
+  const config = metaServerConfig();
+  const version = process.env.META_GRAPH_API_VERSION || META_GRAPH_API_VERSION;
+  if (config.skipReason || !/^v(2[4-6])\.0$/.test(version)) return false;
+  const body = buildMetaServerEventPayload(input);
+  if (!body) return false;
+  try {
+    const res = await fetch(`https://graph.facebook.com/${version}/${config.pixelId}/events`, {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${config.token}` },
+      body: JSON.stringify({ ...body, ...(config.testMode === "true" ? { test_event_code: process.env.META_TEST_EVENT_CODE } : {}) }),
+      signal: AbortSignal.timeout(4000), cache: "no-store", redirect: "error",
+    });
+    const result = await res.json().catch(() => null) as { events_received?: number; error?: unknown } | null;
+    return res.ok && !result?.error && result?.events_received === 1;
+  } catch {
+    // Never log request exceptions: they can embed tokens or user_data.
+    return false;
+  }
+}
+
+export function validMetaCookie(value?: string): boolean {
+  return typeof value === "string" && value.length <= 512 && /^fb\.\d+\.\d{10,16}\.[A-Za-z0-9_-]+$/.test(value);
+}
+
+/**
+ * Legacy direct sender. Production Purchase delivery goes through the database
+ * outbox (meta-purchase-outbox.ts), which is unique per order. Do not call both
+ * for the same order. Two bounded attempts; retries reuse the exact event ID/time/body.
+ */
+export async function trackMetaServerPurchase(input: PurchaseInput): Promise<void> {
+  const orderId = input.orderId;
+  if (!allowsAdvertising(input.consent)) {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_consent", orderId }); return;
+  }
+  const config = metaServerConfig();
+  const { pixelId, token, testMode } = config;
+  if (config.skipReason) {
+    purchaseTrackLog({ channel: "meta", outcome: "skipped_config", orderId, reason: config.skipReason }); return;
   }
   const body = buildMetaServerPurchasePayload(input);
   const version = process.env.META_GRAPH_API_VERSION || META_GRAPH_API_VERSION;

@@ -28,6 +28,8 @@ import {
   adsenseHeadScriptSrc,
 } from "@/lib/adsense-policy";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
+import { metaPixelHeadScript } from "@/lib/meta-pixel-head-script";
+import { metaEnvironmentAllowed } from "@/lib/meta-commerce";
 import { localCatalogPreviewEnabled } from "@/lib/local-catalog-preview";
 import {
   loadStorefrontSettings,
@@ -163,6 +165,20 @@ export default async function RootLayout({
     clarityHost = "";
   }
 
+  // Meta pixel base code goes in <head> so PageView fires before hydration.
+  const metaTestMode = process.env.NEXT_PUBLIC_META_TEST_MODE === "true";
+  const metaHeadScript =
+    process.env.NEXT_PUBLIC_META_PIXEL_ENABLED !== "false" &&
+    (process.env.NODE_ENV !== "development" || metaTestMode) &&
+    metaEnvironmentAllowed({
+      pixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID,
+      testMode: process.env.NEXT_PUBLIC_META_TEST_MODE,
+      vercelEnv: process.env.NEXT_PUBLIC_VERCEL_ENV,
+      host: "buyntryy.com",
+    })
+      ? metaPixelHeadScript({ pixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID!, testMode: metaTestMode })
+      : "";
+
   const jsonLd = [
     websiteStructuredData({
       siteUrl: SITE_URL,
@@ -193,6 +209,9 @@ export default async function RootLayout({
         {brandVars && (
           <style dangerouslySetInnerHTML={{ __html: `:root{${brandVars}}` }} />
         )}
+        {metaHeadScript ? (
+          <script id="meta-pixel-base" dangerouslySetInnerHTML={{ __html: metaHeadScript }} />
+        ) : null}
         <script dangerouslySetInnerHTML={{ __html: themePreviewScript() }} />
         <script
           dangerouslySetInnerHTML={{
@@ -243,9 +262,8 @@ export default async function RootLayout({
           </DeferredUntilIdle>
           <Fragment key="page">{children}</Fragment>
         </AppChrome>
-        <DeferredUntilIdle timeoutMs={5500}>
-          <MetaPixelClientOnly />
-        </DeferredUntilIdle>
+        {/* Not deferred: it must see consent changes and route changes immediately. */}
+        <MetaPixelClientOnly />
         <AdSenseLoaderClientOnly src={ADSENSE_SCRIPT_SRC} />
         <ClarityClientOnly projectId={CLARITY_ID} host={clarityHost} />
       </body>
