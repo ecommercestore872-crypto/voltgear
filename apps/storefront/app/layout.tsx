@@ -1,3 +1,4 @@
+// diagnostic: baseline preview build of main (no functional change)
 import type { Metadata, Viewport } from "next";
 import { Fragment } from "react";
 import { AppChrome } from "@/components/layout/app-chrome";
