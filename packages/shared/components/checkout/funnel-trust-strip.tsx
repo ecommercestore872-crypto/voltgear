@@ -15,8 +15,8 @@ const ITEMS = [
   },
   {
     icon: PackageCheck,
-    label: "Inspect at the door",
-    sub: "Check before you pay",
+    label: "Order tracking",
+    sub: "Track after ordering",
   },
   {
     icon: MessageCircle,

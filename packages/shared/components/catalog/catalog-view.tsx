@@ -18,7 +18,6 @@ import {
   CheckCircle,
   Truck,
   LifeBuoy,
-  Banknote,
 } from "lucide-react";
 
 export interface CatalogViewProps {
@@ -201,7 +200,7 @@ export function CatalogView({
 
       {/* Bottom Global Trust Banner */}
       <div className="mt-16 w-full border-t pt-10 pb-4">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="flex items-center gap-3">
             <Truck className="h-6 w-6 text-primary" />
             <div>
@@ -215,15 +214,6 @@ export function CatalogView({
               <p className="text-sm font-bold">Pay on delivery</p>
               <p className="text-xs text-muted-foreground">
                 Cash when the courier arrives
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Banknote className="h-6 w-6 text-primary" />
-            <div>
-              <p className="text-sm font-bold">Inspect at the door</p>
-              <p className="text-xs text-muted-foreground">
-                Check the parcel before paying
               </p>
             </div>
           </div>
