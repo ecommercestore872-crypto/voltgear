@@ -38,6 +38,7 @@ export {
   fetchCatalogProducts,
   fetchCatalogProductsByCategory,
   fetchCatalogProductsBySlugs,
+  fetchCachedCatalogProductsBySlugs,
   fetchCatalogProductsShopOverview,
   fetchFeaturedByCategory,
   fetchHomeBestsellers,
