@@ -23,6 +23,7 @@ import type { ApprovedReviewStats } from "@/lib/product-review-stats";
 import type { PublicSiteConfig } from "@/lib/site-config";
 import { GadgetPdpTrustRow } from "@/components/gadget/gadget-pdp-trust-row";
 import type { Product, ProductVariant } from "@/lib/types";
+import { SaleCountdown } from "@/components/sections/urgency-ticker";
 import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { cn, formatPrice } from "@/lib/utils";
 import { imageUrl } from "@/lib/sanity/image";
@@ -287,6 +288,7 @@ export function GadgetBuyBox({
                 </span>
               ) : null}
             </div>
+            {product.saleEndsAt ? <SaleCountdown endsAt={product.saleEndsAt} className="mt-1" /> : null}
             <p
               className={cn(
                 "mt-1 text-sm font-semibold",

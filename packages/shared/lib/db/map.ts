@@ -15,6 +15,7 @@ import { parseChromeLinks } from "@/lib/chrome-nav-rules";
 import { parseOrderEmailConfig } from "@/lib/order-email-cms-rules";
 import { parseEmailSenderConfig } from "@/lib/email-sender-rules";
 import { mergeInvoiceTemplate } from "@/lib/invoice-template-rules";
+import { withSale } from "@/lib/product-sale-rules";
 import { parseVariantOptions } from "@/lib/variant-options-rules";
 import { textToPortableText } from "@/lib/product-detail-copy";
 import { normalizePageSeo } from "@/lib/blog-desk-rules";
@@ -45,7 +46,7 @@ function socialVideoUrlFromRow(
 
 export function mapProduct(
   row: Record<string, unknown> | null,
-  opts?: { includeDemoReviews?: boolean; storefront?: boolean }
+  opts?: { includeDemoReviews?: boolean; storefront?: boolean; rawSale?: boolean }
 ): Product | null {
   if (!row) return null;
   if (opts?.storefront && !shopVisible(row.status)) return null;
@@ -94,13 +95,15 @@ export function mapProduct(
     ? Number(row.quantity)
     : null;
 
-  return {
+  const product: Product = {
     _id: String(row.id),
     name: String(row.name ?? ""),
     slug: String(row.slug ?? ""),
     category: String(row.category || ""),
     price: mappedPrice,
     compareAtPrice: row.compare_at_price != null ? num(row.compare_at_price) : undefined,
+    salePrice: row.sale_price != null ? num(row.sale_price) : undefined,
+    saleEndsAt: row.sale_ends_at ? String(row.sale_ends_at) : undefined,
     images: images.length ? images : cloudinaryImages,
     cloudinaryImages,
     shortDescription: row.short_description ? String(row.short_description) : undefined,
@@ -148,6 +151,7 @@ export function mapProduct(
       ? (row.addons as Product["addons"])
       : undefined,
   };
+  return opts?.storefront && !opts.rawSale ? withSale(product, Date.now()) : product;
 }
 
 /** Long-form PDP fields — loaded below the fold, not in the shell query. */

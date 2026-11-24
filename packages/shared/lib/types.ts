@@ -62,6 +62,9 @@ export interface Product {
   category: ProductCategory;
   price: number;
   compareAtPrice?: number;
+  /** Sale price + end (ISO). Storefront reads apply it via withSale(); the admin sees them raw. */
+  salePrice?: number;
+  saleEndsAt?: string;
   images: StoreImage[];
   cloudinaryImages?: string[];
   shortDescription?: string;

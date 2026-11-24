@@ -38,6 +38,8 @@ export function productDocumentFromAdmin(
     category: product.category,
     price: product.price,
     compareAtPrice: product.compareAtPrice,
+    salePrice: product.salePrice,
+    saleEndsAt: product.saleEndsAt,
     images: product.images ?? [],
     cloudinaryImages: product.cloudinaryImages,
     shortDescription: product.shortDescription,

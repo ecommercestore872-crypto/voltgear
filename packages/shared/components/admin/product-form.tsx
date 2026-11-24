@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ShopType } from "@/lib/categories";
 import { PRODUCT_PHOTO_HINT } from "@/lib/product-image";
 import type { AdminProduct } from "@/lib/db/admin-types";
+import { isoToPktInput, pktInputToIso } from "@/lib/product-sale-rules";
 import { ProductCollectionsFields } from "@/components/admin/product-collections-fields";
 const VariantAxesFields = dynamic(
   () =>
@@ -501,6 +502,30 @@ export function ProductForm({
                 )
               }
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="salePrice">Sale price (optional)</Label>
+            <Input
+              id="salePrice"
+              type="number"
+              min={0}
+              value={doc.salePrice ?? ""}
+              onChange={(e) =>
+                set("salePrice", e.target.value === "" ? undefined : Number(e.target.value))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="saleEnds">Sale ends (Pakistan time, optional)</Label>
+            <Input
+              id="saleEnds"
+              type="datetime-local"
+              value={isoToPktInput(doc.saleEndsAt)}
+              onChange={(e) => set("saleEndsAt", pktInputToIso(e.target.value))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty for no countdown. After this time the normal price applies.
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="cost">Your cost (hidden from shop)</Label>
