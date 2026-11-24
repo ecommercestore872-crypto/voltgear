@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { preload } from "react-dom";
 
 import { GadgetPdpProductGrid } from "@/components/gadget/gadget-pdp-product-grid";
 import { GadgetPdpServerFacts } from "@/components/gadget/gadget-pdp-server-facts";
@@ -17,7 +16,6 @@ import { EMPTY_APPROVED_REVIEW_STATS } from "@/lib/product-review-stats";
 import { fetchProductSlugs } from "@/lib/db/store";
 import { stripProductForPdpClient } from "@/lib/pdp-client-payload";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
-import { pdpLcpImageUrl } from "@/lib/gadget-pdp-lcp";
 import { normalizeSettings } from "@/lib/site-config";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
@@ -178,10 +176,9 @@ export default async function Product2Page(
     ],
   };
 
-  const lcpPreload = pdpLcpImageUrl(product);
-  if (lcpPreload) {
-    preload(lcpPreload, { as: "image", fetchPriority: "high" });
-  }
+  // No manual preload(): <Image priority> already emits a head preload with the same
+  // imagesrcset/sizes as the <img>, so the browser fetches one file. A fixed-width preload
+  // URL would not match the srcset pick and download the hero twice.
 
   return (
     <div className="gadget-scroll-pad-cta bg-[var(--g-cream)] text-[var(--g-charcoal)] lg:pb-10">

@@ -1,4 +1,4 @@
-import { normalizePhone } from "./messaging";
+import { normalizePhone } from "./phone";
 
 export function idsMatchingNormalizedPhone(
   rows: { id: string; phone?: string | null }[],

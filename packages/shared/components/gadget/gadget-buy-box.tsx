@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
@@ -16,7 +17,6 @@ import { gadgetImageSrc } from "@/lib/gadget-image";
 import { salePercent } from "@/components/gadget/gadget-sale";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { GadgetProductWatchLinks } from "@/components/gadget/gadget-product-watch-links";
-import { ProductGallery } from "@/components/product/product-gallery";
 import { VariantAxisPickers } from "@/components/product/variant-axis-pickers";
 import { getVariantStockState } from "@/lib/stock";
 import type { ApprovedReviewStats } from "@/lib/product-review-stats";
@@ -46,19 +46,17 @@ export function GadgetBuyBox({
   product,
   config,
   reviewStats,
-  infoOnly = false,
   syncGalleryVariant = false,
 }: {
   product: Product;
   config: PublicSiteConfig;
   /** Admin-approved customer reviews (live count + average). */
   reviewStats?: ApprovedReviewStats | null;
-  /** When true, omit gallery column (use `GadgetPdpGalleryShell` in the page grid). */
-  infoOnly?: boolean;
   /** Push selected variant image to `GadgetPdpVariantProvider` gallery column. */
   syncGalleryVariant?: boolean;
 }) {
   const galleryVariant = useOptionalGadgetPdpVariantImage();
+  const router = useRouter();
   const { addItem, openCart } = useCart();
   const axesOn = axesEnabled(product);
   const [colorKey, setColorKey] = useState<string | null>(() =>
@@ -159,6 +157,7 @@ export function GadgetBuyBox({
 
   function handleAdd(open = true, event?: React.MouseEvent<HTMLButtonElement>) {
     if (outOfStock || !selectionReady || !priceValid) return;
+    router.prefetch("/checkout");
     addItem(
       {
         slug: product.slug,
@@ -288,10 +287,10 @@ export function GadgetBuyBox({
                 </span>
               ) : null}
             </div>
-            {product.saleEndsAt ? <SaleCountdown endsAt={product.saleEndsAt} className="mt-1" /> : null}
+            {product.saleEndsAt ? <SaleCountdown endsAt={product.saleEndsAt} className="mt-3" /> : null}
             <p
               className={cn(
-                "mt-1 text-sm font-semibold",
+                "mt-3 text-sm font-semibold",
                 outOfStock
                   ? "text-red-600"
                   : stock.status === "low-stock"
@@ -308,11 +307,7 @@ export function GadgetBuyBox({
             ) : null}
           </div>
 
-          {product.freeShipping ? (
-            <p className="mt-2 text-sm font-medium text-[var(--g-charcoal)]">Free delivery</p>
-          ) : null}
-
-          <GadgetPdpTrustRow config={config} />
+          <GadgetPdpTrustRow config={config} freeShipping={Boolean(product.freeShipping)} />
 
           <div id="gadget-buy-options">
             {axesOn ? (
@@ -506,16 +501,7 @@ export function GadgetBuyBox({
 
   return (
     <>
-      {infoOnly ? (
-        infoColumn
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-8 lg:gap-12">
-          <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-[var(--g-line)] bg-[var(--g-white)] p-3 sm:max-w-lg md:max-w-none md:p-3 lg:p-4">
-            <ProductGallery product={product} variantImage={variantImage} />
-          </div>
-          {infoColumn}
-        </div>
-      )}
+      {infoColumn}
 
       {/* Mobile sticky CTA — safe-area for iPhone home indicator */}
       {!outOfStock && priceValid && showStickyCta ? (

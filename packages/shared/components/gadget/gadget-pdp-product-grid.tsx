@@ -29,7 +29,6 @@ function GadgetPdpProductGridInner({
         product={product}
         config={config}
         reviewStats={reviewStats}
-        infoOnly
         syncGalleryVariant
       />
     </div>

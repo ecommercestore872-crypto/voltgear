@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 
 import { GadgetPdpVariantHero } from "@/components/gadget/gadget-pdp-variant-hero";
 import { useGadgetPdpVariantImage } from "@/components/gadget/gadget-pdp-variant-context";
-import { ProductGallery } from "@/components/product/product-gallery";
 import type { PdpClientProduct } from "@/lib/pdp-client-payload";
 import type { Product } from "@/lib/types";
+
+// Own chunk (lightbox + radix dialog): the server hero is the LCP, so this loads after first paint.
+// Suspense keeps the hero on screen while the chunk loads, so the buy box never jumps.
+const ProductGallery = lazy(() =>
+  import("@/components/product/product-gallery").then((m) => ({ default: m.ProductGallery })),
+);
 
 /**
  * Server LCP hero first, then full gallery (main + thumbnails) in normal flow —
@@ -38,10 +43,12 @@ export function GadgetPdpMediaColumn({
 
   if (showGallery) {
     return (
-      <ProductGallery
-        product={product as Product}
-        variantImage={variantImage ?? undefined}
-      />
+      <Suspense fallback={lcpHero}>
+        <ProductGallery
+          product={product as Product}
+          variantImage={variantImage ?? undefined}
+        />
+      </Suspense>
     );
   }
 

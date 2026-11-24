@@ -16,7 +16,7 @@ import {
   ShoppingBag,
   Truck,
   X,
-} from "@phosphor-icons/react";
+} from "@/components/icons/phosphor-lite";
 
 import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 

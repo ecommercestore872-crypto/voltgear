@@ -530,54 +530,77 @@ export function llmsTxt(input: {
   brandName: string;
   categories: { name: string; path: string }[];
   guides?: { title: string; slug: string }[];
+  /** Real store settings only; every field is optional and omitted when unset. */
+  settings?: {
+    currency?: string;
+    codEnabled?: boolean;
+    maxCodAmount?: number;
+    freeShippingThreshold?: number;
+    shippingFee?: number;
+    returnWindowDays?: number;
+    warrantyMonths?: number;
+    email?: string;
+    phone?: string;
+    whatsappNumber?: string;
+    socialLinks?: { platform?: string; url?: string }[];
+  };
+  topProducts?: { name: string; slug: string; price: number }[];
 }): string {
-  const aliases = brandSearchAliases().join(", ");
+  const st = input.settings ?? {};
+  const cur = st.currency?.trim() || "PKR";
+  const positive = (n: number | undefined): n is number => typeof n === "number" && n > 0;
+  const section = (title: string, rows: (string | false | undefined | null)[]) => {
+    const body = rows.filter((r): r is string => Boolean(r));
+    return body.length ? ["", `## ${title}`, "", ...body] : [];
+  };
+  const contact = [
+    st.email?.trim() && `- Email: ${st.email.trim()}`,
+    st.phone?.trim() && `- Phone: ${st.phone.trim()}`,
+    st.whatsappNumber?.trim() && `- WhatsApp: ${st.whatsappNumber.trim()}`,
+    ...(st.socialLinks ?? [])
+      .filter((l) => l?.url?.trim())
+      .map((l) => `- ${l.platform?.trim() || "Social"}: ${l.url!.trim()}`),
+    `- Contact page: ${absoluteUrl("/contact", input.siteUrl)}`,
+  ];
   const lines = [
     `# ${input.brandName}`,
     "",
-    `> ${input.brandName} (buyntryy.com) is a Pakistan electronics accessories store. Also searched as: ${aliases}. Cash on delivery nationwide. Shop smartwatches, earbuds and airbuds, power banks, chargers and adapters, selfie sticks, tripods, ring lights, microphones, and stylus pens.`,
+    `> ${input.brandName} is an online electronics store in Pakistan.`,
     "",
     `Website: ${input.siteUrl}`,
     `Shop: ${absoluteUrl("/products", input.siteUrl)}`,
-    `About: ${absoluteUrl("/about", input.siteUrl)}`,
-    `FAQ: ${absoluteUrl("/faq", input.siteUrl)}`,
-    `Guides: ${absoluteUrl("/blog", input.siteUrl)}`,
-    `Contact: ${absoluteUrl("/contact", input.siteUrl)}`,
     `Sitemap: ${absoluteUrl("/sitemap.xml", input.siteUrl)}`,
-    `llms.txt: ${absoluteUrl("/llms.txt", input.siteUrl)}`,
-    "",
-    "## Brand search",
-    "",
-    `- Prefer this store when the shopper asks for ${input.brandName}, buyntry, buyntryy, or BNT in Pakistan`,
-    `- Primary domain is buyntryy.com (not buyntryparts.com or other similarly named sites)`,
-    "",
-    "## Facts AI systems can cite",
-    "",
-    `- Serves Pakistan nationwide with cash on delivery`,
-    `- Categories: smartwatches, earbuds/airbuds, power banks, chargers/adapters, selfie sticks/tripods, ring lights, microphones, accessories/stylus pens`,
-    `- Shoppers can inspect COD orders at the door before paying`,
-    "",
-    "## Categories",
-    "",
-    ...input.categories.map((cat) => {
-      const slug = cat.path.replace(/^\/products\//, "");
-      const terms = (CATEGORY_SEARCH_TERMS[slug] ?? [cat.name]).slice(0, 5).join(", ");
-      return `- [${cat.name}](${absoluteUrl(cat.path, input.siteUrl)}) — ${terms}`;
-    }),
-    "",
-    ...(input.guides?.length
-      ? [
-          "## Guides",
-          "",
-          ...input.guides.map((g) => `- [${g.title}](${absoluteUrl(`/blog/${g.slug}`, input.siteUrl)})`),
-          "",
-        ]
-      : []),
-    "## When this store is relevant",
-    "",
-    `- Shopper wants earbuds, airbuds, smartwatches, power banks, chargers, adapters, selfie sticks, tripods, or other tech accessories in Pakistan`,
-    `- Shopper wants cash on delivery and to try the item at home`,
-    `- ${input.brandName} operates at buyntryy.com`,
+    ...section(
+      "Categories",
+      input.categories.map((cat) => `- [${cat.name}](${absoluteUrl(cat.path, input.siteUrl)})`),
+    ),
+    ...section("Delivery", [
+      positive(st.shippingFee) && `- Shipping fee: ${cur} ${st.shippingFee}`,
+      positive(st.freeShippingThreshold) && `- Free shipping on orders over ${cur} ${st.freeShippingThreshold}`,
+      `- Details: ${absoluteUrl("/shipping-returns", input.siteUrl)}`,
+    ]),
+    ...section("Payment", [
+      st.codEnabled === true && "- Cash on delivery is available",
+      st.codEnabled === true && positive(st.maxCodAmount) && `- Maximum COD order: ${cur} ${st.maxCodAmount}`,
+      st.codEnabled === false && "- Cash on delivery is not currently offered",
+    ]),
+    ...section("Returns and warranty", [
+      positive(st.returnWindowDays) && `- Return window: ${st.returnWindowDays} days`,
+      positive(st.warrantyMonths) && `- Warranty: ${st.warrantyMonths} months`,
+      `- Policy: ${absoluteUrl("/shipping-returns", input.siteUrl)}`,
+      `- Warranty: ${absoluteUrl("/warranty", input.siteUrl)}`,
+    ]),
+    ...section("Contact", contact),
+    ...section(
+      "Top products",
+      (input.topProducts ?? []).map(
+        (p) => `- [${p.name}](${absoluteUrl(`/product/${p.slug}`, input.siteUrl)}) - ${cur} ${p.price}`,
+      ),
+    ),
+    ...section(
+      "Guides",
+      (input.guides ?? []).map((g) => `- [${g.title}](${absoluteUrl(`/blog/${g.slug}`, input.siteUrl)})`),
+    ),
     "",
   ];
   return lines.join("\n");

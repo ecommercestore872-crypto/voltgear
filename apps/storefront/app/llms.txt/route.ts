@@ -1,5 +1,5 @@
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
-import { fetchBlogPosts, fetchShopTypes } from "@/lib/db/store";
+import { fetchBlogPosts, fetchHomeBestsellers, fetchShopTypes, fetchSiteSettings } from "@/lib/db/store";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { mergeBlogCatalog } from "@/lib/blog-desk-rules";
 import { SHOPPER_BRAND } from "@/lib/brand";
@@ -9,19 +9,23 @@ import { STOREFRONT_CATALOG_REVALIDATE } from "@/lib/storefront-cache";
 export const revalidate = 300;
 
 export async function GET() {
-  const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
-  const categories = (types.length ? types : FALLBACK_SHOP_TYPES).map(
-    (type) => ({
-      name: type.name,
-      path: `/products/${type.slug}`,
-    }),
-  );
-  const posts = mergeBlogCatalog(await fetchBlogPosts().catch(() => []), FALLBACK_BLOG_POSTS);
+  const [types, settings, top, blog] = await Promise.all([
+    fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES),
+    fetchSiteSettings().catch(() => null),
+    fetchHomeBestsellers().catch(() => []),
+    fetchBlogPosts().catch(() => []),
+  ]);
+  const posts = mergeBlogCatalog(blog, FALLBACK_BLOG_POSTS);
   const body = llmsTxt({
     guides: posts.map((p) => ({ title: p.title, slug: p.slug })),
     siteUrl: indexSiteUrl(),
-    brandName: SHOPPER_BRAND.spokenName,
-    categories,
+    brandName: settings?.brandName?.trim() || SHOPPER_BRAND.spokenName,
+    categories: (types.length ? types : FALLBACK_SHOP_TYPES).map((type) => ({
+      name: type.name,
+      path: `/products/${type.slug}`,
+    })),
+    settings: settings ?? undefined,
+    topProducts: top.slice(0, 5).map((p) => ({ name: p.name, slug: p.slug, price: p.price })),
   });
   return new Response(body, {
     headers: {
