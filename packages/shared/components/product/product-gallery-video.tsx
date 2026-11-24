@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Play, Volume2, VolumeX } from "lucide-react";
+import { ExternalLink, Play, Volume2, VolumeX } from "lucide-react";
 
 /**
  * Inline product video for the PDP gallery.
@@ -124,6 +124,73 @@ export function ProductGalleryVideo({
       >
         {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
       </button>
+    </div>
+  );
+}
+
+/**
+ * Instagram / TikTok video for the gallery. The third-party embed (scripts, cookies, weight)
+ * loads only after the shopper taps play, so the page stays fast.
+ */
+export function ProductGalleryEmbed({
+  src,
+  poster,
+  label,
+  platform,
+  openHref,
+}: {
+  src: string;
+  poster?: string;
+  label: string;
+  platform: "instagram" | "tiktok";
+  openHref?: string;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const name = platform === "instagram" ? "Instagram" : "TikTok";
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-black">
+      {loaded ? (
+        <iframe
+          src={src}
+          title={label}
+          className={
+            platform === "instagram"
+              ? "absolute inset-x-0 -top-[60px] h-[calc(100%+180px)] w-full border-0"
+              : "absolute inset-0 h-full w-full border-0"
+          }
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      ) : (
+        <>
+          {poster ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={poster} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setLoaded(true)}
+            aria-label={`Play ${name} video`}
+            className="absolute inset-0 flex items-center justify-center bg-black/30"
+          >
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/60 text-white shadow-md">
+              <Play className="h-7 w-7 fill-white" />
+            </span>
+          </button>
+        </>
+      )}
+      {openHref ? (
+        <a
+          href={openHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-3 left-3 z-10 inline-flex h-9 items-center gap-1.5 rounded-full bg-black/70 px-3 text-xs font-semibold text-white"
+        >
+          Open on {name}
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      ) : null}
     </div>
   );
 }

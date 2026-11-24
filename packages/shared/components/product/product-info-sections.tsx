@@ -4,7 +4,6 @@ import { FAQAccordion } from "@/components/sections/faq-accordion";
 import { RichText } from "@/components/product/rich-text";
 import { StarRating } from "@/components/product/star-rating";
 import { ReviewForm } from "@/components/product/review-form";
-import { galleryVideoForProduct } from "@/lib/product-gallery-video";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product, ProductReview } from "@/lib/types";
 
@@ -127,30 +126,6 @@ export function DescriptionSection({ product }: { product: Product }) {
     <section className="mt-14" aria-labelledby="description">
       <SectionHeading title="Product Description" />
       <RichText blocks={product.description} />
-    </section>
-  );
-}
-
-/** See It in Action — only renders when a genuine product video exists. */
-export function ProductVideoSection({ product }: { product: Product }) {
-  const video = galleryVideoForProduct(product);
-  if (!video) return null;
-  const { src, poster } = video;
-  return (
-    <section className="mt-14" aria-labelledby="product-video">
-      <SectionHeading eyebrow="Demo" title="See It in Action" />
-      <div className="overflow-hidden rounded-xl border bg-muted">
-        <video
-          controls
-          preload="none"
-          playsInline
-          poster={poster ? imageUrl(poster, { w: 1200 }) : undefined}
-          className="aspect-video w-full"
-        >
-          <source src={src} />
-          Your browser does not support the video tag.
-        </video>
-      </div>
     </section>
   );
 }

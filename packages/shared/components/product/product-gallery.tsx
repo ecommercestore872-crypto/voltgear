@@ -8,7 +8,10 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
 import { galleryVideoForProduct } from "@/lib/product-gallery-video";
-import { ProductGalleryVideo } from "@/components/product/product-gallery-video";
+import {
+  ProductGalleryEmbed,
+  ProductGalleryVideo,
+} from "@/components/product/product-gallery-video";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -18,7 +21,7 @@ type GallerySource = {
   thumb: string;
   alt: string;
   /** Set on the video slide only; src/thumb then hold the poster (may be empty). */
-  video?: { src: string };
+  video?: { kind: "file" | "instagram" | "tiktok"; src: string; openHref?: string };
 };
 
 /** 3× zoom factor for the hover magnifier lens */
@@ -60,7 +63,7 @@ export function ProductGallery({
     sources.splice(Math.min(1, sources.length), 0, {
       ...poster,
       alt: `${product.name} (video)`,
-      video: { src: galleryVideo.src },
+      video: { kind: galleryVideo.kind, src: galleryVideo.src, openHref: galleryVideo.openHref },
     });
   }
   const lightboxSources = sources.filter((s) => !s.video);
@@ -108,7 +111,7 @@ export function ProductGallery({
   }
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (isTouchDevice.current || !imgContainerRef.current) return;
+    if (isTouchDevice.current || !imgContainerRef.current || current?.video) return;
     const rect = imgContainerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -130,7 +133,10 @@ export function ProductGallery({
       <div
         ref={imgContainerRef}
         className={cn(
-          "relative aspect-square touch-pan-y overflow-hidden rounded-xl border bg-[var(--g-cream-deep,#f5f5f5)] select-none",
+          "relative touch-pan-y overflow-hidden rounded-xl border bg-[var(--g-cream-deep,#f5f5f5)] select-none",
+          current?.video && current.video.kind !== "file"
+            ? "mx-auto aspect-[9/16] w-full max-w-[360px]"
+            : "aspect-square",
           zoomed && !isTouchDevice.current
             ? "cursor-crosshair"
             : "cursor-zoom-in",
@@ -166,12 +172,23 @@ export function ProductGallery({
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
           >
-            <ProductGalleryVideo
-              key={current.video.src}
-              src={current.video.src}
-              poster={current.src || undefined}
-              label={`${product.name} video`}
-            />
+            {current.video.kind === "file" ? (
+              <ProductGalleryVideo
+                key={current.video.src}
+                src={current.video.src}
+                poster={current.src || undefined}
+                label={`${product.name} video`}
+              />
+            ) : (
+              <ProductGalleryEmbed
+                key={current.video.src}
+                src={current.video.src}
+                poster={current.src || undefined}
+                label={`${product.name} video`}
+                platform={current.video.kind}
+                openHref={current.video.openHref}
+              />
+            )}
           </div>
         ) : current ? (
           <Image

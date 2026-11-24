@@ -18,14 +18,22 @@ describe("optimizeCloudinaryVideoUrl", () => {
 });
 
 describe("galleryVideoForProduct", () => {
-  it("returns null when there is no video or only social links", () => {
+  it("returns null when there is no video", () => {
     assert.equal(galleryVideoForProduct({}), null);
-    assert.equal(galleryVideoForProduct({ instagramUrl: "https://www.instagram.com/reel/abc/" }), null);
+  });
+  it("returns an embed for an Instagram or TikTok link", () => {
+    assert.deepEqual(galleryVideoForProduct({ instagramUrl: "https://www.instagram.com/reel/abc123/" }), {
+      kind: "instagram",
+      src: "https://www.instagram.com/reel/abc123/embed",
+      poster: undefined,
+      openHref: "https://www.instagram.com/reel/abc123/",
+    });
+    assert.equal(galleryVideoForProduct({ tiktokUrl: "https://www.tiktok.com/@shop/video/123" })?.kind, "tiktok");
   });
   it("returns the file and poster for an uploaded MP4", () => {
     assert.deepEqual(
       galleryVideoForProduct({ productVideo: { url: "https://cdn.example.com/a.mp4", poster: "https://cdn.example.com/p.jpg" } }),
-      { src: "https://cdn.example.com/a.mp4", poster: "https://cdn.example.com/p.jpg" },
+      { kind: "file", src: "https://cdn.example.com/a.mp4", poster: "https://cdn.example.com/p.jpg" },
     );
   });
 });
