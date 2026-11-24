@@ -62,14 +62,22 @@ function whenReady(execute: () => void): void | (() => void) {
 
 const KNOWN_CUSTOMER_KEY = "bnt-meta-match";
 
-/** Hashes only (never the raw email or phone) of a customer who already ordered. */
+/**
+ * Hashes only (never the raw email or phone) of a visitor who has typed them.
+ * New values are merged with what was stored, so entering a phone later never
+ * erases an email entered earlier. Only stored with advertising consent.
+ */
 export function rememberMetaCustomer(customer: MetaCustomer): void {
+  if (!canSendMetaBrowserEvents()) return;
   const { em, ph } = buildMetaHashedCustomer(customer);
   if (!em && !ph) return;
-  try { window.localStorage.setItem(KNOWN_CUSTOMER_KEY, JSON.stringify({ ...(em ? { em } : {}), ...(ph ? { ph } : {}) })); } catch {}
+  try {
+    const next = { ...knownMetaCustomer(), ...(em ? { em } : {}), ...(ph ? { ph } : {}) };
+    window.localStorage.setItem(KNOWN_CUSTOMER_KEY, JSON.stringify(next));
+  } catch {}
 }
 
-function knownMetaCustomer(): { em?: string; ph?: string } {
+export function knownMetaCustomer(): { em?: string; ph?: string } {
   try {
     const row = JSON.parse(window.localStorage.getItem(KNOWN_CUSTOMER_KEY) || "{}");
     const ok = (v: unknown) => typeof v === "string" && /^[a-f0-9]{64}$/.test(v);
@@ -178,8 +186,9 @@ export async function trackMetaPurchase(input: { orderId: string; items: MetaIte
       } catch { return; }
       try {
         if (input.customer) rememberMetaCustomer(input.customer);
-        const matching = buildMetaHashedCustomer(input.customer ?? {});
-        if (matching.em || matching.ph) window.fbq?.("init", process.env.NEXT_PUBLIC_META_PIXEL_ID, matching);
+        // Each value is hashed exactly once here; an existing digest is never hashed again.
+        const matching = { ...knownMetaCustomer(), ...buildMetaHashedCustomer(input.customer ?? {}) };
+        if (Object.keys(matching).length) window.fbq?.("init", process.env.NEXT_PUBLIC_META_PIXEL_ID, matching);
         track("Purchase", { ...data, order_id: id }, id);
       }
       catch {

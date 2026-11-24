@@ -1,7 +1,6 @@
 import { isIP } from "node:net";
 import { allowsAdvertising } from "./cookie-consent";
 import { metaCommerceData, metaEnvironmentAllowed, type MetaItem } from "./meta-commerce";
-import { purchaseTrackLog } from "./purchase-track-observability";
 import { buildMetaHashedCustomer } from "./meta-matching";
 
 export const META_CURRENCY = "PKR";
@@ -128,55 +127,6 @@ export function validMetaCookie(value?: string): boolean {
   return typeof value === "string" && value.length <= 512 && /^fb\.\d+\.\d{10,16}\.[A-Za-z0-9_-]+$/.test(value);
 }
 
-/**
- * Legacy direct sender. Production Purchase delivery goes through the database
- * outbox (meta-purchase-outbox.ts), which is unique per order. Do not call both
- * for the same order. Two bounded attempts; retries reuse the exact event ID/time/body.
- */
-export async function trackMetaServerPurchase(input: PurchaseInput): Promise<void> {
-  const orderId = input.orderId;
-  if (!allowsAdvertising(input.consent)) {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_consent", orderId }); return;
-  }
-  const config = metaServerConfig();
-  const { pixelId, token, testMode } = config;
-  if (config.skipReason) {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_config", orderId, reason: config.skipReason }); return;
-  }
-  const body = buildMetaServerPurchasePayload(input);
-  const version = process.env.META_GRAPH_API_VERSION || META_GRAPH_API_VERSION;
-  if (!/^v(2[4-6])\.0$/.test(version)) {
-    purchaseTrackLog({ channel: "meta", outcome: "skipped_config", orderId, reason: "invalid_api_version", attempts: 0 }); return;
-  }
-  if (!body) {
-    purchaseTrackLog({ channel: "meta", outcome: "failed", orderId, reason: "invalid_payload", attempts: 0 }); return;
-  }
-  const payload = JSON.stringify({ ...body, ...(testMode === "true" ? { test_event_code: process.env.META_TEST_EVENT_CODE } : {}) });
-  let httpStatus: number | undefined;
-  let providerCode: number | undefined;
-  let reason: "provider_rejected" | "timeout" | "network" = "network";
-  let attempts = 0;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    attempts = attempt + 1;
-    try {
-      const res = await fetch(`https://graph.facebook.com/${version}/${pixelId}/events`, {
-        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: payload, signal: AbortSignal.timeout(4000), cache: "no-store", redirect: "error",
-      });
-      httpStatus = res.status;
-      const result = await res.json().catch(() => null) as { events_received?: number; error?: { is_transient?: boolean; code?: number } } | null;
-      if (res.ok && !result?.error && result?.events_received === 1) {
-        purchaseTrackLog({ channel: "meta", outcome: "sent", orderId, attempts, httpStatus }); return;
-      }
-      reason = "provider_rejected";
-      providerCode = typeof result?.error?.code === "number" ? result.error.code : undefined;
-      if (attempt === 0 && (res.status === 429 || res.status >= 500 || result?.error?.is_transient)) continue;
-      break;
-    } catch (error) {
-      // Never log request exceptions: they can embed tokens or user_data.
-      reason = error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name) ? "timeout" : "network";
-      if (attempt === 0) continue;
-    }
-  }
-  purchaseTrackLog({ channel: "meta", outcome: "failed", orderId, attempts, httpStatus, providerCode, reason });
-}
+// There is deliberately no direct "send Purchase now" function here. Purchase
+// leaves the server only through the order queue (meta-purchase-outbox.ts),
+// which holds one row per order number. A second sender could double count.

@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { canSendMetaBrowserEvents, ensureMetaPageView } from "@/lib/meta-pixel-events";
+import { canSendMetaBrowserEvents, ensureMetaPageView, knownMetaCustomer } from "@/lib/meta-pixel-events";
 import { persistMetaClick } from "@/lib/meta-click-attribution";
 import { ensureMetaExternalId } from "@/lib/meta-identity";
 
@@ -35,7 +35,7 @@ export function MetaPixel() {
         window.fbq("consent", "grant");
         window.fbq("set", "autoConfig", false, id);
         const externalId = ensureMetaExternalId();
-        window.fbq("init", id, externalId ? { external_id: externalId } : {});
+        window.fbq("init", id, { ...knownMetaCustomer(), ...(externalId ? { external_id: externalId } : {}) });
         window.__META_PIXEL_BOOTSTRAPPED__ = true;
         if (!document.querySelector('script[src*="connect.facebook.net"][src*="fbevents.js"]')) {
           const script = document.createElement("script");

@@ -241,4 +241,10 @@ remain operator gates. The bounded-delivery limitation above remains explicit.
   cookie, hashed), client IP, user agent, and hashed email/phone when the visitor has ordered
   before (`bnt-meta-match` holds hashes only). Purchase also sends hashed email/phone.
 - **Token.** `META_CONVERSIONS_API_ACCESS_TOKEN` is read from the environment only.
-- `trackMetaServerPurchase` is a legacy direct sender; production uses the outbox. Never call both.
+- **One server sender for Purchase.** The old direct sender `trackMetaServerPurchase` was removed.
+  Purchase leaves the server only through the order queue (`meta-purchase-outbox.ts`), sent
+  right after the order is saved; the 30-minute job is only a retry. Tests enforce this.
+- **Returning visitors.** Once a visitor types an email or phone, only the hashes are kept
+  (`bnt-meta-match`) and added to every later browser and server event.
+- **Meta's built-in "Conversions API with Meta" connection** sends its own Purchase events with
+  different IDs and cannot be deduplicated by this code. Disconnect it in Events Manager.

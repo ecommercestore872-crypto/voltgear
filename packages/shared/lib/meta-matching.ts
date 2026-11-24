@@ -23,6 +23,7 @@ function isExistingDigest(value: string): boolean {
 export function normalizeMetaPhone(raw: string): string | null {
   let digits = raw.replace(/\D/g, "");
   if (digits.startsWith("00")) digits = digits.slice(2);
+  if (/^920\d{10}$/.test(digits)) digits = `92${digits.slice(3)}`;
   if (/^03\d{9}$/.test(digits)) digits = `92${digits.slice(1)}`;
   else if (/^3\d{9}$/.test(digits)) digits = `92${digits}`;
   if (!/^[1-9]\d{7,14}$/.test(digits)) return null;

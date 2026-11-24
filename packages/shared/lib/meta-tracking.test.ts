@@ -3,7 +3,7 @@ import { afterEach, test } from "node:test";
 import { signedAdminActor, verifiedAdminActor } from "./admin-session";
 import { canSendMetaServerEvent } from "./meta-consent";
 import { parseBrowserMetaEvent } from "./meta-event-rules";
-import { buildMetaServerPurchasePayload, trackMetaServerPurchase } from "./meta-events-api";
+import { buildMetaServerPurchasePayload } from "./meta-events-api";
 import { buildMetaHashedCustomer, metaHash, normalizeMetaPhone } from "./meta-matching";
 import { trackMetaPurchase } from "./meta-pixel-events";
 
@@ -74,10 +74,6 @@ test("privacy opt-outs block Meta server events before any fetch", async () => {
   assert.equal(canSendMetaServerEvent("all", new Headers()), true);
   assert.equal(canSendMetaServerEvent("advertising", new Headers()), true);
   assert.equal(canSendMetaServerEvent("analytics", new Headers()), false);
-  let sends = 0;
-  global.fetch = (async () => { sends++; return new Response("{}"); }) as typeof fetch;
-  await trackMetaServerPurchase({ ...purchase, consent: "essential" });
-  assert.equal(sends, 0);
 });
 
 test("pre-purchase event parser rejects Purchase and foreign origins", () => {

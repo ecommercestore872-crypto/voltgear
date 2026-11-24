@@ -1,9 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash, createHmac } from "node:crypto";
+import { createHash } from "node:crypto";
 import { acceptedMetaPurchase, metaCommerceData, metaEnvironmentAllowed, META_PRODUCTION_PIXEL_ID } from "./meta-commerce";
-import { buildMetaServerPurchasePayload, trackMetaServerPurchase } from "./meta-events-api";
-import { purchaseTrackOrderRef } from "./purchase-track-observability";
+import { buildMetaServerPurchasePayload } from "./meta-events-api";
 import { ensureMetaPageView, trackMetaViewContent, trackMetaAddToCart, trackMetaInitiateCheckout, trackAcceptedMetaPurchase } from "./meta-pixel-events";
 
 const lines = [{ slug: "buds", name: "Earbuds", price: 2999, quantity: 2 }, { slug: "charger", name: "Charger", price: 1499, quantity: 1 }];
@@ -130,112 +129,8 @@ test("actual browser helpers enforce consent, route exclusions, payloads and per
   }
 });
 
-test("CAPI exact payload retries, parsing, redaction, consent and environment isolation", async () => {
-  const originalFetch = globalThis.fetch;
-  const beforeEnv = { ...process.env };
-  const originalLog = console.info;
-  const logs: unknown[][] = [];
-  const calls: Array<{ url: string; init: RequestInit }> = [];
-  try {
-    process.env.NEXT_PUBLIC_META_PIXEL_ID = META_PRODUCTION_PIXEL_ID;
-    process.env.META_CONVERSIONS_API_ACCESS_TOKEN = "PRIVATE-TOKEN-MUST-NOT-LOG";
-    process.env.PURCHASE_TRACK_LOG_HMAC_KEY = "test-log-key-with-at-least-32-characters";
-    process.env.VERCEL_ENV = "production";
-    process.env.NODE_ENV = "production";
-    delete process.env.NEXT_PUBLIC_META_TEST_MODE;
-    delete process.env.META_TEST_EVENT_CODE;
-    delete process.env.META_GRAPH_API_VERSION;
-    console.info = (...args) => { logs.push(args); };
-    const input = { ...purchase, consent: "all", email: "qa@example.com", phone: "03001234567" };
-    globalThis.fetch = async (url, init) => {
-      calls.push({ url: String(url), init: init! });
-      return calls.length === 1 ? new Response('{"error":{"is_transient":true}}', { status: 503 }) : new Response('{"events_received":1}');
-    };
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 2);
-    assert.equal(calls[0].init.body, calls[1].init.body);
-    assert.match(calls[0].url, /v26\.0\/1707417188053568\/events$/);
-    assert.ok(!calls[0].url.includes("PRIVATE-TOKEN"));
-    assert.equal(new Headers(calls[0].init.headers).get("Authorization"), "Bearer PRIVATE-TOKEN-MUST-NOT-LOG");
-    assert.match(JSON.stringify(logs), /sent/);
-    const sentLog = JSON.parse(String(logs.at(-1)?.[1]));
-    const expectedRef = createHmac("sha256", process.env.PURCHASE_TRACK_LOG_HMAC_KEY)
-      .update("purchase-track:v1:").update(input.orderId).digest("hex").slice(0, 20);
-    assert.equal(sentLog.orderRef, expectedRef);
-    assert.equal(sentLog.attempts, 2);
-    assert.equal(sentLog.httpStatus, 200);
-    assert.ok(!JSON.stringify(sentLog).includes(input.orderId));
-    calls.length = 0; logs.length = 0;
-    globalThis.fetch = async (url, init) => { calls.push({ url: String(url), init: init! }); return new Response('{"error":{"message":"PRIVATE-TOKEN-MUST-NOT-LOG qa@example.com"}}'); };
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 1);
-    assert.match(JSON.stringify(logs), /failed/);
-    assert.ok(!JSON.stringify(logs).includes("PRIVATE-TOKEN"));
-    assert.ok(!JSON.stringify(logs).includes("qa@example.com"));
-    const rejectedLog = JSON.parse(String(logs.at(-1)?.[1]));
-    assert.equal(rejectedLog.orderRef, expectedRef);
-    assert.equal(rejectedLog.reason, "provider_rejected");
-    assert.equal(rejectedLog.attempts, 1);
-    assert.equal(rejectedLog.httpStatus, 200);
-    calls.length = 0;
-    await trackMetaServerPurchase({ ...input, consent: "essential" });
-    delete process.env.VERCEL_ENV;
-    await trackMetaServerPurchase(input); // local next start must never use a copied production token
-    assert.equal(calls.length, 0);
-    process.env.VERCEL_ENV = "preview";
-    await trackMetaServerPurchase(input);
-    process.env.NEXT_PUBLIC_META_TEST_MODE = "true";
-    process.env.META_TEST_EVENT_CODE = "TEST";
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 0);
-    process.env.NEXT_PUBLIC_META_PIXEL_ID = "999999999999999";
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 1);
-    assert.equal(JSON.parse(String(calls[0].init.body)).test_event_code, "TEST");
-    calls.length = 0;
-    globalThis.fetch = async () => { calls.push({ url: "mock", init: {} }); throw new Error("PRIVATE-TOKEN"); };
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 2);
-    for (const [status, text, attempts] of [
-      [429, '{"error":{}}', 2], [400, '{"error":{}}', 1],
-      [200, 'malformed', 1], [200, '{"events_received":0}', 1],
-    ] as const) {
-      calls.length = 0;
-      globalThis.fetch = async (url, init) => {
-        calls.push({ url: String(url), init: init! });
-        return new Response(text, { status });
-      };
-      await trackMetaServerPurchase(input);
-      assert.equal(calls.length, attempts);
-      if (attempts === 2) assert.equal(calls[0].init.body, calls[1].init.body);
-    }
-    calls.length = 0; logs.length = 0;
-    process.env.META_GRAPH_API_VERSION = "v99.0";
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 0);
-    assert.equal(JSON.parse(String(logs.at(-1)?.[1])).reason, "invalid_api_version");
-    delete process.env.META_GRAPH_API_VERSION;
-    calls.length = 0; logs.length = 0;
-    globalThis.fetch = async (url, init) => {
-      calls.push({ url: String(url), init: init! });
-      if (calls.length === 1) return new Response('{"error":{"is_transient":true}}', { status: 503 });
-      throw new Error("network failure");
-    };
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 2);
-    assert.equal(JSON.parse(String(logs.at(-1)?.[1])).httpStatus, 503);
-    calls.length = 0;
-    delete process.env.META_CONVERSIONS_API_ACCESS_TOKEN;
-    await trackMetaServerPurchase(input);
-    assert.equal(calls.length, 0);
-    assert.equal(JSON.parse(String(logs.at(-1)?.[1])).reason, "missing_token");
-    delete process.env.PURCHASE_TRACK_LOG_HMAC_KEY;
-    delete process.env.AUTH_SECRET;
-    delete process.env.ADMIN_TOKEN;
-    assert.equal(purchaseTrackOrderRef("BNT-1001"), undefined);
-  } finally {
-    globalThis.fetch = originalFetch; console.info = originalLog;
-    for (const key of Object.keys(process.env)) if (!(key in beforeEnv)) delete process.env[key];
-    Object.assign(process.env, beforeEnv);
-  }
+test("Purchase has exactly one server sender: the order queue (no direct sender exists)", async () => {
+  const api = await import("./meta-events-api");
+  assert.equal("trackMetaServerPurchase" in api, false);
+  assert.deepEqual(Object.keys(api).filter((name) => /purchase/i.test(name) && /(track|send)/i.test(name)), []);
 });

@@ -2,6 +2,7 @@ import { checkoutClientIp } from "@/lib/checkout-guard";
 import { readMetaCookieIds } from "@/lib/checkout-tracking-rules";
 import { trackMetaServerEvent } from "@/lib/meta-events-api";
 import { browserMetaCustomData, parseBrowserMetaEvent } from "@/lib/meta-event-rules";
+import { metaClientIp } from "@/lib/meta-ip";
 import { canSendMetaServerEvent } from "@/lib/meta-consent";
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 
@@ -42,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
   await trackMetaServerEvent({
     eventName: event.eventName, eventId: event.eventId, pageUrl: event.pageUrl,
     customData: browserMetaCustomData(event), consent: event.consent,
-    clientIp: ip, userAgent: request.headers.get("user-agent") || undefined,
+    clientIp: metaClientIp(request.headers), userAgent: request.headers.get("user-agent") || undefined,
     fbp, fbc, externalId, emHash: event.em, phHash: event.ph,
   });
   return new Response(null, noContent);
