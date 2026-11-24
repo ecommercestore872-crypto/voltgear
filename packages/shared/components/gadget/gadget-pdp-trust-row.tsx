@@ -5,7 +5,14 @@ import type { PublicSiteConfig } from "@/lib/site-config";
 import { warrantyLabel } from "@/lib/site-config";
 import { formatPrice } from "@/lib/utils";
 
-export function GadgetPdpTrustRow({ config }: { config: PublicSiteConfig }) {
+export function GadgetPdpTrustRow({
+  config,
+  freeShipping = false,
+}: {
+  config: PublicSiteConfig;
+  /** This product ships free, so the store-wide threshold would only confuse. */
+  freeShipping?: boolean;
+}) {
   const threshold = Number(config.freeShippingThreshold ?? 0);
   const items = [
     config.codEnabled
@@ -13,8 +20,9 @@ export function GadgetPdpTrustRow({ config }: { config: PublicSiteConfig }) {
       : null,
     {
       icon: Truck,
-      label:
-        threshold > 0
+      label: freeShipping
+        ? "Free delivery on this product"
+        : threshold > 0
           ? `Free shipping over ${formatPrice(threshold)}`
           : "Delivery shown at checkout",
     },
