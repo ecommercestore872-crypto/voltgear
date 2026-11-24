@@ -1,3 +1,4 @@
+// Rebuild after on-page SEO columns were added (2026-11-24).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
