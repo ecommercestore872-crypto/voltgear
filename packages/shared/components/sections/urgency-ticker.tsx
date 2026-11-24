@@ -20,7 +20,7 @@ const INACTIVE: AnnouncementConfig = {
   endsAt: null,
 };
 
-function getTimeRemaining(end: string) {
+export function getTimeRemaining(end: string) {
   const diff = Math.max(0, new Date(end).getTime() - Date.now());
 
   return {
@@ -123,5 +123,25 @@ export function UrgencyTicker({
         ))}
       </div>
     </div>
+  );
+}
+
+/** "Sale ends in 00:59:12" to a real instant, so every visitor sees the same time; hides at zero. */
+export function SaleCountdown({ endsAt, className = "" }: { endsAt: string; className?: string }) {
+  // null until mounted: server and first client render match (no hydration mismatch).
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  if (now === null || new Date(endsAt).getTime() <= now) return null;
+  const t = getTimeRemaining(endsAt);
+  const hh = String(t.days * 24 + t.hours).padStart(2, "0");
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    <p className={`text-sm font-semibold tabular-nums text-[var(--g-sale)] ${className}`}>
+      Sale ends in {hh}:{pad(t.minutes)}:{pad(t.seconds)}
+    </p>
   );
 }

@@ -13,6 +13,7 @@ import {
   LIVE,
 } from "@/lib/db/store-query-foundation";
 import { mapPdpDetailFields, mapProduct } from "@/lib/db/map";
+import { withSale } from "@/lib/product-sale-rules";
 import { localPreviewProductBySlug, localPreviewProducts } from "@/lib/local-catalog-preview";
 import { pdpProductCacheTag } from "@/lib/gadget-pdp-lcp";
 import {
@@ -34,11 +35,11 @@ export const PRODUCT_EMBED = `
 
 /** Card/rail fields only — keeps catalog HTML and RSC payloads small for conversion speed. */
 export const CATALOG_PRODUCT_EMBED =
-  "id, name, slug, category, price, compare_at_price, cloudinary_images, short_description, sku, brand, stock_status, quantity, rating, review_count, featured, badge, is_demo, status, created_at, product_images ( url, sort_order, source ), product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )";
+  "id, name, slug, category, price, compare_at_price, sale_price, sale_ends_at, cloudinary_images, short_description, sku, brand, stock_status, quantity, rating, review_count, featured, badge, is_demo, status, created_at, product_images ( url, sort_order, source ), product_variants ( id, key, name, sku, price, compare_at_price, stock_status, image_url, is_default )";
 
 /** PDP above-the-fold: buy box + gallery — excludes long JSON copy (loaded in deferred chunk). */
 const PDP_SHELL_EMBED = `
-  id, name, slug, category, price, compare_at_price, cloudinary_images, short_description, sku, brand,
+  id, name, slug, category, price, compare_at_price, sale_price, sale_ends_at, cloudinary_images, short_description, sku, brand,
   stock_status, quantity, rating, review_count, featured, badge, is_demo, status, free_shipping,
   color_enabled, size_enabled, color_options, size_options, product_video,
   product_images ( url, sort_order, source ),
@@ -50,7 +51,7 @@ const PDP_DETAILS_EMBED =
 
 export function mapStoreProduct(
   row: Record<string, unknown>,
-  opts?: { includeDemoReviews?: boolean },
+  opts?: { includeDemoReviews?: boolean; rawSale?: boolean },
 ): Product | null {
   return mapProduct(row, { ...opts, storefront: true });
 }
@@ -259,8 +260,10 @@ async function loadPdpProductRow(slug: string): Promise<Product | null> {
   );
   if (error) throw error;
   if (!data) return null;
+  // rawSale: this row is cached, so the sale is applied per request in loadCachedPdpProductBySlug.
   const product = mapStoreProduct(data as Record<string, unknown>, {
     includeDemoReviews: false,
+    rawSale: true,
   });
   if (!product) return null;
   const active = await loadActiveCategorySlugSet();
@@ -292,14 +295,15 @@ export async function loadCachedPdpProductBySlug(slug: string): Promise<Product 
   if (!trimmed) return null;
   const preview = localPreviewProducts();
   if (preview) return localPreviewProductBySlug(trimmed);
-  return unstable_cache(
+  const product = await unstable_cache(
     async () => loadPdpProductRow(trimmed),
-    ["pdp-product-v2", trimmed],
+    ["pdp-product-v3", trimmed],
     {
       revalidate: STOREFRONT_CATALOG_REVALIDATE,
       tags: [STOREFRONT_CATALOG_GRID_CACHE_TAG, pdpProductCacheTag(trimmed)],
     },
   )();
+  return product ? withSale(product, Date.now()) : null;
 }
 
 export async function loadCachedPdpDetailsBySlug(

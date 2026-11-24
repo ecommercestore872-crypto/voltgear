@@ -9,6 +9,7 @@ export type PdpClientProduct = Pick<
   | "category"
   | "price"
   | "compareAtPrice"
+  | "saleEndsAt"
   | "images"
   | "cloudinaryImages"
   | "shortDescription"
@@ -38,6 +39,7 @@ export function stripProductForPdpClient(product: Product): PdpClientProduct {
     category: product.category,
     price: product.price,
     compareAtPrice: product.compareAtPrice,
+    saleEndsAt: product.saleEndsAt,
     images: product.images,
     cloudinaryImages: product.cloudinaryImages,
     shortDescription: product.shortDescription,

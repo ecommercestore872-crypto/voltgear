@@ -96,7 +96,15 @@ async function publishProductTransaction(
     p_reviews: toReviewRows(id, doc.reviews),
     p_collection_ids: collectionIds,
   });
-  if (!error) return { ok: true as const };
+  if (!error) {
+    // shortcut: set outside the publish RPC so the existing function stays untouched; fold into it on its next rewrite.
+    const { error: saleError } = await db()
+      .from("products")
+      .update({ sale_price: doc.salePrice ?? null, sale_ends_at: doc.saleEndsAt ?? null })
+      .eq("id", id);
+    if (saleError) return { ok: false as const, error: saleError.message, status: 500 };
+    return { ok: true as const };
+  }
   if (error.code === "23505" || /duplicate key|unique constraint/i.test(error.message)) {
     return { ok: false as const, error: "That slug is already used.", status: 409 };
   }

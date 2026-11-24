@@ -17,6 +17,9 @@ export interface ProductDocument {
   category: string;
   price: number;
   compareAtPrice?: number;
+  salePrice?: number;
+  /** ISO instant; sale price applies until then (server clock). */
+  saleEndsAt?: string;
   images: string[];
   cloudinaryImages?: string[];
   shortDescription?: string;
@@ -135,6 +138,9 @@ export function mergeProductForm(
     category: form.category?.trim() ?? "",
     price: Number.isFinite(form.price) ? form.price : 0,
     compareAtPrice: form.compareAtPrice ?? existing?.compareAtPrice,
+    // Full editor can clear the sale; the short quick-edit form never sends it, so keep existing.
+    salePrice: shortPatch ? (form.salePrice ?? existing?.salePrice) : form.salePrice,
+    saleEndsAt: shortPatch ? (form.saleEndsAt ?? existing?.saleEndsAt) : form.saleEndsAt,
     images: form.images ?? [],
     shortDescription: form.shortDescription ?? existing?.shortDescription,
     description: form.description ?? existing?.description,

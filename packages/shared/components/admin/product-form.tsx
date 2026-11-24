@@ -25,6 +25,7 @@ import type { ShopType } from "@/lib/categories";
 import { PRODUCT_PHOTO_HINT } from "@/lib/product-image";
 import { videoKind } from "@/lib/gadget-preview";
 import type { AdminProduct } from "@/lib/db/admin-types";
+import { isoToPktInput, pktInputToIso } from "@/lib/product-sale-rules";
 import { ProductCollectionsFields } from "@/components/admin/product-collections-fields";
 const VariantAxesFields = dynamic(
   () =>
@@ -516,6 +517,51 @@ export function ProductForm({
                 )
               }
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="salePrice">Sale price (optional)</Label>
+            <Input
+              id="salePrice"
+              type="number"
+              min={0}
+              value={doc.salePrice ?? ""}
+              onChange={(e) =>
+                set("salePrice", e.target.value === "" ? undefined : Number(e.target.value))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="saleEnds">Sale ends (Pakistan time, optional)</Label>
+            <Input
+              id="saleEnds"
+              type="datetime-local"
+              value={isoToPktInput(doc.saleEndsAt)}
+              onChange={(e) => set("saleEndsAt", pktInputToIso(e.target.value))}
+            />
+            <div className="flex flex-wrap gap-2">
+              {[
+                ["1 hour", 1],
+                ["6 hours", 6],
+                ["24 hours", 24],
+                ["3 days", 72],
+              ].map(([label, hours]) => (
+                <Button
+                  key={label}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    set("saleEndsAt", new Date(Date.now() + Number(hours) * 3600_000).toISOString())
+                  }
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              A button sets a real end time, counted from now. Leave empty for no countdown. After
+              this time the normal price applies.
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="cost">Your cost (hidden from shop)</Label>
