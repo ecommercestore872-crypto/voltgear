@@ -112,6 +112,20 @@ export function sanitizeBlogSections(blocks: ContentBlock[] | undefined): Conten
         });
         break;
       }
+      case "comparison": {
+        const slugRe = /^[a-z0-9][a-z0-9-]{0,120}$/;
+        const category = (block.category ?? "").trim();
+        out.push({
+          _type: "comparison",
+          heading: clipText(block.heading, 120),
+          category: slugRe.test(category) ? category : undefined,
+          productSlugs: (block.productSlugs ?? [])
+            .map((s) => String(s).trim())
+            .filter((s) => slugRe.test(s))
+            .slice(0, 6),
+        });
+        break;
+      }
       case "contactForm":
       case "relatedProducts":
         break;

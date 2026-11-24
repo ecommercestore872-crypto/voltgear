@@ -7,7 +7,7 @@
 
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
-import { CANONICAL_PUBLIC_ORIGIN, indexSiteUrl } from "@/lib/seo-rules";
+import { CANONICAL_PUBLIC_ORIGIN, indexSiteUrl, SEARCH_CRAWL_DISALLOW } from "@/lib/seo-rules";
 
 /** Public ownership key (hosted at /{key}.txt). Not a private API secret. */
 export const BUY_N_TRY_INDEXNOW_KEY = "buyntryy-indexnow-a7c4e91f2b68d035";
@@ -24,6 +24,17 @@ export function resolveIndexNowKey(
   const fromEnv = (env.INDEXNOW_KEY ?? "").trim();
   if (isValidIndexNowKey(fromEnv)) return fromEnv;
   return BUY_N_TRY_INDEXNOW_KEY;
+}
+
+/** Drop admin/api/cart/etc. paths — robots.txt blocks them, so pinging them is noise. */
+export function indexablePaths(paths: string[]): string[] {
+  return paths.filter(
+    (p) =>
+      !SEARCH_CRAWL_DISALLOW.some((d) => {
+        const prefix = d.endsWith("/") ? d : `${d}/`;
+        return p === d || p === d.replace(/\/$/, "") || p.startsWith(prefix);
+      }),
+  );
 }
 
 export function indexNowEndpoint(): string {

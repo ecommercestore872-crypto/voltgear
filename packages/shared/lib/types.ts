@@ -94,6 +94,8 @@ export interface Product {
   tiktokUrl?: string;
   addons?: ProductAddon[];
   freeShipping?: boolean;
+  /** Admin override for the page <title>; empty = generated from name and key spec. */
+  seoTitle?: string;
 }
 
 export interface HeroSection {
@@ -198,6 +200,15 @@ export type ContentBlock =
   | {
       _type: "relatedProducts";
       heading?: string;
+      products?: Product[];
+    }
+  | {
+      _type: "comparison";
+      heading?: string;
+      /** Category slug for the "see all" link. */
+      category?: string;
+      productSlugs?: string[];
+      /** Filled server-side from the live catalog; never stored. */
       products?: Product[];
     }
   | { _type: "faq"; items?: { question: string; answer: string }[] }

@@ -61,6 +61,7 @@ export function productToDocument(product: Product, costPrice?: number): Product
     description: product.description,
     features: product.features,
     specifications: product.specifications,
+    seoTitle: product.seoTitle,
     compatibility: product.compatibility,
     inTheBox: product.inTheBox,
     productVideo: product.productVideo,

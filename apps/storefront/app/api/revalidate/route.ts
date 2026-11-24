@@ -2,7 +2,7 @@ import { withShopApiObservability } from "@/lib/shop-api-observability";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { isAdminRequest } from "@/lib/admin";
-import { submitIndexNow } from "@/lib/indexnow-rules";
+import { indexablePaths, submitIndexNow } from "@/lib/indexnow-rules";
 import { indexSiteUrl } from "@/lib/seo-rules";
 
 export const dynamic = "force-dynamic";
@@ -70,10 +70,10 @@ async function POSTHandler(request: Request) {
     }
     for (const tag of tags) revalidateTag(tag);
 
-    const indexNow = await submitIndexNow({
-      siteUrl: indexSiteUrl(),
-      urls: paths,
-    });
+    const pingable = indexablePaths(paths);
+    const indexNow = pingable.length
+      ? await submitIndexNow({ siteUrl: indexSiteUrl(), urls: pingable })
+      : { ok: true, status: 204, submitted: 0 };
 
     return Response.json({
       revalidated: true,

@@ -100,7 +100,11 @@ async function publishProductTransaction(
     // shortcut: set outside the publish RPC so the existing function stays untouched; fold into it on its next rewrite.
     const { error: saleError } = await db()
       .from("products")
-      .update({ sale_price: doc.salePrice ?? null, sale_ends_at: doc.saleEndsAt ?? null })
+      .update({
+        sale_price: doc.salePrice ?? null,
+        sale_ends_at: doc.saleEndsAt ?? null,
+        seo_title: doc.seoTitle?.trim() || null,
+      })
       .eq("id", id);
     if (saleError) return { ok: false as const, error: saleError.message, status: 500 };
     return { ok: true as const };

@@ -8,6 +8,8 @@ import { FAQAccordion } from "@/components/sections/faq-accordion";
 import { ProductCard } from "@/components/product/product-card";
 import { safeBlogHref } from "@/lib/blog-safety-rules";
 import { imageUrl } from "@/lib/sanity/image";
+import { comparisonSpecLabels, comparisonSpecValue } from "@/lib/onpage-seo";
+import { formatPrice } from "@/lib/utils";
 import type { ContentBlock } from "@/lib/types";
 
 export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
@@ -122,6 +124,61 @@ export function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
                 </div>
               </div>
             );
+          case "comparison": {
+            const items = block.products ?? [];
+            if (!items.length) return null;
+            const labels = comparisonSpecLabels(items);
+            return (
+              <section key={i} className="mt-8">
+                <h2 className="text-2xl font-bold tracking-tight text-[var(--g-charcoal,inherit)]">
+                  {block.heading || "Comparison"}
+                </h2>
+                <div className="mt-4 overflow-x-auto rounded-xl border">
+                  <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/40">
+                        <th scope="col" className="p-3 font-semibold">
+                          Product
+                        </th>
+                        <th scope="col" className="p-3 font-semibold">
+                          Price
+                        </th>
+                        {labels.map((label) => (
+                          <th key={label} scope="col" className="p-3 font-semibold">
+                            {label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((product) => (
+                        <tr key={product._id} className="border-b last:border-0">
+                          <th scope="row" className="p-3 font-medium">
+                            <Link href={`/product/${product.slug}`} className="hover:underline">
+                              {product.name}
+                            </Link>
+                          </th>
+                          <td className="p-3">{formatPrice(product.price)}</td>
+                          {labels.map((label) => (
+                            <td key={label} className="p-3">
+                              {comparisonSpecValue(product, label) ?? "-"}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {block.category ? (
+                  <p className="mt-3 text-sm">
+                    <Link href={`/products/${block.category}`} className="font-semibold underline">
+                      See all {block.category.replace(/-/g, " ")}
+                    </Link>
+                  </p>
+                ) : null}
+              </section>
+            );
+          }
           case "inlineImage":
             if (!block.image) return null;
             {

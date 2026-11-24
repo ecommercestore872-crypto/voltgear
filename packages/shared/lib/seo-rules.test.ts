@@ -133,10 +133,10 @@ describe("productStructuredData", () => {
       currency: "PKR",
       inStock: true,
       sku: "SM-1",
-      brandName: "Buy n Try",
+      brand: "Studio",
     });
     assert.equal(data["@type"], "Product");
-    assert.equal(data.brand.name, "Buy n Try");
+    assert.equal(data.brand?.name, "Studio");
     assert.equal(data.offers.price, "4999");
     assert.equal(data.offers.priceCurrency, "PKR");
     assert.equal(data.offers.availability, "https://schema.org/InStock");
@@ -244,8 +244,10 @@ describe("llmsTxt", () => {
         returnWindowDays: 7,
         email: "help@example.com",
       },
+      guides: [{ title: "Guide One", slug: "guide-one" }],
       topProducts: [{ name: "Mic", slug: "mic", price: 1999 }],
     });
+    assert.match(text, /\[Guide One\]\(https:\/\/buyntryy\.com\/blog\/guide-one\)/);
     assert.match(text, /\/products\/earbuds/);
     assert.match(text, /Shipping fee: PKR 250/);
     assert.match(text, /Cash on delivery is available/);

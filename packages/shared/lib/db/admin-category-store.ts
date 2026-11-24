@@ -4,6 +4,7 @@ import { revalidateAdminCacheTag, revalidateShopMerchandising } from "@/lib/reva
 import { FALLBACK_SHOP_TYPES, type ShopType } from "@/lib/categories";
 import { canDeleteShopType, canSaveShopType, shopTypeSlugTaken } from "@/lib/db/category-rules";
 import { slugify } from "@/lib/db/publish";
+import { cleanFaq, cleanText } from "@/lib/onpage-seo";
 import { getServiceClient } from "@/lib/supabase/server";
 
 const ADMIN_SHOP_TYPES_CACHE_TAG = "admin-shop-types";
@@ -36,6 +37,32 @@ function mapCategoryRow(
     sortOrder: Number(row.sort_order ?? 0),
     productCount: counts[slug] ?? 0,
     active: row.active !== false,
+    seoTitle: cleanText(row.seo_title),
+    metaDescription: cleanText(row.meta_description),
+    seoH1: cleanText(row.seo_h1),
+    seoIntro: cleanText(row.seo_intro),
+    guideText: cleanText(row.guide_text),
+    faq: cleanFaq(row.faq),
+  };
+}
+
+type ShopTypeSeoDoc = {
+  seoTitle?: string;
+  metaDescription?: string;
+  seoH1?: string;
+  seoIntro?: string;
+  guideText?: string;
+  faq?: { question: string; answer: string }[];
+};
+
+function seoColumns(doc: ShopTypeSeoDoc) {
+  return {
+    seo_title: cleanText(doc.seoTitle) ?? null,
+    meta_description: cleanText(doc.metaDescription) ?? null,
+    seo_h1: cleanText(doc.seoH1) ?? null,
+    seo_intro: cleanText(doc.seoIntro) ?? null,
+    guide_text: cleanText(doc.guideText) ?? null,
+    faq: cleanFaq(doc.faq),
   };
 }
 
@@ -130,7 +157,7 @@ export async function createAdminShopType(doc: {
   imageUrl?: string;
   sortOrder?: number;
   active?: boolean;
-}) {
+} & ShopTypeSeoDoc) {
   const name = doc.name?.trim() ?? "";
   const slug = slugify(name);
   const gate = canSaveShopType({ name, slug });
@@ -157,6 +184,7 @@ export async function createAdminShopType(doc: {
       image_url: doc.imageUrl?.trim() || null,
       sort_order: sortOrder,
       active: doc.active ?? true,
+      ...seoColumns(doc),
     })
     .select("id")
     .single();
@@ -186,7 +214,7 @@ export async function saveAdminShopType(
     imageUrl?: string;
     sortOrder?: number;
     active?: boolean;
-  },
+  } & ShopTypeSeoDoc,
 ) {
   const current = await getAdminShopType(id);
   if (!current) return { ok: false as const, error: "Shop type not found.", status: 404 };
@@ -206,6 +234,7 @@ export async function saveAdminShopType(
           ? Number(doc.sortOrder)
           : current.sortOrder,
       active: doc.active ?? current.active ?? true,
+      ...seoColumns(doc),
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message, status: 500 };

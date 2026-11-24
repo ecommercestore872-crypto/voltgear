@@ -147,6 +147,7 @@ export function mapProduct(
     badge: row.badge ? String(row.badge) : undefined,
     isDemo: Boolean(row.is_demo),
     freeShipping: Boolean(row.free_shipping),
+    seoTitle: typeof row.seo_title === "string" && row.seo_title.trim() ? row.seo_title.trim() : undefined,
     addons: Array.isArray(row.addons)
       ? (row.addons as Product["addons"])
       : undefined,

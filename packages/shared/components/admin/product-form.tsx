@@ -688,6 +688,15 @@ export function ProductForm({
             />
             Free shipping — waived when every item in the cart has it
           </label>
+          <div className="space-y-1.5">
+            <Label htmlFor="seoTitle">SEO title override (optional)</Label>
+            <Input
+              id="seoTitle"
+              value={doc.seoTitle ?? ""}
+              onChange={(e) => set("seoTitle", e.target.value)}
+              placeholder="Default: name + key spec + Price in Pakistan | Buy n Try"
+            />
+          </div>
           <ProductCollectionsFields
             collections={collectionList}
             selectedIds={selectedCollectionIds}

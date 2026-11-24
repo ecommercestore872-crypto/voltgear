@@ -16,7 +16,7 @@ import {
 import { StorefrontAnnouncementBar } from "@/components/promotions/announcement-bar";
 import { StorefrontPromoPopup } from "@/components/promotions/storefront-promo-popup";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
-import { SHOPPER_BRAND } from "@/lib/brand";
+import { getPublicSocialLinks } from "@/lib/social-links-rules";
 import {
   indexSiteUrl,
   organizationStructuredData,
@@ -50,6 +50,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Per-page canonical = own path without query (filters/sort/page); pages may override.
+  alternates: { canonical: "./" },
   title: {
     default:
       "Buy n Try — Smartwatches, Earbuds, Tripods & Chargers in Pakistan",
@@ -174,9 +176,8 @@ export default async function RootLayout({
     organizationStructuredData({
       siteUrl: SITE_URL,
       brandName,
-      logo: settings?.logo
-        ? `${SITE_URL}/api/logo`
-        : `${SITE_URL}${SHOPPER_BRAND.sealSrc}`,
+      logo: settings?.logo || undefined,
+      sameAs: getPublicSocialLinks(config).map((l) => l.href),
       phone: settings?.phone || settings?.whatsappNumber,
       email: settings?.email,
       returnDays: settings?.returnWindowDays,

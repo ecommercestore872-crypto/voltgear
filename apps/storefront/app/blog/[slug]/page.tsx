@@ -6,6 +6,7 @@ import { CalendarDays, Clock, User } from "lucide-react";
 import { GadgetArticleShell } from "@/components/gadget/gadget-article-shell";
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { fetchBlogPosts, fetchPageBySlug } from "@/lib/db/store";
+import { loadPdpProductBySlug, loadPdpProductDetailsBySlug } from "@/lib/db/product-pdp";
 import { publicSiteUrl } from "@/lib/deploy-rules";
 import { imageUrl } from "@/lib/sanity/image";
 import type { ContentBlock, Page } from "@/lib/types";
@@ -104,7 +105,21 @@ export default async function BlogPostPage(
 
   if (!post || post.pageType !== "blog") notFound();
 
-  const sections = sanitizeBlogSections(post.sections);
+  const sections = await Promise.all(
+    sanitizeBlogSections(post.sections).map(async (block) => {
+      if (block._type !== "comparison") return block;
+      const loaded = await Promise.all(
+        (block.productSlugs ?? []).map(async (slug) => {
+          const [product, details] = await Promise.all([
+            loadPdpProductBySlug(slug).catch(() => null),
+            loadPdpProductDetailsBySlug(slug).catch(() => null),
+          ]);
+          return product ? { ...product, specifications: details?.specifications } : null;
+        }),
+      );
+      return { ...block, products: loaded.filter((p): p is NonNullable<typeof p> => Boolean(p)) };
+    }),
+  );
   const publishedDate = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString("en-US", {
         month: "long",
@@ -144,6 +159,14 @@ export default async function BlogPostPage(
         },
         mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
         keywords: post.keywords?.join(", "),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+          { "@type": "ListItem", position: 2, name: "Guides", item: `${siteUrl}/blog` },
+          { "@type": "ListItem", position: 3, name: post.title, item: `${siteUrl}/blog/${post.slug}` },
+        ],
       },
       ...(faqs.length
         ? [
