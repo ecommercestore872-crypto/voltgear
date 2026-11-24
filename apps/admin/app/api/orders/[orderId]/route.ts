@@ -32,7 +32,7 @@ async function DELETEHandler(
     return NextResponse.json({ error: "Type the exact order ID to confirm deletion." }, { status: 400 });
   }
 
-  const result = await deleteOrder(orderId, actorId);
+  const result = await deleteOrder(orderId, actorId, body?.sensitiveConfirmation);
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error },

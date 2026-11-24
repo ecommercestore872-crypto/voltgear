@@ -234,7 +234,7 @@ export function OrderList({
                   >
                     Manage Order
                   </Link>
-                  <DeleteOrderButton orderId={o.orderId} isDemo={Boolean(o.isDemo)} compact onDeleted={() => router.refresh()} />
+                  <DeleteOrderButton orderId={o.orderId} isDemo={Boolean(o.isDemo)} status={o.status} compact onDeleted={() => router.refresh()} />
                 </div>
               </div>
             ))}
@@ -289,7 +289,7 @@ export function OrderList({
                       {formatPrice(o.total)}
                     </td>
                     <td className="px-4 py-3">
-                      <DeleteOrderButton orderId={o.orderId} isDemo={Boolean(o.isDemo)} compact onDeleted={() => router.refresh()} />
+                      <DeleteOrderButton orderId={o.orderId} isDemo={Boolean(o.isDemo)} status={o.status} compact onDeleted={() => router.refresh()} />
                     </td>
                   </tr>
                 ))}

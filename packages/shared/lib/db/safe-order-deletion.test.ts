@@ -22,7 +22,7 @@ const communications = readFileSync(
 );
 
 describe("safe order deletion", () => {
-  it("permits atomic hard deletion only for demo orders", () => {
+  it("keeps the legacy demo helper restricted while the audited RPC handles deletion", () => {
     assert.match(migration, /function public\.admin_delete_demo_order/i);
     assert.match(migration, /if not coalesce\(v_order\.is_demo, false\)/i);
     assert.match(migration, /live orders must be retained/i);

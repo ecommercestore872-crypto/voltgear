@@ -666,11 +666,9 @@ export function OrderDetail({
         <section className="rounded-lg border border-destructive/20 p-4">
           <h2 className="text-sm font-semibold text-destructive">Permanent deletion</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {order.isDemo
-              ? "Eligible practice orders can be deleted with reserved inventory restored."
-              : "Live orders are retained while payment, fulfillment, and retention eligibility cannot be proven."}
+            Eligible orders can be removed after payment, courier, and reporting checks. A restricted evidence record and deletion audit remain. Active shipments cannot be removed.
           </p>
-          <div className="mt-4"><DeleteOrderButton orderId={order.orderId} isDemo={Boolean(order.isDemo)} onDeleted={() => { router.push("/admin/orders"); router.refresh(); }} /></div>
+          <div className="mt-4"><DeleteOrderButton orderId={order.orderId} isDemo={Boolean(order.isDemo)} status={order.status ?? "new"} onDeleted={() => { router.push("/admin/orders"); router.refresh(); }} /></div>
         </section>
       </div>
     </div>
