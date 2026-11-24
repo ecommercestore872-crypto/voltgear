@@ -97,7 +97,11 @@ const nextConfig = {
     const { storefrontAdminRewrites } = await import(
       "../../packages/shared/lib/storefront-admin-routing.mjs"
     );
-    return storefrontAdminRewrites(process.env);
+    return [
+      ...storefrontAdminRewrites(process.env),
+      // IndexNow key file for INDEXNOW_KEY; static files in /public win first.
+      { source: "/:key([A-Za-z0-9-]{8,128}).txt", destination: "/api/indexnow-key/:key" },
+    ];
   },
   async redirects() {
     const { storefrontAdminRedirects } = await import(

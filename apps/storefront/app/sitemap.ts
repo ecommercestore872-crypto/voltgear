@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
-import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
 import { fetchSitemapCollections } from "@/lib/db/collection-store";
 import {
   fetchShopTypes,
@@ -13,6 +12,15 @@ import { indexSiteUrl } from "@/lib/seo-rules";
 
 /** Cached sitemap — crawlers no longer force a fresh Supabase read every hit. */
 export const revalidate = 300;
+
+/** Newest real timestamp in a set — never `new Date()`, which would claim every URL changed on every crawl. */
+function newestUpdate(rows: { _updatedAt?: string }[]): string | undefined {
+  let best: string | undefined;
+  for (const r of rows) {
+    if (r._updatedAt && (!best || Date.parse(r._updatedAt) > Date.parse(best))) best = r._updatedAt;
+  }
+  return best;
+}
 
 function entry(
   url: string,
@@ -31,7 +39,7 @@ function entry(
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = indexSiteUrl();
 
-  let products: { slug: string; _updatedAt?: string }[] = [];
+  let products: { slug: string; category?: string; _updatedAt?: string }[] = [];
   let shopTypes: { slug: string }[] = [];
   let pages: { slug: string; pageType?: string; _updatedAt?: string }[] = [];
   let collections: { slug: string; _updatedAt?: string }[] = [];
@@ -51,10 +59,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     products = [];
   }
 
-  if (shopTypes.length === 0) {
-    shopTypes = FALLBACK_SHOP_TYPES.map((t) => ({ slug: t.slug }));
-  }
-
   const blogs = pages.filter((page) => page.pageType === "blog" && page.slug);
   const blogSlugSet = new Set(blogs.map((p) => p.slug));
   const cms = pages.filter(
@@ -65,18 +69,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    entry(`${baseUrl}/`, new Date(), "daily", 1),
-    entry(`${baseUrl}/products`, new Date(), "daily", 0.9),
-    entry(`${baseUrl}/about`, new Date(), "weekly", 0.5),
-    entry(`${baseUrl}/faq`, new Date(), "weekly", 0.5),
-    entry(`${baseUrl}/contact`, new Date(), "weekly", 0.5),
-    entry(`${baseUrl}/blog`, new Date(), "weekly", 0.55),
+    entry(`${baseUrl}/`, newestUpdate(products), "daily", 1),
+    entry(`${baseUrl}/products`, newestUpdate(products), "daily", 0.9),
+    entry(`${baseUrl}/about`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/faq`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/contact`, undefined, "weekly", 0.5),
+    entry(`${baseUrl}/blog`, newestUpdate(blogs), "weekly", 0.55),
     entry(`${baseUrl}/shipping-returns`, undefined, "monthly", 0.4),
     entry(`${baseUrl}/warranty`, undefined, "monthly", 0.4),
     entry(`${baseUrl}/privacy-policy`, undefined, "monthly", 0.3),
     entry(`${baseUrl}/cookies`, undefined, "monthly", 0.3),
     entry(`${baseUrl}/terms-of-service`, undefined, "monthly", 0.3),
-    entry(`${baseUrl}/llms.txt`, new Date(), "weekly", 0.3),
   ];
 
   const cityCodRoutes = citySeoHubSlugs().map((slug) =>
@@ -84,7 +87,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const categoryRoutes = shopTypes.map((cat) =>
-    entry(`${baseUrl}/products/${cat.slug}`, undefined, "daily", 0.85),
+    entry(
+      `${baseUrl}/products/${cat.slug}`,
+      newestUpdate(products.filter((p) => p.category === cat.slug)),
+      "daily",
+      0.85,
+    ),
   );
 
   const collectionRoutes = collections

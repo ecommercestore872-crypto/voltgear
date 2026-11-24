@@ -149,11 +149,12 @@ export default async function Product2Page(
     currency: config.currency || "PKR",
     inStock: product.stockStatus !== "out-of-stock",
     sku: product.sku,
-    brandName: SHOPPER_BRAND.spokenName,
+    brand: product.brand || undefined,
+    sellerName: SHOPPER_BRAND.spokenName,
     rating:
       reviewStats.count > 0 ? reviewStats.averageRating : undefined,
     reviewCount: reviewStats.count > 0 ? reviewStats.count : undefined,
-    shippingFee: config.shippingFee,
+    shippingFee: product.freeShipping ? 0 : config.shippingFee,
     returnDays: config.returnWindowDays ?? undefined,
   });
 

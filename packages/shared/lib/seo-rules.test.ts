@@ -133,10 +133,10 @@ describe("productStructuredData", () => {
       currency: "PKR",
       inStock: true,
       sku: "SM-1",
-      brandName: "Buy n Try",
+      brand: "Studio",
     });
     assert.equal(data["@type"], "Product");
-    assert.equal(data.brand.name, "Buy n Try");
+    assert.equal(data.brand?.name, "Studio");
     assert.equal(data.offers.price, "4999");
     assert.equal(data.offers.priceCurrency, "PKR");
     assert.equal(data.offers.availability, "https://schema.org/InStock");

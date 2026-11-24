@@ -474,15 +474,27 @@ export async function fetchProductSlugs(): Promise<{ slug: string }[]> {
   return (data ?? []).map((r) => ({ slug: String(r.slug) }));
 }
 
-export async function fetchSitemapProducts(): Promise<{ slug: string; _updatedAt?: string }[]> {
-  const { data, error } = await execDemoQuery(() =>
-    demoFilter(db().from("products").select("slug, updated_at").eq("status", LIVE), false)
-  );
+/** Live products whose category is active (same gate as the PDP, so no 404/noindex URLs). */
+export async function fetchSitemapProducts(): Promise<
+  { slug: string; category?: string; _updatedAt?: string }[]
+> {
+  const [{ data, error }, active] = await Promise.all([
+    execDemoQuery(() =>
+      demoFilter(
+        db().from("products").select("slug, category, updated_at").eq("status", LIVE),
+        false,
+      ),
+    ),
+    loadActiveCategorySlugSet(),
+  ]);
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    slug: String(r.slug),
-    _updatedAt: r.updated_at ? String(r.updated_at) : undefined,
-  }));
+  return (data ?? [])
+    .map((r) => ({
+      slug: String(r.slug),
+      category: r.category ? String(r.category) : undefined,
+      _updatedAt: r.updated_at ? String(r.updated_at) : undefined,
+    }))
+    .filter((r) => categoryIsStorefrontVisible(r.category, active));
 }
 
 export async function fetchSitemapPages(): Promise<

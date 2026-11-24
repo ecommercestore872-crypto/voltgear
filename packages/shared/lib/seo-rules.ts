@@ -324,13 +324,17 @@ export function productStructuredData(input: {
   currency?: string;
   inStock: boolean;
   sku?: string;
-  brandName?: string;
+  /** Manufacturer brand; omitted from JSON-LD when unknown. */
+  brand?: string;
+  /** Selling store, emitted as offers.seller. */
+  sellerName?: string;
   rating?: number;
   reviewCount?: number;
   shippingFee?: number;
   returnDays?: number;
 }) {
-  const brandName = input.brandName || SHOPPER_BRAND.spokenName;
+  const sellerName = input.sellerName || SHOPPER_BRAND.spokenName;
+  const manufacturerBrand = input.brand?.trim();
   const currency = input.currency || "PKR";
   const images = (input.images?.length ? input.images : input.image ? [input.image] : []).filter(
     Boolean
@@ -342,7 +346,7 @@ export function productStructuredData(input: {
     priceCurrency: currency,
     availability: input.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     itemCondition: "https://schema.org/NewCondition",
-    seller: { "@type": "Organization", name: brandName },
+    seller: { "@type": "Organization", name: sellerName },
   };
   if (typeof input.shippingFee === "number" && input.shippingFee >= 0) {
     offers.shippingDetails = {
@@ -364,8 +368,6 @@ export function productStructuredData(input: {
       applicableCountry: "PK",
       returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
       merchantReturnDays: input.returnDays,
-      returnMethod: "https://schema.org/ReturnByMail",
-      returnFees: "https://schema.org/FreeReturn",
     };
   }
   const data: Record<string, unknown> = {
@@ -376,9 +378,9 @@ export function productStructuredData(input: {
     url: input.url,
     image: images,
     category: input.category,
-    brand: { "@type": "Brand", name: brandName },
     offers,
   };
+  if (manufacturerBrand) data.brand = { "@type": "Brand", name: manufacturerBrand };
   if (input.sku) data.sku = input.sku;
   if (input.rating && input.reviewCount && input.reviewCount > 0) {
     data.aggregateRating = {
@@ -390,7 +392,7 @@ export function productStructuredData(input: {
   }
   return data as {
     "@type": string;
-    brand: { name: string };
+    brand?: { name: string };
     offers: {
       price: string;
       priceCurrency: string;
@@ -455,6 +457,15 @@ export function categoryStructuredData(input: {
   };
 }
 
+/** Absolute logo URL: keep external URLs, prefix site-relative paths, else the brand seal. */
+export function resolveOrgLogoUrl(logo: string | null | undefined, siteUrl: string): string {
+  const origin = siteUrl.replace(/\/+$/, "");
+  const trimmed = logo?.trim();
+  if (!trimmed) return `${origin}${SHOPPER_BRAND.sealSrc}`;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `${origin}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
+}
+
 export function organizationStructuredData(input: {
   siteUrl: string;
   brandName: string;
@@ -462,6 +473,8 @@ export function organizationStructuredData(input: {
   phone?: string;
   email?: string;
   returnDays?: number;
+  /** Official profile URLs (Instagram, Facebook, TikTok). */
+  sameAs?: string[];
 }) {
   const data: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -469,6 +482,7 @@ export function organizationStructuredData(input: {
     name: input.brandName,
     alternateName: brandSearchAliases(),
     url: input.siteUrl,
+    logo: resolveOrgLogoUrl(input.logo, input.siteUrl),
     areaServed: [
       { "@type": "City", name: "Lahore" },
       { "@type": "City", name: "Karachi" },
@@ -486,20 +500,27 @@ export function organizationStructuredData(input: {
       "cash on delivery electronics Pakistan",
     ],
   };
-  if (input.logo) data.logo = input.logo;
   if (input.phone) data.telephone = input.phone;
   if (input.email) data.email = input.email;
+  if (input.phone || input.email) {
+    data.contactPoint = {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      areaServed: "PK",
+      ...(input.phone ? { telephone: input.phone } : {}),
+      ...(input.email ? { email: input.email } : {}),
+    };
+  }
+  if (input.sameAs?.length) data.sameAs = input.sameAs;
   if (input.returnDays && input.returnDays > 0) {
     data.hasMerchantReturnPolicy = {
       "@type": "MerchantReturnPolicy",
       applicableCountry: "PK",
       returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
       merchantReturnDays: input.returnDays,
-      returnMethod: "https://schema.org/ReturnByMail",
-      returnFees: "https://schema.org/FreeReturn",
     };
   }
-  return data as { name: string; alternateName: string[]; url: string } & Record<string, unknown>;
+  return data as { name: string; alternateName: string[]; url: string; logo: string } & Record<string, unknown>;
 }
 
 export function llmsTxt(input: {
