@@ -288,10 +288,10 @@ export function GadgetBuyBox({
                 </span>
               ) : null}
             </div>
-            {product.saleEndsAt ? <SaleCountdown endsAt={product.saleEndsAt} className="mt-1" /> : null}
+            {product.saleEndsAt ? <SaleCountdown endsAt={product.saleEndsAt} className="mt-3" /> : null}
             <p
               className={cn(
-                "mt-1 text-sm font-semibold",
+                "mt-3 text-sm font-semibold",
                 outOfStock
                   ? "text-red-600"
                   : stock.status === "low-stock"
@@ -308,11 +308,7 @@ export function GadgetBuyBox({
             ) : null}
           </div>
 
-          {product.freeShipping ? (
-            <p className="mt-2 text-sm font-medium text-[var(--g-charcoal)]">Free delivery</p>
-          ) : null}
-
-          <GadgetPdpTrustRow config={config} />
+          <GadgetPdpTrustRow config={config} freeShipping={Boolean(product.freeShipping)} />
 
           <div id="gadget-buy-options">
             {axesOn ? (

@@ -140,8 +140,14 @@ export function SaleCountdown({ endsAt, className = "" }: { endsAt: string; clas
   const hh = String(t.days * 24 + t.hours).padStart(2, "0");
   const pad = (n: number) => String(n).padStart(2, "0");
   return (
-    <p className={`text-sm font-semibold tabular-nums text-[var(--g-sale)] ${className}`}>
-      Sale ends in {hh}:{pad(t.minutes)}:{pad(t.seconds)}
-    </p>
+    <div
+      className={`flex items-center justify-between gap-3 rounded-lg bg-[var(--g-sale)] px-3.5 py-2.5 text-white ${className}`}
+      role="timer"
+    >
+      <span className="text-sm font-semibold">Sale ends in</span>
+      <span className="text-xl font-extrabold tabular-nums leading-none">
+        {hh}:{pad(t.minutes)}:{pad(t.seconds)}
+      </span>
+    </div>
   );
 }
