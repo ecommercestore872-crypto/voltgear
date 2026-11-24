@@ -409,30 +409,8 @@ export async function resolveCollectionProductIds(
       .limit(24);
     if (error) throw error;
     autoIds = (data ?? []).map((r) => String((r as { id: string }).id));
-  } else {
-    // bestsellers: featured first, then recent published
-    const { data: featured } = await db()
-      .from("products")
-      .select("id")
-      .eq("featured", true)
-      .eq("status", "published")
-      .limit(8);
-    const ids = (featured ?? []).map((r) => String((r as { id: string }).id));
-    if (ids.length < 8) {
-      const { data: rest } = await db()
-        .from("products")
-        .select("id")
-        .eq("status", "published")
-        .order("updated_at", { ascending: false })
-        .limit(16);
-      for (const r of rest ?? []) {
-        const id = String((r as { id: string }).id);
-        if (!ids.includes(id)) ids.push(id);
-        if (ids.length >= 8) break;
-      }
-    }
-    autoIds = ids;
   }
+  // bestsellers: admin picks only. Never derived from featured flag, recency or sales.
 
   // Merge: pinned first, then auto (skip duplicates)
   const merged: string[] = [...pinnedIds];
