@@ -137,19 +137,14 @@ export function GadgetArrivalCard({
         <Link href={href} prefetch={false} className="min-w-0">
           <h3
             className={cn(
-              "font-extrabold uppercase tracking-tight text-[var(--g-charcoal)] transition",
-              "line-clamp-2 text-[13px] leading-snug sm:text-[14px]",
+              "font-bold tracking-tight text-[var(--g-charcoal)] transition",
+              "line-clamp-2 min-h-[2.5rem] text-[13px] leading-snug sm:min-h-[2.6rem] sm:text-[14px]",
             )}
           >
             {product.name}
           </h3>
         </Link>
 
-        {product.sku ? (
-          <p className="mt-0.5 truncate text-[12px] font-medium text-[var(--g-taupe)]">
-            {product.sku}
-          </p>
-        ) : null}
 
         {hasRealReviews ? (
           <p className="mt-1.5 flex items-center gap-1 border-b border-[var(--g-line)] pb-2 text-[12px] font-semibold text-[var(--g-charcoal)]">
@@ -176,7 +171,7 @@ export function GadgetArrivalCard({
               ) : null}
             </div>
           ) : null}
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
             <span
               className={cn(
                 "text-[1.05rem] font-extrabold tabular-nums sm:text-[1.15rem]",
