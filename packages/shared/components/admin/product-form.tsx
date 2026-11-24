@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ShopType } from "@/lib/categories";
 import { PRODUCT_PHOTO_HINT } from "@/lib/product-image";
+import { videoKind } from "@/lib/gadget-preview";
 import type { AdminProduct } from "@/lib/db/admin-types";
 import { ProductCollectionsFields } from "@/components/admin/product-collections-fields";
 const VariantAxesFields = dynamic(
@@ -284,6 +285,20 @@ export function ProductForm({
               placeholder="https://www.instagram.com/reel/..."
             />
           </div>
+          <MediaField
+            label="Product video (MP4)"
+            hint="Shown as the 2nd picture in the product gallery. Upload your own MP4 (a Reel exported as MP4 works). Keep it under 4 MB to upload here, or paste a link to a hosted MP4. Appears on the shop after you Publish."
+            accept="video/mp4,video/quicktime,video/webm"
+            urls={
+              doc.productVideo?.url && videoKind(doc.productVideo.url) === "file"
+                ? [doc.productVideo.url]
+                : []
+            }
+            onChange={(urls) =>
+              set("productVideo", { ...doc.productVideo, url: urls[urls.length - 1] })
+            }
+            onBusyChange={handleBusyChange}
+          />
           <MediaField
             label="Video Thumbnail (optional)"
             hint="Format: JPG, WEBP, or PNG. Video thumbnail poster. Recommended size: match your video's dimension (e.g. 1920x1080 or 1080x1920)."

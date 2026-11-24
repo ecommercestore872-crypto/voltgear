@@ -2,16 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Expand, ImageOff } from "lucide-react";
+import { ChevronLeft, ChevronRight, Expand, ImageOff, Play } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PRODUCT_IMAGE } from "@/lib/product-image";
 import { cloudinaryImageUrl } from "@/lib/cloudinary";
+import { galleryVideoForProduct } from "@/lib/product-gallery-video";
+import { ProductGalleryVideo } from "@/components/product/product-gallery-video";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type GallerySource = { src: string; thumb: string; alt: string };
+type GallerySource = {
+  src: string;
+  thumb: string;
+  alt: string;
+  /** Set on the video slide only; src/thumb then hold the poster (may be empty). */
+  video?: { src: string };
+};
 
 /** 3× zoom factor for the hover magnifier lens */
 const ZOOM = 3;
@@ -25,7 +33,7 @@ export function ProductGallery({
   product: Product;
   variantImage?: GallerySource | null;
 }) {
-  const sources: GallerySource[] = [
+  const imageSources: GallerySource[] = [
     ...(variantImage ? [variantImage] : []),
     ...(product.images ?? []).map((img) => ({
       src: imageUrl(img, { w: PRODUCT_IMAGE.gallery }),
@@ -38,6 +46,24 @@ export function ProductGallery({
       alt: `${product.name} (gallery image)`,
     })),
   ];
+
+  // Video is the 2nd slide so the first image stays the LCP element and loads alone.
+  const galleryVideo = galleryVideoForProduct(product);
+  const sources: GallerySource[] = [...imageSources];
+  if (galleryVideo) {
+    const poster = galleryVideo.poster
+      ? {
+          src: imageUrl(galleryVideo.poster, { w: PRODUCT_IMAGE.gallery }),
+          thumb: imageUrl(galleryVideo.poster, { w: PRODUCT_IMAGE.thumb }),
+        }
+      : { src: "", thumb: "" };
+    sources.splice(Math.min(1, sources.length), 0, {
+      ...poster,
+      alt: `${product.name} (video)`,
+      video: { src: galleryVideo.src },
+    });
+  }
+  const lightboxSources = sources.filter((s) => !s.video);
 
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -63,22 +89,21 @@ export function ProductGallery({
   }, []);
 
   const current = sources[Math.min(active, sources.length - 1)];
-  const lb = sources.length
-    ? sources[Math.min(Math.max(0, lightboxIndex), sources.length - 1)]
+  const lb = lightboxSources.length
+    ? lightboxSources[Math.min(Math.max(0, lightboxIndex), lightboxSources.length - 1)]
     : null;
 
   const goTo = useCallback(
     (index: number) => {
       const next = (index + sources.length) % sources.length;
       setActive(next);
-      setLightboxIndex(next);
     },
     [sources.length],
   );
 
   function openLightbox() {
-    if (!current) return;
-    setLightboxIndex(active);
+    if (!current || current.video) return;
+    setLightboxIndex(Math.max(0, lightboxSources.indexOf(current)));
     setLightboxOpen(true);
   }
 
@@ -111,10 +136,10 @@ export function ProductGallery({
             : "cursor-zoom-in",
         )}
         onClick={() => {
-          if (isTouchDevice.current) openLightbox();
+          if (isTouchDevice.current && !current?.video) openLightbox();
         }}
         onMouseEnter={() => {
-          if (!isTouchDevice.current && current) setZoomed(true);
+          if (!isTouchDevice.current && current && !current.video) setZoomed(true);
         }}
         onMouseLeave={() => setZoomed(false)}
         onMouseMove={handleMouseMove}
@@ -132,10 +157,23 @@ export function ProductGallery({
         onTouchEnd={() => {
           touchStartX.current = null;
         }}
-        role="img"
+        role={current?.video ? undefined : "img"}
         aria-label={current?.alt ?? product.name}
       >
-        {current ? (
+        {current?.video ? (
+          <div
+            className="absolute inset-0"
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+            <ProductGalleryVideo
+              key={current.video.src}
+              src={current.video.src}
+              poster={current.src || undefined}
+              label={`${product.name} video`}
+            />
+          </div>
+        ) : current ? (
           <Image
             src={current.src}
             alt={current.alt}
@@ -175,7 +213,7 @@ export function ProductGallery({
         )}
 
         {/* Expand button (lightbox) — hidden while zoom lens is active */}
-        {sources.length > 0 && !zoomed && (
+        {sources.length > 0 && !zoomed && !current?.video && (
           <button
             className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur z-10 hover:bg-background transition-colors"
             onClick={(e) => {
@@ -197,10 +235,11 @@ export function ProductGallery({
               key={`${source.thumb}-${i}`}
               onClick={() => {
                 setActive(i);
-                setLightboxIndex(i);
                 setZoomed(false);
               }}
-              aria-label={`View image ${i + 1}`}
+              aria-label={
+                source.video ? "Play product video" : `View image ${i + 1}`
+              }
               aria-current={i === active}
               className={cn(
                 "relative aspect-square overflow-hidden rounded-lg border bg-muted transition-all",
@@ -209,13 +248,20 @@ export function ProductGallery({
                   : "opacity-70 hover:opacity-100",
               )}
             >
-              <Image
-                src={source.thumb}
-                alt=""
-                fill
-                sizes="15vw"
-                className="object-cover"
-              />
+              {source.thumb ? (
+                <Image
+                  src={source.thumb}
+                  alt=""
+                  fill
+                  sizes="15vw"
+                  className="object-cover"
+                />
+              ) : null}
+              {source.video ? (
+                <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <Play className="h-5 w-5 fill-white text-white" />
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
@@ -243,12 +289,12 @@ export function ProductGallery({
               <p className="text-sm text-muted-foreground">No image</p>
             )}
           </div>
-          {sources.length > 1 && (
+          {lightboxSources.length > 1 && (
             <>
               <button
                 onClick={() =>
                   setLightboxIndex(
-                    (lightboxIndex - 1 + sources.length) % sources.length,
+                    (lightboxIndex - 1 + lightboxSources.length) % lightboxSources.length,
                   )
                 }
                 className="absolute left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-background/10 text-white transition-colors hover:bg-background/20"
@@ -258,7 +304,7 @@ export function ProductGallery({
               </button>
               <button
                 onClick={() =>
-                  setLightboxIndex((lightboxIndex + 1) % sources.length)
+                  setLightboxIndex((lightboxIndex + 1) % lightboxSources.length)
                 }
                 className="absolute right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-background/10 text-white transition-colors hover:bg-background/20"
                 aria-label="Next image"
@@ -266,7 +312,7 @@ export function ProductGallery({
                 <ChevronRight className="h-6 w-6" />
               </button>
               <p className="text-center text-sm text-white/70">
-                {lightboxIndex + 1} / {sources.length}
+                {lightboxIndex + 1} / {lightboxSources.length}
               </p>
             </>
           )}
