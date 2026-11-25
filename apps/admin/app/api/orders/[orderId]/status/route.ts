@@ -8,6 +8,7 @@ import {
 } from "@/lib/db/order-rules";
 import { sendOrderStatusUpdateEmail } from "@/lib/email";
 import { getOrderById, updateOrderStatus } from "@/lib/order-store";
+import { syncWhatsAppStateAfterStatus } from "@/lib/whatsapp-confirm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +65,8 @@ async function POSTHandler(
       { status: 500 },
     );
   }
+
+  await syncWhatsAppStateAfterStatus(orderId, status).catch(() => undefined);
 
   let emailSent = false;
   let emailError: string | undefined;

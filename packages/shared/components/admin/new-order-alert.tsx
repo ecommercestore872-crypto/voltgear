@@ -6,10 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, BellOff, X } from "lucide-react";
 
 import { adminFetch } from "@/components/admin/admin-fetch";
+import { urlBase64ToUint8Array } from "@/lib/admin-push-rules";
 import { formatPrice } from "@/lib/utils";
 
 const SEEN_KEY = "admin.orders.lastSeen";
 const SOUND_KEY = "admin.orders.sound";
+const HINT_KEY = "admin.orders.pushHint";
 const POLL_MS = 15_000;
 
 type Latest = { orderId: string; createdAt: string; total: number; customerName: string };
@@ -20,6 +22,44 @@ function store(key: string, value?: string): string | null {
     return localStorage.getItem(key);
   } catch {
     return null; // private mode: alerts still work for this session
+  }
+}
+
+function pushSupported(): boolean {
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+
+/** Subscribes this device to order push alerts. Pass ask=true only from a tap (permission prompt). */
+async function enablePush(ask: boolean) {
+  try {
+    if (!pushSupported()) return;
+    if (ask && Notification.permission === "default") await Notification.requestPermission();
+    if (Notification.permission !== "granted") return;
+    const reg = await navigator.serviceWorker.register("/admin/sw.js", { scope: "/admin/" });
+    await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const { publicKey } = (await adminFetch("/api/admin/push/key")) as { publicKey: string };
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+      });
+    }
+    await adminFetch("/api/admin/push/subscribe", { method: "POST", body: JSON.stringify(sub.toJSON()) });
+  } catch {
+    // push is a bonus: the in-app chime keeps working
+  }
+}
+
+async function disablePush() {
+  try {
+    if (!pushSupported()) return;
+    const sub = await (await navigator.serviceWorker.getRegistration("/admin/"))?.pushManager.getSubscription();
+    if (!sub) return;
+    await adminFetch("/api/admin/push/subscribe", { method: "DELETE", body: JSON.stringify({ endpoint: sub.endpoint }) });
+    await sub.unsubscribe();
+  } catch {
+    // already gone or offline
   }
 }
 
@@ -50,6 +90,7 @@ export function NewOrderAlert() {
   const ctxRef = useRef<AudioContext | null>(null);
   const [on, setOn] = useState(false);
   const [latest, setLatest] = useState<Latest | null>(null);
+  const [hint, setHint] = useState("");
   const onRef = useRef(false);
   onRef.current = on;
 
@@ -74,6 +115,9 @@ export function NewOrderAlert() {
     if (next) {
       const ctx = audio();
       if (ctx) chime(ctx); // doubles as a test
+      void enablePush(true);
+    } else {
+      void disablePush();
     }
   }
 
@@ -81,6 +125,15 @@ export function NewOrderAlert() {
     const saved = store(SOUND_KEY) !== "0";
     setOn(saved);
     if (!saved) return;
+    if (pushSupported()) void enablePush(false);
+    else if (store(HINT_KEY) !== "1") {
+      const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      setHint(
+        ios
+          ? "For alerts when the screen is off: Share, Add to Home Screen, then open the app from the home screen and tap the bell."
+          : "This browser cannot send alerts when the screen is off.",
+      );
+    }
     const unlock = () => audio();
     window.addEventListener("pointerdown", unlock, { once: true });
     return () => window.removeEventListener("pointerdown", unlock);
@@ -144,6 +197,14 @@ export function NewOrderAlert() {
             </p>
           </Link>
           <button type="button" aria-label="Dismiss" className="grid h-9 w-9 place-items-center rounded-md" onClick={() => setLatest(null)}>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+      {hint ? (
+        <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-20 z-40 flex items-start gap-2 rounded-lg border bg-white p-2 text-xs shadow-lg md:left-auto md:w-80">
+          <p className="flex-1">{hint}</p>
+          <button type="button" aria-label="Dismiss hint" onClick={() => { store(HINT_KEY, "1"); setHint(""); }}>
             <X className="h-4 w-4" />
           </button>
         </div>

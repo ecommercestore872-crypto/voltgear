@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { OrderList } from "@/components/admin/order-list";
-import { normalizeAdminOrdersPage } from "@/lib/db/admin-orders-rules";
+import { normalizeAdminOrdersPage, normalizeAdminOrdersRange } from "@/lib/db/admin-orders-rules";
 import { listAdminOrdersPage } from "@/lib/db/admin-orders-store";
 import { toAdminOrderListItem } from "@/lib/db/order-rules";
 
@@ -19,17 +19,20 @@ export default async function AdminOrdersPage(
       tab?: string;
       page?: string;
       q?: string;
+      range?: string;
     }>;
   }
 ) {
   const searchParams = await props.searchParams;
-  const tab = searchParams.tab ?? searchParams.status ?? "all";
+  const tab = searchParams.tab ?? searchParams.status ?? "open";
+  const range = normalizeAdminOrdersRange(searchParams.range);
   const page = normalizeAdminOrdersPage(searchParams.page);
   const q = searchParams.q?.trim() ?? "";
 
   const result = await listAdminOrdersPage({
     page,
     tab,
+    range,
     q: q.length >= 2 ? q : undefined,
   });
 
@@ -41,6 +44,7 @@ export default async function AdminOrdersPage(
       pageSize={result.pageSize}
       tabCounts={result.tabCounts}
       activeTab={tab}
+      range={range}
       initialQuery={q}
     />
   );

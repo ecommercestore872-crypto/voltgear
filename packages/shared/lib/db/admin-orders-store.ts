@@ -2,16 +2,20 @@ import { getServiceClient } from "@/lib/supabase/server";
 import type { Order, OrderCustomer } from "@/lib/types";
 
 import {
+  ADMIN_ORDERS_DEFAULT_RANGE,
+  ADMIN_ORDERS_OPEN_STATUSES,
   ADMIN_ORDERS_PAGE_SIZE,
   adminOrderSearchPattern,
+  adminOrdersRangeCutoff,
   adminOrdersRange,
   adminOrdersIsArchivedTab,
   adminOrdersStatusForTab,
+  type AdminOrdersRange,
   type AdminOrderTabCounts,
 } from "./admin-orders-rules";
 
 const LIGHT_SELECT =
-  "order_id, created_at, status, status_updated_at, total, is_demo, archived_at, customer";
+  "order_id, created_at, status, status_updated_at, total, is_demo, archived_at, customer, wa_confirmation_state, wa_last_reply";
 
 function adminDb() {
   return getServiceClient({ admin: true });
@@ -40,6 +44,8 @@ export function mapLightweightOrderRow(row: Record<string, unknown>): Order {
     isDemo: Boolean(row.is_demo),
     archivedAt: row.archived_at ? String(row.archived_at) : null,
     customer: parseCustomer(row.customer),
+    waConfirmationState: row.wa_confirmation_state ?? null,
+    waLastReply: row.wa_last_reply ? String(row.wa_last_reply) : null,
   } as Order;
 }
 
@@ -51,12 +57,18 @@ export type AdminOrdersPageResult = {
   tabCounts: AdminOrderTabCounts;
 };
 
-async function countOrdersWithStatus(status?: string, archived = false): Promise<number> {
+async function countOrders(
+  cutoff: string | null,
+  filter: { status?: string; open?: boolean; attention?: boolean; archived?: boolean } = {},
+): Promise<number> {
   let query = adminDb()
     .from("orders")
     .select("*", { count: "exact", head: true });
-  query = archived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
-  if (status) query = query.eq("status", status);
+  query = filter.archived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+  if (cutoff) query = query.gte("created_at", cutoff);
+  if (filter.status) query = query.eq("status", filter.status);
+  if (filter.open) query = query.in("status", ADMIN_ORDERS_OPEN_STATUSES);
+  if (filter.attention) query = query.eq("wa_confirmation_state", "needs_attention");
   const { count, error } = await query;
   if (error) throw error;
   return count ?? 0;
@@ -71,29 +83,33 @@ async function countDemoOrders(): Promise<number> {
   return count ?? 0;
 }
 
-export async function countAdminOrderTabCounts(): Promise<AdminOrderTabCounts> {
-  const statuses = [
-    "new",
-    "processing",
-    "shipped",
-    "delivered",
-    "cancelled",
-  ] as const;
-
-  const [all, ...byStatusAndArchived] = await Promise.all([
-    countOrdersWithStatus(),
-    ...statuses.map((status) => countOrdersWithStatus(status)),
-    countOrdersWithStatus(undefined, true),
-  ]);
+export async function countAdminOrderTabCounts(
+  range: AdminOrdersRange = ADMIN_ORDERS_DEFAULT_RANGE,
+): Promise<AdminOrderTabCounts> {
+  const cutoff = adminOrdersRangeCutoff(range);
+  const [all, open, attention, newCount, processing, shipped, delivered, cancelled, archived] =
+    await Promise.all([
+      countOrders(cutoff),
+      countOrders(cutoff, { open: true }),
+      countOrders(cutoff, { attention: true }),
+      countOrders(cutoff, { status: "new" }),
+      countOrders(cutoff, { status: "processing" }),
+      countOrders(cutoff, { status: "shipped" }),
+      countOrders(cutoff, { status: "delivered" }),
+      countOrders(cutoff, { status: "cancelled" }),
+      countOrders(cutoff, { archived: true }),
+    ]);
 
   return {
     all,
-    new: byStatusAndArchived[0] ?? 0,
-    processing: byStatusAndArchived[1] ?? 0,
-    shipped: byStatusAndArchived[2] ?? 0,
-    delivered: byStatusAndArchived[3] ?? 0,
-    cancelled: byStatusAndArchived[4] ?? 0,
-    archived: byStatusAndArchived[5] ?? 0,
+    open,
+    attention,
+    new: newCount,
+    processing,
+    shipped,
+    delivered,
+    cancelled,
+    archived,
   };
 }
 
@@ -102,14 +118,18 @@ export async function listAdminOrdersPage(opts: {
   pageSize?: number;
   tab?: string | null;
   q?: string | null;
+  range?: AdminOrdersRange;
 }): Promise<AdminOrdersPageResult> {
   const pageSize = Math.min(
     100,
     Math.max(1, opts.pageSize ?? ADMIN_ORDERS_PAGE_SIZE),
   );
   const page = Math.max(1, opts.page ?? 1);
-  const status = adminOrdersStatusForTab(opts.tab);
-  const archived = adminOrdersIsArchivedTab(opts.tab);
+  const tab = opts.tab || "open";
+  const range = opts.range ?? ADMIN_ORDERS_DEFAULT_RANGE;
+  const cutoff = adminOrdersRangeCutoff(range);
+  const status = adminOrdersStatusForTab(tab);
+  const archived = adminOrdersIsArchivedTab(tab);
   const pattern = adminOrderSearchPattern(opts.q ?? "");
 
   let query = adminDb()
@@ -118,7 +138,10 @@ export async function listAdminOrdersPage(opts: {
     .order("created_at", { ascending: false });
 
   query = archived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+  if (cutoff) query = query.gte("created_at", cutoff);
   if (status) query = query.eq("status", status);
+  if (tab === "open") query = query.in("status", ADMIN_ORDERS_OPEN_STATUSES);
+  if (tab === "attention") query = query.eq("wa_confirmation_state", "needs_attention");
   if (pattern) {
     query = query.or(
       `order_id.ilike.${pattern},customer->>email.ilike.${pattern},customer->>name.ilike.${pattern},customer->>phone.ilike.${pattern}`,
@@ -128,7 +151,7 @@ export async function listAdminOrdersPage(opts: {
   const { from, to } = adminOrdersRange(page, pageSize);
   const [listRes, tabCounts] = await Promise.all([
     query.range(from, to),
-    countAdminOrderTabCounts(),
+    countAdminOrderTabCounts(range),
   ]);
 
   if (listRes.error) throw listRes.error;

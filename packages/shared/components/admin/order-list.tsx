@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import type { AdminOrderListItem } from "@/lib/db/order-rules";
-import type { AdminOrderTabCounts } from "@/lib/db/admin-orders-rules";
+import {
+  ADMIN_ORDERS_DEFAULT_RANGE,
+  type AdminOrdersRange,
+  type AdminOrderTabCounts,
+} from "@/lib/db/admin-orders-rules";
 import { formatPrice } from "@/lib/utils";
 import { RemoveDemoData } from "@/components/admin/remove-demo-data";
 import { readAdminUiState, writeAdminUiState } from "@/lib/admin-ui-persist";
@@ -21,16 +25,25 @@ const ORDERS_SEARCH_KEY = "admin.orders.search";
 const ORDERS_TAB_KEY = "admin.orders.tab";
 
 const TAB_LABEL: Record<string, string> = {
+  open: "Open",
+  attention: "Needs reply",
   new: "To confirm",
   processing: "Confirmed",
   shipped: "Shipped",
   delivered: "Delivered",
   cancelled: "Cancelled",
-  all: "All active",
+  all: "All",
   archived: "Archived",
 };
 
-const TABS = ["new", "processing", "shipped", "delivered", "cancelled", "all", "archived"];
+const TABS = ["open", "new", "attention", "processing", "shipped", "delivered", "cancelled", "all", "archived"];
+
+const RANGES: { value: AdminOrdersRange; label: string; phrase: string }[] = [
+  { value: "7d", label: "7 days", phrase: "the last 7 days" },
+  { value: "30d", label: "30 days", phrase: "the last 30 days" },
+  { value: "90d", label: "3 months", phrase: "the last 3 months" },
+  { value: "all", label: "All time", phrase: "" },
+];
 
 // Left edge colour so the status reads at a glance while scrolling.
 const EDGE: Record<string, string> = {
@@ -41,7 +54,7 @@ const EDGE: Record<string, string> = {
   cancelled: "border-l-zinc-300 opacity-70",
 };
 
-// "All active" view is split into these sections, in this order.
+// "All" and "Open" views are split into these sections, in this order.
 const GROUPS = [
   { title: "Needs confirmation", statuses: ["new"] },
   { title: "Confirmed, in progress", statuses: ["processing", "shipped"] },
@@ -62,12 +75,17 @@ function waiting(iso: string): string {
   return `${Math.floor(mins / 1440)} d`;
 }
 
+function truncate(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max).trimEnd()}...` : text;
+}
+
 function ordersListHref(
   basePath: string,
-  opts: { tab: string; page: number; q: string },
+  opts: { tab: string; page: number; q: string; range: AdminOrdersRange },
 ): string {
   const params = new URLSearchParams();
-  if (opts.tab && opts.tab !== "all") params.set("tab", opts.tab);
+  if (opts.tab && opts.tab !== "open") params.set("tab", opts.tab);
+  if (opts.range !== ADMIN_ORDERS_DEFAULT_RANGE) params.set("range", opts.range);
   if (opts.page > 1) params.set("page", String(opts.page));
   const q = opts.q.trim();
   if (q.length >= 2) params.set("q", q);
@@ -97,6 +115,19 @@ function OrderRow({ o, onChanged }: { o: AdminOrderListItem; onChanged: () => vo
     }
   }
 
+  async function markHandled() {
+    setBusy(true);
+    setError(null);
+    try {
+      await adminFetch(`/api/admin/orders/${encodeURIComponent(o.orderId)}/wa-handled`, { method: "POST" });
+      onChanged();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not update the order.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <li className={`rounded-xl border border-l-4 bg-white p-4 shadow-sm ${EDGE[o.status] ?? ""}`}>
       <div className="flex items-start justify-between gap-3">
@@ -112,6 +143,17 @@ function OrderRow({ o, onChanged }: { o: AdminOrderListItem; onChanged: () => vo
             {formatDate(o.createdAt)}
             {o.customerEmail ? ` · ${o.customerEmail}` : ""}
           </p>
+          {o.waState === "needs_attention" ? (
+            <p className="mt-1.5 rounded-md border border-rose-300 bg-rose-50 px-2 py-1 text-sm font-semibold text-rose-800">
+              Customer replied: &quot;{truncate(o.waLastReply ?? "", 80)}&quot;
+            </p>
+          ) : o.waState === "awaiting_reply" ? (
+            <p className="mt-1 text-xs text-muted-foreground">WhatsApp confirmation sent, waiting for reply</p>
+          ) : o.waState === "declined" ? (
+            <p className="mt-1 text-xs text-muted-foreground">Customer declined on WhatsApp</p>
+          ) : o.waState === "confirmed" ? (
+            <p className="mt-1 text-xs text-muted-foreground">Confirmed by customer on WhatsApp</p>
+          ) : null}
         </div>
         <div className="shrink-0 text-right">
           <p className="text-base font-semibold tabular-nums">{formatPrice(o.total)}</p>
@@ -126,6 +168,11 @@ function OrderRow({ o, onChanged }: { o: AdminOrderListItem; onChanged: () => vo
           <Button type="button" className="min-h-11 flex-1 sm:flex-none" disabled={busy} onClick={() => void confirm()}>
             <Check className="mr-2 h-4 w-4" aria-hidden="true" />
             {busy ? "Confirming…" : "Confirm order"}
+          </Button>
+        ) : null}
+        {o.waState === "needs_attention" ? (
+          <Button type="button" variant="outline" className="min-h-11 flex-1 sm:flex-none" disabled={busy} onClick={() => void markHandled()}>
+            Mark handled
           </Button>
         ) : null}
         <Button asChild variant="outline" className="min-h-11 flex-1 sm:flex-none">
@@ -145,6 +192,7 @@ export function OrderList({
   pageSize,
   tabCounts,
   activeTab,
+  range,
   initialQuery = "",
 }: {
   orders: AdminOrderListItem[];
@@ -153,6 +201,7 @@ export function OrderList({
   pageSize: number;
   tabCounts: AdminOrderTabCounts;
   activeTab: string;
+  range: AdminOrdersRange;
   initialQuery?: string;
 }) {
   const router = useRouter();
@@ -180,12 +229,13 @@ export function OrderList({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  function navigate(next: { tab?: string; page?: number; q?: string }) {
+  function navigate(next: { tab?: string; page?: number; q?: string; range?: AdminOrdersRange }) {
     router.push(
       ordersListHref(pathname, {
         tab: next.tab ?? activeTab,
         page: next.page ?? page,
         q: next.q ?? q,
+        range: next.range ?? range,
       }),
     );
   }
@@ -199,7 +249,6 @@ export function OrderList({
   }
 
   function getCount(tab: string) {
-    if (tab === "all") return tabCounts.all;
     return tabCounts[tab as keyof AdminOrderTabCounts] ?? 0;
   }
 
@@ -209,7 +258,7 @@ export function OrderList({
   const toConfirm = tabCounts.new;
 
   const sections =
-    activeTab === "all"
+    activeTab === "all" || activeTab === "open"
       ? GROUPS.map((g) => ({ title: g.title, rows: orders.filter((o) => g.statuses.includes(o.status)) })).filter(
           (g) => g.rows.length > 0,
         )
@@ -232,7 +281,7 @@ export function OrderList({
 
       <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <div className="flex w-max gap-1 rounded-lg border bg-muted/40 p-1">
-          {TABS.map((t) => (
+          {TABS.filter((t) => t !== "attention" || tabCounts.attention > 0 || activeTab === "attention").map((t) => (
             <button
               key={t}
               type="button"
@@ -244,7 +293,11 @@ export function OrderList({
               {TAB_LABEL[t]}
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                  t === "new" && getCount(t) > 0 ? "bg-amber-500 text-white" : "bg-muted"
+                  t === "new" && getCount(t) > 0
+                    ? "bg-amber-500 text-white"
+                    : t === "attention" && getCount(t) > 0
+                      ? "bg-rose-600 text-white"
+                      : "bg-muted"
                 }`}
               >
                 {getCount(t)}
@@ -254,17 +307,38 @@ export function OrderList({
         </div>
       </div>
 
-      <Input
-        placeholder="Search order #, name, phone or email"
-        value={q}
-        onChange={(e) => handleSearchChange(e.target.value)}
-        aria-label="Search orders"
-        className="h-11 text-base sm:max-w-sm sm:text-sm"
-      />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <Input
+          placeholder="Search order #, name, phone or email"
+          value={q}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          aria-label="Search orders"
+          className="h-11 text-base sm:max-w-sm sm:text-sm"
+        />
+        <div role="group" aria-label="Date range" className="grid grid-cols-4 gap-1 rounded-lg border bg-muted/40 p-1 sm:flex">
+          {RANGES.map((r) => (
+            <button
+              key={r.value}
+              type="button"
+              aria-pressed={range === r.value}
+              onClick={() => navigate({ range: r.value, page: 1 })}
+              className={`min-h-11 whitespace-nowrap rounded-md px-2 text-xs font-medium transition-colors sm:px-3 ${
+                range === r.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {orders.length === 0 ? (
         <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-          {initialQuery ? "No orders match your search." : "No orders here."}
+          {initialQuery
+            ? "No orders match your search."
+            : range !== "all"
+              ? `No orders in ${RANGES.find((r) => r.value === range)?.phrase}. Try a longer range.`
+              : "No orders here."}
         </div>
       ) : (
         <div className="space-y-6">

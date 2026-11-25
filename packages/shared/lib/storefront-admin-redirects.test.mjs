@@ -67,6 +67,7 @@ describe("storefrontAdminRewrites", () => {
     };
     const rules = storefrontAdminRewrites(env);
     assert.ok(rules.some((r) => r.source === "/admin/:path*"));
+    assert.ok(rules.some((r) => r.source === "/api/webhooks/whatsapp"));
     assert.ok(
       rules.some(
         (r) =>

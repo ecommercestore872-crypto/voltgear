@@ -2,7 +2,25 @@ import type { CheckoutPostPersistInput } from "@/lib/checkout-post-persist-contr
 import { GIFT_WRAP_FEE } from "@/lib/checkout-server";
 import { fetchSiteSettings } from "@/lib/db/store";
 import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
+import { resolveAdminUpstreamBaseUrl } from "@/lib/deploy-rules";
 import { appendOrderNote, enqueueEmailEvent } from "@/lib/order-store";
+
+/** Admin owns the push and WhatsApp credentials, so the shop hands the new order over to it. */
+async function notifyAdminOrderCreated(orderId: string): Promise<void> {
+  const adminBase = resolveAdminUpstreamBaseUrl();
+  const secret = process.env.CRON_SECRET?.trim();
+  if (!adminBase || !secret) return;
+  try {
+    const res = await fetch(`${adminBase}/api/internal/orders/created/${encodeURIComponent(orderId)}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}` },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) console.error("[checkout] admin order-created call failed:", res.status);
+  } catch (error) {
+    console.error("[checkout] admin order-created call threw:", error);
+  }
+}
 
 export async function runCheckoutCommunications(
   input: CheckoutPostPersistInput,
@@ -10,6 +28,8 @@ export async function runCheckoutCommunications(
   // Practice checkouts must never email real addresses or enqueue retention
   // campaigns containing their synthetic order/customer payloads.
   if (input.isDemo) return;
+
+  const adminNotified = notifyAdminOrderCreated(input.orderId);
 
   const payload = {
     orderId: input.orderId,
@@ -72,4 +92,6 @@ export async function runCheckoutCommunications(
   } catch (error) {
     console.error("[checkout] enqueue post-purchase email failed:", error);
   }
+
+  await adminNotified;
 }
