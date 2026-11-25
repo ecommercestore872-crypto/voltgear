@@ -91,6 +91,7 @@ export function NewOrderAlert() {
   const [on, setOn] = useState(false);
   const [latest, setLatest] = useState<Latest | null>(null);
   const [hint, setHint] = useState("");
+  const [askPush, setAskPush] = useState(false);
   const onRef = useRef(false);
   onRef.current = on;
 
@@ -125,8 +126,10 @@ export function NewOrderAlert() {
     const saved = store(SOUND_KEY) !== "0";
     setOn(saved);
     if (!saved) return;
-    if (pushSupported()) void enablePush(false);
-    else if (store(HINT_KEY) !== "1") {
+    if (pushSupported()) {
+      if (Notification.permission === "granted") void enablePush(false);
+      else if (Notification.permission === "default") setAskPush(true); // needs a tap, so show a button
+    } else if (store(HINT_KEY) !== "1") {
       const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
       setHint(
         ios
@@ -197,6 +200,21 @@ export function NewOrderAlert() {
             </p>
           </Link>
           <button type="button" aria-label="Dismiss" className="grid h-9 w-9 place-items-center rounded-md" onClick={() => setLatest(null)}>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+      {askPush ? (
+        <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-20 z-40 flex items-center gap-2 rounded-lg border bg-white p-2 text-xs shadow-lg md:left-auto md:w-80">
+          <p className="flex-1">Get a notification for new orders even when the screen is off.</p>
+          <button
+            type="button"
+            className="min-h-10 rounded-md bg-amber-500 px-3 text-xs font-semibold text-white"
+            onClick={() => { setAskPush(false); void enablePush(true); }}
+          >
+            Turn on
+          </button>
+          <button type="button" aria-label="Not now" onClick={() => setAskPush(false)}>
             <X className="h-4 w-4" />
           </button>
         </div>
