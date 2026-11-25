@@ -78,10 +78,6 @@ export function storefrontAdminRewrites(env = process.env) {
       source: "/api/webhooks/resend",
       destination: `${upstream}/api/webhooks/resend`,
     },
-    {
-      source: "/api/webhooks/whatsapp",
-      destination: `${upstream}/api/webhooks/whatsapp`,
-    },
     { source: "/api/indexnow", destination: `${upstream}/api/indexnow` },
   ];
 }

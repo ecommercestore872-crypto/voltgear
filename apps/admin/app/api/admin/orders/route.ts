@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { withAdminApiObservability } from "@/lib/admin-api-observability";
 import { isAdminRequest } from "@/lib/admin";
-import { normalizeAdminOrdersPage, normalizeAdminOrdersRange } from "@/lib/db/admin-orders-rules";
+import { normalizeAdminOrdersPage } from "@/lib/db/admin-orders-rules";
 import { listAdminOrdersPage } from "@/lib/db/admin-orders-store";
 import { toAdminOrderListItem } from "@/lib/db/order-rules";
 
@@ -16,14 +16,12 @@ export const GET = withAdminApiObservability(
     }
     const url = new URL(request.url);
     const page = normalizeAdminOrdersPage(url.searchParams.get("page"));
-    const tab = url.searchParams.get("tab") ?? url.searchParams.get("status") ?? "open";
-    const range = normalizeAdminOrdersRange(url.searchParams.get("range"));
+    const tab = url.searchParams.get("tab") ?? url.searchParams.get("status") ?? "all";
     const q = url.searchParams.get("q")?.trim() ?? "";
 
     const result = await listAdminOrdersPage({
       page,
       tab,
-      range,
       q: q.length >= 2 ? q : undefined,
     });
 

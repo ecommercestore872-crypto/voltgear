@@ -3,34 +3,8 @@
 export const ADMIN_ORDERS_PAGE_SIZE = 50;
 export const ADMIN_ORDER_SEARCH_MAX_LEN = 80;
 
-export const ADMIN_ORDERS_OPEN_STATUSES = ["new", "processing", "shipped"];
-
-export type AdminOrdersRange = "7d" | "30d" | "90d" | "all";
-
-export const ADMIN_ORDERS_DEFAULT_RANGE: AdminOrdersRange = "30d";
-
-const RANGE_DAYS: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
-
-export function normalizeAdminOrdersRange(value: unknown): AdminOrdersRange {
-  return value === "7d" || value === "30d" || value === "90d" || value === "all"
-    ? value
-    : ADMIN_ORDERS_DEFAULT_RANGE;
-}
-
-/** ISO cutoff for created_at, or null for all time. */
-export function adminOrdersRangeCutoff(
-  range: AdminOrdersRange,
-  now: Date = new Date(),
-): string | null {
-  const days = RANGE_DAYS[range];
-  if (!days) return null;
-  return new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
-}
-
 export type AdminOrderTabCounts = {
   all: number;
-  open: number;
-  attention: number;
   new: number;
   processing: number;
   shipped: number;
@@ -65,7 +39,7 @@ export function adminOrdersRange(page: number, pageSize = ADMIN_ORDERS_PAGE_SIZE
   return { from, to };
 }
 
-/** Maps orders UI tab to a single DB `status` filter (null = none). `open` and `attention` are handled in the store. */
+/** Maps orders UI tab to DB `status` filter (null = all). */
 export function adminOrdersStatusForTab(
   tab: string | null | undefined,
 ): string | null {

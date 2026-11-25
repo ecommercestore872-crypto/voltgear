@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Bell, BellOff, X } from "lucide-react";
+import { Bell, BellOff, Play, X } from "lucide-react";
 
 import { adminFetch } from "@/components/admin/admin-fetch";
-import { urlBase64ToUint8Array } from "@/lib/admin-push-rules";
+import { ORDER_SOUNDS, DEFAULT_ORDER_SOUND, orderSoundById } from "@/lib/admin-order-sounds";
 import { formatPrice } from "@/lib/utils";
 
 const SEEN_KEY = "admin.orders.lastSeen";
 const SOUND_KEY = "admin.orders.sound";
-const HINT_KEY = "admin.orders.pushHint";
+const SOUND_ID_KEY = "admin.orders.soundId";
 const POLL_MS = 15_000;
 
 type Latest = { orderId: string; createdAt: string; total: number; customerName: string };
@@ -25,75 +25,17 @@ function store(key: string, value?: string): string | null {
   }
 }
 
-function pushSupported(): boolean {
-  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
-}
-
-/** Subscribes this device to order push alerts. Pass ask=true only from a tap (permission prompt). */
-async function enablePush(ask: boolean) {
-  try {
-    if (!pushSupported()) return;
-    if (ask && Notification.permission === "default") await Notification.requestPermission();
-    if (Notification.permission !== "granted") return;
-    const reg = await navigator.serviceWorker.register("/admin/sw.js", { scope: "/admin/" });
-    await navigator.serviceWorker.ready;
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      const { publicKey } = (await adminFetch("/api/admin/push/key")) as { publicKey: string };
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
-      });
-    }
-    await adminFetch("/api/admin/push/subscribe", { method: "POST", body: JSON.stringify(sub.toJSON()) });
-  } catch {
-    // push is a bonus: the in-app chime keeps working
-  }
-}
-
-async function disablePush() {
-  try {
-    if (!pushSupported()) return;
-    const sub = await (await navigator.serviceWorker.getRegistration("/admin/"))?.pushManager.getSubscription();
-    if (!sub) return;
-    await adminFetch("/api/admin/push/subscribe", { method: "DELETE", body: JSON.stringify({ endpoint: sub.endpoint }) });
-    await sub.unsubscribe();
-  } catch {
-    // already gone or offline
-  }
-}
-
-/** Cash-register "ka-ching": two struck-bell notes, synthesised so there is no audio file to host or license. */
-function chime(ctx: AudioContext) {
-  const t0 = ctx.currentTime;
-  const out = ctx.createGain();
-  out.gain.value = 0.7;
-  out.connect(ctx.destination);
-  for (const [delay, freq] of [[0, 1318.5], [0.12, 1975.5]]) {
-    [1, 2.76, 5.4].forEach((partial, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const start = t0 + delay;
-      osc.frequency.value = freq * partial;
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.5 / (i + 1), start + 0.005);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 1.6 / (i + 1));
-      osc.connect(gain).connect(out);
-      osc.start(start);
-      osc.stop(start + 1.7);
-    });
-  }
-}
-
 export function NewOrderAlert() {
   const router = useRouter();
   const ctxRef = useRef<AudioContext | null>(null);
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState(true);
+  const [soundId, setSoundId] = useState(DEFAULT_ORDER_SOUND);
+  const [open, setOpen] = useState(false);
   const [latest, setLatest] = useState<Latest | null>(null);
-  const [hint, setHint] = useState("");
-  const [askPush, setAskPush] = useState(false);
-  const onRef = useRef(false);
+  const onRef = useRef(true);
+  const soundRef = useRef(DEFAULT_ORDER_SOUND);
   onRef.current = on;
+  soundRef.current = soundId;
 
   // Browsers only allow sound after a tap, so the context is created or resumed inside a gesture.
   function audio(): AudioContext | null {
@@ -109,34 +51,26 @@ export function NewOrderAlert() {
     }
   }
 
-  function toggle() {
-    const next = !on;
+  function preview(id: string) {
+    const ctx = audio();
+    if (ctx) orderSoundById(id).play(ctx);
+  }
+
+  function setEnabled(next: boolean) {
     setOn(next);
     store(SOUND_KEY, next ? "1" : "0");
-    if (next) {
-      const ctx = audio();
-      if (ctx) chime(ctx); // doubles as a test
-      void enablePush(true);
-    } else {
-      void disablePush();
-    }
+    if (next) preview(soundRef.current);
+  }
+
+  function pick(id: string) {
+    setSoundId(id);
+    store(SOUND_ID_KEY, id);
+    preview(id);
   }
 
   useEffect(() => {
-    const saved = store(SOUND_KEY) !== "0";
-    setOn(saved);
-    if (!saved) return;
-    if (pushSupported()) {
-      if (Notification.permission === "granted") void enablePush(false);
-      else if (Notification.permission === "default") setAskPush(true); // needs a tap, so show a button
-    } else if (store(HINT_KEY) !== "1") {
-      const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      setHint(
-        ios
-          ? "For alerts when the screen is off: Share, Add to Home Screen, then open the app from the home screen and tap the bell."
-          : "This browser cannot send alerts when the screen is off.",
-      );
-    }
+    setOn(store(SOUND_KEY) !== "0");
+    setSoundId(orderSoundById(store(SOUND_ID_KEY)).id);
     const unlock = () => audio();
     window.addEventListener("pointerdown", unlock, { once: true });
     return () => window.removeEventListener("pointerdown", unlock);
@@ -155,7 +89,7 @@ export function NewOrderAlert() {
         if (seen && Date.parse(data.latest.createdAt) > Date.parse(seen)) {
           setLatest(data.latest);
           const ctx = onRef.current ? audio() : null;
-          if (ctx) chime(ctx);
+          if (ctx) orderSoundById(soundRef.current).play(ctx);
           router.refresh();
         }
       } catch {
@@ -204,34 +138,36 @@ export function NewOrderAlert() {
           </button>
         </div>
       ) : null}
-      {askPush ? (
-        <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-20 z-40 flex items-center gap-2 rounded-lg border bg-white p-2 text-xs shadow-lg md:left-auto md:w-80">
-          <p className="flex-1">Get a notification for new orders even when the screen is off.</p>
-          <button
-            type="button"
-            className="min-h-10 rounded-md bg-amber-500 px-3 text-xs font-semibold text-white"
-            onClick={() => { setAskPush(false); void enablePush(true); }}
-          >
-            Turn on
-          </button>
-          <button type="button" aria-label="Not now" onClick={() => setAskPush(false)}>
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      ) : null}
-      {hint ? (
-        <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-20 z-40 flex items-start gap-2 rounded-lg border bg-white p-2 text-xs shadow-lg md:left-auto md:w-80">
-          <p className="flex-1">{hint}</p>
-          <button type="button" aria-label="Dismiss hint" onClick={() => { store(HINT_KEY, "1"); setHint(""); }}>
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+      {open ? (
+        <>
+          <button type="button" aria-label="Close sound settings" className="fixed inset-0 z-30 cursor-default" onClick={() => setOpen(false)} />
+          <div role="dialog" aria-label="New order sound" className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 w-[min(20rem,calc(100vw-2rem))] rounded-xl border bg-white p-3 shadow-xl">
+            <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold">
+              Sound for new orders
+              <input type="checkbox" className="h-5 w-5 accent-amber-600" checked={on} onChange={(e) => setEnabled(e.target.checked)} />
+            </label>
+            <ul className="mt-1 divide-y">
+              {ORDER_SOUNDS.map((s) => (
+                <li key={s.id} className="flex items-center gap-2">
+                  <label className="flex min-h-11 flex-1 cursor-pointer items-center gap-2 text-sm">
+                    <input type="radio" name="order-sound" className="h-4 w-4 accent-amber-600" checked={soundId === s.id} onChange={() => pick(s.id)} />
+                    {s.label}
+                  </label>
+                  <button type="button" aria-label={`Play ${s.label}`} className="grid h-11 w-11 place-items-center rounded-md border" onClick={() => preview(s.id)}>
+                    <Play className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">Plays while the app is open. If you hear nothing on iPhone, turn the silent switch off.</p>
+          </div>
+        </>
       ) : null}
       <button
         type="button"
-        onClick={toggle}
-        aria-pressed={on}
-        aria-label={on ? "Order sound on. Tap to turn off" : "Order sound off. Tap to turn on"}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label="New order sound settings"
         className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-12 w-12 place-items-center rounded-full border bg-white shadow-lg"
       >
         {on ? <Bell className="h-5 w-5 text-amber-600" /> : <BellOff className="h-5 w-5 text-muted-foreground" />}

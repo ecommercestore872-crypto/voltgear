@@ -31,10 +31,7 @@ interface ProviderEnvelope {
 
 export { normalizePhone };
 
-async function sendWhatsApp(
-  envelope: ProviderEnvelope,
-  message?: Record<string, unknown>,
-): Promise<MessageResult> {
+async function sendWhatsApp(envelope: ProviderEnvelope): Promise<MessageResult> {
   const phoneId = process.env.WHATSAPP_PHONE_ID;
   const token = process.env.WHATSAPP_TOKEN;
   if (!phoneId || !token) {
@@ -57,7 +54,8 @@ async function sendWhatsApp(
       body: JSON.stringify({
         messaging_product: "whatsapp",
         to: envelope.to.replace("+", ""),
-        ...(message ?? { type: "text", text: { body: envelope.text } }),
+        type: "text",
+        text: { body: envelope.text },
       }),
     }
   );
@@ -76,44 +74,6 @@ async function sendWhatsApp(
     provider: "whatsapp",
     messageId: String(json?.messages?.[0]?.id ?? ""),
   };
-}
-
-export function whatsappConfigured(): boolean {
-  return Boolean(process.env.WHATSAPP_PHONE_ID && process.env.WHATSAPP_TOKEN);
-}
-
-/** WhatsApp Cloud API only, whatever MSG_PROVIDER says: the confirm flow needs replies via webhook. */
-export function sendWhatsAppText(phone: string, text: string): Promise<MessageResult> {
-  return sendWhatsApp({ to: phone, text });
-}
-
-/**
- * Business-initiated messages need an approved template. Body variables, in order:
- * {{1}} customer name, {{2}} order id, {{3}} total. Without WHATSAPP_CONFIRM_TEMPLATE the
- * plain text is sent, which WhatsApp only delivers inside a customer-initiated 24h window.
- */
-export function sendWhatsAppOrderConfirmRequest(
-  phone: string,
-  vars: { name: string; orderId: string; total: string; text: string },
-): Promise<MessageResult> {
-  const template = process.env.WHATSAPP_CONFIRM_TEMPLATE?.trim();
-  if (!template) return sendWhatsApp({ to: phone, text: vars.text });
-  return sendWhatsApp(
-    { to: phone, text: vars.text },
-    {
-      type: "template",
-      template: {
-        name: template,
-        language: { code: process.env.WHATSAPP_TEMPLATE_LANG?.trim() || "en" },
-        components: [
-          {
-            type: "body",
-            parameters: [vars.name, vars.orderId, vars.total].map((text) => ({ type: "text", text })),
-          },
-        ],
-      },
-    },
-  );
 }
 
 async function sendTwilio(envelope: ProviderEnvelope): Promise<MessageResult> {

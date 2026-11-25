@@ -6,7 +6,6 @@ import type {
   Order,
   OrderStatus,
   OrderStatusHistoryEntry,
-  WaConfirmationState,
 } from "../types";
 
 export { EMAIL_SEND_ISSUE_PREFIX };
@@ -72,8 +71,6 @@ export type AdminOrderListItem = AdminListRow & {
   customerEmail: string;
   isDemo: boolean;
   archivedAt?: string | null;
-  waState: WaConfirmationState | null;
-  waLastReply: string | null;
 };
 
 export function emailsMatch(a?: string | null, b?: string | null): boolean {
@@ -195,8 +192,6 @@ export function toAdminOrderListItem(order: Order): AdminOrderListItem {
     customerEmail: order.customer?.email ?? "",
     isDemo: Boolean(order.isDemo),
     archivedAt: order.archivedAt ?? null,
-    waState: order.waConfirmationState ?? null,
-    waLastReply: order.waLastReply ?? null,
   };
 }
 

@@ -7,8 +7,6 @@ import {
   adminOrdersRange,
   adminOrdersIsArchivedTab,
   adminOrdersStatusForTab,
-  adminOrdersRangeCutoff,
-  normalizeAdminOrdersRange,
   normalizeAdminOrdersPage,
   sanitizeAdminOrderSearchTerm,
 } from "./admin-orders-rules";
@@ -40,25 +38,7 @@ describe("admin-orders-rules", () => {
     assert.equal(adminOrdersStatusForTab("shipped"), "shipped");
     assert.equal(adminOrdersStatusForTab("bogus"), null);
     assert.equal(adminOrdersStatusForTab("archived"), null);
-    assert.equal(adminOrdersStatusForTab("open"), null);
-    assert.equal(adminOrdersStatusForTab("attention"), null);
     assert.equal(adminOrdersIsArchivedTab("archived"), true);
     assert.equal(adminOrdersIsArchivedTab("all"), false);
-  });
-
-  it("normalizes range, defaulting to 30d", () => {
-    assert.equal(normalizeAdminOrdersRange(undefined), "30d");
-    assert.equal(normalizeAdminOrdersRange("bogus"), "30d");
-    assert.equal(normalizeAdminOrdersRange("7d"), "7d");
-    assert.equal(normalizeAdminOrdersRange("90d"), "90d");
-    assert.equal(normalizeAdminOrdersRange("all"), "all");
-  });
-
-  it("computes range cutoff", () => {
-    const now = new Date("2026-11-25T12:00:00.000Z");
-    assert.equal(adminOrdersRangeCutoff("7d", now), "2026-11-18T12:00:00.000Z");
-    assert.equal(adminOrdersRangeCutoff("30d", now), "2026-10-26T12:00:00.000Z");
-    assert.equal(adminOrdersRangeCutoff("90d", now), "2026-08-27T12:00:00.000Z");
-    assert.equal(adminOrdersRangeCutoff("all", now), null);
   });
 });

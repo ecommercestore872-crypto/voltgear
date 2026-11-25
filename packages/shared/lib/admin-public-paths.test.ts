@@ -14,7 +14,6 @@ describe("isAdminPublicPath", () => {
   it("serves the home-screen manifest and icons without a session", () => {
     assert.equal(isAdminPublicPath("/admin/manifest.webmanifest"), true);
     assert.equal(isAdminPublicPath("/admin/icons/icon-180.png"), true);
-    assert.equal(isAdminPublicPath("/admin/sw.js"), true);
   });
 
   it("blocks protected admin routes", () => {

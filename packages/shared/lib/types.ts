@@ -293,15 +293,7 @@ export interface Order {
   isDemo?: boolean;
   archivedAt?: string | null;
   postexTrackingNumber?: string;
-  waConfirmationState?: WaConfirmationState | null;
-  waLastReply?: string | null;
 }
-
-export type WaConfirmationState =
-  | "awaiting_reply"
-  | "confirmed"
-  | "declined"
-  | "needs_attention";
 
 export type EmailEventKind =
   | "order-confirmation"

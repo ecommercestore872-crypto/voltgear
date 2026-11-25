@@ -5,7 +5,6 @@ export function isAdminApiPublicPath(pathname: string): boolean {
     "/api/admin/forgot-password",
     "/api/admin/quick-action",
     "/api/webhooks/resend",
-    "/api/webhooks/whatsapp",
   ]);
   return exact.has(pathname);
 }
