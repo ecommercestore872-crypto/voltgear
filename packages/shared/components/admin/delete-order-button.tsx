@@ -11,12 +11,10 @@ import { Label } from "@/components/ui/label";
 
 export function DeleteOrderButton({
   orderId,
-  isDemo,
   onDeleted,
   compact = false,
 }: {
   orderId: string;
-  isDemo: boolean;
   onDeleted: () => void;
   compact?: boolean;
 }) {
@@ -69,12 +67,10 @@ export function DeleteOrderButton({
         <DialogContent className="max-w-md" role="alertdialog" aria-labelledby={titleId}>
           <DialogTitle id={titleId} className="pr-10 text-destructive">Delete order {orderId}?</DialogTitle>
           <p className="mt-3 text-sm text-foreground">
-            This will permanently delete the order and cannot be undone.
+            This permanently removes the order from the database and the admin. It cannot be undone.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isDemo
-              ? "Only eligible practice orders can be deleted. Reserved inventory will be restored."
-              : "Live orders are retained. If deletion is blocked, use an approved archive or anonymization process."}
+            Reserved stock goes back to inventory. An order with a live courier shipment must have the shipment cancelled first.
           </p>
           <form onSubmit={submit} className="mt-5 space-y-4">
             <div className="space-y-2">

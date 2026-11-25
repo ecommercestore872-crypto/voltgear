@@ -11,6 +11,11 @@ describe("isAdminPublicPath", () => {
     assert.equal(isAdminPublicPath("/admin/reset-password/token-here"), true);
   });
 
+  it("serves the home-screen manifest and icons without a session", () => {
+    assert.equal(isAdminPublicPath("/admin/manifest.webmanifest"), true);
+    assert.equal(isAdminPublicPath("/admin/icons/icon-180.png"), true);
+  });
+
   it("blocks protected admin routes", () => {
     assert.equal(isAdminPublicPath("/admin"), false);
     assert.equal(isAdminPublicPath("/admin/orders"), false);

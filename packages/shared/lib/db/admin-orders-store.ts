@@ -190,3 +190,22 @@ export async function setAdminOrderArchived(orderId: string, archived: boolean):
   console.error("[orders] admin_set_order_archived failed:", error);
   return { ok: false, error: "Could not change the archive state.", status: 503 };
 }
+
+/** Newest non-archived order; polled by the admin new-order alert. */
+export async function getLatestAdminOrder() {
+  const { data, error } = await adminDb()
+    .from("orders")
+    .select("order_id, created_at, total, customer")
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    orderId: String(data.order_id),
+    createdAt: String(data.created_at),
+    total: Number(data.total) || 0,
+    customerName: parseCustomer(data.customer).name ?? "",
+  };
+}
