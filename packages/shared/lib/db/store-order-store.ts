@@ -418,5 +418,5 @@ export async function deleteOrderRow(orderId: string, actorId: string): Promise<
     };
   }
   console.error("[orders] admin_delete_order failed:", error);
-  return { ok: false, error: "Could not delete the practice order.", status: 503 };
+  return { ok: false, error: "Could not delete the order.", status: 503 };
 }

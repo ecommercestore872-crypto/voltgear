@@ -12,6 +12,7 @@ import { isAdminLoginPath } from "@/lib/storefront-layout-rules";
 import { cn } from "@/lib/utils";
 
 import { adminFetch } from "./admin-fetch";
+import { NewOrderAlert } from "./new-order-alert";
 const AdminCommandPalette = dynamic(
   () =>
     import("./admin-command-palette").then((m) => m.AdminCommandPalette),
@@ -180,6 +181,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-x-auto p-4 lg:p-8">{children}</div>
       </div>
       <AdminCommandPalette />
+      <NewOrderAlert />
     </div>
   );
 }

@@ -16,6 +16,10 @@ const auditedDeletion = readFileSync(
   path.join(root, "supabase/migrations/20261112062924_audited_admin_order_deletion.sql"),
   "utf8",
 );
+const deleteAny = readFileSync(
+  path.join(root, "supabase/migrations/20261125000000_admin_delete_any_order.sql"),
+  "utf8",
+);
 const communications = readFileSync(
   path.join(root, "packages/shared/lib/checkout-post-persist-communications.ts"),
   "utf8",
@@ -32,6 +36,14 @@ describe("safe order deletion", () => {
     assert.match(auditedDeletion, /perform public\.admin_delete_demo_order/i);
     assert.match(adapter, /\.rpc\("admin_delete_order"/);
     assert.doesNotMatch(adapter, /from\("order_items"\)\.delete/);
+  });
+
+  it("lets the owner delete live orders but not ones with an active courier shipment", () => {
+    assert.doesNotMatch(deleteAny, /live orders must be retained/i);
+    assert.doesNotMatch(deleteAny, /is_demo, false\)\s*THEN/i);
+    assert.match(deleteAny, /courier_active/);
+    assert.match(deleteAny, /delete from public\.orders where id = v_order\.id/i);
+    assert.match(deleteAny, /grant execute on function public\.admin_delete_order\(text, uuid\) to service_role/i);
   });
 
   it("repairs reserved inventory and deletes queued demo email events", () => {

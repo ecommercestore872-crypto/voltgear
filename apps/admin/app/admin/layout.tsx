@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
+  manifest: "/admin/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Buy n Try Admin", statusBarStyle: "default" },
+  icons: { apple: "/admin/icons/icon-180.png" },
 };
 
 export default function AdminLayout({

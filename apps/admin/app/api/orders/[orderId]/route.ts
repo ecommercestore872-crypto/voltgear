@@ -16,8 +16,8 @@ async function DELETEHandler(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const actorId = namedAdminActor(request);
-  if (!actorId) return NextResponse.json({ error: "Sign in with a named admin account to delete an order." }, { status: 403 });
+  // Password-only sessions have no user id; the audit log records the nil UUID for them.
+  const actorId = namedAdminActor(request) ?? "00000000-0000-0000-0000-000000000000";
   if (!isAllowedAdminDeleteOrigin(request.headers.get("origin"))) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }

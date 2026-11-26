@@ -4,6 +4,8 @@ export function isAdminPublicPath(pathname: string): boolean {
     "/admin/login",
     "/admin/forgot-password",
     "/admin/reset-password",
+    "/admin/manifest.webmanifest", // manifest and home-screen icons are fetched without cookies
+    "/admin/icons",
   ];
   return publicPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
