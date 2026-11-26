@@ -119,3 +119,46 @@ Organic visitors only help if they buy. Run page-cro on the top landing pages: m
 - The live site was not reachable from this sandbox, so everything in section 3 comes from the code, not from the live pages or GSC.
 - Statistics inside the AI-SEO skills (for example citation lift percentages) are third-party claims and are used for direction only.
 - No web research on Pakistani search demand has been done yet. That is Phase 1.
+
+## 14. Status log, 2026-11-26 (what was actually done)
+
+Brand decision: public brand is Buy n Try (buyntryy.com). Tools: free only. Search Console, GA4 and Merchant Center were NOT reachable from the build environment (Adspirer quota used up until Dec 23, live site blocked by the sandbox network, no attached PC), so data-driven keyword work is still pending (section 15).
+
+Done, in the store database (backed up first in tables seo_backup_20261125_pages and seo_backup_20261125_categories):
+- Category pages for power banks, earbuds and smartwatches: unique H1, intro, buying guide text and 6 question-and-answer items each (these feed FAQ schema).
+- Shipping and returns page: delivery fee corrected from PKR 199 to PKR 250 (what checkout charges), stale voltgear.store email replaced on shipping, contact and FAQ pages.
+- About page rewritten with verified facts only. The old text invented a founding story, product testing and a refund promise.
+- Blog: removed invented operations claims ("we see two returns a week", "we smell returns", "how we check electronics before the rider leaves", "how Buy n Try expects you to open the box"). Repointed 6 call-to-action buttons that led to categories that return 404.
+- Added 4 new guides: how to choose a smartwatch, how to choose a power bank, wireless earbuds buying guide, why a phone charges slowly.
+
+Done, in code (branch claude/gifted-cannon-mhw012, not merged, not deployed):
+- Google Merchant feed: real brand instead of "Buy n Try" on every item, XML escaping, no zero-price items, no replica-style listings, absolute image URLs. 4 unit tests.
+- Sitemap: products without a positive price are left out (their page returns 404; this matches the 3 "Not found (404)" pages in the earlier Search Console baseline).
+- Product pages: removed 4 "Explore more" links to categories that return 404.
+- scripts/smoke-storefront.mjs: read-only check of sitemap, category, product, cart and checkout pages.
+- Full unit suite: 971 pass. Typecheck clean for storefront and admin.
+
+## 15. Needs the owner's accounts (cannot be done from here)
+
+1. Google Search Console: open Sitemaps, resubmit https://buyntryy.com/sitemap.xml after the code deploy. Open Performance, filter Country = Pakistan, export 3 months of queries and pages. Queries with position 8-20 are the first targets.
+2. Bing Webmaster Tools: add the site (import from Search Console), submit the sitemap. ChatGPT search and Copilot use the Bing index.
+3. Google Merchant Center (free): add the feed https://buyntryy.com/google-merchant.xml, then set shipping (PKR 250, free over PKR 5,000), returns and your business details. Turn on free listings. Do this only after the feed fix is deployed.
+4. GA4: confirm the data stream is on buyntryy.com and mark purchase as a key event, so organic orders can be counted.
+5. Admin settings: fill return window days, warranty months, WhatsApp number and social profile links. These feed the return-policy and sameAs data in the schema. They are empty today and must not be guessed.
+6. Create or claim Instagram, Facebook, TikTok and YouTube profiles named Buy n Try, and use the same name, phone and address everywhere.
+
+## 16. AI citation test set (run monthly on ChatGPT, Perplexity, Gemini, Claude; log whether Buy n Try is named or cited and who is)
+
+Power banks: best power bank in Pakistan for load-shedding; 10000mAh vs 20000mAh power bank; which power bank can charge a laptop; can I take a 20000mAh power bank on a plane; power bank cash on delivery Pakistan; best power bank under 5000 in Pakistan; magsafe power bank for iPhone in Pakistan; why does my power bank charge slowly.
+Earbuds: best wireless earbuds under 3000 in Pakistan; ANC vs ENC earbuds; best earbuds for calls; gaming earbuds low latency Pakistan; airbuds price in Pakistan; neckband vs TWS; one earbud not working fix; earbuds cash on delivery Pakistan.
+Smartwatches: best smartwatch under 5000 in Pakistan; Bluetooth calling smartwatch Pakistan; AMOLED vs LCD smartwatch; is a smartwatch blood pressure reading accurate; smartwatch for iPhone in Pakistan; waterproof smartwatch for swimming; best smartwatch for women in Pakistan; smartwatch cash on delivery Pakistan.
+Store trust: is Buy n Try legit; Buy n Try reviews; where to buy electronics online in Pakistan with cash on delivery; Daraz alternatives for electronics accessories; how to avoid fake chargers in Pakistan; can I open a COD parcel before paying.
+General: best online electronics accessories store in Pakistan; how to charge a phone faster; why is my phone charging slowly; best accessories under 2000 in Pakistan; wireless earbuds buying guide; how to choose a power bank; how to choose a smartwatch; Lahore COD electronics delivery.
+
+## 17. Risks found that need an owner decision (nothing was changed for these)
+
+- Replica-style listings: "Apple Airpods Pro 3 ANC" (brand "Master Copy") and "SR11 Apple Logo AMOLED Smartwatch". Google Shopping suspends a whole Merchant account for counterfeit goods, and Meta has similar rules for ads. The feed now excludes them, but the products are still sold on the store.
+- 3 published products have price 0 (an AirPods case, FVIP Airdopes 141 Pro, Gionee MINI 15J). They are hidden from the store. Set a real price or unpublish them in the admin.
+- 5 categories are inactive (chargers, ring lights, selfie sticks, tripods, microphones) with 46 published products. Inactive means the category AND all its products return 404. Deactivating a category in the admin is the most likely cause of the earlier "product pages disappeared" incident. Check this before running ads to any product.
+- Brand field "VoltGear Audio" and "VoltGear Premier" on two products still shows the old name in structured data. Rename in the admin.
+- Pre-existing lint error: packages/shared/components/product/gadget-pdp-deferred.tsx line 95 (prefer-const). Not caused by this work.
