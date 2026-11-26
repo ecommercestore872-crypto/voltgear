@@ -477,7 +477,7 @@ export function CartDrawer() {
                 className={gadget ? "bg-[var(--g-line)]" : undefined}
               />
               <div className="space-y-3 pt-3">
-                {items.every((item) => item.freeShipping) ? null : (
+                {items.some((item) => item.freeShipping) ? null : (
                   <FreeShippingBar
                     subtotal={merchandise}
                     threshold={config.freeShippingThreshold}

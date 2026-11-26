@@ -8,7 +8,7 @@ import { useCart } from "@/components/cart/cart-provider";
 export function CheckoutShippingNote({ fallback }: { fallback: string }) {
   const { items, hydrated } = useCart();
   const allFree =
-    hydrated && items.length > 0 && items.every((item) => item.freeShipping);
+    hydrated && items.length > 0 && items.some((item) => item.freeShipping);
 
   return (
     <li className="inline-flex items-center gap-1.5">

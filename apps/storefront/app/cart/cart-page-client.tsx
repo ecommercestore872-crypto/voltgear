@@ -104,7 +104,7 @@ export default function CartPageClient() {
   const shippingFee = Number(config.shippingFee ?? 0);
   const threshold = Number(config.freeShippingThreshold ?? 0);
   const allFreeShipping =
-    items.length > 0 && items.every((item) => item.freeShipping);
+    items.length > 0 && items.some((item) => item.freeShipping);
   const shipping =
     subtotal === 0 || subtotal >= threshold || allFreeShipping
       ? 0

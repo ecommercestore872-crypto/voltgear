@@ -130,7 +130,8 @@ export async function resolveCheckout(
   const lines: ResolvedOrderItem[] = [];
   const mismatched: PriceMismatch[] = [];
   let subtotal = 0;
-  let allFreeShipping = items.length > 0;
+  // True when ANY line has free shipping: one free-shipping item makes the whole order ship free.
+  let allFreeShipping = false;
 
   for (const line of items) {
     const slug = typeof line.slug === "string" ? line.slug.trim() : "";
@@ -174,7 +175,7 @@ export async function resolveCheckout(
       return { ok: false, error: CHECKOUT_ERRORS.unavailable };
     }
 
-    if (!product.freeShipping) allFreeShipping = false;
+    if (product.freeShipping) allFreeShipping = true;
 
     const variants = product.variants ?? [];
     const variantKey = typeof line.variantKey === "string" ? line.variantKey : undefined;
