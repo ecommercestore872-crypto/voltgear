@@ -784,6 +784,7 @@ export default function CheckoutPageClient() {
                 <div className="mt-3 lg:hidden">
                   <CheckoutCodAssist
                     compact
+                    allFreeShipping={allFreeShipping}
                     freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
                     shippingFee={Number(config.shippingFee ?? 0)}
                     whatsappNumber={config.whatsappNumber}
@@ -793,6 +794,7 @@ export default function CheckoutPageClient() {
 
                 <div className="mt-4 hidden lg:block">
                   <CheckoutCodAssist
+                    allFreeShipping={allFreeShipping}
                     freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
                     shippingFee={Number(config.shippingFee ?? 0)}
                     whatsappNumber={config.whatsappNumber}
@@ -894,6 +896,11 @@ export default function CheckoutPageClient() {
           className="premium-royal-dock touch-manipulation fixed inset-x-0 bottom-0 z-40 bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden"
           aria-hidden={false}
         >
+          {shipping === 0 && merchandise > 0 ? (
+            <p className="mx-auto mb-2 max-w-6xl text-xs font-semibold text-emerald-700">
+              Delivery: Free
+            </p>
+          ) : null}
           <div className="mx-auto flex max-w-6xl items-center gap-2 sm:gap-3">
             <div className="min-w-0 shrink-0">
               <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">

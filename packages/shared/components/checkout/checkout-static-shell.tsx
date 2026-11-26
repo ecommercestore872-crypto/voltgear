@@ -1,5 +1,6 @@
-import { Banknote, Truck } from "lucide-react";
+import { Banknote } from "lucide-react";
 
+import { CheckoutShippingNote } from "@/components/checkout/checkout-shipping-note";
 import { StorefrontLink as Link } from "@/components/navigation/storefront-link";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { normalizeSettings } from "@/lib/site-config";
@@ -30,12 +31,13 @@ export async function CheckoutStaticShell() {
               Cash on delivery
             </li>
           ) : null}
-          <li className="inline-flex items-center gap-1.5">
-            <Truck className="h-3.5 w-3.5 text-[var(--g-forest)]" aria-hidden />
-            {threshold > 0
-              ? `Free shipping over ${formatPrice(threshold)}`
-              : "Shipping shown at checkout"}
-          </li>
+          <CheckoutShippingNote
+            fallback={
+              threshold > 0
+                ? `Free shipping over ${formatPrice(threshold)}`
+                : "Shipping shown at checkout"
+            }
+          />
         </ul>
         <p className="mt-2 text-xs text-[var(--g-taupe)]">
           <Link href="/shipping-returns" className="underline hover:text-[var(--g-forest)]">
