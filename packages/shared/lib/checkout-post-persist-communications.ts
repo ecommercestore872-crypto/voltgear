@@ -2,7 +2,29 @@ import type { CheckoutPostPersistInput } from "@/lib/checkout-post-persist-contr
 import { GIFT_WRAP_FEE } from "@/lib/checkout-server";
 import { fetchSiteSettings } from "@/lib/db/store";
 import { notifyNewOrderEmails, orderEmailFailureNote } from "@/lib/email";
+import { countOrdersToConfirm, sendAdminPush } from "@/lib/admin-push";
+import { newOrderPush } from "@/lib/admin-push-rules";
 import { appendOrderNote, enqueueEmailEvent } from "@/lib/order-store";
+
+/** Lock-screen alert for the owner. Never throws: a failed push must not affect the customer's order. */
+async function pushNewOrderToOwner(input: CheckoutPostPersistInput): Promise<void> {
+  try {
+    const badge = await countOrdersToConfirm().catch(() => undefined);
+    await sendAdminPush({
+      ...newOrderPush({
+        orderId: input.orderId,
+        total: input.finalTotal,
+        itemCount: input.lines.reduce((sum, line) => sum + (line.quantity ?? 1), 0),
+        name: input.customer.name,
+        city: input.customer.city,
+        payment: "cod", // checkout only accepts cash on delivery
+      }),
+      badge,
+    });
+  } catch (error) {
+    console.error("[checkout] owner push failed:", error);
+  }
+}
 
 export async function runCheckoutCommunications(
   input: CheckoutPostPersistInput,
@@ -10,6 +32,8 @@ export async function runCheckoutCommunications(
   // Practice checkouts must never email real addresses or enqueue retention
   // campaigns containing their synthetic order/customer payloads.
   if (input.isDemo) return;
+
+  const ownerPushed = pushNewOrderToOwner(input);
 
   const payload = {
     orderId: input.orderId,
@@ -72,4 +96,6 @@ export async function runCheckoutCommunications(
   } catch (error) {
     console.error("[checkout] enqueue post-purchase email failed:", error);
   }
+
+  await ownerPushed;
 }
