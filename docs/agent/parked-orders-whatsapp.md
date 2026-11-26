@@ -1,9 +1,8 @@
-# Parked work: orders redesign, WhatsApp auto-confirm, web push
+# Parked work: orders redesign, WhatsApp auto-confirm
 
-Built and tested but NOT merged to main. Full code is in commit `5b2f122` on branch
-`claude/focused-pascal-ux52jx` (history is kept; the release commit on top only trims the merge).
-To restore: `git checkout 5b2f122 -- .` on a new branch, or cherry-pick the commits
-`21c722f` and `5b2f122`.
+Built and tested but NOT merged to main. Full code is in commit `5b2f122`, kept reachable by the head of
+PR #62 (`git fetch origin pull/62/head`). To restore a piece: `git checkout 5b2f122 -- <path>`.
+Lock-screen web push was taken out of this list and shipped separately.
 
 ## What is parked
 - Orders list redesign: date range filter (7d/30d/3m/all, default 30d), "Open" tab that hides delivered
@@ -12,7 +11,6 @@ To restore: `git checkout 5b2f122 -- .` on a new branch, or cherry-pick the comm
   WhatsApp template, webhook `/api/webhooks/whatsapp` classifies the reply
   (`packages/shared/lib/whatsapp-confirm-rules.ts`): confirm books PostEx, decline cancels, anything else
   flags the owner. Also extracts `bookOrderOnPostEx` into `postex-book-order-run.ts`.
-- Web push for a locked phone: `admin-push.ts`, `/api/admin/push/*`, `public/admin/sw.js`, needs `web-push`.
 
 ## Already live in Supabase (project Final-store)
 - `admin_delete_any_order` (shipped on main).

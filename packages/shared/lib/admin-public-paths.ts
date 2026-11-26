@@ -5,6 +5,7 @@ export function isAdminPublicPath(pathname: string): boolean {
     "/admin/forgot-password",
     "/admin/reset-password",
     "/admin/manifest.webmanifest", // manifest and home-screen icons are fetched without cookies
+    "/admin/sw.js", // push service worker is fetched by the browser without cookies
     "/admin/icons",
   ];
   return publicPrefixes.some(
