@@ -14,6 +14,7 @@ import {
   LIVE,
 } from "@/lib/db/store-query-foundation";
 import { mapPdpDetailFields, mapProduct } from "@/lib/db/map";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { withSale } from "@/lib/product-sale-rules";
 import { localPreviewProductBySlug, localPreviewProducts } from "@/lib/local-catalog-preview";
 import { pdpProductCacheTag } from "@/lib/gadget-pdp-lcp";
@@ -482,7 +483,7 @@ export async function fetchSitemapProducts(): Promise<
   const [{ data, error }, active] = await Promise.all([
     execDemoQuery(() =>
       demoFilter(
-        db().from("products").select("slug, category, updated_at").eq("status", LIVE),
+        db().from("products").select("slug, category, updated_at, price").eq("status", LIVE),
         false,
       ),
     ),
@@ -490,6 +491,8 @@ export async function fetchSitemapProducts(): Promise<
   ]);
   if (error) throw error;
   return (data ?? [])
+    // The PDP 404s a product without a positive price, so it must not be in the sitemap.
+    .filter((r) => isPurchasablePrice(Number(r.price)))
     .map((r) => ({
       slug: String(r.slug),
       category: r.category ? String(r.category) : undefined,
