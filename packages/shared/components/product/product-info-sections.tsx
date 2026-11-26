@@ -294,7 +294,7 @@ export function ReviewsSection({
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={imageUrl(review.image, { w: 400 })}
+                        src={imageUrl(review.image, { w: 240 })}
                         alt={`Photo from ${review.name ?? "customer"}`}
                         className="h-20 w-20 cursor-zoom-in rounded-lg border border-border/70 object-cover shadow-sm bg-muted/20 hover:opacity-80 transition-opacity"
                         loading="lazy"
