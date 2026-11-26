@@ -477,11 +477,13 @@ export function CartDrawer() {
                 className={gadget ? "bg-[var(--g-line)]" : undefined}
               />
               <div className="space-y-3 pt-3">
-                <FreeShippingBar
-                  subtotal={merchandise}
-                  threshold={config.freeShippingThreshold}
-                  gadget={gadget}
-                />
+                {items.some((item) => item.freeShipping) ? null : (
+                  <FreeShippingBar
+                    subtotal={merchandise}
+                    threshold={config.freeShippingThreshold}
+                    gadget={gadget}
+                  />
+                )}
 
                 <div className="flex items-center justify-between gap-2">
                   {gadget && config.codEnabled ? (

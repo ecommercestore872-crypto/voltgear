@@ -103,8 +103,12 @@ export default function CartPageClient() {
 
   const shippingFee = Number(config.shippingFee ?? 0);
   const threshold = Number(config.freeShippingThreshold ?? 0);
+  const allFreeShipping =
+    items.length > 0 && items.some((item) => item.freeShipping);
   const shipping =
-    subtotal === 0 || subtotal >= threshold ? 0 : shippingFee;
+    subtotal === 0 || subtotal >= threshold || allFreeShipping
+      ? 0
+      : shippingFee;
   const orderTotal = subtotal + shipping;
   const checkoutLink = useMemo(() => checkoutHref(gadget), [gadget]);
 
@@ -323,13 +327,15 @@ export default function CartPageClient() {
           className="premium-royal-surface premium-royal-enter premium-royal-enter-delay-2 h-fit min-w-0 rounded-2xl border-0 p-4 sm:p-6 lg:sticky lg:top-24"
         >
           <h2 className="font-semibold">Order summary</h2>
-          <div className="mt-3">
-            <FreeShippingBar
-              subtotal={subtotal}
-              threshold={threshold}
-              gadget={gadget}
-            />
-          </div>
+          {allFreeShipping ? null : (
+            <div className="mt-3">
+              <FreeShippingBar
+                subtotal={subtotal}
+                threshold={threshold}
+                gadget={gadget}
+              />
+            </div>
+          )}
           <Separator className="my-4" />
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
