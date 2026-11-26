@@ -9,6 +9,14 @@
  * nor a privacy signal stops it (see tracking-policy.ts). It stays off only on
  * admin/test/order pages and non-production hosts. Keep the checks below in
  * step with canSendMetaBrowserEvents().
+ *
+ * Timing: the fbq stub and PageView are queued at once (nothing is lost), but the
+ * 100 KB fbevents.js file is fetched only after the page's own load event (at most
+ * 3 s later). On a slow phone that file otherwise shares the connection with the
+ * product photo and delays it by about half a second. The server (Conversions API)
+ * PageView is sent as soon as the SDK has set the _fbp cookie, at once for returning
+ * visitors, and immediately if the visitor leaves or hides the page first, so quick
+ * bounces are still counted. Both copies share one event id, so Meta counts one.
  */
 /** Only used when NEXT_PUBLIC_TRACK_ALL_VISITORS=false: honour saved choices and privacy signals. */
 const CONSENT_GATE = `var c=w.localStorage.getItem('bnt-cookie-consent');
@@ -39,15 +47,28 @@ w.fbq=q;if(!w._fbq)w._fbq=q;
 q('consent','grant');q('set','autoConfig',false,id);q('init',id,um);
 w.__META_PIXEL_BOOTSTRAPPED__=true;
 var s=d.createElement('script');s.id='meta-pixel-sdk';s.async=true;s.src='https://connect.facebook.net/en_US/fbevents.js';
-(d.head||d.documentElement).appendChild(s);
 var e=uid();
 q('trackSingle',id,'PageView',{},{eventID:e});
 w.__META_PIXEL_LAST_PATHNAME__=p;w.__META_PAGEVIEW_SEQUENCE__=1;
-var t=0;(function m(){
-if(!/(?:^|;\\s*)_fbp=/.test(d.cookie)&&t++<5){w.setTimeout(m,200);return}
+var sent=0;
+function sv(){
+if(sent)return;sent=1;
 var b={eventName:'PageView',eventId:e,consent:null,pageUrl:l.origin+p};
 if(um.em)b.em=um.em;if(um.ph)b.ph=um.ph;
 w.fetch('/api/meta/events',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).catch(function(){})
-})();
+}
+function fp(){var t=0;(function m(){
+if(!/(?:^|;\\s*)_fbp=/.test(d.cookie)&&t++<5){w.setTimeout(m,200);return}
+sv()
+})()}
+var ld=0;
+function go(){if(ld)return;ld=1;s.onload=fp;s.onerror=sv;(d.head||d.documentElement).appendChild(s);w.setTimeout(sv,6000)}
+if(/(?:^|;\\s*)_fbp=/.test(d.cookie))sv();
+try{
+w.addEventListener('pagehide',sv);
+d.addEventListener('visibilitychange',function(){if(d.visibilityState==='hidden')sv()});
+if(d.readyState==='complete')go();
+else{w.addEventListener('load',function(){w.setTimeout(go,0)});w.setTimeout(go,3000)}
+}catch(x){go()}
 }catch(e){}})(window,document,${JSON.stringify(input.pixelId)},${input.testMode ? "true" : "false"});`;
 }

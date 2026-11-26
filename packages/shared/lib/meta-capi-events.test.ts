@@ -129,6 +129,104 @@ test("head script fires PageView immediately with event_id shared with the serve
   assert.equal(win.__META_PIXEL_LAST_PATHNAME__, "/");
 });
 
+/** A fake browser where the test controls the clock, the load event, page hiding and the _fbp cookie. */
+function runHeadLive(opts: { fbp?: boolean; readyState?: string; noListeners?: boolean } = {}) {
+  const posts: Array<{ url: string; body: any }> = [];
+  const jar: string[] = opts.fbp ? [`_fbp=${FBP}`] : [];
+  const appended: any[] = [];
+  const timers: Array<{ ms: number; f: () => void; done?: boolean }> = [];
+  const winL: Record<string, Array<() => void>> = {};
+  const docL: Record<string, Array<() => void>> = {};
+  const doc: any = {
+    readyState: opts.readyState ?? "loading", visibilityState: "visible",
+    get cookie() { return jar.join("; "); }, set cookie(v: string) { jar.push(v.split(";")[0]); },
+    head: { appendChild: (el: any) => appended.push(el) }, createElement: () => ({}),
+  };
+  const win: any = {
+    localStorage: { getItem: () => null }, navigator: {},
+    location: { pathname: "/product/buds", search: "?fbclid=AbC123", hash: "", hostname: "buyntryy.com", origin: "https://buyntryy.com" },
+    crypto: { randomUUID: () => "11111111-2222-3333-4444-555555555555" },
+    setTimeout: (f: () => void, ms: number) => { timers.push({ ms, f }); return timers.length; },
+    fetch: (url: string, init: any) => { posts.push({ url, body: JSON.parse(init.body) }); return Promise.resolve(); },
+    Date, Math, JSON,
+  };
+  if (!opts.noListeners) {
+    win.addEventListener = (n: string, f: () => void) => { (winL[n] ||= []).push(f); };
+    doc.addEventListener = (n: string, f: () => void) => { (docL[n] ||= []).push(f); };
+  }
+  win.window = win; win.document = doc;
+  vm.runInNewContext(metaPixelHeadScript({ pixelId: "1707417188053568", testMode: false }), win);
+  /** Run due timers up to `ms` virtual milliseconds, in order. */
+  const advance = (ms: number) => {
+    for (const t of [...timers].sort((a, b) => a.ms - b.ms)) if (!t.done && t.ms <= ms) { t.done = true; t.f(); }
+  };
+  return { win, doc, posts, appended, jar, winL, docL, advance };
+}
+
+test("head script queues PageView at once but loads fbevents.js only after the page load event", () => {
+  const h = runHeadLive();
+  assert.equal(h.win.fbq.queue.find((a: any) => a[0] === "trackSingle")[2], "PageView");
+  assert.equal(h.appended.length, 0, "SDK must not be fetched during page load");
+  assert.equal(h.posts.length, 0, "no _fbp yet: server copy waits for the SDK");
+  h.winL.load.forEach((f) => f());
+  h.advance(0);
+  assert.equal(h.appended.length, 1);
+  assert.equal(h.appended[0].src, "https://connect.facebook.net/en_US/fbevents.js");
+});
+
+test("head script still loads the SDK after 3 s if the load event never comes", () => {
+  const h = runHeadLive();
+  h.advance(2999);
+  assert.equal(h.appended.length, 0);
+  h.advance(3000);
+  assert.equal(h.appended.length, 1);
+});
+
+test("server PageView goes out once the SDK has set _fbp, carrying the browser event id", () => {
+  const h = runHeadLive();
+  h.advance(3000);
+  assert.equal(h.posts.length, 0);
+  h.jar.push(`_fbp=${FBP}`);
+  h.appended[0].onload();
+  h.advance(10000);
+  assert.equal(h.posts.length, 1);
+  assert.equal(h.posts[0].url, "/api/meta/events");
+  assert.equal(h.posts[0].body.eventName, "PageView");
+  assert.equal(h.posts[0].body.eventId, h.win.fbq.queue.find((a: any) => a[0] === "trackSingle")[4].eventID);
+});
+
+test("a visitor who leaves or hides the page before the SDK loads is still counted, exactly once", () => {
+  const h = runHeadLive();
+  h.doc.visibilityState = "hidden";
+  h.docL.visibilitychange.forEach((f) => f());
+  h.winL.pagehide.forEach((f) => f());
+  assert.equal(h.posts.length, 1);
+  h.advance(10000);
+  h.appended[0]?.onload?.();
+  h.advance(20000);
+  assert.equal(h.posts.length, 1, "never duplicated");
+});
+
+test("returning visitor with _fbp sends the server copy at once, like before", () => {
+  const h = runHeadLive({ fbp: true });
+  assert.equal(h.posts.length, 1);
+  assert.equal(h.appended.length, 0);
+});
+
+test("if the SDK is blocked the server copy is still sent, and a late send never duplicates", () => {
+  const h = runHeadLive();
+  h.advance(3000);
+  h.appended[0].onerror();
+  assert.equal(h.posts.length, 1);
+  h.advance(20000);
+  assert.equal(h.posts.length, 1);
+});
+
+test("page already complete, or a browser without addEventListener: SDK loads immediately", () => {
+  assert.equal(runHeadLive({ readyState: "complete" }).appended.length, 1);
+  assert.equal(runHeadLive({ noListeners: true }).appended.length, 1);
+});
+
 test("head script runs with no banner answer, but not after an explicit reject, with privacy signals, or on excluded pages/hosts", (t) => {
   legacyConsentPolicy(t);
   const fresh = runHead({});
