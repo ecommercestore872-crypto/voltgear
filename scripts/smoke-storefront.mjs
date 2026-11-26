@@ -12,8 +12,12 @@ if (!base) {
 }
 
 const get = async (url) => {
-  const res = await fetch(url, { redirect: "follow", headers: { "user-agent": "bnt-smoke/1" } });
-  return { status: res.status, body: await res.text() };
+  try {
+    const res = await fetch(url, { redirect: "follow", headers: { "user-agent": "bnt-smoke/1" } });
+    return { status: res.status, body: await res.text() };
+  } catch (e) {
+    return { status: 0, body: "" };
+  }
 };
 
 const failures = [];

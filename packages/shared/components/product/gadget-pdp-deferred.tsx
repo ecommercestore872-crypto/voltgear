@@ -144,10 +144,7 @@ export async function GadgetPdpDeferred({
             { name: "Smartwatches", path: "/products/smartwatch" },
             { name: "Earbuds & audio", path: "/products/earbuds" },
             { name: "Power banks", path: "/products/power-bank" },
-            { name: "Microphones", path: "/products/microphones" },
-            { name: "Tripods", path: "/products/tripod" },
-            { name: "Ring lights", path: "/products/ring-light" },
-            { name: "Chargers", path: "/products/charger" },
+            { name: "Accessories", path: "/products/accessories" },
           ].map((link) => (
             <Link
               key={link.name}
