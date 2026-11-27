@@ -194,7 +194,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: resolution.error }, { status: 400 });
     }
 
-    const { lines, subtotal, allFreeShipping } = resolution.checkout;
+    const { lines, subtotal, anyFreeShipping } = resolution.checkout;
     const gift = giftWrap === true;
     const pricingResult = await resolveCheckoutPricing({
       lines,
@@ -203,7 +203,7 @@ export async function POST(request: Request) {
       promoCode: body.promoCode,
       email,
       deals: dealsList,
-      allFreeShipping,
+      anyFreeShipping,
     });
     if (!pricingResult.ok) {
       if (pricingResult.code === "promo_error") {

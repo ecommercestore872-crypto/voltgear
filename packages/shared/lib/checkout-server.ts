@@ -61,7 +61,7 @@ export interface ResolvedCheckout {
   shipping: number;
   total: number;
   /** True when every line is a free-shipping product. */
-  allFreeShipping: boolean;
+  anyFreeShipping: boolean;
 }
 
 export interface CheckoutResolution {
@@ -131,7 +131,7 @@ export async function resolveCheckout(
   const mismatched: PriceMismatch[] = [];
   let subtotal = 0;
   // True when ANY line has free shipping: one free-shipping item makes the whole order ship free.
-  let allFreeShipping = false;
+  let anyFreeShipping = false;
 
   for (const line of items) {
     const slug = typeof line.slug === "string" ? line.slug.trim() : "";
@@ -175,7 +175,7 @@ export async function resolveCheckout(
       return { ok: false, error: CHECKOUT_ERRORS.unavailable };
     }
 
-    if (product.freeShipping) allFreeShipping = true;
+    if (product.freeShipping) anyFreeShipping = true;
 
     const variants = product.variants ?? [];
     const variantKey = typeof line.variantKey === "string" ? line.variantKey : undefined;
@@ -257,8 +257,8 @@ export async function resolveCheckout(
     });
   }
 
-  const { shipping, total } = await resolveShippingAndTotal(subtotal, giftWrap, allFreeShipping);
-  const checkout: ResolvedCheckout = { lines, subtotal, shipping, total, allFreeShipping };
+  const { shipping, total } = await resolveShippingAndTotal(subtotal, giftWrap, anyFreeShipping);
+  const checkout: ResolvedCheckout = { lines, subtotal, shipping, total, anyFreeShipping };
 
   if (mismatched.length > 0) {
     return { ok: "price_changed", items: mismatched, checkout };
@@ -273,7 +273,7 @@ export async function resolveCheckout(
 export async function resolveShippingAndTotal(
   subtotal: number,
   giftWrap: boolean,
-  allFreeShipping: boolean = false
+  anyFreeShipping: boolean = false
 ): Promise<{ shipping: number; total: number }> {
   let settings: SiteSettings | null = null;
   try {
@@ -282,7 +282,7 @@ export async function resolveShippingAndTotal(
     settings = null;
   }
   const config = normalizeSettings(settings);
-  const shipping = isShippingFree(subtotal, config.freeShippingThreshold, allFreeShipping)
+  const shipping = isShippingFree(subtotal, config.freeShippingThreshold, anyFreeShipping)
     ? 0
     : config.shippingFee;
   const total = Math.round((subtotal + shipping + (giftWrap ? GIFT_WRAP_FEE : 0)) * 100) / 100;

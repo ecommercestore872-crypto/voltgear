@@ -149,6 +149,11 @@ export function indexSiteUrl(env: Record<string, string | undefined> = process.e
   return live.replace(/\/+$/, "");
 }
 
+/** Share image for pages without their own; relative URL resolves against metadataBase. */
+export const DEFAULT_OG_IMAGES = [
+  { url: "/brand/bnt-seal.png", width: 512, height: 512, alt: "Buy n Try" },
+];
+
 export function absoluteUrl(path: string, siteUrl = indexSiteUrl()): string {
   if (/^https?:\/\//i.test(path)) return path;
   const slash = path.startsWith("/") ? path : `/${path}`;

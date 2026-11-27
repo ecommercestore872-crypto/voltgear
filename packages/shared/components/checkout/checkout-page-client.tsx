@@ -207,11 +207,11 @@ export default function CheckoutPageClient() {
 
   const GIFT_WRAP_FEE = 199;
 
-  const allFreeShipping = items.length > 0 && items.some((item) => item.freeShipping);
+  const anyFreeShipping = items.length > 0 && items.some((item) => item.freeShipping);
   const baseShipping =
     merchandise === 0 ||
     merchandise >= config.freeShippingThreshold ||
-    allFreeShipping
+    anyFreeShipping
       ? 0
       : config.shippingFee;
   const promoStacks = !(dealDiscount > 0);
@@ -784,7 +784,7 @@ export default function CheckoutPageClient() {
                 <div className="mt-3 lg:hidden">
                   <CheckoutCodAssist
                     compact
-                    allFreeShipping={allFreeShipping}
+                    anyFreeShipping={anyFreeShipping}
                     freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
                     shippingFee={Number(config.shippingFee ?? 0)}
                     whatsappNumber={config.whatsappNumber}
@@ -794,7 +794,7 @@ export default function CheckoutPageClient() {
 
                 <div className="mt-4 hidden lg:block">
                   <CheckoutCodAssist
-                    allFreeShipping={allFreeShipping}
+                    anyFreeShipping={anyFreeShipping}
                     freeShippingThreshold={Number(config.freeShippingThreshold ?? 0)}
                     shippingFee={Number(config.shippingFee ?? 0)}
                     whatsappNumber={config.whatsappNumber}

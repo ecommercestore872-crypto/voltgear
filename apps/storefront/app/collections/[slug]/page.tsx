@@ -4,7 +4,10 @@ import { Suspense } from "react";
 
 import { GadgetShopCatalogClient } from "@/components/gadget/gadget-shop-catalog-client";
 import { FALLBACK_SHOP_TYPES } from "@/lib/categories";
-import { getStorefrontCollectionBySlug } from "@/lib/db/collection-store";
+import {
+  fetchSitemapCollections,
+  getStorefrontCollectionBySlug,
+} from "@/lib/db/collection-store";
 import { fetchShopTypes } from "@/lib/db/store";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
@@ -12,6 +15,12 @@ import { collectionHref } from "@/lib/gadget-preview";
 import { normalizeSettings } from "@/lib/site-config";
 
 export const revalidate = 300;
+
+/** Pre-render known collections so they are CDN-cached like product pages. */
+export async function generateStaticParams() {
+  const rows = await fetchSitemapCollections().catch(() => []);
+  return rows.map(({ slug }) => ({ slug }));
+}
 
 export async function generateMetadata(
   props: {

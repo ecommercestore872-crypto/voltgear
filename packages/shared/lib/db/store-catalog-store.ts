@@ -14,6 +14,7 @@ import {
   LIVE,
 } from "@/lib/db/store-query-foundation";
 import { mapPdpDetailFields, mapProduct } from "@/lib/db/map";
+import { isPurchasablePrice } from "@/lib/product-price-rules";
 import { withSale } from "@/lib/product-sale-rules";
 import { localPreviewProductBySlug, localPreviewProducts } from "@/lib/local-catalog-preview";
 import { pdpProductCacheTag } from "@/lib/gadget-pdp-lcp";
@@ -475,14 +476,14 @@ export async function fetchProductSlugs(): Promise<{ slug: string }[]> {
   return (data ?? []).map((r) => ({ slug: String(r.slug) }));
 }
 
-/** Live products whose category is active (same gate as the PDP, so no 404/noindex URLs). */
+/** Live, purchasable-price products whose category is active (same gate as the PDP, so no 404/noindex URLs). */
 export async function fetchSitemapProducts(): Promise<
   { slug: string; category?: string; _updatedAt?: string }[]
 > {
   const [{ data, error }, active] = await Promise.all([
     execDemoQuery(() =>
       demoFilter(
-        db().from("products").select("slug, category, updated_at").eq("status", LIVE),
+        db().from("products").select("slug, category, updated_at, price").eq("status", LIVE),
         false,
       ),
     ),
@@ -490,6 +491,7 @@ export async function fetchSitemapProducts(): Promise<
   ]);
   if (error) throw error;
   return (data ?? [])
+    .filter((r) => isPurchasablePrice(Number(r.price)))
     .map((r) => ({
       slug: String(r.slug),
       category: r.category ? String(r.category) : undefined,

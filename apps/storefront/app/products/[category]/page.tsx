@@ -17,6 +17,7 @@ import {
   categoryRelatedGuide,
   categorySearchMeta,
   categoryStructuredData,
+  DEFAULT_OG_IMAGES,
   indexSiteUrl,
   storeAlternatesLanguages,
   CATEGORY_FAQS,
@@ -29,6 +30,14 @@ import {
 } from "@/components/ui/accordion";
 
 export const revalidate = 300;
+
+/** Pre-render known categories so they are CDN-cached like product pages. */
+export async function generateStaticParams() {
+  const types = await fetchShopTypes().catch(() => FALLBACK_SHOP_TYPES);
+  return (types.length ? types : FALLBACK_SHOP_TYPES).map(({ slug }) => ({
+    category: slug,
+  }));
+}
 
 export async function generateMetadata(
   props: {
@@ -66,6 +75,7 @@ export async function generateMetadata(
       title: seo.title,
       description: seo.description,
       type: "website",
+      images: DEFAULT_OG_IMAGES,
     },
   };
 }

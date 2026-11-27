@@ -18,6 +18,7 @@ import { StorefrontPromoPopup } from "@/components/promotions/storefront-promo-p
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { getPublicSocialLinks } from "@/lib/social-links-rules";
 import {
+  DEFAULT_OG_IMAGES,
   indexSiteUrl,
   organizationStructuredData,
   websiteStructuredData,
@@ -87,9 +88,11 @@ export const metadata: Metadata = {
     description:
       "Explore tripods, earbuds, smartwatches, chargers and adapters at Buy n Try. View product details and listed prices.",
     url: SITE_URL,
+    images: DEFAULT_OG_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
+    images: DEFAULT_OG_IMAGES.map((image) => image.url),
     title: "Buy n Try — Electronics Accessories in Pakistan",
     description:
       "Explore tripods, wireless earbuds, smartwatches, power banks, adapters and chargers at Buy n Try.",

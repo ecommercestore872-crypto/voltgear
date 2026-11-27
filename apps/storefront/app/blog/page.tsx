@@ -11,7 +11,7 @@ import type { Page } from "@/lib/types";
 import { FALLBACK_BLOG_POSTS } from "@/lib/blog-data";
 import { publicSiteUrl } from "@/lib/deploy-rules";
 import { mergeBlogCatalog, sortBlogPostsForHome } from "@/lib/blog-desk-rules";
-import { storeAlternatesLanguages } from "@/lib/seo-rules";
+import { DEFAULT_OG_IMAGES, storeAlternatesLanguages } from "@/lib/seo-rules";
 
 export const metadata: Metadata = {
   title: "Buying guides: earbuds, GaN chargers, power banks",
@@ -32,6 +32,7 @@ export const metadata: Metadata = {
     description:
       "Practical Pakistan guides for earbuds, GaN chargers, power banks, and COD.",
     type: "website",
+    images: DEFAULT_OG_IMAGES,
   },
 };
 

@@ -4,13 +4,13 @@ import Link from "next/link";
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { fetchPageBySlug } from "@/lib/db/store";
-import { isDemoSession } from "@/lib/demo";
 import { imageUrl } from "@/lib/sanity/image";
 import type { Page } from "@/lib/types";
 
 export async function loadCmsPage(slug: string): Promise<Page | null> {
   try {
-    return await fetchPageBySlug(slug, await isDemoSession());
+    // Public pages never read cookies, so they stay CDN-cacheable.
+    return await fetchPageBySlug(slug, false);
   } catch {
     return null;
   }

@@ -12,9 +12,9 @@ export function CheckoutCodAssist({
   whatsappNumber,
   supportPhone,
   compact = false,
-  allFreeShipping = false,
+  anyFreeShipping = false,
 }: {
-  allFreeShipping?: boolean;
+  anyFreeShipping?: boolean;
   freeShippingThreshold: number;
   shippingFee: number;
   whatsappNumber?: string | null;
@@ -25,8 +25,8 @@ export function CheckoutCodAssist({
     whatsappNumber,
     phone: supportPhone,
   });
-  const freeOver = allFreeShipping
-    ? "✅ Free delivery on your order"
+  const freeOver = anyFreeShipping
+    ? "Free delivery on your order"
     : freeShippingThreshold > 0
       ? `Free delivery on orders over ${formatPrice(freeShippingThreshold)}`
       : null;
@@ -67,7 +67,7 @@ export function CheckoutCodAssist({
         <p className="flex items-start gap-2 text-[var(--g-taupe)]">
           <Truck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <span>
-            {allFreeShipping ? (
+            {anyFreeShipping ? (
               freeOver
             ) : freeOver ? (
               <>

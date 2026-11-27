@@ -686,7 +686,7 @@ export function ProductForm({
               checked={Boolean(doc.freeShipping)}
               onChange={(e) => set("freeShipping", e.target.checked)}
             />
-            Free shipping — waived when every item in the cart has it
+            Free shipping — if this item is in the cart, delivery is free for the whole order
           </label>
           <div className="space-y-1.5">
             <Label htmlFor="seoTitle">SEO title override (optional)</Label>

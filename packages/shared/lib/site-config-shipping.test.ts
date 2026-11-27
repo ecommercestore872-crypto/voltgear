@@ -4,10 +4,10 @@ import { describe, it } from "node:test";
 import { isShippingFree } from "./site-config";
 
 describe("isShippingFree", () => {
-  it("is free when every item has free shipping, even under the threshold", () => {
+  it("is free when any item has free shipping, even under the threshold", () => {
     assert.equal(isShippingFree(500, 5000, true), true);
   });
-  it("charges a mixed cart under the threshold", () => {
+  it("charges a cart with no free-shipping item under the threshold", () => {
     assert.equal(isShippingFree(500, 5000, false), false);
   });
   it("still honours the site-wide threshold", () => {

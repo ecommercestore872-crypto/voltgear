@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { GadgetHomePage } from "@/components/gadget/gadget-home-page";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
-import { storeAlternatesLanguages } from "@/lib/seo-rules";
+import { DEFAULT_OG_IMAGES, storeAlternatesLanguages } from "@/lib/seo-rules";
 import type { SiteSettings } from "@/lib/types";
 
 export const revalidate = 300;
@@ -32,6 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       type: "website",
       url: "https://buyntryy.com/",
+      images: DEFAULT_OG_IMAGES,
     },
     twitter: { card: "summary_large_image", title, description },
   };

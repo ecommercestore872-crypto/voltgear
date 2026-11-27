@@ -2,8 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isCheckoutPage = pathname.startsWith("/checkout");
 
-  if (pathname.startsWith("/checkout") || pathname.startsWith("/api/checkout")) {
+  if (isCheckoutPage || pathname.startsWith("/api/checkout")) {
     const country = request.headers.get("x-vercel-ip-country");
     if (country && country !== "PK") {
       const lockOutUrl = request.nextUrl.clone();
@@ -13,15 +14,13 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname !== "/") {
+  // The city cookie only prefills checkout, so set it there. Running middleware on "/"
+  // kept the homepage from being CDN-cached.
+  if (!isCheckoutPage || request.cookies.get("visitor-city")) {
     return NextResponse.next();
   }
 
   const response = NextResponse.next();
-  if (request.cookies.get("visitor-city")) {
-    return response;
-  }
-
   const city = request.headers.get("x-vercel-ip-city");
   if (city) {
     response.cookies.set("visitor-city", encodeURIComponent(city), {
@@ -35,7 +34,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-/** Edge only on checkout (geo) and home (one-time city cookie) — not every page view. */
+/** Edge only on checkout (geo + one-time city cookie) — not every page view. */
 export const config = {
-  matcher: ["/checkout/:path*", "/api/checkout/:path*", "/"],
+  matcher: ["/checkout/:path*", "/api/checkout/:path*"],
 };

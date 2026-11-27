@@ -16,7 +16,7 @@ import {
 import { fetchShopTypes } from "@/lib/db/store";
 import { fetchCityIntros } from "@/lib/db/city-seo-store";
 import { cityMetaDescription, cleanText } from "@/lib/onpage-seo";
-import { indexSiteUrl, storeAlternatesLanguages } from "@/lib/seo-rules";
+import { DEFAULT_OG_IMAGES, indexSiteUrl, storeAlternatesLanguages } from "@/lib/seo-rules";
 
 export const revalidate = 3600;
 
@@ -36,7 +36,7 @@ export async function generateMetadata(props: { params: Promise<{ city: string }
     title: { absolute: title },
     description,
     alternates: { canonical: path, languages: storeAlternatesLanguages(path).languages },
-    openGraph: { title, description, type: "website", url: path },
+    openGraph: { title, description, type: "website", url: path, images: DEFAULT_OG_IMAGES },
   };
 }
 

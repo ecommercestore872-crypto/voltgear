@@ -10,6 +10,7 @@ import {
 import { applyGadgetStudioImagesList } from "@/lib/gadget-product-images";
 import { loadStorefrontSettings } from "@/lib/db/storefront-shell";
 import {
+  DEFAULT_OG_IMAGES,
   shopCatalogSearchMeta,
   storeAlternatesLanguages,
 } from "@/lib/seo-rules";
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
     title: shopMeta.title,
     description: catalogDescription,
     type: "website",
+    images: DEFAULT_OG_IMAGES,
   },
 };
 

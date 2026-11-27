@@ -16,6 +16,9 @@ export async function GadgetHomePage() {
   return (
     // Keep the footer below the viewport while lower sections stream in.
     <div className="min-h-dvh text-[var(--g-charcoal)]">
+      <h1 className="sr-only">
+        Buy n Try: earbuds, smartwatches, power banks and chargers in Pakistan
+      </h1>
       {hero}
       <GadgetHomeTrust settings={settings} />
       <div className="min-h-dvh">

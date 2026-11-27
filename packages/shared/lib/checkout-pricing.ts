@@ -26,7 +26,7 @@ export async function resolveCheckoutPricing(input: {
   promoCode?: string;
   email: string;
   deals: DealRecord[];
-  allFreeShipping?: boolean;
+  anyFreeShipping?: boolean;
 }): Promise<CheckoutPricingResult> {
   let dealDiscount = 0;
   try {
@@ -46,7 +46,7 @@ export async function resolveCheckoutPricing(input: {
     0,
     Math.round((input.subtotal - dealDiscount) * 100) / 100,
   );
-  const shipped = await resolveShippingAndTotal(merchandise, input.gift, input.allFreeShipping);
+  const shipped = await resolveShippingAndTotal(merchandise, input.gift, input.anyFreeShipping);
   let finalShipping = shipped.shipping;
   let finalTotal = shipped.total;
   let discount = dealDiscount;
