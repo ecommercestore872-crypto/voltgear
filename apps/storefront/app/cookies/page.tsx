@@ -15,6 +15,7 @@ export default function CookiesPage() {
   return (
     <GadgetArticleShell
       eyebrow="Legal"
+      breadcrumb={{ name: "Cookie policy", path: "/cookies" }}
       title="Cookie policy"
       description={`${SHOPPER_BRAND.spokenName} uses cookies so the shop works and to measure visits, orders and our own ads.`}
       backHref="/privacy-policy"

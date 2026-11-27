@@ -12,7 +12,7 @@ import { ProductViewTrackerLoader } from "./product-view-tracker-loader";
 import { applyGadgetStudioImages } from "@/lib/gadget-product-images";
 import { products2Href } from "@/lib/gadget-preview";
 import { loadPdpProductBySlug, loadPdpProductDetailsBySlug, loadPdpReviewStats } from "@/lib/db/product-pdp";
-import { productSeoTitle } from "@/lib/onpage-seo";
+import { productSeoTitle, trimMetaDescription } from "@/lib/onpage-seo";
 import { EMPTY_APPROVED_REVIEW_STATS } from "@/lib/product-review-stats";
 import { fetchProductSlugs } from "@/lib/db/store";
 import { stripProductForPdpClient } from "@/lib/pdp-client-payload";
@@ -53,9 +53,11 @@ export async function generateMetadata(
     seoTitle: product.seoTitle,
   });
 
-  const description = product.shortDescription
-    ? `${product.shortDescription} View product details and the listed price at Buy n Try.`
-    : `View the ${product.name} product details, specifications and listed price at Buy n Try.`;
+  const description = trimMetaDescription(
+    product.shortDescription
+      ? `${product.shortDescription} View product details and the listed price at Buy n Try.`
+      : `View the ${product.name} product details, specifications and listed price at Buy n Try.`,
+  );
   const siteUrl = indexSiteUrl();
   const url = `${siteUrl}/product/${product.slug}`;
   const firstImg = product.images?.[0]
@@ -150,6 +152,11 @@ export default async function Product2Page(
     reviewCount: reviewStats.count > 0 ? reviewStats.count : undefined,
     shippingFee: product.freeShipping ? 0 : config.shippingFee,
     returnDays: config.returnWindowDays ?? undefined,
+    // withSale clears saleEndsAt once a sale has ended, so a value here is a live sale.
+    priceValidUntil:
+      product.saleEndsAt && (product.compareAtPrice ?? 0) > product.price
+        ? product.saleEndsAt.slice(0, 10)
+        : undefined,
   });
 
   const breadcrumbJsonLd = {

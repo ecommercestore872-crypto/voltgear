@@ -27,6 +27,7 @@ export default async function WarrantyPage() {
   return (
     <GadgetSupportLayout
       eyebrow="Care"
+      breadcrumb={{ name: "Warranty policy", path: "/warranty" }}
       title="Warranty policy"
       description="Every Buy n Try product is backed by our commitment to quality. Here’s what’s covered and how to claim."
       related={[

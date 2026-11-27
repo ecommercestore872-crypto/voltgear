@@ -36,6 +36,7 @@ export default async function AboutPage() {
   return (
     <GadgetArticleShell
       eyebrow="Company"
+      breadcrumb={{ name: "About", path: "/about" }}
       title={page?.title || `About ${brand}`}
       description={
         page?.excerpt ||

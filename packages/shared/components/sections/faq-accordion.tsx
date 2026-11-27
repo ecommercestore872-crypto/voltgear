@@ -1,29 +1,27 @@
-"use client";
+import { ChevronDown } from "lucide-react";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
+/** Native details/summary: the answers are in the server HTML, so crawlers and AI tools can read them. */
 export function FAQAccordion({
   items,
 }: {
   items: { question: string; answer: string }[];
 }) {
   return (
-    <Accordion type="single" collapsible className="mt-6 w-full">
+    <div className="mt-6 w-full">
       {items.map((item, i) => (
-        <AccordionItem key={i} value={`faq-${i}`}>
-          <AccordionTrigger className="text-left font-medium">
+        <details key={i} className="group border-b">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between py-4 text-left font-medium hover:underline [&::-webkit-details-marker]:hidden">
             {item.question}
-          </AccordionTrigger>
-          <AccordionContent className="leading-relaxed text-muted-foreground">
+            <ChevronDown
+              className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <p className="pb-4 text-sm leading-relaxed text-muted-foreground">
             {item.answer}
-          </AccordionContent>
-        </AccordionItem>
+          </p>
+        </details>
       ))}
-    </Accordion>
+    </div>
   );
 }

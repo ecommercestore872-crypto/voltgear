@@ -34,6 +34,7 @@ export default async function TermsPage() {
   return (
     <GadgetArticleShell
       eyebrow="Legal"
+      breadcrumb={{ name: "Terms and conditions", path: "/terms-of-service" }}
       title={page?.title || "Terms and conditions"}
       description={
         page?.excerpt ||

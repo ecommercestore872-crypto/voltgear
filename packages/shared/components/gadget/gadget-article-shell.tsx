@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
+import { BreadcrumbJsonLd } from "@/components/layout/breadcrumb-json-ld";
 import { ContentBlocks } from "@/components/sections/content-blocks";
 import { fetchPageBySlug } from "@/lib/db/store";
 import { imageUrl } from "@/lib/sanity/image";
@@ -24,6 +25,7 @@ export function GadgetArticleShell({
   children,
   backHref,
   backLabel,
+  breadcrumb,
 }: {
   eyebrow: string;
   title: string;
@@ -32,11 +34,13 @@ export function GadgetArticleShell({
   children: React.ReactNode;
   backHref?: string;
   backLabel?: string;
+  breadcrumb?: { name: string; path: string };
 }) {
   return (
     <div
       className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}
     >
+      {breadcrumb ? <BreadcrumbJsonLd {...breadcrumb} /> : null}
       <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
         <div className="mx-auto max-w-3xl px-4 py-10 lg:px-8">
           <p className="gadget-eyebrow">{eyebrow}</p>

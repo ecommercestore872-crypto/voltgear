@@ -337,6 +337,8 @@ export function productStructuredData(input: {
   reviewCount?: number;
   shippingFee?: number;
   returnDays?: number;
+  /** YYYY-MM-DD; only for a price that really ends (an active sale with an end time). */
+  priceValidUntil?: string;
 }) {
   const sellerName = input.sellerName || SHOPPER_BRAND.spokenName;
   const manufacturerBrand = input.brand?.trim();
@@ -351,8 +353,9 @@ export function productStructuredData(input: {
     priceCurrency: currency,
     availability: input.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     itemCondition: "https://schema.org/NewCondition",
-    seller: { "@type": "Organization", name: sellerName },
+    seller: { "@type": "Organization", name: sellerName, url: indexSiteUrl() },
   };
+  if (input.priceValidUntil) offers.priceValidUntil = input.priceValidUntil;
   if (typeof input.shippingFee === "number" && input.shippingFee >= 0) {
     offers.shippingDetails = {
       "@type": "OfferShippingDetails",

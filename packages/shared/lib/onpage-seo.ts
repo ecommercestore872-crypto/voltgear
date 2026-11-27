@@ -63,6 +63,15 @@ export function productKeySpec(
   return undefined;
 }
 
+const TITLE_TARGET = 70;
+
+/** Long marketing names: keep the part before the first dash, comma or pipe, only when the title runs long. */
+function shortProductName(name: string, room: number): string {
+  if (name.length <= room) return name;
+  const cut = name.search(/\s[–—-]\s|,\s|\s\|\s/);
+  return cut >= 12 ? name.slice(0, cut).trim() : name;
+}
+
 /** `<name> <key spec> Price in Pakistan | Buy n Try`, unless the admin set an override. */
 export function productSeoTitle(input: {
   name: string;
@@ -72,7 +81,19 @@ export function productSeoTitle(input: {
   const override = cleanText(input.seoTitle);
   if (override) return override;
   const spec = productKeySpec(input.name, input.specifications);
-  return `${input.name}${spec ? ` ${spec}` : ""} Price in Pakistan | ${SHOPPER_BRAND.spokenName}`;
+  const specPart = spec ? ` ${spec}` : "";
+  const suffix = ` Price in Pakistan | ${SHOPPER_BRAND.spokenName}`;
+  const name = shortProductName(input.name, TITLE_TARGET - suffix.length - specPart.length);
+  return `${name}${specPart}${suffix}`;
+}
+
+/** Meta description cut at a word boundary so search results do not truncate mid-sentence. */
+export function trimMetaDescription(text: string, max = 160): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) return trimmed;
+  const slice = trimmed.slice(0, max - 3);
+  const space = slice.lastIndexOf(" ");
+  return `${(space > 80 ? slice.slice(0, space) : slice).trimEnd()}...`;
 }
 
 export type CategorySeoFields = {

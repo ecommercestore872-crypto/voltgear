@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { gadgetFontClass } from "@/components/gadget/gadget-fonts";
+import { BreadcrumbJsonLd } from "@/components/layout/breadcrumb-json-ld";
 
 export function GadgetSupportLayout({
   eyebrow = "Care",
@@ -9,17 +10,20 @@ export function GadgetSupportLayout({
   description,
   children,
   related,
+  breadcrumb,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   children: ReactNode;
   related?: { href: string; label: string }[];
+  breadcrumb?: { name: string; path: string };
 }) {
   return (
     <div
       className={`gadget-theme ${gadgetFontClass} bg-[var(--g-cream)] text-[var(--g-charcoal)]`}
     >
+      {breadcrumb ? <BreadcrumbJsonLd {...breadcrumb} /> : null}
       <div className="border-b border-[var(--g-line)] bg-[var(--g-cream-deep)]">
         <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10 lg:px-8">
           <p className="gadget-eyebrow">{eyebrow}</p>

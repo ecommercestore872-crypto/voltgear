@@ -24,6 +24,7 @@ export default async function ShippingReturnsPage() {
   return (
     <GadgetSupportLayout
       eyebrow="Care"
+      breadcrumb={{ name: "Shipping & returns", path: "/shipping-returns" }}
       title="Shipping & returns"
       description="Clear delivery expectations, exchanges, and refunds — so you know what happens after you order."
       related={[

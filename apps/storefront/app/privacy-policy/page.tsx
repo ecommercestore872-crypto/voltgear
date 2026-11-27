@@ -34,6 +34,7 @@ export default async function PrivacyPolicyPage() {
   return (
     <GadgetArticleShell
       eyebrow="Legal"
+      breadcrumb={{ name: "Privacy policy", path: "/privacy-policy" }}
       title={page?.title || "Privacy policy"}
       description={
         page?.excerpt ||

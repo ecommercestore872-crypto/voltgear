@@ -8,6 +8,7 @@ import {
   productKeySpec,
   productSeoTitle,
   resolveCategorySeo,
+  trimMetaDescription,
 } from "./onpage-seo";
 
 describe("productSeoTitle", () => {
@@ -22,6 +23,16 @@ describe("productSeoTitle", () => {
     assert.equal(
       productSeoTitle({ name: "Power Bank 20000mAh", specifications: [{ label: "Capacity", value: "20000 mAh" }] }),
       "Power Bank 20000mAh Price in Pakistan | Buy n Try",
+    );
+  });
+  it("drops the marketing tail only when the title would run long", () => {
+    assert.equal(
+      productSeoTitle({ name: "REBORN RS-7999 True Wireless Gaming Earbuds – Stereo Sound, Built-in Mic & Charging Case" }),
+      "REBORN RS-7999 True Wireless Gaming Earbuds Price in Pakistan | Buy n Try",
+    );
+    assert.equal(
+      productSeoTitle({ name: "Short Name – With Tail" }),
+      "Short Name – With Tail Price in Pakistan | Buy n Try",
     );
   });
   it("admin override wins", () => {
@@ -55,6 +66,16 @@ describe("category seo", () => {
   it("cleans faq and guide", () => {
     assert.deepEqual(cleanFaq("x"), []);
     assert.deepEqual(guideParagraphs(undefined), []);
+  });
+});
+
+describe("trimMetaDescription", () => {
+  it("keeps short text and cuts long text at a word", () => {
+    assert.equal(trimMetaDescription("  Short.  "), "Short.");
+    const long = `${"word ".repeat(60)}end`;
+    const out = trimMetaDescription(long);
+    assert.ok(out.length <= 160);
+    assert.ok(out.endsWith("word..."));
   });
 });
 

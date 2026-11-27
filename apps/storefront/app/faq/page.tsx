@@ -54,6 +54,7 @@ export default async function FaqPage() {
   return (
     <GadgetSupportLayout
       eyebrow="Care"
+      breadcrumb={{ name: "FAQs", path: "/faq" }}
       title="Customer care"
       description="Quick answers on payments, orders, and delivery. Still stuck? WhatsApp or call us."
       related={[
